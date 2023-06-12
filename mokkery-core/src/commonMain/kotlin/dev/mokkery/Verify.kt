@@ -3,21 +3,21 @@ package dev.mokkery
 
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.CallTemplateRegistry
-import dev.mokkery.verify.ExhaustiveSoftVerifier
 import dev.mokkery.verify.ExhaustiveOrderVerifier
+import dev.mokkery.verify.ExhaustiveSoftVerifier
 import dev.mokkery.verify.NotVerifier
-import dev.mokkery.verify.SoftVerifier
 import dev.mokkery.verify.OrderVerifier
+import dev.mokkery.verify.SoftVerifier
 import dev.mokkery.verify.VerifyMode
-import dev.mokkery.verify.VerifyMode.Companion.soft
+import dev.mokkery.verify.VerifyMode.Companion.default
 
 public fun verify(
-    mode: VerifyMode = defaultMode,
+    mode: VerifyMode = default,
     block: ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
 
 public suspend fun verifySuspend(
-    mode: VerifyMode = defaultMode,
+    mode: VerifyMode = default,
     block: suspend ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
 
@@ -30,17 +30,15 @@ public fun verifyNoMoreCalls(vararg mocks: Any) {
     }
 }
 
-internal val defaultMode = soft
-
 internal fun internalVerify(
     mocks: Array<Any>,
-    mode: VerifyMode = defaultMode,
+    mode: VerifyMode = default,
     block: ArgMatchersScope.() -> Unit
 ) = internalBaseVerify(mocks, mode, block)
 
 internal suspend fun internalVerifySuspend(
     mocks: Array<Any>,
-    mode: VerifyMode = defaultMode,
+    mode: VerifyMode = default,
     block: suspend ArgMatchersScope.() -> Unit
 ) = internalBaseVerify(mocks, mode) { block() }
 
