@@ -11,9 +11,11 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irVararg
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
@@ -36,8 +38,8 @@ fun IrBuilderWithScope.kClassReferenceUnified(context: IrPluginContext, classTyp
     }
 }
 
-fun IrBuilderWithScope.irAnyVarargParams(parameters: List<IrValueParameter>) = irVararg(context.irBuiltIns.anyType, parameters.map { irGet(it) })
-
+fun IrBuilderWithScope.irAnyVarargParams(parameters: List<IrValueParameter>) =
+    irVararg(context.irBuiltIns.anyType, parameters.map { irGet(it) })
 
 fun IrBuilderWithScope.irVararg(values: List<IrExpression>) = irVararg(context.irBuiltIns.anyType, values)
 
@@ -61,3 +63,13 @@ inline fun IrProperty.addSetter(builder: IrFunctionBuilder.() -> Unit = {}): IrS
 fun IrSimpleFunction.nonGenericReturnTypeOrAny(
     context: IrGeneratorContext
 ) = if (!returnType.isTypeParameter()) returnType else context.irBuiltIns.anyNType
+
+fun IrExpression.locationInFile(file: IrFile): String {
+    return buildString {
+        append(file.path)
+        append(":")
+        append(file.fileEntry.getLineNumber(startOffset) + 1)
+        append(":")
+        append(file.fileEntry.getColumnNumber(startOffset) + 1)
+    }
+}

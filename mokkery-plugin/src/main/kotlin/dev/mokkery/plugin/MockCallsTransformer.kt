@@ -3,12 +3,11 @@ package dev.mokkery.plugin
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.functionByName
-import org.jetbrains.kotlin.backend.jvm.ir.kClassReference
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
-import org.jetbrains.kotlin.ir.backend.js.utils.getClassRef
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
+import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
@@ -26,12 +25,11 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
@@ -66,16 +64,16 @@ class MockCallsTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         if (function.kotlinFqName != MokkeryDeclarations.mockFunctionName) return super.visitCall(expression)
-        val typeToMock = expression.typeArguments.firstOrNull() ?: error("Missing type argument for mock call!")
+        val typeToMock = expression.typeArguments.firstOrNull()
+            ?: mokkeryError("Missing type argument for mock call at: ${expression.locationInFile(irFile)}")
         if (!typeToMock.isInterface()) {
-            error("Only interfaces are currently supported! Caused by expression: ${expression.render()}")
+            mokkeryError("Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}")
         }
         val classToMock = typeToMock.getClass()!!
-        messageCollector.info("Recognized mock call with type: ${typeToMock.render()}")
+        messageCollector.info("Mock call with type ${typeToMock.asString()} at ${expression.locationInFile(irFile)}")
         val mockedClass = mockTable.getOrPut(classToMock) {
             declareMock(classToMock).also {
                 irFile.addChild(it)
-                messageCollector.info("Generated mock: ${it.render()}")
             }
         }
         return irConstructorCall(expression, mockedClass.defaultConstructor!!.symbol)
