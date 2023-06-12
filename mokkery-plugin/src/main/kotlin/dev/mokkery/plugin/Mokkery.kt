@@ -1,6 +1,9 @@
 package dev.mokkery.plugin
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.name.CallableId
@@ -8,7 +11,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
-object MokkeryDeclarations {
+object Mokkery {
 
     private val mokkeryPackage = FqName("dev.mokkery")
 
@@ -42,4 +45,14 @@ object MokkeryDeclarations {
     fun internalVerifySuspend(context: IrPluginContext) = context
         .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalVerifySuspend")))
         .first()
+
+    fun mockModeDefault(context: IrPluginContext, builder: DeclarationIrBuilder) = builder.run {
+        val companion = mockModeClass(context).companionObject()!!
+        irCall(companion.getPropertyGetter("Default")!!.owner).apply {
+            dispatchReceiver = irGetObject(companion.symbol)
+        }
+    }
+    fun mockModeClass(context: IrPluginContext) = context
+        .referenceClass(ClassId(mokkeryPackage, Name.identifier("MockMode")))!!
+        .owner
 }

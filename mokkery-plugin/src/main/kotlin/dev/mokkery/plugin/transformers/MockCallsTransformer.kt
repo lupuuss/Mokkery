@@ -1,11 +1,12 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.MokkeryDeclarations
+import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.addSetter
 import dev.mokkery.plugin.buildThisValueParam
 import dev.mokkery.plugin.info
 import dev.mokkery.plugin.irAnyVarargParams
 import dev.mokkery.plugin.kClassReferenceUnified
+import dev.mokkery.plugin.irCallConstructor
 import dev.mokkery.plugin.locationInFile
 import dev.mokkery.plugin.mokkeryError
 import dev.mokkery.plugin.nonGenericReturnTypeOrAny
@@ -16,12 +17,14 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
+import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
+import org.jetbrains.kotlin.ir.builders.declarations.buildValueParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
@@ -40,16 +43,15 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
-import org.jetbrains.kotlin.ir.util.irConstructorCall
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -62,12 +64,12 @@ class MockCallsTransformer(
     private val mockTable: MutableMap<IrClass, IrClass>,
 ) : IrElementTransformerVoid() {
 
-    private val mokkeryClass = MokkeryDeclarations.irClass(pluginContext)
-    private val mokkeryScopeClass = MokkeryDeclarations.baseMokkeryScopeClass(pluginContext)
+    private val mokkeryClass = Mokkery.irClass(pluginContext)
+    private val mokkeryScopeClass = Mokkery.baseMokkeryScopeClass(pluginContext)
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
-        if (function.kotlinFqName != MokkeryDeclarations.mockFunctionName) return super.visitCall(expression)
+        if (function.kotlinFqName != Mokkery.mockFunctionName) return super.visitCall(expression)
         val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() } ?: mokkeryError {
             "Mock call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
         }
@@ -85,7 +87,12 @@ class MockCallsTransformer(
                 irFile.addChild(it)
             }
         }
-        return irConstructorCall(expression, mockedClass.defaultConstructor!!.symbol)
+        return DeclarationIrBuilder(pluginContext, expression.symbol).run {
+            irCallConstructor(mockedClass.primaryConstructor!!).also {
+                val modeArg = expression.valueArguments.getOrNull(0) ?: Mokkery.mockModeDefault(pluginContext, this)
+                it.putValueArgument(0, modeArg)
+            }
+        }
     }
 
     private fun declareMock(classToMock: IrClass): IrClass {
@@ -110,9 +117,15 @@ class MockCallsTransformer(
         addConstructor {
             isPrimary = true
         }.apply {
+            val modeParam = buildValueParameter(this) {
+                name = Name.identifier("mode")
+                type = Mokkery.mockModeClass(pluginContext).defaultType
+            }
+            valueParameters = listOf(modeParam)
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
                 +irDelegatingConstructorCall(mokkeryScopeClass.constructors.first()).apply {
                     putValueArgument(0, kClassReferenceUnified(pluginContext, typeToMock))
+                    putValueArgument(1, irGet(valueParameters[0]))
                 }
             }
         }

@@ -1,6 +1,6 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.MokkeryDeclarations
+import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.irVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -17,18 +17,18 @@ class CallTrackingTransformer(
     private val mockTable: Map<IrClass, IrClass>,
 ) : IrElementTransformerVoid() {
 
-    private val internalEveryFunction = MokkeryDeclarations.internalEvery(pluginContext)
-    private val internalEverySuspendFunction = MokkeryDeclarations.internalEverySuspend(pluginContext)
-    private val internalVerifyFunction = MokkeryDeclarations.internalVerify(pluginContext)
-    private val internalVerifySuspendFunction = MokkeryDeclarations.internalVerifySuspend(pluginContext)
+    private val internalEveryFunction = Mokkery.internalEvery(pluginContext)
+    private val internalEverySuspendFunction = Mokkery.internalEverySuspend(pluginContext)
+    private val internalVerifyFunction = Mokkery.internalVerify(pluginContext)
+    private val internalVerifySuspendFunction = Mokkery.internalVerifySuspend(pluginContext)
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         return when (function.kotlinFqName) {
-            MokkeryDeclarations.everyFunctionName -> transformEvery(expression, internalEveryFunction)
-            MokkeryDeclarations.verifyFunctionName -> transformVerify(expression, internalVerifyFunction)
-            MokkeryDeclarations.everySuspendFunctionName -> transformEvery(expression, internalEverySuspendFunction)
-            MokkeryDeclarations.verifySuspendFunctionName -> transformVerify(expression, internalVerifySuspendFunction)
+            Mokkery.everyFunctionName -> transformEvery(expression, internalEveryFunction)
+            Mokkery.verifyFunctionName -> transformVerify(expression, internalVerifyFunction)
+            Mokkery.everySuspendFunctionName -> transformEvery(expression, internalEverySuspendFunction)
+            Mokkery.verifySuspendFunctionName -> transformVerify(expression, internalVerifySuspendFunction)
             else -> super.visitCall(expression)
         }
     }

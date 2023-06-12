@@ -1,5 +1,6 @@
 package dev.mokkery
 
+import dev.mokkery.answer.ConstAnswer
 import dev.mokkery.answer.DefaultAnswer
 import dev.mokkery.answer.MockAnswer
 import dev.mokkery.matcher.CallTemplateRegistry
@@ -36,18 +37,26 @@ internal interface MokkeryScope {
     val mokkery: Mokkery
 }
 
-internal abstract class BaseMokkeryScope(private val mockedType: KClass<*>) : MokkeryScope {
+internal abstract class BaseMokkeryScope(
+    private val mockedType: KClass<*>,
+    private val mode: MockMode
+) : MokkeryScope {
 
-    override val mokkery: Mokkery by lazy { MokkeryImpl(toString(), mockedType) }
+    override val mokkery: Mokkery by lazy { Mokkery(toString(), mockedType, mode) }
 
     override fun toString(): String {
         return "${mockedType.simpleName}#${hashCode().toString(36)}"
     }
 }
 
+internal fun Mokkery(mockId: String, mockedType: KClass<*>, mockMode: MockMode): Mokkery {
+    return MokkeryImpl(mockId, mockedType, mockMode)
+}
+
 private class MokkeryImpl(
     override val mockId: String,
-    override val mockedType: KClass<*>
+    override val mockedType: KClass<*>,
+    private val mockMode: MockMode,
 ) : Mokkery {
 
     private var templateRegistering = false
@@ -92,14 +101,20 @@ private class MokkeryImpl(
         val trace = CallTrace(this, signature, args.toList(), CallTraceClock.current.nextStamp())
         unverifiedTraces.add(trace)
         allTraces.add(trace)
-        return findAnswer(trace)
+        return findAnswer(trace, returnType)
     }
 
-    private fun findAnswer(trace: CallTrace): MockAnswer<*> {
+    private fun findAnswer(trace: CallTrace, returnType: KClass<*>): MockAnswer<*> {
         return mockedCalls
             .keys
             .find { trace matches it }
             ?.let { mockedCalls.getValue(it) }
-            ?: error("Call of $trace not mocked!")
+            ?: handleMissingAnswer(trace, returnType)
+    }
+
+    private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): MockAnswer<*> = when {
+        mockMode == MockMode.Autofill -> DefaultAnswer
+        mockMode == MockMode.AutoUnit && returnType == Unit::class -> ConstAnswer(Unit)
+        else -> throw CallNotMockedException(trace.toString())
     }
 }
