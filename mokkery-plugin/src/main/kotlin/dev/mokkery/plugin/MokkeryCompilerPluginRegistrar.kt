@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 @AutoService(CompilerPluginRegistrar::class)
 class MokkeryCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
-    override val supportsK2: Boolean = false
+    override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val messageCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
