@@ -1,5 +1,14 @@
-package dev.mokkery.plugin
+package dev.mokkery.plugin.transformers
 
+import dev.mokkery.plugin.MokkeryDeclarations
+import dev.mokkery.plugin.addSetter
+import dev.mokkery.plugin.buildThisValueParam
+import dev.mokkery.plugin.info
+import dev.mokkery.plugin.irAnyVarargParams
+import dev.mokkery.plugin.kClassReferenceUnified
+import dev.mokkery.plugin.locationInFile
+import dev.mokkery.plugin.mokkeryError
+import dev.mokkery.plugin.nonGenericReturnTypeOrAny
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.functionByName
@@ -7,7 +16,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
-import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
@@ -25,7 +33,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
@@ -47,7 +54,6 @@ import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
-import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.Name
@@ -66,8 +72,8 @@ class MockCallsTransformer(
         val function = expression.symbol.owner
         if (function.kotlinFqName != MokkeryDeclarations.mockFunctionName) return super.visitCall(expression)
         val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() } ?: mokkeryError {
-                "Mock call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
-            }
+            "Mock call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
+        }
         if (!typeToMock.isInterface()) {
             mokkeryError {
                 "Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}"

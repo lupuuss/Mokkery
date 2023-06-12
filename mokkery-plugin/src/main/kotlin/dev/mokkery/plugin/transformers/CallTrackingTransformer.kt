@@ -1,5 +1,7 @@
-package dev.mokkery.plugin
+package dev.mokkery.plugin.transformers
 
+import dev.mokkery.plugin.MokkeryDeclarations
+import dev.mokkery.plugin.irVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -7,9 +9,6 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.isPrimitiveType
-import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
@@ -35,7 +34,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = NestedCallsTransformer(mockTable)
+        val nestedTransformer = CallTrackingNestedTransformer(mockTable)
         val block = expression.getValueArgument(0)!!
         block.transformChildren(nestedTransformer, null)
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
@@ -47,7 +46,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformVerify(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = NestedCallsTransformer(mockTable)
+        val nestedTransformer = CallTrackingNestedTransformer(mockTable)
         val mode = expression.getValueArgument(0)
         val block = expression.getValueArgument(1)!!
         block.transformChildren(nestedTransformer, null)
@@ -61,23 +60,3 @@ class CallTrackingTransformer(
     }
 }
 
-private class NestedCallsTransformer(
-    private val mockTable: Map<IrClass, IrClass>
-) : IrElementTransformerVoid() {
-
-    private val _trackedExpressions = mutableSetOf<IrExpression>()
-    val trackedExpressions: Set<IrExpression> = _trackedExpressions
-
-    override fun visitCall(expression: IrCall): IrExpression {
-        val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
-        if (!mockTable.containsKey(dispatchReceiver.type.getClass())) {
-            return super.visitCall(expression)
-        }
-        _trackedExpressions.add(dispatchReceiver)
-        // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
-        if (!expression.type.isPrimitiveType(nullable = false)) {
-            expression.type = expression.type.makeNullable()
-        }
-        return super.visitCall(expression)
-    }
-}

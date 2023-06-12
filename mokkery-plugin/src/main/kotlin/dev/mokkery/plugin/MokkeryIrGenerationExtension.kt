@@ -1,5 +1,7 @@
 package dev.mokkery.plugin
 
+import dev.mokkery.plugin.transformers.CallTrackingTransformer
+import dev.mokkery.plugin.transformers.MockCallsTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
