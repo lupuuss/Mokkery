@@ -1,6 +1,8 @@
 package dev.mokkery.plugin
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.util.companionObject
+import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -22,6 +24,7 @@ object MokkeryDeclarations {
 
     fun baseMokkeryScopeClass(context: IrPluginContext) = context
         .referenceClass(ClassId(mokkeryPackage, Name.identifier("BaseMokkeryScope")))!!
+        .owner
 
     fun internalEvery(context: IrPluginContext) = context
         .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalEvery")))

@@ -37,10 +37,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.isPrimitiveType
-import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultConstructor
@@ -114,7 +111,7 @@ class MockCallsTransformer(
             isPrimary = true
         }.apply {
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
-                +irDelegatingConstructorCall(mokkeryScopeClass.constructors.first().owner).apply {
+                +irDelegatingConstructorCall(mokkeryScopeClass.constructors.first()).apply {
                     putValueArgument(0, kClassReferenceUnified(pluginContext, typeToMock))
                 }
             }
