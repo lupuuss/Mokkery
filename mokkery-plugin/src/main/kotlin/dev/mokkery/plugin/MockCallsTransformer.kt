@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.ir.util.irConstructorCall
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
+import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.render
@@ -64,13 +65,18 @@ class MockCallsTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         if (function.kotlinFqName != MokkeryDeclarations.mockFunctionName) return super.visitCall(expression)
-        val typeToMock = expression.typeArguments.firstOrNull()
-            ?: mokkeryError("Missing type argument for mock call at: ${expression.locationInFile(irFile)}")
+        val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() } ?: mokkeryError {
+                "Mock call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
+            }
         if (!typeToMock.isInterface()) {
-            mokkeryError("Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}")
+            mokkeryError {
+                "Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}"
+            }
         }
         val classToMock = typeToMock.getClass()!!
-        messageCollector.info("Mock call with type ${typeToMock.asString()} at ${expression.locationInFile(irFile)}")
+        messageCollector.info {
+            "Recognized mock call with type ${typeToMock.asString()} at: ${expression.locationInFile(irFile)}"
+        }
         val mockedClass = mockTable.getOrPut(classToMock) {
             declareMock(classToMock).also {
                 irFile.addChild(it)

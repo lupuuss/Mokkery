@@ -29,6 +29,6 @@ class MokkeryIrGenerationExtension(
                 CallTrackingTransformer(pluginContext, mockTable).visitFile(irFile)
             }
         }
-        messageCollector.info("Mokkery plugin time: $time")
+        messageCollector.info { "Plugin time: $time" }
     }
 }
