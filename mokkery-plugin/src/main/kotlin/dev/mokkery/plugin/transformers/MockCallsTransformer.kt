@@ -99,9 +99,6 @@ class MockCallsTransformer(
         classToMock
             .overridableFunctions
             .forEach { overridableFun ->
-                if (!overridableFun.returnType.isPrimitiveType()) {
-                    overridableFun.returnType = overridableFun.returnType.makeNullable()
-                }
                 newClass.addFunOverrideWithMockInterception(overridableFun)
             }
         classToMock
