@@ -1,0 +1,16 @@
+[versions]
+kotlin = "1.8.21"
+buildconfig = "4.0.4"
+google-autoservice = "1.0.1"
+
+[libraries]
+
+kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
+google-autoservice = { module = "com.google.auto.service:auto-service", version.ref = "google-autoservice"}
+google-autoservice-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "google-autoservice"}
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
