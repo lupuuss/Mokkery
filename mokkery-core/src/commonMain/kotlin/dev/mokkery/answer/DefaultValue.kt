@@ -1,4 +1,4 @@
-package dev.mokkery
+package dev.mokkery.answer
 
 import kotlin.reflect.KClass
 

@@ -1,6 +1,6 @@
 package dev.mokkery.matcher
 
-import dev.mokkery.defaultValue
+import dev.mokkery.answer.defaultValue
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
