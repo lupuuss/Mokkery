@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.buildconfig) apply false
 }
 
+buildscript {
+    dependencies {
+        classpath(libs.gradle.plugin.kotlinx.atomicfu)
+    }
+}
+
 allprojects {
     group = "dev.mokkery"
     version = "1.0"

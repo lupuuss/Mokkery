@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     `maven-publish`
+    id("kotlinx-atomicfu")
 }
 
 kotlin {

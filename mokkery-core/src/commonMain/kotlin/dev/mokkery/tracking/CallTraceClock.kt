@@ -1,5 +1,7 @@
 package dev.mokkery.tracking
 
+import kotlinx.atomicfu.atomic
+
 internal interface CallTraceClock {
 
     fun nextStamp(): Long
@@ -16,15 +18,18 @@ internal interface CallTraceClock {
 }
 
 private class DelegateCallTraceClock(
-    var current: CallTraceClock
+    initial: CallTraceClock
 ): CallTraceClock {
+
+    var current: CallTraceClock by atomic(initial)
+
     override fun nextStamp(): Long = current.nextStamp()
 }
 
 private class MonotonicCallTraceClock(startStamp: Long = 0): CallTraceClock {
 
-    private var currentStamp = startStamp
+    private val currentStamp = atomic(startStamp)
 
-    override fun nextStamp(): Long = currentStamp.also { currentStamp++ }
+    override fun nextStamp(): Long = currentStamp.getAndIncrement()
 
 }
