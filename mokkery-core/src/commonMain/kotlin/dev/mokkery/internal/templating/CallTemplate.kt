@@ -1,16 +1,15 @@
-package dev.mokkery.internal.tracing
+package dev.mokkery.internal.templating
 
-import dev.mokkery.internal.Mokkery
 import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
-    val mokkery: Mokkery,
+    val receiver: String,
     val signature: String,
     val matchers: List<ArgMatcher>
 ) {
 
     override fun toString(): String = buildString {
-        append(mokkery.mockId)
+        append(receiver)
         append(".")
         append(signature.substringBefore("/"))
         append("(")

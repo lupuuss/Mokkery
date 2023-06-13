@@ -4,8 +4,9 @@ package dev.mokkery.internal
 
 import dev.mokkery.answer.MockAnswerScope
 import dev.mokkery.answer.MockSuspendAnswerScope
-import dev.mokkery.internal.tracing.CallTemplate
-import dev.mokkery.internal.tracing.CallTemplateTracer
+import dev.mokkery.internal.answer.AnsweringInterceptor
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.templating.TemplatingContext
 import dev.mokkery.matcher.ArgMatchersScope
 
 internal fun <T> internalEvery(
@@ -21,15 +22,17 @@ internal suspend fun <T> internalEverySuspend(
 private inline fun <T> internalBaseEvery(
     mocks: Array<Any>,
     block: ArgMatchersScope.() -> T
-): Pair<Mokkery, CallTemplate> {
-    val mock = mocks.singleOrNull() as? MokkeryScope ?: throw NotSingleCallInEveryBlockException()
-    val registry = CallTemplateTracer()
+): Pair<AnsweringInterceptor, CallTemplate> {
+    val mockScope = mocks.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
+    if (mockScope !is MokkeryMockScope) throw ObjectNotMockedException(mockScope)
+    val mock = mockScope.interceptor
+    val context = TemplatingContext()
     try {
-        mock.mokkery.startTemplateRegistering(registry)
-        block(ArgMatchersScope(registry))
+        mock.templating.start(context)
+        block(ArgMatchersScope(context))
     } finally {
-        mock.mokkery.stopTemplateRegistering()
+        mock.templating.stop()
     }
-    val template = registry.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-    return mock.mokkery to template
+    val template = context.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
+    return mock.answering to template
 }

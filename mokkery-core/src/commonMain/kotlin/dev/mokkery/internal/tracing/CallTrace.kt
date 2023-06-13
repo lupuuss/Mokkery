@@ -1,16 +1,16 @@
 package dev.mokkery.internal.tracing
 
-import dev.mokkery.internal.Mokkery
+import dev.mokkery.internal.templating.CallTemplate
 
 internal data class CallTrace(
-    val mokkery: Mokkery,
+    val receiver: String,
     val signature: String,
     val args: List<Any?>,
     val orderStamp: Long,
 ) {
 
     override fun toString(): String = buildString {
-        append(mokkery.mockId)
+        append(receiver)
         append(".")
         append(signature.substringBefore("/"))
         append("(")
@@ -20,7 +20,7 @@ internal data class CallTrace(
 }
 
 internal infix fun CallTrace.matches(template: CallTemplate): Boolean {
-    return signature == template.signature && template.matchers.zip(args).all { (matcher, arg) -> matcher.match(arg) }
+    return receiver == template.receiver && signature == template.signature && template.matchers.zip(args).all { (matcher, arg) -> matcher.match(arg) }
 }
 
 internal infix fun CallTrace.doesNotMatch(template: CallTemplate): Boolean = matches(template).not()

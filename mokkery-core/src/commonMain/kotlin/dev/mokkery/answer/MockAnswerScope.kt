@@ -1,15 +1,15 @@
 package dev.mokkery.answer
 
-import dev.mokkery.internal.Mokkery
+import dev.mokkery.internal.answer.AnsweringInterceptor
 import dev.mokkery.internal.answer.ConstAnswer
 import dev.mokkery.internal.answer.CustomAnswer
 import dev.mokkery.internal.answer.CustomSuspendAnswer
 import dev.mokkery.internal.answer.MockAnswer
 import dev.mokkery.internal.answer.ThrowsAnswer
-import dev.mokkery.internal.tracing.CallTemplate
+import dev.mokkery.internal.templating.CallTemplate
 
 public sealed class BaseMockAnswerScope<T>(
-    private val mokkery: Mokkery,
+    private val answering: AnsweringInterceptor,
     private val template: CallTemplate,
 ) {
 
@@ -18,22 +18,22 @@ public sealed class BaseMockAnswerScope<T>(
     public infix fun throws(throwable: Throwable): Unit = answersWith(ThrowsAnswer(throwable))
 
     internal fun answersWith(answer: MockAnswer<T>) {
-        mokkery.mockCall(template, answer)
+        answering.setup(template, answer)
     }
 }
 
 public class MockAnswerScope<T> internal constructor(
-    mokkery: Mokkery,
+    answering: AnsweringInterceptor,
     template: CallTemplate
-): BaseMockAnswerScope<T>(mokkery, template) {
+): BaseMockAnswerScope<T>(answering, template) {
 
     public infix fun calls(block: (CallArgs) -> T): Unit = answersWith(CustomAnswer(block))
 }
 
 public class MockSuspendAnswerScope<T> internal constructor(
-    mokkery: Mokkery,
+    answering: AnsweringInterceptor,
     template: CallTemplate
-): BaseMockAnswerScope<T>(mokkery, template) {
+): BaseMockAnswerScope<T>(answering, template) {
 
     public infix fun calls(block: suspend (CallArgs) -> T): Unit = answersWith(CustomSuspendAnswer(block))
 }

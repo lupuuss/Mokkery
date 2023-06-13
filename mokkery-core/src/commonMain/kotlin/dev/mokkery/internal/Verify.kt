@@ -2,7 +2,8 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.internal.tracing.CallTemplateTracer
+import dev.mokkery.internal.templating.TemplatingContext
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
 import dev.mokkery.internal.verify.NotVerifier
@@ -10,7 +11,6 @@ import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.internal.verify.SoftVerifier
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
-
 
 internal fun internalVerify(
     mocks: Array<Any>,
@@ -29,17 +29,22 @@ internal inline fun internalBaseVerify(
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val casted = mocks
+    val spyInterceptors = mocks
         .toSet()
-        .filterIsInstance<MokkeryScope>()
-        .map(MokkeryScope::mokkery)
-    val registry = CallTemplateTracer()
+        .filterIsInstance<MokkerySpyScope>()
+        .associate { it.id to it.interceptor }
+    val context = TemplatingContext()
+    spyInterceptors.values.forEach { it.templating.start(context) }
     try {
-        casted.forEach { it.startTemplateRegistering(registry) }
-        block(ArgMatchersScope(registry))
+        block(ArgMatchersScope(context))
     } finally {
-        casted.forEach { it.stopTemplateRegistering() }
+        spyInterceptors.values.forEach { it.templating.stop() }
     }
+    val calls = spyInterceptors
+        .values
+        .map { it.callTracing.unverified }
+        .flatten()
+        .sortedBy(CallTrace::orderStamp)
     val verifier = when (mode) {
         VerifyMode.Order -> OrderVerifier
         VerifyMode.ExhaustiveOrder -> ExhaustiveOrderVerifier
@@ -47,8 +52,7 @@ internal inline fun internalBaseVerify(
         VerifyMode.Not -> NotVerifier
         is VerifyMode.Soft -> SoftVerifier(mode.atLeast, mode.atMost)
     }
-    val calls = casted.flatMap(Mokkery::unverifiedTraces)
-    verifier.verify(calls, registry.templates).forEach {
-        it.mokkery.markVerified(it)
+    verifier.verify(calls, context.templates).forEach {
+        spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)
     }
 }

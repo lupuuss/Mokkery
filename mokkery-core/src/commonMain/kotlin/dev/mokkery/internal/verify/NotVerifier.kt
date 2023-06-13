@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.tracing.CallTemplate
+import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.matches
 

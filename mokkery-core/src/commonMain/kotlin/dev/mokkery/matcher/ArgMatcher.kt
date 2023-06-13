@@ -6,14 +6,14 @@ public sealed interface ArgMatcher {
     public fun match(arg: Any?): Boolean
 }
 
-internal class AnyMatcher(private val cls: KClass<*>) : ArgMatcher {
+internal data class AnyMatcher(private val cls: KClass<*>) : ArgMatcher {
 
     override fun match(arg: Any?): Boolean = true
 
     override fun toString(): String = "any(${cls.simpleName})"
 }
 
-internal class EqMatcher(private val value: Any?) : ArgMatcher {
+internal data class EqMatcher(private val value: Any?) : ArgMatcher {
 
     override fun match(arg: Any?): Boolean = arg == value
 

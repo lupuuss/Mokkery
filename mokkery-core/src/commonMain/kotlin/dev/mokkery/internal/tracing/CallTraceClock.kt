@@ -26,7 +26,7 @@ private class DelegateCallTraceClock(
     override fun nextStamp(): Long = current.nextStamp()
 }
 
-private class MonotonicCallTraceClock(startStamp: Long = 0): CallTraceClock {
+private class MonotonicCallTraceClock(startStamp: Long = Long.MIN_VALUE): CallTraceClock {
 
     private val currentStamp = atomic(startStamp)
 
