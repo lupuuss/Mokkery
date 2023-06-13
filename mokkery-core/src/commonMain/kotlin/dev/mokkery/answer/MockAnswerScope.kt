@@ -1,7 +1,12 @@
 package dev.mokkery.answer
 
-import dev.mokkery.Mokkery
-import dev.mokkery.tracking.CallTemplate
+import dev.mokkery.internal.Mokkery
+import dev.mokkery.internal.answer.ConstAnswer
+import dev.mokkery.internal.answer.CustomAnswer
+import dev.mokkery.internal.answer.CustomSuspendAnswer
+import dev.mokkery.internal.answer.MockAnswer
+import dev.mokkery.internal.answer.ThrowsAnswer
+import dev.mokkery.internal.tracing.CallTemplate
 
 public sealed class BaseMockAnswerScope<T>(
     private val mokkery: Mokkery,

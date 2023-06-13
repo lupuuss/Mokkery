@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.name.Name
 object Mokkery {
 
     private val mokkeryPackage = FqName("dev.mokkery")
+    private val mokkeryInternalPackage = FqName("dev.mokkery.internal")
 
     val mockFunctionName = mokkeryPackage.child(Name.identifier("mock"))
     val everyFunctionName = mokkeryPackage.child(Name.identifier("every"))
@@ -23,27 +24,27 @@ object Mokkery {
 
     fun irClass(
         context: IrPluginContext
-    ) = context.referenceClass(ClassId(mokkeryPackage, Name.identifier("Mokkery")))!!
+    ) = context.referenceClass(ClassId(mokkeryInternalPackage, Name.identifier("Mokkery")))!!
 
     fun baseMokkeryScopeClass(context: IrPluginContext) = context
-        .referenceClass(ClassId(mokkeryPackage, Name.identifier("BaseMokkeryScope")))!!
+        .referenceClass(ClassId(mokkeryInternalPackage, Name.identifier("BaseMokkeryScope")))!!
         .owner
 
     fun internalEvery(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalEvery")))
+        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalEvery")))
         .first()
 
     fun internalVerify(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalVerify")))
+        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalVerify")))
         .first()
 
 
     fun internalEverySuspend(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalEverySuspend")))
+        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalEverySuspend")))
         .first()
 
     fun internalVerifySuspend(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryPackage, Name.identifier("internalVerifySuspend")))
+        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalVerifySuspend")))
         .first()
 
     fun mockModeDefault(context: IrPluginContext, builder: DeclarationIrBuilder) = builder.run {

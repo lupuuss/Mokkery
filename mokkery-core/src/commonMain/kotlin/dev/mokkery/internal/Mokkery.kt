@@ -1,13 +1,14 @@
-package dev.mokkery
+package dev.mokkery.internal
 
-import dev.mokkery.answer.ConstAnswer
-import dev.mokkery.answer.DefaultAnswer
-import dev.mokkery.answer.MockAnswer
-import dev.mokkery.matcher.CallTemplateRegistry
-import dev.mokkery.tracking.CallTemplate
-import dev.mokkery.tracking.CallTrace
-import dev.mokkery.tracking.CallTraceClock
-import dev.mokkery.tracking.matches
+import dev.mokkery.MockMode
+import dev.mokkery.internal.answer.ConstAnswer
+import dev.mokkery.internal.answer.DefaultAnswer
+import dev.mokkery.internal.answer.MockAnswer
+import dev.mokkery.internal.tracing.CallTemplateTracer
+import dev.mokkery.internal.tracing.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.tracing.CallTraceClock
+import dev.mokkery.internal.tracing.matches
 import kotlin.reflect.KClass
 
 internal interface Mokkery {
@@ -26,7 +27,7 @@ internal interface Mokkery {
 
     fun mockCall(template: CallTemplate, answer: MockAnswer<*>)
 
-    fun startTemplateRegistering(registry: CallTemplateRegistry)
+    fun startTemplateRegistering(registry: CallTemplateTracer)
 
     fun stopTemplateRegistering()
 
@@ -60,7 +61,7 @@ private class MokkeryImpl(
 ) : Mokkery {
 
     private var templateRegistering = false
-    private var templateRegistry: CallTemplateRegistry? = null
+    private var templateRegistry: CallTemplateTracer? = null
     private val mockedCalls = mutableMapOf<CallTemplate, MockAnswer<*>>()
     override val unverifiedTraces = mutableListOf<CallTrace>()
     override val allTraces = mutableListOf<CallTrace>()
@@ -77,7 +78,7 @@ private class MokkeryImpl(
         mockedCalls[template] = answer
     }
 
-    override fun startTemplateRegistering(registry: CallTemplateRegistry) {
+    override fun startTemplateRegistering(registry: CallTemplateTracer) {
         templateRegistering = true
         templateRegistry = registry
     }
@@ -95,7 +96,7 @@ private class MokkeryImpl(
 
     private fun internalInterceptCall(signature: String, returnType: KClass<*>, args: Array<out Any?>): MockAnswer<*> {
         if (templateRegistering) {
-            templateRegistry?.saveTemplate(this, signature, returnType, args)
+            templateRegistry?.traceTemplate(this, signature, returnType, args)
             return DefaultAnswer
         }
         val trace = CallTrace(this, signature, args.toList(), CallTraceClock.current.nextStamp())

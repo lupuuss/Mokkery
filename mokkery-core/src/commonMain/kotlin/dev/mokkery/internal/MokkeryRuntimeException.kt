@@ -1,4 +1,4 @@
-package dev.mokkery
+package dev.mokkery.internal
 
 internal open class MokkeryRuntimeException(
     message: String? = null,

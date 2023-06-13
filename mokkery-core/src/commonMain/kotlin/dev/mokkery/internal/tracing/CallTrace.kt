@@ -1,6 +1,6 @@
-package dev.mokkery.tracking
+package dev.mokkery.internal.tracing
 
-import dev.mokkery.Mokkery
+import dev.mokkery.internal.Mokkery
 
 internal data class CallTrace(
     val mokkery: Mokkery,

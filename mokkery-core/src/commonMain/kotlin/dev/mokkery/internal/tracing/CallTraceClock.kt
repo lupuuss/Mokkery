@@ -1,4 +1,4 @@
-package dev.mokkery.tracking
+package dev.mokkery.internal.tracing
 
 import kotlinx.atomicfu.atomic
 

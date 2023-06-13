@@ -1,8 +1,8 @@
-package dev.mokkery.verify
+package dev.mokkery.internal.verify
 
-import dev.mokkery.tracking.CallTemplate
-import dev.mokkery.tracking.CallTrace
-import dev.mokkery.tracking.matches
+import dev.mokkery.internal.tracing.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.tracing.matches
 
 internal object OrderVerifier : Verifier {
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {

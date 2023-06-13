@@ -1,6 +1,7 @@
-package dev.mokkery.answer
+package dev.mokkery.internal.answer
 
-import dev.mokkery.SuspendingFunctionBlockingCallException
+import dev.mokkery.answer.CallArgs
+import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import kotlin.reflect.KClass
 
 internal interface MockAnswer<out T> {

@@ -1,6 +1,6 @@
-package dev.mokkery.tracking
+package dev.mokkery.internal.tracing
 
-import dev.mokkery.Mokkery
+import dev.mokkery.internal.Mokkery
 import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
