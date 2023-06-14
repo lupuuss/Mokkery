@@ -13,6 +13,8 @@ import kotlin.reflect.KClass
 internal interface AnsweringInterceptor : MokkeryInterceptor {
 
     fun setup(template: CallTemplate, answer: MockAnswer<*>)
+
+    fun reset()
 }
 
 internal fun AnsweringInterceptor(receiver: String, mockMode: MockMode): AnsweringInterceptor {
@@ -31,6 +33,10 @@ private class AnsweringInterceptorImpl(
         isSetup = true
         answers += template to answer
         isSetup = false
+    }
+
+    override fun reset() {
+        answers = emptyMap()
     }
 
     override fun interceptCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
