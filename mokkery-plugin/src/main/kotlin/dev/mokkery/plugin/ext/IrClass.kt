@@ -141,8 +141,8 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridableProperty() }
 
-fun IrClass.createUniqueMockName() = kotlinFqName
+fun IrClass.createUniqueMockName(type: String) = kotlinFqName
     .asString()
     .replace(".", "_")
-    .plus("ByMokkery")
+    .plus("${type}ByMokkery")
     .let(Name::identifier)

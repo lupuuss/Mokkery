@@ -68,7 +68,7 @@ class MockCallsTransformer(
 
     private fun declareMock(classToMock: IrClass): IrClass {
         val newClass = pluginContext.irFactory.buildClass(
-            classToMock.createUniqueMockName(),
+            classToMock.createUniqueMockName("Mock"),
             classToMock.defaultType,
             irClasses.MokkeryMockScope.defaultType,
             pluginContext.irBuiltIns.anyType

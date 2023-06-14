@@ -8,6 +8,8 @@ import kotlin.reflect.KClass
 
 internal interface TemplatingInterceptor : MokkeryInterceptor {
 
+    val isEnabled: Boolean
+
     fun start(context: TemplatingContext)
 
     fun stop()
@@ -19,23 +21,24 @@ internal fun TemplatingInterceptor(receiver: String): TemplatingInterceptor {
 
 private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : TemplatingInterceptor {
 
-    private var isEnabled by atomic(false)
+    private var _isEnabled by atomic(false)
     private var templatingContext by atomic<TemplatingContext?>(null)
+    override val isEnabled: Boolean get() = _isEnabled
 
     override fun start(context: TemplatingContext) {
-        if (isEnabled) throw ConcurrentTemplatingException()
-        isEnabled = true
+        if (_isEnabled) throw ConcurrentTemplatingException()
+        _isEnabled = true
         templatingContext = context
     }
 
     override fun stop() {
-        if (!isEnabled) throw ConcurrentTemplatingException()
-        isEnabled = false
+        if (!_isEnabled) throw ConcurrentTemplatingException()
+        _isEnabled = false
         templatingContext = null
     }
 
     override fun interceptCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
-        if (!isEnabled) {
+        if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
         templatingContext?.saveTemplate(receiver, signature, args) ?: throw ConcurrentTemplatingException()

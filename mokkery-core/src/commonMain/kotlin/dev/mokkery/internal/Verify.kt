@@ -13,23 +13,23 @@ import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerify(
-    mocks: Array<Any>,
+    spied: Array<Any>,
     mode: VerifyMode = VerifyMode.default,
     block: ArgMatchersScope.() -> Unit
-) = internalBaseVerify(mocks, mode, block)
+) = internalBaseVerify(spied, mode, block)
 
 internal suspend fun internalVerifySuspend(
-    mocks: Array<Any>,
+    spied: Array<Any>,
     mode: VerifyMode = VerifyMode.default,
     block: suspend ArgMatchersScope.() -> Unit
-) = internalBaseVerify(mocks, mode) { block() }
+) = internalBaseVerify(spied, mode) { block() }
 
 internal inline fun internalBaseVerify(
-    mocks: Array<Any>,
+    spied: Array<Any>,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val spyInterceptors = mocks
+    val spyInterceptors = spied
         .toSet()
         .filterIsInstance<MokkerySpyScope>()
         .associate { it.id to it.interceptor }

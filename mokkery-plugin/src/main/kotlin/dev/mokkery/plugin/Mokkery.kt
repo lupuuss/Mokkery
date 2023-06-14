@@ -16,6 +16,7 @@ object Mokkery {
     object Package {
         val mokkery = FqName("dev.mokkery")
         val mokkery_internal = FqName("dev.mokkery.internal")
+        val mokkery_internal_templating = FqName("dev.mokkery.internal.templating")
     }
 
     object Function {
@@ -34,10 +35,20 @@ object Mokkery {
         val MokkeryMock = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
         val MokkeryMockScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMockScope"))
 
+        val MokkerySpy = ClassId(Package.mokkery_internal,Name.identifier("MokkerySpy"))
+        val MokkerySpyScope = ClassId(Package.mokkery_internal,Name.identifier("MokkerySpyScope"))
+
+        val TemplatingInterceptor = ClassId(
+            Package.mokkery_internal_templating,
+            Name.identifier("TemplatingInterceptor")
+        )
+
         val MockMode = ClassId(Package.mokkery,Name.identifier("MockMode"))
     }
     object FunctionId {
         val MokkeryMock = CallableId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
+        val MokkerySpy = CallableId(Package.mokkery_internal,Name.identifier("MokkerySpy"))
+
         val internalEvery = CallableId(Package.mokkery_internal,Name.identifier("internalEvery"))
         val internalEverySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalEverySuspend"))
         val internalVerify = CallableId(Package.mokkery_internal,Name.identifier("internalVerify"))

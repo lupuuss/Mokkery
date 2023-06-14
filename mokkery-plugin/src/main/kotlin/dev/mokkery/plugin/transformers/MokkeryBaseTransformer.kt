@@ -44,14 +44,23 @@ abstract class MokkeryBaseTransformer(
     protected val irFunctions = IrFunctions()
 
     inner class IrClasses {
+        val MokkerySpy = pluginContext.getClass(Mokkery.ClassId.MokkerySpy)
+        val MokkerySpyScope = pluginContext.getClass(Mokkery.ClassId.MokkerySpyScope)
+
+
         val MokkeryMock = pluginContext.getClass(Mokkery.ClassId.MokkeryMock)
         val MokkeryMockScope = pluginContext.getClass(Mokkery.ClassId.MokkeryMockScope)
+
         val MokkeryInterceptor = pluginContext.getClass(Mokkery.ClassId.MokkeryInterceptor)
         val MokkeryInterceptorScope = pluginContext.getClass(Mokkery.ClassId.MokkeryInterceptorScope)
+
+        val TemplatingInterceptor = pluginContext.getClass(Mokkery.ClassId.TemplatingInterceptor)
+
         val MockMode = pluginContext.getClass(Mokkery.ClassId.MockMode)
     }
     inner class IrFunctions {
         val MokkeryMock = pluginContext.firstFunction(Mokkery.FunctionId.MokkeryMock)
+        val MokkerySpy = pluginContext.firstFunction(Mokkery.FunctionId.MokkerySpy)
     }
 
     protected fun IrBuilderWithScope.irCallMockModeDefault(): IrFunctionAccessExpression {
@@ -84,7 +93,7 @@ abstract class MokkeryBaseTransformer(
     fun IrClass.inheritMokkeryInterceptor(
         interceptorScopeClass: IrClass,
         classToMock: IrClass,
-        initializer: IrBuilderWithScope.(IrConstructor) -> IrCall
+        initializer: IrBlockBodyBuilder.(IrConstructor) -> IrCall
     ) {
         val interceptorProperty = overridePropertyWithBackingField(pluginContext, interceptorScopeClass.getProperty("interceptor"))
         val idProperty = overridePropertyWithBackingField(pluginContext, interceptorScopeClass.getProperty("id"))

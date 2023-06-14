@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CallTrackingTransformer(
     private val pluginContext: IrPluginContext,
-    private val mockTable: Map<IrClass, IrClass>,
+    private val table: Map<IrClass, IrClass>,
 ) : IrElementTransformerVoid() {
 
     private val irFunctions = IrFunctions()
@@ -32,7 +32,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = CallTrackingNestedTransformer(mockTable)
+        val nestedTransformer = CallTrackingNestedTransformer(table)
         val block = expression.getValueArgument(0)!!
         block.transformChildren(nestedTransformer, null)
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
@@ -44,7 +44,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformVerify(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = CallTrackingNestedTransformer(mockTable)
+        val nestedTransformer = CallTrackingNestedTransformer(table)
         val mode = expression.getValueArgument(0)
         val block = expression.getValueArgument(1)!!
         block.transformChildren(nestedTransformer, null)

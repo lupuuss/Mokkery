@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CallTrackingNestedTransformer(
-    private val mockTable: Map<IrClass, IrClass>
+    private val table: Map<IrClass, IrClass>
 ) : IrElementTransformerVoid() {
 
     private val _trackedExpressions = mutableSetOf<IrExpression>()
@@ -17,7 +17,7 @@ class CallTrackingNestedTransformer(
 
     override fun visitCall(expression: IrCall): IrExpression {
         val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
-        if (!mockTable.containsKey(dispatchReceiver.type.getClass())) {
+        if (!table.containsKey(dispatchReceiver.type.getClass())) {
             return super.visitCall(expression)
         }
         _trackedExpressions.add(dispatchReceiver)

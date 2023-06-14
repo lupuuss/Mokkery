@@ -2,6 +2,7 @@ package dev.mokkery.plugin
 
 import dev.mokkery.plugin.transformers.CallTrackingTransformer
 import dev.mokkery.plugin.transformers.MockCallsTransformer
+import dev.mokkery.plugin.transformers.SpyCallsTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -16,6 +17,7 @@ class MokkeryIrGenerationExtension(
 ) : IrGenerationExtension {
 
     private val mockTable = mutableMapOf<IrClass, IrClass>()
+    private val spyTable = mutableMapOf<IrClass, IrClass>()
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val time = measureTime {
@@ -26,9 +28,16 @@ class MokkeryIrGenerationExtension(
                     irFile = irFile,
                     mockTable = mockTable
                 ).visitFile(irFile)
+                SpyCallsTransformer(
+                    pluginContext,
+                    messageCollector,
+                    irFile,
+                    spyTable,
+                ).visitFile(irFile)
             }
+            val interceptedTypesTable = mockTable + spyTable
             moduleFragment.files.forEach { irFile ->
-                CallTrackingTransformer(pluginContext, mockTable).visitFile(irFile)
+                CallTrackingTransformer(pluginContext, interceptedTypesTable).visitFile(irFile)
             }
         }
         messageCollector.info { "Plugin time: $time" }
