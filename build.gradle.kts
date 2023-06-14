@@ -30,7 +30,7 @@ allprojects {
             buildConfigField("String", "MOKKERY_PLUGIN_ARTIFACT_ID", "\"${project.name}\"")
             buildConfigField("String", "MOKKERY_VERSION", "\"${project.version}\"")
             buildConfigField("String", "MOKKERY_PLUGIN_ID", "\"${project.ext["pluginId"]}\"")
-            buildConfigField("String", "MOKKERY_CORE", "\"mokkery-core\"")
+            buildConfigField("String", "MOKKERY_RUNTIME", "\"mokkery-runtime\"")
         }
     }
 }

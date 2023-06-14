@@ -1,7 +1,7 @@
 package dev.mokkery.gradle
 
 import dev.mokkery.BuildConfig
-import dev.mokkery.BuildConfig.MOKKERY_CORE
+import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
 import dev.mokkery.BuildConfig.MOKKERY_GROUP
 import dev.mokkery.BuildConfig.MOKKERY_PLUGIN_ARTIFACT_ID
 import dev.mokkery.BuildConfig.MOKKERY_VERSION
@@ -17,7 +17,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         val commonTest = kotlinCompilation.project.kotlinExtension.sourceSets.getByName("commonTest")
         val sourceSet = commonTest ?: defaultSourceSet
         sourceSet.dependencies {
-            implementation("$MOKKERY_GROUP:$MOKKERY_CORE:$MOKKERY_VERSION")
+            implementation("$MOKKERY_GROUP:$MOKKERY_RUNTIME:$MOKKERY_VERSION")
         }
         project.provider { emptyList<SubpluginOption>() }
     }
