@@ -1,15 +1,18 @@
 package dev.mokkery.plugin.transformers
 
 import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.addSetter
-import dev.mokkery.plugin.buildThisValueParam
+import dev.mokkery.plugin.ext.addOverridingMethod
+import dev.mokkery.plugin.ext.addOverridingProperty
+import dev.mokkery.plugin.ext.buildThisValueParam
+import dev.mokkery.plugin.ext.getProperty
+import dev.mokkery.plugin.ext.irAnyVarargParams
+import dev.mokkery.plugin.ext.irCallConstructor
+import dev.mokkery.plugin.ext.irCallHashCodeIf
+import dev.mokkery.plugin.ext.kClassReferenceUnified
+import dev.mokkery.plugin.ext.locationInFile
+import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import dev.mokkery.plugin.info
-import dev.mokkery.plugin.irAnyVarargParams
-import dev.mokkery.plugin.kClassReferenceUnified
-import dev.mokkery.plugin.irCallConstructor
-import dev.mokkery.plugin.locationInFile
 import dev.mokkery.plugin.mokkeryError
-import dev.mokkery.plugin.nonGenericReturnTypeOrAny
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.functionByName
@@ -19,17 +22,21 @@ import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.createTmpVariable
+import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
-import org.jetbrains.kotlin.ir.builders.declarations.addFunction
-import org.jetbrains.kotlin.ir.builders.declarations.addGetter
+import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
+import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
-import org.jetbrains.kotlin.ir.builders.declarations.buildValueParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irConcat
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -38,11 +45,10 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
-import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
@@ -53,7 +59,6 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.properties
-import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.Name
 
@@ -64,8 +69,8 @@ class MockCallsTransformer(
     private val mockTable: MutableMap<IrClass, IrClass>,
 ) : IrElementTransformerVoid() {
 
-    private val mokkeryClass = Mokkery.irClass(pluginContext)
-    private val mokkeryScopeClass = Mokkery.baseMokkeryScopeClass(pluginContext)
+    private val mokkeryMockClass = Mokkery.mokkeryMockClass(pluginContext)
+    private val mokkeryMockScopeClass = Mokkery.mokkeryMockScopeClass(pluginContext)
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
@@ -97,9 +102,20 @@ class MockCallsTransformer(
 
     private fun declareMock(classToMock: IrClass): IrClass {
         val newClass = pluginContext.irFactory.buildClass { name = classToMock.createMockName() }
-        newClass.superTypes = listOf(classToMock.defaultType, mokkeryScopeClass.defaultType)
+        newClass.superTypes = listOf(
+            classToMock.defaultType,
+            mokkeryMockScopeClass.defaultType,
+            pluginContext.irBuiltIns.anyType
+        )
         newClass.thisReceiver = newClass.buildThisValueParam()
-        newClass.addMokkeryScopeConstructor(classToMock.defaultType)
+        val interceptorProperty = newClass.overridePropertyWithBackingField(mokkeryMockScopeClass.getProperty("interceptor"))
+        val idProperty = newClass.overridePropertyWithBackingField(mokkeryMockScopeClass.getProperty("id"))
+        newClass.addDefaultConstructor(interceptorProperty, idProperty, classToMock)
+        newClass.addOverridingMethod(pluginContext, pluginContext.irBuiltIns.memberToString.owner) {
+            +irReturn(irCall(idProperty.getter!!.symbol).apply {
+                dispatchReceiver = irGet(it.dispatchReceiverParameter!!)
+            })
+        }
         classToMock
             .overridableFunctions
             .forEach { overridableFun ->
@@ -113,86 +129,53 @@ class MockCallsTransformer(
         return newClass
     }
 
-    private fun IrClass.addMokkeryScopeConstructor(typeToMock: IrType) {
+    private fun IrClass.addDefaultConstructor(
+        interceptorProperty: IrProperty,
+        idProperty: IrProperty,
+        classToMock: IrClass
+    ) {
         addConstructor {
             isPrimary = true
         }.apply {
-            val modeParam = buildValueParameter(this) {
-                name = Name.identifier("mode")
-                type = Mokkery.mockModeClass(pluginContext).defaultType
-            }
-            valueParameters = listOf(modeParam)
+            addValueParameter("mode", Mokkery.mockModeClass(pluginContext).defaultType)
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
-                +irDelegatingConstructorCall(mokkeryScopeClass.constructors.first()).apply {
-                    putValueArgument(0, kClassReferenceUnified(pluginContext, typeToMock))
-                    putValueArgument(1, irGet(valueParameters[0]))
-                }
+                +irDelegatingConstructorCall(pluginContext.irBuiltIns.anyClass.owner.primaryConstructor!!)
+                val id = createTmpVariable(createIdCall(this, classToMock))
+                val mokkeryMockCall = irCall(Mokkery.mokkeryMockFunction(pluginContext))
+                mokkeryMockCall.putValueArgument(0, irGet(id))
+                mokkeryMockCall.putValueArgument(1, irGet(valueParameters[0]))
+                +irSetField(irGet(thisReceiver!!), interceptorProperty.backingField!!, mokkeryMockCall)
+                +irSetField(irGet(thisReceiver!!), idProperty.backingField!!, irGet(id))
             }
         }
     }
 
     private fun IrClass.addFunOverrideWithMockInterception(superFunction: IrSimpleFunction) {
-        addOverridingMethod(superFunction) { generateMockInterception(it) }
+        addOverridingMethod(pluginContext, superFunction) { generateMockInterception(it) }
     }
 
     private fun IrClass.addPropertyOverrideWithMockInterception(overridableProperty: IrProperty) {
         addOverridingProperty(
+            context = pluginContext,
             property = overridableProperty,
             getterBlock = { generateMockInterception(it) },
             setterBlock = { generateMockInterception(it) }
         )
     }
 
-    private fun IrClass.addOverridingMethod(
-        function: IrSimpleFunction,
-        block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
-    ) {
-        addFunction {
-            name = function.name
-            returnType = function.returnType
-            isSuspend = function.isSuspend
-            isInfix = function.isInfix
-            isOperator = function.isOperator
-            modality = Modality.FINAL
-            origin = IrDeclarationOrigin.DEFINED
-        }.apply {
-            overriddenSymbols = listOf(function.symbol)
-            typeParameters = function.typeParameters
-            valueParameters = function.valueParameters
-            dispatchReceiverParameter = buildThisValueParam()
-            extensionReceiverParameter = function.extensionReceiverParameter
-            contextReceiverParametersCount = function.contextReceiverParametersCount
-            setDeclarationsParent(this@addOverridingMethod)
-            body = DeclarationIrBuilder(pluginContext, symbol)
-                .irBlockBody { block(this@apply) }
-        }
-    }
-
-    private fun IrClass.addOverridingProperty(
-        property: IrProperty,
-        getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-        setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-    ) {
-        addProperty {
+    private fun IrClass.overridePropertyWithBackingField(property: IrProperty): IrProperty {
+        return addProperty {
             name = property.name
             isVar = property.isVar
             modality = Modality.FINAL
             origin = IrDeclarationOrigin.DEFINED
         }.apply {
+            addBackingField {
+                type = property.getter!!.returnType
+            }
             overriddenSymbols = listOf(property.symbol)
-            addGetter().also {
-                it.returnType = property.getter!!.returnType
-                it.dispatchReceiverParameter = buildThisValueParam()
-                it.body = DeclarationIrBuilder(pluginContext, it.symbol).irBlockBody { getterBlock(it) }
-            }
-            if (property.isVar) {
-                addSetter().also {
-                    it.returnType = property.setter!!.returnType
-                    it.dispatchReceiverParameter = buildThisValueParam()
-                    it.body = DeclarationIrBuilder(pluginContext, it.symbol).irBlockBody { setterBlock(it) }
-                }
-            }
-            setDeclarationsParent(this@addOverridingProperty)
+            addDefaultGetter(this@overridePropertyWithBackingField, pluginContext.irBuiltIns)
+            getter?.overriddenSymbols = listOf(property.getter!!.symbol)
         }
     }
 
@@ -205,11 +188,11 @@ class MockCallsTransformer(
     private fun IrBlockBodyBuilder.generateMockInterception(function: IrSimpleFunction) {
         val thisParam = irGet(function.dispatchReceiverParameter!!)
         val mokkeryCall = if (function.isSuspend) {
-            irCall(mokkeryClass.functionByName("interceptSuspendCall"))
+            irCall(mokkeryMockClass.functionByName("interceptSuspendCall"))
         } else {
-            irCall(mokkeryClass.functionByName("interceptCall"))
+            irCall(mokkeryMockClass.functionByName("interceptCall"))
         }
-        mokkeryCall.dispatchReceiver = irCall(mokkeryScopeClass.getPropertyGetter("mokkery")!!).apply {
+        mokkeryCall.dispatchReceiver = irCall(mokkeryMockScopeClass.getPropertyGetter("interceptor")!!).apply {
             dispatchReceiver = thisParam
         }
         mokkeryCall.putValueArgument(0, irString(function.stringSignature()))
@@ -229,5 +212,12 @@ class MockCallsTransformer(
 
     private fun IrSimpleFunction.stringSignature(): String {
         return "${name.asString()}/${valueParameters.joinToString { it.type.asString() }}/${returnType.asString()}"
+    }
+
+    private fun IrClass.createIdCall(builder: IrBuilderWithScope, classToMock: IrClass): IrExpression {
+        return builder.irConcat().apply {
+            addArgument(builder.irString(classToMock.kotlinFqName.asString() + "@"))
+            addArgument(builder.irCallHashCodeIf(this@createIdCall))
+        }
     }
 }

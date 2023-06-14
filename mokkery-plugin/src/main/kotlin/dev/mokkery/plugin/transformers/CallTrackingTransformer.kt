@@ -1,7 +1,7 @@
 package dev.mokkery.plugin.transformers
 
 import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.irVararg
+import dev.mokkery.plugin.ext.irVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.irCall
