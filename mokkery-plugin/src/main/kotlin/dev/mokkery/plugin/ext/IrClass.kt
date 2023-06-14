@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.typeWithParameters
+import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
@@ -52,7 +53,7 @@ fun IrClass.addOverridingMethod(
     }.apply {
         overriddenSymbols = function.overriddenSymbols + function.symbol
         typeParameters = function.typeParameters
-        valueParameters = function.valueParameters
+        valueParameters = function.valueParameters.map { it.copyTo(this) }
         dispatchReceiverParameter = buildThisValueParam()
         extensionReceiverParameter = function.extensionReceiverParameter
         contextReceiverParametersCount = function.contextReceiverParametersCount
@@ -109,10 +110,11 @@ fun IrClass.addOverridingProperty(
         }
         getter?.overriddenSymbols = listOf(property.getter!!.symbol)
         if (property.isVar) {
-            addSetter().also {
-                it.returnType = property.setter!!.returnType
-                it.dispatchReceiverParameter = buildThisValueParam()
-                it.body = DeclarationIrBuilder(context, it.symbol).irBlockBody { setterBlock(it) }
+            addSetter().also { setter ->
+                setter.returnType = property.setter!!.returnType
+                setter.dispatchReceiverParameter = buildThisValueParam()
+                setter.valueParameters = property.setter!!.valueParameters.map { it.copyTo(setter) }
+                setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
             }
             setter?.overriddenSymbols = listOf(property.setter!!.symbol)
         }
