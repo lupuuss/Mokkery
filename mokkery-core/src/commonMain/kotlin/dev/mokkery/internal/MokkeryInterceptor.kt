@@ -38,7 +38,7 @@ private class CombinedInterceptor(private val interceptors: Array<out MokkeryInt
 
     override suspend fun interceptSuspendCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
         interceptors.forEach {
-            when (val result = it.interceptCall(signature, returnType, *args)) {
+            when (val result = it.interceptSuspendCall(signature, returnType, *args)) {
                 MokkeryToken.CALL_NEXT -> Unit
                 MokkeryToken.RETURN_DEFAULT -> return defaultValue(returnType)
                 else -> return result
