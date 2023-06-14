@@ -17,4 +17,3 @@ inline fun IrProperty.addSetter(
         setter.parent = this@addSetter.parent
     }
 }
-

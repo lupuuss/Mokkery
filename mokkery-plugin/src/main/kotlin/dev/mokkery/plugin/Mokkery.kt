@@ -13,53 +13,34 @@ import org.jetbrains.kotlin.name.Name
 
 object Mokkery {
 
-    private val mokkeryPackage = FqName("dev.mokkery")
-    private val mokkeryInternalPackage = FqName("dev.mokkery.internal")
-
-    val mockFunctionName = mokkeryPackage.child(Name.identifier("mock"))
-    val everyFunctionName = mokkeryPackage.child(Name.identifier("every"))
-    val everySuspendFunctionName = mokkeryPackage.child(Name.identifier("everySuspend"))
-    val verifyFunctionName = mokkeryPackage.child(Name.identifier("verify"))
-    val verifySuspendFunctionName = mokkeryPackage.child(Name.identifier("verifySuspend"))
-
-    fun mokkeryMockClass(
-        context: IrPluginContext
-    ) = context
-        .referenceClass(ClassId(mokkeryInternalPackage, Name.identifier("MokkeryMock")))!!
-
-    fun mokkeryMockFunction(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("MokkeryMock")))
-        .first()
-
-    fun mokkeryMockScopeClass(context: IrPluginContext) = context
-        .referenceClass(ClassId(mokkeryInternalPackage, Name.identifier("MokkeryMockScope")))!!
-        .owner
-
-    fun internalEvery(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalEvery")))
-        .first()
-
-    fun internalVerify(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalVerify")))
-        .first()
-
-
-    fun internalEverySuspend(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalEverySuspend")))
-        .first()
-
-    fun internalVerifySuspend(context: IrPluginContext) = context
-        .referenceFunctions(CallableId(mokkeryInternalPackage, Name.identifier("internalVerifySuspend")))
-        .first()
-
-    fun mockModeDefault(context: IrPluginContext, builder: IrBuilderWithScope) = builder.run {
-        val companion = mockModeClass(context).companionObject()!!
-        irCall(companion.getPropertyGetter("Default")!!.owner).apply {
-            dispatchReceiver = irGetObject(companion.symbol)
-        }
+    object Package {
+        val mokkery = FqName("dev.mokkery")
+        val mokkery_internal = FqName("dev.mokkery.internal")
     }
 
-    fun mockModeClass(context: IrPluginContext) = context
-        .referenceClass(ClassId(mokkeryPackage, Name.identifier("MockMode")))!!
-        .owner
+    object Function {
+        val mock = Package.mokkery.child(Name.identifier("mock"))
+        val spy = Package.mokkery.child(Name.identifier("spy"))
+        val every = Package.mokkery.child(Name.identifier("every"))
+        val everySuspend = Package.mokkery.child(Name.identifier("everySuspend"))
+        val verify = Package.mokkery.child(Name.identifier("verify"))
+        val verifySuspend = Package.mokkery.child(Name.identifier("verifySuspend"))
+    }
+
+    object ClassId {
+        val MokkeryInterceptor = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptor"))
+        val MokkeryInterceptorScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptorScope"))
+
+        val MokkeryMock = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
+        val MokkeryMockScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMockScope"))
+
+        val MockMode = ClassId(Package.mokkery,Name.identifier("MockMode"))
+    }
+    object FunctionId {
+        val MokkeryMock = CallableId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
+        val internalEvery = CallableId(Package.mokkery_internal,Name.identifier("internalEvery"))
+        val internalEverySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalEverySuspend"))
+        val internalVerify = CallableId(Package.mokkery_internal,Name.identifier("internalVerify"))
+        val internalVerifySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalVerifySuspend"))
+    }
 }

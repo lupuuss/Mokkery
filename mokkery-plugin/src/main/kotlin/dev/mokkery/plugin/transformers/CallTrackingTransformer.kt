@@ -1,6 +1,7 @@
 package dev.mokkery.plugin.transformers
 
 import dev.mokkery.plugin.Mokkery
+import dev.mokkery.plugin.ext.firstFunction
 import dev.mokkery.plugin.ext.irVararg
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -17,18 +18,15 @@ class CallTrackingTransformer(
     private val mockTable: Map<IrClass, IrClass>,
 ) : IrElementTransformerVoid() {
 
-    private val internalEveryFunction = Mokkery.internalEvery(pluginContext)
-    private val internalEverySuspendFunction = Mokkery.internalEverySuspend(pluginContext)
-    private val internalVerifyFunction = Mokkery.internalVerify(pluginContext)
-    private val internalVerifySuspendFunction = Mokkery.internalVerifySuspend(pluginContext)
+    private val irFunctions = IrFunctions()
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         return when (function.kotlinFqName) {
-            Mokkery.everyFunctionName -> transformEvery(expression, internalEveryFunction)
-            Mokkery.verifyFunctionName -> transformVerify(expression, internalVerifyFunction)
-            Mokkery.everySuspendFunctionName -> transformEvery(expression, internalEverySuspendFunction)
-            Mokkery.verifySuspendFunctionName -> transformVerify(expression, internalVerifySuspendFunction)
+            Mokkery.Function.every -> transformEvery(expression, irFunctions.internalEvery)
+            Mokkery.Function.verify -> transformVerify(expression, irFunctions.internalVerify)
+            Mokkery.Function.everySuspend -> transformEvery(expression, irFunctions.internalEverySuspend)
+            Mokkery.Function.verifySuspend -> transformVerify(expression, irFunctions.internalVerifySuspend)
             else -> super.visitCall(expression)
         }
     }
@@ -57,6 +55,13 @@ class CallTrackingTransformer(
                 putValueArgument(2, block)
             }
         }
+    }
+
+    inner class IrFunctions {
+        val internalEvery = pluginContext.firstFunction(Mokkery.FunctionId.internalEvery)
+        val internalEverySuspend = pluginContext.firstFunction(Mokkery.FunctionId.internalEverySuspend)
+        val internalVerify = pluginContext.firstFunction(Mokkery.FunctionId.internalVerify)
+        val internalVerifySuspend = pluginContext.firstFunction(Mokkery.FunctionId.internalVerifySuspend)
     }
 }
 
