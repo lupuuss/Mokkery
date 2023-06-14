@@ -93,7 +93,8 @@ abstract class MokkeryBaseTransformer(
     fun IrClass.inheritMokkeryInterceptor(
         interceptorScopeClass: IrClass,
         classToMock: IrClass,
-        initializer: IrBlockBodyBuilder.(IrConstructor) -> IrCall
+        interceptorInit: IrBlockBodyBuilder.(IrConstructor) -> IrCall,
+        block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { },
     ) {
         val interceptorProperty = overridePropertyWithBackingField(pluginContext, interceptorScopeClass.getProperty("interceptor"))
         val idProperty = overridePropertyWithBackingField(pluginContext, interceptorScopeClass.getProperty("id"))
@@ -103,10 +104,11 @@ abstract class MokkeryBaseTransformer(
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
                 +irDelegatingConstructorCall(pluginContext.irBuiltIns.anyClass.owner.primaryConstructor!!)
                 val id = createTmpVariable(irCallMokkeryClassIdentifier(this@inheritMokkeryInterceptor, classToMock))
-                val initializerCall = initializer(this@apply)
+                val initializerCall = interceptorInit(this@apply)
                 initializerCall.putValueArgument(0, irGet(id))
                 +irSetField(irGet(thisReceiver!!), interceptorProperty.backingField!!, initializerCall)
                 +irSetField(irGet(thisReceiver!!), idProperty.backingField!!, irGet(id))
+                block(this@apply)
             }
         }
         addOverridingMethod(pluginContext, pluginContext.irBuiltIns.memberToString.owner) {

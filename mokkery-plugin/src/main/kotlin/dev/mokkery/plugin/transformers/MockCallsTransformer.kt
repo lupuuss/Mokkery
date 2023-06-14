@@ -11,21 +11,27 @@ import dev.mokkery.plugin.info
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.common.lower.irIfThen
+import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -62,6 +68,7 @@ class MockCallsTransformer(
             irCallConstructor(mockedClass.primaryConstructor!!).also {
                 val modeArg = expression.valueArguments.getOrNull(0) ?: irCallMockModeDefault()
                 it.putValueArgument(0, modeArg)
+                it.putValueArgument(1, expression.valueArguments.getOrNull(1) ?: irNull())
             }
         }
     }
@@ -73,12 +80,27 @@ class MockCallsTransformer(
             irClasses.MokkeryMockScope.defaultType,
             pluginContext.irBuiltIns.anyType
         )
-        newClass.inheritMokkeryInterceptor(irClasses.MokkeryMockScope, classToMock) { constructor ->
-            constructor.addValueParameter("mode", irClasses.MockMode.defaultType)
-            val mokkeryMockCall = irCall(irFunctions.MokkeryMock)
-            mokkeryMockCall.putValueArgument(1, irGet(constructor.valueParameters[0]))
-            mokkeryMockCall
-        }
+        newClass.inheritMokkeryInterceptor(
+            interceptorScopeClass = irClasses.MokkeryMockScope,
+            classToMock = classToMock,
+            interceptorInit = { constructor ->
+                constructor.addValueParameter("mode", irClasses.MockMode.defaultType)
+                constructor.addValueParameter("block", pluginContext.irBuiltIns.functionN(1).defaultType.makeNullable())
+                irCall(irFunctions.MokkeryMock).apply {
+                    putValueArgument(1, irGet(constructor.valueParameters[0]))
+                }
+            },
+            block = {
+                val param = it.valueParameters[1]
+                +irIfThen(
+                    condition = irNot(irEqualsNull(argument = irGet(param))),
+                    thenPart = irCall(pluginContext.irBuiltIns.functionN(1).invokeFun!!).apply {
+                        dispatchReceiver = irGet(param)
+                        putValueArgument(0, irGet(newClass.thisReceiver!!))
+                    }
+                )
+            }
+        )
         newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { +irReturn(irCallInterceptingMethod(it)) }
         newClass.overrideAllOverridableProperties(
             context = pluginContext,

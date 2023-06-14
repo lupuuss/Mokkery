@@ -82,11 +82,15 @@ class SpyCallsTransformer(
             pluginContext.irBuiltIns.anyType
         )
         val delegateField = newClass.addField(fieldName = "delegate", classToMock.defaultType)
-        newClass.inheritMokkeryInterceptor(irClasses.MokkerySpyScope, classToMock) { constructor ->
-            constructor.addValueParameter("obj", classToMock.defaultType)
-            +irSetField(irGet(newClass.thisReceiver!!), delegateField, irGet(constructor.valueParameters[0]))
-            irCall(irFunctions.MokkerySpy)
-        }
+        newClass.inheritMokkeryInterceptor(
+            interceptorScopeClass = irClasses.MokkerySpyScope,
+            classToMock = classToMock,
+            interceptorInit = { constructor ->
+                constructor.addValueParameter("obj", classToMock.defaultType)
+                +irSetField(irGet(newClass.thisReceiver!!), delegateField, irGet(constructor.valueParameters[0]))
+                irCall(irFunctions.MokkerySpy)
+            }
+        )
         newClass.overrideAllOverridableFunctions(pluginContext, classToMock) {
             spyingBody(delegateField, it)
         }
