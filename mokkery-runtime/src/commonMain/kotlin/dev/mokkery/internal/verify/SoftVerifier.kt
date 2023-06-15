@@ -10,12 +10,14 @@ internal class SoftVerifier(private val atLeast: Int, private val atMost: Int) :
             val matching = callTraces.filter { it matches template }
             if (matching.size < atLeast || matching.size > atMost) {
                 failAssertion(callTraces, callTemplates) {
-                    "Expected calls count to be in range $atLeast..$atMost, but is ${matching.size} for $template!"
+                    "Expected calls count to be in range $atLeast..${atMost.toReadableString()}, but is ${matching.size} for $template!"
                 }
             }
             matching
         }
         return verified
     }
+
+    private fun Int.toReadableString() = if (this == Int.MAX_VALUE) "Int.MAX_VALUE" else toString()
 }
 
