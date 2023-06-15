@@ -14,7 +14,7 @@ public fun verify(
     block: ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
 
-public suspend fun verifySuspend(
+public fun verifySuspend(
     mode: VerifyMode = default,
     block: suspend ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()

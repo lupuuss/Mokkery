@@ -5,6 +5,7 @@ package dev.mokkery.internal
 import dev.mokkery.answer.MockAnswerScope
 import dev.mokkery.answer.MockSuspendAnswerScope
 import dev.mokkery.internal.answer.AnsweringInterceptor
+import dev.mokkery.internal.coroutines.runSuspension
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.templating.TemplatingContext
 import dev.mokkery.matcher.ArgMatchersScope
@@ -14,10 +15,11 @@ internal fun <T> internalEvery(
     block: ArgMatchersScope.() -> T
 ): MockAnswerScope<T> = internalBaseEvery(mocks) { block() }.let { MockAnswerScope(it.first, it.second) }
 
-internal suspend fun <T> internalEverySuspend(
+internal fun <T> internalEverySuspend(
     mocks: Array<Any>,
     block: suspend ArgMatchersScope.() -> T
-): MockSuspendAnswerScope<T> = internalBaseEvery(mocks) { block() }.let { MockSuspendAnswerScope(it.first, it.second) }
+): MockSuspendAnswerScope<T> = internalBaseEvery(mocks) { runSuspension { block() } }
+    .let { MockSuspendAnswerScope(it.first, it.second) }
 
 private inline fun <T> internalBaseEvery(
     mocks: Array<Any>,

@@ -2,6 +2,7 @@
 
 package dev.mokkery.internal
 
+import dev.mokkery.internal.coroutines.runSuspension
 import dev.mokkery.internal.templating.TemplatingContext
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
@@ -18,11 +19,13 @@ internal fun internalVerify(
     block: ArgMatchersScope.() -> Unit
 ) = internalBaseVerify(spied, mode, block)
 
-internal suspend fun internalVerifySuspend(
+internal fun internalVerifySuspend(
     spied: Array<Any>,
     mode: VerifyMode = VerifyMode.default,
     block: suspend ArgMatchersScope.() -> Unit
-) = internalBaseVerify(spied, mode) { block() }
+) = internalBaseVerify(spied, mode) {
+    runSuspension { block() }
+}
 
 internal inline fun internalBaseVerify(
     spied: Array<Any>,
