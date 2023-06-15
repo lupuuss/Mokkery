@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.originalFunction
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 class SpyCallsTransformer(
@@ -109,7 +110,7 @@ class SpyCallsTransformer(
             type = function.returnType,
             condition = irCallIsTemplatingEnabled(function),
             thenPart = irReturn(irGet(interceptionResult)),
-            elsePart = irReturn(irCall(function).apply {
+            elsePart = irReturn(irCall(function.overriddenSymbols.first()).apply {
                 dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
                 function.valueParameters.forEachIndexed { index, irValueParameter ->
                     putValueArgument(index, irGet(irValueParameter))

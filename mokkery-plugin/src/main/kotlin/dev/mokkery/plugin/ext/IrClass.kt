@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTo
@@ -104,19 +105,19 @@ fun IrClass.addOverridingProperty(
         overriddenSymbols = property.overriddenSymbols + property.symbol
         setDeclarationsParent(this@addOverridingProperty)
         addGetter().also {
+            it.overriddenSymbols = listOf(property.getter!!.symbol)
             it.returnType = property.getter!!.returnType
             it.dispatchReceiverParameter = buildThisValueParam()
             it.body = DeclarationIrBuilder(context, it.symbol).irBlockBody { getterBlock(it) }
         }
-        getter?.overriddenSymbols = listOf(property.getter!!.symbol)
         if (property.isVar) {
             addSetter().also { setter ->
                 setter.returnType = property.setter!!.returnType
                 setter.dispatchReceiverParameter = buildThisValueParam()
                 setter.valueParameters = property.setter!!.valueParameters.map { it.copyTo(setter) }
+                setter.overriddenSymbols = listOf(property.setter!!.symbol)
                 setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
             }
-            setter?.overriddenSymbols = listOf(property.setter!!.symbol)
         }
     }
 }
