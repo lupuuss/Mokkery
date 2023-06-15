@@ -56,7 +56,7 @@ fun IrClass.addOverridingMethod(
         typeParameters = function.typeParameters
         valueParameters = function.valueParameters.map { it.copyTo(this) }
         dispatchReceiverParameter = buildThisValueParam()
-        extensionReceiverParameter = function.extensionReceiverParameter
+        extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
         contextReceiverParametersCount = function.contextReceiverParametersCount
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
@@ -108,6 +108,7 @@ fun IrClass.addOverridingProperty(
             it.overriddenSymbols = listOf(property.getter!!.symbol)
             it.returnType = property.getter!!.returnType
             it.dispatchReceiverParameter = buildThisValueParam()
+            it.extensionReceiverParameter = property.getter!!.extensionReceiverParameter?.copyTo(it)
             it.body = DeclarationIrBuilder(context, it.symbol).irBlockBody { getterBlock(it) }
         }
         if (property.isVar) {
@@ -116,6 +117,7 @@ fun IrClass.addOverridingProperty(
                 setter.dispatchReceiverParameter = buildThisValueParam()
                 setter.valueParameters = property.setter!!.valueParameters.map { it.copyTo(setter) }
                 setter.overriddenSymbols = listOf(property.setter!!.symbol)
+                setter.extensionReceiverParameter = property.setter!!.extensionReceiverParameter?.copyTo(setter)
                 setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
             }
         }

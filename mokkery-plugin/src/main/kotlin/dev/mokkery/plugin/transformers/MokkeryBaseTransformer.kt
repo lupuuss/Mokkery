@@ -13,6 +13,7 @@ import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import dev.mokkery.plugin.ext.overridePropertyWithBackingField
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -85,7 +86,7 @@ abstract class MokkeryBaseTransformer(
             index = 1,
             valueArgument = kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext))
         )
-        mokkeryCall.putValueArgument(2, irAnyVarargParams(function.valueParameters))
+        mokkeryCall.putValueArgument(2, irAnyVarargParams(function.fullValueParameterList))
         return mokkeryCall
     }
 

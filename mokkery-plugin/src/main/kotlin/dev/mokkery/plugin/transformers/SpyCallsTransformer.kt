@@ -11,6 +11,7 @@ import dev.mokkery.plugin.info
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
@@ -114,6 +115,9 @@ class SpyCallsTransformer(
                 dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
                 function.valueParameters.forEachIndexed { index, irValueParameter ->
                     putValueArgument(index, irGet(irValueParameter))
+                }
+                function.extensionReceiverParameter?.let {
+                    extensionReceiver = irGet(it)
                 }
             })
         )
