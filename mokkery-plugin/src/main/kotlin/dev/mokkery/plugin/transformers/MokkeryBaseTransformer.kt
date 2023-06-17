@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
@@ -86,7 +88,8 @@ abstract class MokkeryBaseTransformer(
             index = 1,
             valueArgument = kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext))
         )
-        mokkeryCall.putValueArgument(2, irAnyVarargParams(function.fullValueParameterList))
+        mokkeryCall.putValueArgument(2, irInt(function.valueParameters.indexOfFirst { it.isVararg }))
+        mokkeryCall.putValueArgument(3, irAnyVarargParams(function.fullValueParameterList))
         return mokkeryCall
     }
 

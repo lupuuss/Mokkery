@@ -40,13 +40,18 @@ private class AnsweringInterceptorImpl(
         answers = emptyMap()
     }
 
-    override fun interceptCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
+    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
         val argsList = args.toList()
         return find(signature, returnType, argsList).call(returnType, argsList)
     }
 
-    override suspend fun interceptSuspendCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
+    override suspend fun interceptSuspendCall(
+        signature: String,
+        returnType: KClass<*>,
+        varArgPosition: Int,
+        vararg args: Any?
+    ): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
         val argsList = args.toList()
         return find(signature, returnType, argsList).callSuspend(returnType, argsList)

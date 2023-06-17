@@ -44,7 +44,7 @@ private class CallTracingInterceptorImpl(
         lock.withLock { verified += trace }
     }
 
-    override fun interceptCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
+    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any? {
         lock.withLock {
             _all += CallTrace(receiver, signature, args.toList(), clock.nextStamp())
         }
