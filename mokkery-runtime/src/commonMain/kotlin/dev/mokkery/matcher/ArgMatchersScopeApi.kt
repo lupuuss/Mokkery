@@ -4,6 +4,12 @@ public inline fun <reified T> ArgMatchersScope.any(): T = matches(ArgMatcher.Any
 
 public inline fun <reified T> ArgMatchersScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
 
+public inline fun <reified T> ArgMatchersScope.notEq(value: T): T = matches(ArgMatcher.NotEqual(value))
+
+public inline fun <reified T> ArgMatchersScope.eqRef(value: T): T = matches(ArgMatcher.EqualsRef(value))
+
+public inline fun <reified T> ArgMatchersScope.notEqRef(value: T): T = matches(ArgMatcher.NotEqualRef(value))
+
 public inline fun <reified T> ArgMatchersScope.matching(
     noinline predicate: (T) -> Boolean
 ): T = matches(ArgMatcher.Matching(T::class, predicate))

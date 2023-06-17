@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package dev.mokkery.internal.templating
 
 import dev.mokkery.internal.MixingMatchersWithLiteralsException
@@ -8,6 +6,7 @@ import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.arrayToListOrNull
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.VarArgMatcher
 
 internal interface TemplatingContext {
 
@@ -86,19 +85,19 @@ private class TemplatingContextImpl: TemplatingContext {
     ): MergedVarArgMatcher {
         val varArgs = arg.arrayToListOrNull()!!
         val before = mutableListOf<ArgMatcher<Any?>>()
-        var wildCardMatcher: ArgMatcher.VarArg<Any?>? = null
+        var wildCardMatcher: VarArgMatcher<Any?>? = null
         val after = mutableListOf<ArgMatcher<Any?>>()
         var currentMatcher = matcher
         varArgs.forEach { _ ->
             when {
-                wildCardMatcher != null && currentMatcher is ArgMatcher.VarArg<*> -> throw MultipleVarargGenericMatchersException()
+                wildCardMatcher != null && currentMatcher is VarArgMatcher<*> -> throw MultipleVarargGenericMatchersException()
                 wildCardMatcher != null -> after.add(currentMatcher)
-                currentMatcher is ArgMatcher.VarArg<*> -> wildCardMatcher = currentMatcher.unsafeCast()
+                currentMatcher is VarArgMatcher<*> -> wildCardMatcher = currentMatcher.unsafeCast()
                 else -> before.add(currentMatcher)
             }
             currentMatcher = oldMatchers.removeFirstOrNull() ?: throw MixingMatchersWithLiteralsException()
         }
-        if (currentMatcher is ArgMatcher.VarArg<*>) {
+        if (currentMatcher is VarArgMatcher<*>) {
             wildCardMatcher = currentMatcher.unsafeCast()
         } else {
             after.add(currentMatcher)

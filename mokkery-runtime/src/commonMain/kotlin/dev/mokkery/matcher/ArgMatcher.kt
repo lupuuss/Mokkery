@@ -1,14 +1,12 @@
 package dev.mokkery.matcher
 
-import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.arrayToListOrNull
+import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
 import kotlin.reflect.KClass
 
 public fun interface ArgMatcher<in T> {
     public fun matches(arg: T): Boolean
-
-    public interface VarArg<T> : ArgMatcher<T>
 
     public data class AnyOf<T>(private val type: KClass<*>) : ArgMatcher<T> {
 
@@ -22,6 +20,27 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg == value
 
         override fun toString(): String = "eq($value)"
+    }
+
+    public data class NotEqual<T>(private val value: T) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = arg != value
+
+        override fun toString(): String = "notEq($value)"
+    }
+
+    public data class EqualsRef<T>(private val value: T) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = arg === value
+
+        override fun toString(): String = "eqRef($value)"
+    }
+
+    public data class NotEqualRef<T>(private val value: T) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = arg === value
+
+        override fun toString(): String = "noEqRef($value)"
     }
 
     public class Matching<T>(
@@ -47,27 +66,4 @@ public fun interface ArgMatcher<in T> {
         }
     }
 
-    public class VarArgAll(
-        private val type: KClass<*>,
-        private val predicate: (Any?) -> Boolean
-    ) : VarArg<Any?> {
-        override fun matches(arg: Any?): Boolean {
-            val arrayAsList = arg.arrayToListOrNull() ?: return false
-            return arrayAsList.all(predicate)
-        }
-
-        override fun toString(): String = "${varargNameByElementType(type)} {...}"
-    }
-
-    public class VarArgAny(
-        private val type: KClass<*>,
-    ) : VarArg<Any?> {
-        override fun matches(arg: Any?): Boolean = true
-
-        override fun toString(): String = "any${varargNameByElementType(type).capitalize()}()"
-
-    }
-
 }
-
-

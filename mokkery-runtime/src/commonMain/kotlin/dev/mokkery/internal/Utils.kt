@@ -1,5 +1,6 @@
 package dev.mokkery.internal
 
-internal inline fun <reified T> Any?.unsafeCast() = this as T
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+internal inline fun <T> Any?.unsafeCast() = this as T
 
 internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }

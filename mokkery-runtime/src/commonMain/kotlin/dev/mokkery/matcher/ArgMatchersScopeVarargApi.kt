@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package dev.mokkery.matcher
@@ -84,9 +84,9 @@ public inline fun ArgMatchersScope.anyVarargsFloat(): FloatArray = anyVarargsInl
 @PublishedApi
 internal inline fun <reified T, reified TArray> ArgMatchersScope.varargsInline(
     noinline predicate: (T) -> Boolean
-): TArray = matches(TArray::class, ArgMatcher.VarArgAll(T::class, predicate as (Any?) -> Boolean))
+): TArray = matches(TArray::class, VarArgMatcher.AllThat(T::class, predicate as (Any?) -> Boolean))
 
 @PublishedApi
 internal inline fun <reified T, reified TArray> ArgMatchersScope.anyVarargsInline(): TArray {
-    return matches(TArray::class, ArgMatcher.VarArgAny(T::class))
+    return matches(TArray::class, VarArgMatcher.AnyOf(T::class))
 }

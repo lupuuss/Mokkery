@@ -3,12 +3,13 @@ package dev.mokkery.internal.templating
 import dev.mokkery.internal.arrayToListOrNull
 import dev.mokkery.internal.varargNameByElementType
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.VarArgMatcher
 import kotlin.reflect.KClass
 
 public class MergedVarArgMatcher(
     private val type: KClass<*>,
     private val before: List<ArgMatcher<Any?>> = emptyList(),
-    private val wildCard: ArgMatcher.VarArg<Any?>? = null,
+    private val wildCard: VarArgMatcher<Any?>? = null,
     private val after: List<ArgMatcher<Any?>> = emptyList()
 ) : ArgMatcher<Any?> {
 
