@@ -2,15 +2,15 @@
 
 package dev.mokkery
 
-import dev.mokkery.answer.MockAnswerScope
-import dev.mokkery.answer.MockSuspendAnswerScope
+import dev.mokkery.answering.RegularAnsweringScope
+import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.matcher.ArgMatchersScope
 
 public fun <T> every(
     block: ArgMatchersScope.() -> T
-): MockAnswerScope<T> = throw MokkeryPluginNotAppliedException()
+): RegularAnsweringScope<T> = throw MokkeryPluginNotAppliedException()
 
 public fun <T> everySuspend(
     block: suspend ArgMatchersScope.() -> T
-): MockSuspendAnswerScope<T> = throw MokkeryPluginNotAppliedException()
+): SuspendAnsweringScope<T> = throw MokkeryPluginNotAppliedException()

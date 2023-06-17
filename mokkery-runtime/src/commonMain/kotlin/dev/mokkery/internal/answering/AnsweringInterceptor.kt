@@ -1,6 +1,7 @@
-package dev.mokkery.internal.answer
+package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode
+import dev.mokkery.answering.Answer
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
@@ -12,7 +13,7 @@ import kotlin.reflect.KClass
 
 internal interface AnsweringInterceptor : MokkeryInterceptor {
 
-    fun setup(template: CallTemplate, answer: MockAnswer<*>)
+    fun setup(template: CallTemplate, answer: Answer<*>)
 
     fun reset()
 }
@@ -27,9 +28,9 @@ private class AnsweringInterceptorImpl(
 ) : AnsweringInterceptor {
 
     private var isSetup by atomic(false)
-    private var answers by atomic(mapOf<CallTemplate, MockAnswer<*>>())
+    private var answers by atomic(mapOf<CallTemplate, Answer<*>>())
 
-    override fun setup(template: CallTemplate, answer: MockAnswer<*>) {
+    override fun setup(template: CallTemplate, answer: Answer<*>) {
         isSetup = true
         answers += template to answer
         isSetup = false
@@ -51,7 +52,7 @@ private class AnsweringInterceptorImpl(
         return find(signature, returnType, argsList).callSuspend(returnType, argsList)
     }
 
-    private fun find(signature: String, returnType: KClass<*>, args: List<Any?>): MockAnswer<*> {
+    private fun find(signature: String, returnType: KClass<*>, args: List<Any?>): Answer<*> {
         val trace = CallTrace(receiver, signature, args, 0)
         val answers = this.answers
         return answers
@@ -61,9 +62,9 @@ private class AnsweringInterceptorImpl(
             ?: handleMissingAnswer(trace, returnType)
     }
 
-    private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): MockAnswer<*> = when {
-        mockMode == MockMode.Autofill -> DefaultAnswer
-        mockMode == MockMode.AutoUnit && returnType == Unit::class -> ConstAnswer(Unit)
+    private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): Answer<*> = when {
+        mockMode == MockMode.Autofill -> Answer.Autofill
+        mockMode == MockMode.AutoUnit && returnType == Unit::class -> Answer.Const(Unit)
         else -> throw CallNotMockedException(trace.toString())
     }
 }

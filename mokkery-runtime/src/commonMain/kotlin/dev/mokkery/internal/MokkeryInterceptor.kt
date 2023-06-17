@@ -1,6 +1,6 @@
 package dev.mokkery.internal
 
-import dev.mokkery.internal.answer.defaultValue
+import dev.mokkery.internal.answering.autofillValue
 import kotlin.reflect.KClass
 
 
@@ -29,22 +29,22 @@ private class CombinedInterceptor(private val interceptors: Array<out MokkeryInt
         interceptors.forEach {
             when (val result = it.interceptCall(signature, returnType, *args)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return defaultValue(returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
                 else -> return result
             }
         }
-        return defaultValue(returnType)
+        return autofillValue(returnType)
     }
 
     override suspend fun interceptSuspendCall(signature: String, returnType: KClass<*>, vararg args: Any?): Any? {
         interceptors.forEach {
             when (val result = it.interceptSuspendCall(signature, returnType, *args)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return defaultValue(returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
                 else -> return result
             }
         }
-        return defaultValue(returnType)
+        return autofillValue(returnType)
     }
 
 }

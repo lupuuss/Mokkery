@@ -2,9 +2,10 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.answer.MockAnswerScope
-import dev.mokkery.answer.MockSuspendAnswerScope
-import dev.mokkery.internal.answer.AnsweringInterceptor
+import dev.mokkery.answering.RegularAnsweringScope
+import dev.mokkery.answering.SuspendAnsweringScope
+import dev.mokkery.internal.answering.AnsweringInterceptor
+import dev.mokkery.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.coroutines.runSuspension
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.templating.TemplatingContext
@@ -13,13 +14,13 @@ import dev.mokkery.matcher.ArgMatchersScope
 internal fun <T> internalEvery(
     mocks: Array<Any>,
     block: ArgMatchersScope.() -> T
-): MockAnswerScope<T> = internalBaseEvery(mocks) { block() }.let { MockAnswerScope(it.first, it.second) }
+): RegularAnsweringScope<T> = internalBaseEvery(mocks) { block() }.let { UnifiedAnsweringScope(it.first, it.second) }
 
 internal fun <T> internalEverySuspend(
     mocks: Array<Any>,
     block: suspend ArgMatchersScope.() -> T
-): MockSuspendAnswerScope<T> = internalBaseEvery(mocks) { runSuspension { block() } }
-    .let { MockSuspendAnswerScope(it.first, it.second) }
+): SuspendAnsweringScope<T> = internalBaseEvery(mocks) { runSuspension { block() } }
+    .let { UnifiedAnsweringScope(it.first, it.second) }
 
 private inline fun <T> internalBaseEvery(
     mocks: Array<Any>,

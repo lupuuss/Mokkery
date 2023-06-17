@@ -1,9 +1,9 @@
-package dev.mokkery.internal.answer
+package dev.mokkery.internal.answering
 
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-internal fun <T> defaultValue(returnType: KClass<*>): T = when (returnType) {
+internal fun <T> autofillValue(returnType: KClass<*>): T = when (returnType) {
     Byte::class -> 0.toByte()
     UByte::class -> 0u.toUByte()
     Char::class -> '0'
