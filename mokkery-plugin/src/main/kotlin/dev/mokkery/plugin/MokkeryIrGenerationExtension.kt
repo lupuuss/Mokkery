@@ -29,15 +29,20 @@ class MokkeryIrGenerationExtension(
                     mockTable = mockTable
                 ).visitFile(irFile)
                 SpyCallsTransformer(
-                    pluginContext,
-                    messageCollector,
-                    irFile,
-                    spyTable,
+                    pluginContext = pluginContext,
+                    messageCollector = messageCollector,
+                    irFile = irFile,
+                    spyTable = spyTable,
                 ).visitFile(irFile)
             }
             val interceptedTypesTable = mockTable + spyTable
             moduleFragment.files.forEach { irFile ->
-                CallTrackingTransformer(irFile, pluginContext, interceptedTypesTable).visitFile(irFile)
+                CallTrackingTransformer(
+                    messageCollector = messageCollector,
+                    irFile = irFile,
+                    pluginContext = pluginContext,
+                    table = interceptedTypesTable
+                ).visitFile(irFile)
             }
         }
         messageCollector.info { "Plugin time: $time" }

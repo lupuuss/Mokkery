@@ -8,6 +8,7 @@ import dev.mokkery.plugin.ext.locationInFile
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
 import dev.mokkery.plugin.info
+import dev.mokkery.plugin.infoAt
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -53,8 +54,8 @@ class MockCallsTransformer(
             expression.mokkeryError(irFile) { "Only interfaces are currently supported!" }
         }
         val classToMock = typeToMock.getClass()!!
-        messageCollector.info {
-            "Recognized mock call with type ${typeToMock.asString()} at: ${expression.locationInFile(irFile)}"
+        messageCollector.infoAt(expression, irFile) {
+            "Recognized mock call with type ${typeToMock.asString()}!"
         }
         val mockedClass = mockTable.getOrPut(classToMock) {
             declareMock(classToMock).also {

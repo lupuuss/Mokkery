@@ -4,6 +4,7 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.firstFunction
 import dev.mokkery.plugin.ext.irVararg
 import dev.mokkery.plugin.mokkeryError
+import dev.mokkery.plugin.warningAt
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -18,6 +19,7 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CallTrackingTransformer(
+    private val messageCollector: MessageCollector,
     private val irFile: IrFile,
     private val pluginContext: IrPluginContext,
     private val table: Map<IrClass, IrClass>,
@@ -41,6 +43,9 @@ class CallTrackingTransformer(
         val block = expression.getValueArgument(0)!!
         block.assertFunctionExpressionThatOriginatesLambda()
         block.transformChildren(nestedTransformer, null)
+        if (nestedTransformer.trackedExpressions.isEmpty()) {
+            messageCollector.warningAt(block, irFile) { "Block does not refer to any mock!" }
+        }
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irCall(function).apply {
                 putValueArgument(0, irVararg(nestedTransformer.trackedExpressions.toList()))
@@ -55,6 +60,9 @@ class CallTrackingTransformer(
         val block = expression.getValueArgument(1)!!
         block.assertFunctionExpressionThatOriginatesLambda()
         block.transformChildren(nestedTransformer, null)
+        if (nestedTransformer.trackedExpressions.isEmpty()) {
+            messageCollector.warningAt(block, irFile) { "Block does not refer to any mock!" }
+        }
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irCall(function).apply {
                 putValueArgument(0, irVararg(nestedTransformer.trackedExpressions.toList()))
