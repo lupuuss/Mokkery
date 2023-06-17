@@ -47,13 +47,10 @@ class MockCallsTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         if (function.kotlinFqName != Mokkery.Function.mock) return super.visitCall(expression)
-        val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() } ?: mokkeryError {
-            "Mock call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
-        }
+        val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() }
+            ?: expression.mokkeryError(irFile) { "Mock call must be direct! It can't be a type parameter!" }
         if (!typeToMock.isInterface()) {
-            mokkeryError {
-                "Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}"
-            }
+            expression.mokkeryError(irFile) { "Only interfaces are currently supported!" }
         }
         val classToMock = typeToMock.getClass()!!
         messageCollector.info {
