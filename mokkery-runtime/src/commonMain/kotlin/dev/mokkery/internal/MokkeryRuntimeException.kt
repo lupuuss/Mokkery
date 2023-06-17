@@ -18,8 +18,6 @@ internal class ObjectNotMockedException(obj: Any?) : MokkeryRuntimeException("$o
 
 internal class NotSingleCallInEveryBlockException : MokkeryRuntimeException("Each 'every' block requires single mock call!")
 
-internal class MixingMatchersWithLiteralsException() : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
-
 internal class SuspendingFunctionBlockingCallException : MokkeryRuntimeException(
     message = "Regular function was mocked with suspending call!"
 )
@@ -28,10 +26,6 @@ internal class ConcurrentTemplatingException : MokkeryRuntimeException(
     "Any concurrent calls involving verify and every are illegal!"
 )
 
-internal class UnprocessableMatchersSequenceException(): MokkeryRuntimeException(
-    """
-        Used matchers sequence could not be processed! Possible causes: 
-        1. Mixing literals with matchers.
-        2. Calling matchers in order different than arguments order (e.g. using named arguments to change order)
-    """.trimIndent()
-)
+internal class MixingMatchersWithLiteralsException() : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
+
+internal class MultipleVarargGenericMatchersException() : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
