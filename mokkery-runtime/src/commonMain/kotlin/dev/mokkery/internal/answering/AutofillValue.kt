@@ -2,22 +2,36 @@ package dev.mokkery.internal.answering
 
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-internal fun <T> autofillValue(returnType: KClass<*>): T = when (returnType) {
-    Byte::class -> 0.toByte()
-    UByte::class -> 0u.toUByte()
-    Char::class -> '0'
-    Short::class -> 0.toShort()
-    UShort::class -> 0.toUShort()
-    Int::class -> 0
-    UInt::class -> 0u
-    Long::class -> 0L
-    ULong::class -> 0uL
-    Double::class -> 0.0
-    Float::class -> 0f
-    Unit::class -> Unit
-    KClass::class -> Any::class
-    String::class -> ""
-    else -> null
-} as T
+@Suppress("UNCHECKED_CAST")
+internal fun <T> autofillValue(returnType: KClass<*>): T = autoFillMap[returnType] as T
 
+@OptIn(ExperimentalUnsignedTypes::class)
+private val autoFillMap = mapOf(
+    Byte::class to 0.toByte(),
+    UByte::class to 0u.toUByte(),
+    Char::class to '0',
+    Short::class to 0.toShort(),
+    UShort::class to 0.toUShort(),
+    Int::class to 0,
+    UInt::class to 0u,
+    Long::class to 0L,
+    ULong::class to 0uL,
+    Double::class to 0.0,
+    Float::class to 0f,
+    Unit::class to Unit,
+    KClass::class to Any::class,
+    String::class to "",
+    Array::class to emptyArray<Any?>(),
+    IntArray::class to intArrayOf(),
+    ByteArray::class to byteArrayOf(),
+    DoubleArray::class to doubleArrayOf(),
+    CharArray::class to charArrayOf(),
+    FloatArray::class to floatArrayOf(),
+    LongArray::class to longArrayOf(),
+    BooleanArray::class to booleanArrayOf(),
+    ShortArray::class to shortArrayOf(),
+    UIntArray::class to uintArrayOf(),
+    UByteArray::class to ubyteArrayOf(),
+    ULongArray::class to ulongArrayOf(),
+    UShortArray::class to ushortArrayOf()
+)
