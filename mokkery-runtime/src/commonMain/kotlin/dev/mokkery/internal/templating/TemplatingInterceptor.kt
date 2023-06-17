@@ -41,7 +41,8 @@ private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : T
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
-        templatingContext?.saveTemplate(receiver, signature, args) ?: throw ConcurrentTemplatingException()
+        templatingContext?.saveTemplate(receiver, signature, varArgPosition, args)
+            ?: throw ConcurrentTemplatingException()
         return MokkeryToken.RETURN_DEFAULT
     }
 
