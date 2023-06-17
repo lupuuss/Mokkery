@@ -20,7 +20,7 @@ internal data class CallTrace(
 }
 
 internal infix fun CallTrace.matches(template: CallTemplate): Boolean {
-    return receiver == template.receiver && signature == template.signature && template.matchers.zip(args).all { (matcher, arg) -> matcher.match(arg) }
+    return receiver == template.receiver && signature == template.signature && template.matchers.zip(args).all { (matcher, arg) -> matcher.matches(arg) }
 }
 
 internal infix fun CallTrace.doesNotMatch(template: CallTemplate): Boolean = matches(template).not()

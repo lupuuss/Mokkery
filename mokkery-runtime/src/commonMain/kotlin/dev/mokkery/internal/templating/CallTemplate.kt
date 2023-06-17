@@ -5,7 +5,7 @@ import dev.mokkery.matcher.ArgMatcher
 internal data class CallTemplate(
     val receiver: String,
     val signature: String,
-    val matchers: List<ArgMatcher>
+    val matchers: List<ArgMatcher<Any?>>
 ) {
 
     override fun toString(): String = buildString {

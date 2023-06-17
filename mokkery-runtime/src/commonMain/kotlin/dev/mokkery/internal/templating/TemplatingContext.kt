@@ -2,13 +2,12 @@ package dev.mokkery.internal.templating
 
 import dev.mokkery.internal.MixingMatchersWithLiteralsException
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.EqMatcher
 
 internal interface TemplatingContext {
 
     val templates: List<CallTemplate>
 
-    fun registerMatcher(matcher: ArgMatcher)
+    fun registerMatcher(matcher: ArgMatcher<Any?>)
 
     fun saveTemplate(receiver: String, signature: String, args: Array<out Any?>)
 }
@@ -17,10 +16,10 @@ internal fun TemplatingContext(): TemplatingContext = TemplatingContextImpl()
 
 private class TemplatingContextImpl: TemplatingContext {
 
-    private val matchers = mutableListOf<ArgMatcher>()
+    private val matchers = mutableListOf<ArgMatcher<Any?>>()
     override val templates = mutableListOf<CallTemplate>()
 
-    override fun registerMatcher(matcher: ArgMatcher) {
+    override fun registerMatcher(matcher: ArgMatcher<Any?>) {
         matchers.add(matcher)
     }
 
@@ -28,13 +27,13 @@ private class TemplatingContextImpl: TemplatingContext {
         val matchers = flush()
         val registeredMatchers = when {
             args.isEmpty() -> emptyList()
-            matchers.isEmpty() -> args.map { EqMatcher(it) }
+            matchers.isEmpty() -> args.map { ArgMatcher.Equals(it) }
             matchers.size == args.size -> matchers
             else -> throw MixingMatchersWithLiteralsException(signature)
         }
         templates += CallTemplate(receiver, signature, registeredMatchers)
     }
 
-    private fun flush(): List<ArgMatcher> = matchers.toMutableList().also { matchers.clear() }
+    private fun flush() = matchers.toMutableList().also { matchers.clear() }
 
 }
