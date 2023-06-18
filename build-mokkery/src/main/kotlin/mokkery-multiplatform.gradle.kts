@@ -1,4 +1,5 @@
 plugins {
+    id("mokkery-base")
     kotlin("multiplatform")
 }
 

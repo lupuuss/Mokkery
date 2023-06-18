@@ -8,5 +8,6 @@ kotlin.sourceSets.all {
 }
 
 dependencies {
+    commonMainApi(project(":mokkery-setup"))
     commonMainImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
 }

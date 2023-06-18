@@ -7,15 +7,15 @@ import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.ObjectNotSpiedException
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
-import dev.mokkery.verify.VerifyMode.Companion.default
+
 
 public fun verify(
-    mode: VerifyMode = default,
+    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
 
 public fun verifySuspend(
-    mode: VerifyMode = default,
+    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
 

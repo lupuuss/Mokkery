@@ -16,13 +16,13 @@ import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerify(
     spied: Array<Any>,
-    mode: VerifyMode = VerifyMode.default,
+    mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) = internalBaseVerify(spied, mode, block)
 
 internal fun internalVerifySuspend(
     spied: Array<Any>,
-    mode: VerifyMode = VerifyMode.default,
+    mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ) = internalBaseVerify(spied, mode) {
     runSuspension { block() }
