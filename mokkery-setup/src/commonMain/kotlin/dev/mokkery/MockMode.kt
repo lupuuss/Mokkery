@@ -1,5 +1,6 @@
 package dev.mokkery
 
+@Suppress("EnumEntryName")
 public enum class MockMode {
-    Autofill, Strict, AutoUnit
+    strict, autofill, autoUnit
 }
