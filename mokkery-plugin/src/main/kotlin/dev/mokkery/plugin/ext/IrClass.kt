@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
@@ -30,6 +31,11 @@ import org.jetbrains.kotlin.name.Name
 fun IrClass.getProperty(name: String): IrProperty {
     val nameId = Name.identifier(name)
     return properties.first { it.name == nameId }
+}
+
+fun IrClass.getEnumEntry(name: String): IrEnumEntry {
+    return declarations.filterIsInstance<IrEnumEntry>()
+        .first{ it.name == Name.identifier(name) }
 }
 
 fun IrClass.buildThisValueParam() = buildReceiverParameter(

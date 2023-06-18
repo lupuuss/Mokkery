@@ -16,14 +16,12 @@ import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
-import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
@@ -32,8 +30,6 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -64,13 +60,6 @@ abstract class MokkeryBaseTransformer(
     inner class IrFunctions {
         val MokkeryMock = pluginContext.firstFunction(Mokkery.FunctionId.MokkeryMock)
         val MokkerySpy = pluginContext.firstFunction(Mokkery.FunctionId.MokkerySpy)
-    }
-
-    protected fun IrBuilderWithScope.irCallMockModeDefault(): IrFunctionAccessExpression {
-        val companion = irClasses.MockMode.companionObject()!!
-        return irCall(companion.getPropertyGetter("Default")!!.owner).apply {
-            dispatchReceiver = irGetObject(companion.symbol)
-        }
     }
 
     protected fun IrBlockBodyBuilder.irCallInterceptingMethod(function: IrSimpleFunction): IrCall {

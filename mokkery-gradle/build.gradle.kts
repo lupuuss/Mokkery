@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(kotlin("gradle-plugin"))
+    implementation(project(":mokkery-setup"))
 }
 
 gradlePlugin {

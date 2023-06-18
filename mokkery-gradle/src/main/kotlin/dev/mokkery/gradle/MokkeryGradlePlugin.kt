@@ -5,6 +5,7 @@ import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
 import dev.mokkery.BuildConfig.MOKKERY_GROUP
 import dev.mokkery.BuildConfig.MOKKERY_PLUGIN_ARTIFACT_ID
 import dev.mokkery.BuildConfig.MOKKERY_VERSION
+import dev.mokkery.MockMode
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -16,15 +17,13 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
-        target.extensions.create("mokkery", MokkeryGradleExtension::class.java)
-        target.extensions.getByType(MokkeryGradleExtension::class.java).apply {
+        target.extensions.create("mokkery", MokkeryGradleExtension::class.java).apply {
             targetSourceSets = setOfNotNull(
                 target.kotlinExtension.sourceSets.getByName("commonTest")
             )
         }
         target.afterEvaluate {
-            target.extensions
-                .getByType(MokkeryGradleExtension::class.java)
+            target.mokkery
                 .run { targetSourceSets - excludeSourceSets }
                 .forEach {
                     it.dependencies {
@@ -36,7 +35,9 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>) = kotlinCompilation.run {
-        project.provider { emptyList<SubpluginOption>() }
+        project.provider {
+            listOf(SubpluginOption("mockMode", project.mokkery.defaultMockMode.toString()))
+        }
     }
 
     override fun getCompilerPluginId(): String = BuildConfig.MOKKERY_PLUGIN_ID
@@ -48,7 +49,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        val extension = kotlinCompilation.project.extensions.getByType(MokkeryGradleExtension::class.java)
+        val extension = kotlinCompilation.project.mokkery
         val allDependsOn by lazy { kotlinCompilation.defaultSourceSet.allDependsOn }
         if (kotlinCompilation.defaultSourceSet in extension.excludeSourceSets) return false
         if (kotlinCompilation.defaultSourceSet in extension.targetSourceSets) return true
@@ -57,3 +58,5 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private val KotlinSourceSet.allDependsOn get(): List<KotlinSourceSet> = dependsOn.flatMap { it.allDependsOn + it }
 }
+
+private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)

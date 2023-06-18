@@ -1,13 +1,13 @@
 package dev.mokkery.plugin.transformers
 
+import dev.mokkery.MockMode
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.buildClass
 import dev.mokkery.plugin.ext.createUniqueMockName
 import dev.mokkery.plugin.ext.irCallConstructor
-import dev.mokkery.plugin.ext.locationInFile
+import dev.mokkery.plugin.ext.irGetEnumEntry
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
-import dev.mokkery.plugin.info
 import dev.mokkery.plugin.infoAt
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -43,6 +43,7 @@ class MockCallsTransformer(
     private val messageCollector: MessageCollector,
     private val irFile: IrFile,
     private val mockTable: MutableMap<IrClass, IrClass>,
+    private val mockMode: MockMode,
 ) : MokkeryBaseTransformer(pluginContext) {
 
     override fun visitCall(expression: IrCall): IrExpression {
@@ -64,7 +65,9 @@ class MockCallsTransformer(
         }
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irCallConstructor(mockedClass.primaryConstructor!!).also {
-                val modeArg = expression.valueArguments.getOrNull(0) ?: irCallMockModeDefault()
+                val modeArg = expression.valueArguments
+                    .getOrNull(0)
+                    ?: irGetEnumEntry(irClasses.MockMode, mockMode.toString())
                 it.putValueArgument(0, modeArg)
                 it.putValueArgument(1, expression.valueArguments.getOrNull(1) ?: irNull())
             }

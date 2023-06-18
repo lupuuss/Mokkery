@@ -14,11 +14,14 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.platform.konan.isNative
@@ -31,6 +34,10 @@ fun IrBuilderWithScope.kClassReferenceUnified(context: IrPluginContext, classTyp
     } else {
         kClassReference(classType)
     }
+}
+
+fun IrBuilderWithScope.irGetEnumEntry(irClass: IrClass, name: String): IrGetEnumValue {
+    return IrGetEnumValueImpl(startOffset, endOffset, irClass.defaultType, irClass.getEnumEntry(name).symbol)
 }
 
 fun IrBuilderWithScope.irAnyVarargParams(parameters: List<IrValueParameter>) =

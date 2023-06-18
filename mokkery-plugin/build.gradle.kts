@@ -15,6 +15,7 @@ dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)
     compileOnly(libs.kotlin.compiler.embeddable)
+    implementation(project(":mokkery-setup"))
 }
 
 publishing {

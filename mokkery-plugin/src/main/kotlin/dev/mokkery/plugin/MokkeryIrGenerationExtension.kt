@@ -1,5 +1,6 @@
 package dev.mokkery.plugin
 
+import dev.mokkery.MockMode
 import dev.mokkery.plugin.transformers.CallTrackingTransformer
 import dev.mokkery.plugin.transformers.MockCallsTransformer
 import dev.mokkery.plugin.transformers.SpyCallsTransformer
@@ -13,7 +14,8 @@ import kotlin.time.measureTime
 
 @OptIn(ExperimentalTime::class)
 class MokkeryIrGenerationExtension(
-    private val messageCollector: MessageCollector
+    private val messageCollector: MessageCollector,
+    private val mockMode: MockMode
 ) : IrGenerationExtension {
 
     private val mockTable = mutableMapOf<IrClass, IrClass>()
@@ -26,7 +28,8 @@ class MokkeryIrGenerationExtension(
                     pluginContext = pluginContext,
                     messageCollector = messageCollector,
                     irFile = irFile,
-                    mockTable = mockTable
+                    mockTable = mockTable,
+                    mockMode = mockMode,
                 ).visitFile(irFile)
                 SpyCallsTransformer(
                     pluginContext = pluginContext,
