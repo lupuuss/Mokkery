@@ -1,8 +1,7 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.kapt)
-    alias(libs.plugins.buildconfig)
-    `maven-publish`
+    id("mokkery-base")
+    kotlin("jvm")
+    kotlin("kapt")
 }
 
 kotlin.sourceSets.all {

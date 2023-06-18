@@ -1,8 +1,7 @@
 plugins {
-    `java-gradle-plugin`
+    kotlin("jvm")
+    id("mokkery-base")
     id("com.gradle.plugin-publish") version "1.1.0"
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.buildconfig)
 }
 
 dependencies {
