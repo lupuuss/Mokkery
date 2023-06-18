@@ -32,7 +32,7 @@ private class CallTracingInterceptorImpl(
 
     private val lock = reentrantLock()
 
-    override val unverified: List<CallTrace> get() = lock.withLock { _all - verified }
+    override val unverified: List<CallTrace> get() = lock.withLock { _all - verified.toSet() }
     override val all: List<CallTrace> = _all
 
     override fun reset() = lock.withLock {
@@ -44,7 +44,7 @@ private class CallTracingInterceptorImpl(
         lock.withLock { verified += trace }
     }
 
-    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any? {
+    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any {
         lock.withLock {
             _all += CallTrace(receiver, signature, args.toList(), clock.nextStamp())
         }

@@ -1,8 +1,6 @@
 package dev.mokkery.matcher
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.answering.autofillValue
-import dev.mokkery.internal.templating.TemplatingContext
 import kotlin.reflect.KClass
 
 public interface ArgMatchersScope {

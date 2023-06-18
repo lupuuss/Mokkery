@@ -26,6 +26,6 @@ internal class ConcurrentTemplatingException : MokkeryRuntimeException(
     "Any concurrent calls involving verify and every are illegal!"
 )
 
-internal class MixingMatchersWithLiteralsException() : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
+internal class MixingMatchersWithLiteralsException : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
 
-internal class MultipleVarargGenericMatchersException() : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
+internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")

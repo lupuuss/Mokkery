@@ -10,6 +10,7 @@ internal interface MokkeryMock : MokkerySpy {
     val answering: AnsweringInterceptor
 }
 
+@Suppress("unused")
 internal fun MokkeryMock(receiver: String, mockMode: MockMode): MokkeryMock {
     return MokkeryMockImpl(
         TemplatingInterceptor(receiver),

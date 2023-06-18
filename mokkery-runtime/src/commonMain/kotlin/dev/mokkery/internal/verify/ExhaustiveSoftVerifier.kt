@@ -12,7 +12,7 @@ internal object ExhaustiveSoftVerifier : Verifier {
             if (matchingCalls.isEmpty()) {
                 failAssertion(callTraces, callTemplates) { "No matching call for $template!" }
             }
-            unverifiedTracks.removeAll(matchingCalls)
+            unverifiedTracks.removeAll(matchingCalls.toSet())
         }
         if (unverifiedTracks.isNotEmpty()) {
             failAssertion(callTraces, callTemplates) {

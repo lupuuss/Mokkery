@@ -9,6 +9,7 @@ internal interface MokkerySpy : MokkeryInterceptor {
     val callTracing: CallTracingInterceptor
 }
 
+@Suppress("unused")
 internal fun MokkerySpy(receiver: String): MokkerySpy {
     return MokkerySpyImpl(
         TemplatingInterceptor(receiver),

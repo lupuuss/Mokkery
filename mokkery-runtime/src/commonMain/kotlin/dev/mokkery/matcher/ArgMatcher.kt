@@ -1,8 +1,5 @@
 package dev.mokkery.matcher
 
-import dev.mokkery.internal.arrayToListOrNull
-import dev.mokkery.internal.capitalize
-import dev.mokkery.internal.varargNameByElementType
 import kotlin.reflect.KClass
 
 public fun interface ArgMatcher<in T> {

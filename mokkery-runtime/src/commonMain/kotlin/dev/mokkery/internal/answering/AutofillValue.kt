@@ -1,9 +1,9 @@
 package dev.mokkery.internal.answering
 
+import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
-@Suppress("UNCHECKED_CAST")
-internal fun <T> autofillValue(returnType: KClass<*>): T = autoFillMap[returnType] as T
+internal fun <T> autofillValue(returnType: KClass<*>): T = autoFillMap[returnType].unsafeCast()
 
 @OptIn(ExperimentalUnsignedTypes::class)
 private val autoFillMap = mapOf(

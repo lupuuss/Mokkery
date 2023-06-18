@@ -1,4 +1,4 @@
-@file:Suppress("RedundantSuspendModifier", "UNUSED_PARAMETER", "unused")
+@file:Suppress("UNUSED_PARAMETER", "unused")
 
 package dev.mokkery
 

@@ -37,7 +37,7 @@ private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : T
         templatingContext = null
     }
 
-    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any? {
+    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any {
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
