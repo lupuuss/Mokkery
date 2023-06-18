@@ -12,6 +12,11 @@ import dev.mokkery.internal.verify.NotVerifier
 import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.internal.verify.SoftVerifier
 import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.verify.ExhaustiveOrderVerifyMode
+import dev.mokkery.verify.ExhaustiveSoftVerifyMode
+import dev.mokkery.verify.NotVerifyMode
+import dev.mokkery.verify.OrderVerifyMode
+import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerify(
@@ -52,11 +57,11 @@ internal inline fun internalBaseVerify(
         .flatten()
         .sortedBy(CallTrace::orderStamp)
     val verifier = when (mode) {
-        VerifyMode.Order -> OrderVerifier
-        VerifyMode.ExhaustiveOrder -> ExhaustiveOrderVerifier
-        VerifyMode.ExhaustiveSoft -> ExhaustiveSoftVerifier
-        VerifyMode.Not -> NotVerifier
-        is VerifyMode.Soft -> SoftVerifier(mode.atLeast, mode.atMost)
+        OrderVerifyMode -> OrderVerifier
+        ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier
+        ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier
+        NotVerifyMode -> NotVerifier
+        is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
     }
     verifier.verify(calls, context.templates).forEach {
         spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)

@@ -1,12 +1,13 @@
 package dev.mokkery.gradle
 
 import dev.mokkery.BuildConfig
-import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
 import dev.mokkery.BuildConfig.MOKKERY_GROUP
 import dev.mokkery.BuildConfig.MOKKERY_PLUGIN_ARTIFACT_ID
+import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
 import dev.mokkery.BuildConfig.MOKKERY_VERSION
-import dev.mokkery.MockMode
+import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -34,9 +35,14 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         super.apply(target)
     }
 
-    override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>) = kotlinCompilation.run {
-        project.provider {
-            listOf(SubpluginOption("mockMode", project.mokkery.defaultMockMode.toString()))
+    override fun applyToCompilation(
+        kotlinCompilation: KotlinCompilation<*>
+    ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
+        target.project.provider {
+            listOf(
+                SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.toString()),
+                SubpluginOption(key = "verifyMode", value = VerifyModeSerializer.serialize(project.mokkery.defaultVerifyMode))
+            )
         }
     }
 

@@ -4,6 +4,7 @@ import dev.mokkery.MockMode
 import dev.mokkery.plugin.transformers.CallTrackingTransformer
 import dev.mokkery.plugin.transformers.MockCallsTransformer
 import dev.mokkery.plugin.transformers.SpyCallsTransformer
+import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -15,7 +16,8 @@ import kotlin.time.measureTime
 @OptIn(ExperimentalTime::class)
 class MokkeryIrGenerationExtension(
     private val messageCollector: MessageCollector,
-    private val mockMode: MockMode
+    private val mockMode: MockMode,
+    private val verifyMode: VerifyMode
 ) : IrGenerationExtension {
 
     private val mockTable = mutableMapOf<IrClass, IrClass>()
@@ -44,7 +46,8 @@ class MokkeryIrGenerationExtension(
                     messageCollector = messageCollector,
                     irFile = irFile,
                     pluginContext = pluginContext,
-                    table = interceptedTypesTable
+                    table = interceptedTypesTable,
+                    verifyMode = verifyMode,
                 ).visitFile(irFile)
             }
         }

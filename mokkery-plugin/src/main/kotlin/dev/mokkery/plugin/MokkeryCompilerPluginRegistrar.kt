@@ -15,6 +15,7 @@ class MokkeryCompilerPluginRegistrar : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val messageCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         val mockMode = configuration.get(MOCK_MODE_KEY)!!.single()
-        IrGenerationExtension.registerExtension(MokkeryIrGenerationExtension(messageCollector, mockMode))
+        val verifyMode = configuration.get(VERIFY_MODE_KEY)!!.single()
+        IrGenerationExtension.registerExtension(MokkeryIrGenerationExtension(messageCollector, mockMode, verifyMode))
     }
 }

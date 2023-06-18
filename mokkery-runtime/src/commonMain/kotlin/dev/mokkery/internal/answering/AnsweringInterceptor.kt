@@ -68,8 +68,8 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): Answer<*> = when {
-        mockMode == MockMode.Autofill -> Answer.Autofill
-        mockMode == MockMode.AutoUnit && returnType == Unit::class -> Answer.Const(Unit)
+        mockMode == MockMode.autofill -> Answer.Autofill
+        mockMode == MockMode.autoUnit && returnType == Unit::class -> Answer.Const(Unit)
         else -> throw CallNotMockedException(trace.toString())
     }
 }
