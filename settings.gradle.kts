@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
 }
 includeBuild("build-mokkery")
+include(":mokkery-core")
 include(":mokkery-gradle")
 include(":mokkery-plugin")
 include(":mokkery-runtime")
-include(":mokkery-setup")
