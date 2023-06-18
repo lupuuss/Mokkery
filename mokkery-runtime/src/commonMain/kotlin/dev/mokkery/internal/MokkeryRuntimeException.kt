@@ -29,3 +29,5 @@ internal class ConcurrentTemplatingException : MokkeryRuntimeException(
 internal class MixingMatchersWithLiteralsException : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
 
 internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
+
+internal class DefaultNothingException : MokkeryRuntimeException("This is the default exception for Nothing return type!")

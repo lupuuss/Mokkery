@@ -34,6 +34,8 @@ private inline fun <T> internalBaseEvery(
     try {
         mock.templating.start(context)
         block(ArgMatchersScope(context))
+    } catch (e: DefaultNothingException) {
+        // function with Nothing return type was called
     } finally {
         mock.templating.stop()
     }

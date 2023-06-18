@@ -41,6 +41,8 @@ internal inline fun internalBaseVerify(
     spyInterceptors.values.forEach { it.templating.start(context) }
     try {
         block(ArgMatchersScope(context))
+    } catch (e: DefaultNothingException) {
+        // function with Nothing return type was called
     } finally {
         spyInterceptors.values.forEach { it.templating.stop() }
     }

@@ -1,9 +1,14 @@
 package dev.mokkery.internal.answering
 
+import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
-internal fun <T> autofillValue(returnType: KClass<*>): T = autoFillMap[returnType].unsafeCast()
+internal fun <T> autofillValue(returnType: KClass<*>): T = if (returnType == Nothing::class) {
+    throw DefaultNothingException()
+} else {
+    autoFillMap[returnType].unsafeCast()
+}
 
 @OptIn(ExperimentalUnsignedTypes::class)
 private val autoFillMap = mapOf(
