@@ -9,6 +9,10 @@ dependencies {
     implementation(project(":mokkery-core"))
 }
 
+kotlin.sourceSets.all {
+    languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+}
+
 gradlePlugin {
     plugins {
         create(rootProject.name) {

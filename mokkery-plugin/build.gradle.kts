@@ -11,6 +11,10 @@ kotlin.sourceSets.all {
     }
 }
 
+kotlin.sourceSets.all {
+    languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+}
+
 dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)

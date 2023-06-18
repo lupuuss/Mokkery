@@ -10,6 +10,10 @@ kotlin {
     mingwX64()
 
     sourceSets {
+        all {
+            languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")
+            languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+        }
 
         val commonMain by getting
         val jvmMain by getting
