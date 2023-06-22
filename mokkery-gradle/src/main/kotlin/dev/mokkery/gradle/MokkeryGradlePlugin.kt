@@ -24,6 +24,12 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             )
         }
         target.afterEvaluate {
+            // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
+            target.configurations.matching {
+                it.name.startsWith("kotlin") && it.name.contains("CompilerPluginClasspath")
+            }.all {
+                it.isTransitive = true
+            }
             target.mokkery
                 .run { targetSourceSets - excludeSourceSets }
                 .forEach {
