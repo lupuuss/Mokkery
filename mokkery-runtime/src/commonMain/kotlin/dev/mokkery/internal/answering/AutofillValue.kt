@@ -26,7 +26,6 @@ private val autoFillMap = mapOf(
     Unit::class to Unit,
     KClass::class to Any::class,
     String::class to "",
-    Array::class to emptyArray<Any?>(),
     IntArray::class to intArrayOf(),
     ByteArray::class to byteArrayOf(),
     DoubleArray::class to doubleArrayOf(),

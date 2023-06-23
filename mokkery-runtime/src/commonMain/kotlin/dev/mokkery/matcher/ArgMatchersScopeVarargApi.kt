@@ -7,7 +7,10 @@ import dev.mokkery.internal.unsafeCast
 
 public inline fun <reified T> ArgMatchersScope.varargs(
     noinline predicate: (T) -> Boolean
-): Array<T> = varargsInline(predicate)
+): Array<T> {
+    varargsInline<T, Array<T>>(predicate)
+    return arrayOf()
+}
 
 public inline fun ArgMatchersScope.varargsLong(
     noinline predicate: (Long) -> Boolean
@@ -57,7 +60,10 @@ public inline fun ArgMatchersScope.varargsFloat(
     noinline predicate: (Float) -> Boolean
 ): FloatArray = varargsInline(predicate)
 
-public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> = anyVarargsInline<T, Array<T>>()
+public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> {
+    anyVarargsInline<T, Array<T>>()
+    return arrayOf()
+}
 
 public inline fun ArgMatchersScope.anyVarargsLong(): LongArray = anyVarargsInline<Long, _>()
 
