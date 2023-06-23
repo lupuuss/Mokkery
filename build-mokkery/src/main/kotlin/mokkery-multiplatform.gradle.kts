@@ -6,7 +6,9 @@ plugins {
 kotlin {
     explicitApi()
     jvm()
-    js(IR) {}
+    js(IR) {
+        browser()
+    }
 
     ios()
     iosSimulatorArm64()
