@@ -4,6 +4,7 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.buildClass
 import dev.mokkery.plugin.ext.createUniqueMockName
 import dev.mokkery.plugin.ext.irCallConstructor
+import dev.mokkery.plugin.ext.irTryCatchAny
 import dev.mokkery.plugin.ext.locationInFile
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
@@ -11,6 +12,7 @@ import dev.mokkery.plugin.info
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.common.lower.irCatch
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
@@ -24,8 +26,10 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irIfThenElse
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
+import org.jetbrains.kotlin.ir.builders.irTry
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -106,7 +110,12 @@ class SpyCallsTransformer(
     }
 
     private fun IrBlockBodyBuilder.spyingBody(delegateField: IrField, function: IrSimpleFunction) {
-        val interceptionResult = createTmpVariable(irCallInterceptingMethod(function))
+        val interceptingCall = if (function.returnType != pluginContext.irBuiltIns.nothingType) {
+            irCallInterceptingMethod(function)
+        } else {
+            irTryCatchAny(irCallInterceptingMethod(function))
+        }
+        val interceptionResult = createTmpVariable(interceptingCall)
         +irIfThenElse(
             type = function.returnType,
             condition = irCallIsTemplatingEnabled(function),
