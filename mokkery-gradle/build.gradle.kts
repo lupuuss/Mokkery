@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     kotlin("jvm")
     id("mokkery-base")
@@ -13,6 +15,21 @@ kotlin.sourceSets.all {
     languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
 }
 
+val functionalTest by testing.suites.creating(JvmTestSuite::class) {
+    useJUnitJupiter()
+    dependencies {
+        implementation(gradleTestKit())
+    }
+}
+
+functionalTest.targets.configureEach {
+    testTask.configure {
+        listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core").forEach {
+            dependsOn( project(it).tasks.named("publishToMavenLocal"))
+        }
+    }
+}
+
 gradlePlugin {
     plugins {
         create(rootProject.name) {
@@ -24,4 +41,5 @@ gradlePlugin {
             tags.set(listOf("kotlin", "mock"))
         }
     }
+    testSourceSet(functionalTest.sources)
 }
