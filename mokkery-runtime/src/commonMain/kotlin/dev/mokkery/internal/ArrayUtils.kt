@@ -4,8 +4,9 @@ package dev.mokkery.internal
 
 import kotlin.reflect.KClass
 
-internal fun Any?.arrayToListOrNull(): List<Any?>? {
+internal fun Any?.toListOrNull(): List<Any?>? {
     return  when (this) {
+        is Iterable<*> -> toList()
         is Array<*> -> toList()
         is IntArray -> toList()
         is ByteArray -> toList()

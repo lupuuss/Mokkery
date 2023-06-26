@@ -3,7 +3,7 @@ package dev.mokkery.internal.templating
 import dev.mokkery.internal.MixingMatchersWithLiteralsException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.arrayElementType
-import dev.mokkery.internal.arrayToListOrNull
+import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.VarArgMatcher
@@ -50,7 +50,7 @@ private class TemplatingContextImpl: TemplatingContext {
             if (varargPosition != index) {
                 matchers.add(ArgMatcher.Equals(args[index]))
             } else {
-                val varArgMatchers = arg.arrayToListOrNull()
+                val varArgMatchers = arg.toListOrNull()
                     .orEmpty()
                     .map { ArgMatcher.Equals(it) }
                 val matcher = MergedVarArgMatcher(type = arg.arrayElementType(), before = varArgMatchers)
@@ -68,11 +68,14 @@ private class TemplatingContextImpl: TemplatingContext {
         val oldMatchers = matchers.toMutableList()
         val newMatchers = mutableListOf<ArgMatcher<Any?>>()
         args.forEachIndexed { index, arg ->
-            val currentMatcher = oldMatchers.removeFirstOrNull() ?: throw MixingMatchersWithLiteralsException()
             if (index != varargPosition) {
+                val currentMatcher = oldMatchers.removeFirstOrNull() ?: throw MixingMatchersWithLiteralsException()
                 newMatchers.add(currentMatcher)
             } else {
-                newMatchers.add(buildVarargMatcher(arg, currentMatcher, oldMatchers))
+                val matcher = oldMatchers.removeFirstOrNull()
+                    ?.let { buildVarargMatcher(arg, it, oldMatchers) }
+                    ?: MergedVarArgMatcher(type = arg.arrayElementType())
+                newMatchers.add(matcher)
             }
         }
         return newMatchers
@@ -83,24 +86,26 @@ private class TemplatingContextImpl: TemplatingContext {
         matcher: ArgMatcher<Any?>,
         oldMatchers: MutableList<ArgMatcher<Any?>>,
     ): MergedVarArgMatcher {
-        val varArgs = arg.arrayToListOrNull()!!
+        val varArgs = arg.toListOrNull()!!
         val before = mutableListOf<ArgMatcher<Any?>>()
         var wildCardMatcher: VarArgMatcher<Any?>? = null
         val after = mutableListOf<ArgMatcher<Any?>>()
-        var currentMatcher = matcher
-        varArgs.forEach { _ ->
+        var currentMatcher: ArgMatcher<Any?>? = matcher
+        for (varArg in varArgs) {
             when {
+                currentMatcher == null -> throw MixingMatchersWithLiteralsException()
                 wildCardMatcher != null && currentMatcher is VarArgMatcher<*> -> throw MultipleVarargGenericMatchersException()
                 wildCardMatcher != null -> after.add(currentMatcher)
                 currentMatcher is VarArgMatcher<*> -> wildCardMatcher = currentMatcher.unsafeCast()
                 else -> before.add(currentMatcher)
             }
-            currentMatcher = oldMatchers.removeFirstOrNull() ?: throw MixingMatchersWithLiteralsException()
+            currentMatcher = oldMatchers.removeFirstOrNull()
         }
-        if (currentMatcher is VarArgMatcher<*>) {
-            wildCardMatcher = currentMatcher.unsafeCast()
-        } else {
-            after.add(currentMatcher)
+        when {
+            currentMatcher == null -> Unit
+            currentMatcher is VarArgMatcher<*> -> wildCardMatcher = currentMatcher.unsafeCast()
+            wildCardMatcher != null -> after.add(currentMatcher)
+            else -> before.add(currentMatcher)
         }
         return MergedVarArgMatcher(arg.arrayElementType(), before, wildCardMatcher, after)
     }

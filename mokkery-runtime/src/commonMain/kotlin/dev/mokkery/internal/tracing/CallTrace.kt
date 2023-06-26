@@ -1,6 +1,6 @@
 package dev.mokkery.internal.tracing
 
-import dev.mokkery.internal.arrayToListOrNull
+import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.templating.CallTemplate
 
 internal data class CallTrace(
@@ -16,7 +16,7 @@ internal data class CallTrace(
         append(signature.substringBefore("/"))
         append("(")
         val argsToString = args.joinToString { arg ->
-            arg.arrayToListOrNull()?.toString()  ?: return@joinToString arg.toString()
+            arg.toListOrNull()?.toString()  ?: return@joinToString arg.toString()
         }
         append(argsToString)
         append(")")

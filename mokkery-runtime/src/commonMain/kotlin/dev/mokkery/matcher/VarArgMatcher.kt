@@ -1,6 +1,6 @@
 package dev.mokkery.matcher
 
-import dev.mokkery.internal.arrayToListOrNull
+import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
 import kotlin.reflect.KClass
@@ -12,7 +12,7 @@ public interface VarArgMatcher<T> : ArgMatcher<T> {
         private val predicate: (Any?) -> Boolean
     ) : VarArgMatcher<Any?> {
         override fun matches(arg: Any?): Boolean {
-            val arrayAsList = arg.arrayToListOrNull() ?: return false
+            val arrayAsList = arg.toListOrNull() ?: return false
             return arrayAsList.all(predicate)
         }
 
