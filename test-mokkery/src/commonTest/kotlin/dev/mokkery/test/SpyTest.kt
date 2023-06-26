@@ -13,7 +13,7 @@ class SpyTest {
 
         override var property: String = "1"
 
-        override fun callWithPrimitives(i: Int): Double = i.toDouble()
+        override fun callWithPrimitives(i: Int, j: Int): Double = i.toDouble()
 
         override fun Int.callWithExtensionReceiver(): String = toString()
 

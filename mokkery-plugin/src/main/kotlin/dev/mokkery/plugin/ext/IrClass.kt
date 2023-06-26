@@ -59,7 +59,7 @@ fun IrClass.addOverridingMethod(
     }.apply {
         overriddenSymbols = function.overriddenSymbols + function.symbol
         typeParameters = function.typeParameters
-        valueParameters = function.valueParameters.map { it.copyTo(this) }
+        valueParameters = function.valueParameters.map { it.copyTo(this).apply { defaultValue = null } }
         dispatchReceiverParameter = buildThisValueParam()
         extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
         contextReceiverParametersCount = function.contextReceiverParametersCount

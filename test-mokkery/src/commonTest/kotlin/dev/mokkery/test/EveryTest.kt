@@ -19,7 +19,7 @@ class EveryTest {
 
     @Test
     fun testMocksRegularMethodCallWithPrimitiveTypes() {
-        every { dependencyMock.callWithPrimitives(any()) } returns 1.0
+        every { dependencyMock.callWithPrimitives(any(), any()) } returns 1.0
         assertEquals(1.0, dependencyMock.callWithPrimitives(1))
     }
 

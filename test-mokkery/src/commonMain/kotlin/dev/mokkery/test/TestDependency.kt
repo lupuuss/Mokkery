@@ -4,7 +4,7 @@ interface TestDependency {
 
     var property: String
 
-    fun callWithPrimitives(i: Int): Double
+    fun callWithPrimitives(i: Int, j: Int = 1): Double
 
     fun Int.callWithExtensionReceiver(): String
 
