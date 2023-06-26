@@ -8,12 +8,13 @@ import org.jetbrains.kotlin.name.Name
 
 inline fun IrProperty.addSetter(
     builder: IrFunctionBuilder.() -> Unit = {}
-): IrSimpleFunction = IrFunctionBuilder().run {
-    name = Name.special("<set-${this@addSetter.name}>")
-    builder()
-    factory.buildFun(builder).also { setter ->
-        this@addSetter.setter = setter
-        setter.correspondingPropertySymbol = this@addSetter.symbol
-        setter.parent = this@addSetter.parent
-    }
+): IrSimpleFunction {
+    val setter = factory.buildFun(builder = {
+        name = Name.special("<set-${this@addSetter.name}>")
+        builder()
+    })
+    this@addSetter.setter = setter
+    setter.correspondingPropertySymbol = this@addSetter.symbol
+    setter.parent = this@addSetter.parent
+    return setter
 }
