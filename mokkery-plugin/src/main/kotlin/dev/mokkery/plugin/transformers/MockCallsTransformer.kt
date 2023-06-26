@@ -8,14 +8,11 @@ import dev.mokkery.plugin.ext.irCallConstructor
 import dev.mokkery.plugin.ext.irGetEnumEntry
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
-import dev.mokkery.plugin.infoAt
-import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -33,31 +30,23 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
-import org.jetbrains.kotlin.ir.util.isInterface
-import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 class MockCallsTransformer(
     pluginContext: IrPluginContext,
-    private val messageCollector: MessageCollector,
-    private val irFile: IrFile,
+    messageCollector: MessageCollector,
+    irFile: IrFile,
     private val mockTable: MutableMap<IrClass, IrClass>,
     private val mockMode: MockMode,
-) : MokkeryBaseTransformer(pluginContext) {
+) : MokkeryBaseTransformer(pluginContext, messageCollector, irFile) {
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         if (function.kotlinFqName != Mokkery.Function.mock) return super.visitCall(expression)
-        val typeToMock = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() }
-            ?: expression.mokkeryError(irFile) { "Mock call must be direct! It can't be a type parameter!" }
-        if (!typeToMock.isInterface()) {
-            expression.mokkeryError(irFile) { "Only interfaces are currently supported!" }
-        }
+        expression.checkInterceptionPossibilities(Mokkery.Function.mock)
+        val typeToMock = expression.typeArguments.first()!!
         val classToMock = typeToMock.getClass()!!
-        messageCollector.infoAt(expression, irFile) {
-            "Recognized mock call with type ${typeToMock.asString()}!"
-        }
         val mockedClass = mockTable.getOrPut(classToMock) {
             declareMock(classToMock).also {
                 irFile.addChild(it)

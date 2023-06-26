@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTo
@@ -130,7 +129,7 @@ fun IrClass.addOverridingProperty(
     }
 }
 
-fun IrClass.overridePropertyWithBackingField(context: IrGeneratorContext, property: IrProperty): IrProperty {
+fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: IrProperty): IrProperty {
     return addProperty {
         name = property.name
         isVar = property.isVar
@@ -141,7 +140,7 @@ fun IrClass.overridePropertyWithBackingField(context: IrGeneratorContext, proper
             type = property.getter!!.returnType
         }
         overriddenSymbols = listOf(property.symbol)
-        addDefaultGetter(this@overridePropertyWithBackingField, context.irBuiltIns)
+        addDefaultGetter(this@overridePropertyBackingField, context.irBuiltIns)
         getter?.overriddenSymbols = listOf(property.getter!!.symbol)
     }
 }

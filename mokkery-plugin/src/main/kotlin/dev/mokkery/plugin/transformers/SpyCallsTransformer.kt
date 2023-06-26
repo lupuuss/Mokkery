@@ -9,11 +9,8 @@ import dev.mokkery.plugin.ext.locationInFile
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
 import dev.mokkery.plugin.info
-import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irCatch
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
@@ -26,10 +23,8 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irIfThenElse
-import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
-import org.jetbrains.kotlin.ir.builders.irTry
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -40,30 +35,21 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
-import org.jetbrains.kotlin.ir.util.isInterface
-import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
-import org.jetbrains.kotlin.ir.util.originalFunction
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 class SpyCallsTransformer(
     pluginContext: IrPluginContext,
-    private val messageCollector: MessageCollector,
-    private val irFile: IrFile,
+    messageCollector: MessageCollector,
+    irFile: IrFile,
     private val spyTable: MutableMap<IrClass, IrClass>,
-) : MokkeryBaseTransformer(pluginContext) {
+) : MokkeryBaseTransformer(pluginContext, messageCollector, irFile) {
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         if (function.kotlinFqName != Mokkery.Function.spy) return super.visitCall(expression)
-        val typeToSpy = expression.typeArguments.firstOrNull()?.takeIf { !it.isTypeParameter() } ?: mokkeryError {
-            "Spy call must be direct! It can't be a type parameter! Failed at: ${expression.locationInFile(irFile)}"
-        }
-        if (!typeToSpy.isInterface()) {
-            mokkeryError {
-                "Only interfaces are currently supported! Failed at: ${expression.locationInFile(irFile)}"
-            }
-        }
+        expression.checkInterceptionPossibilities(Mokkery.Function.spy)
+        val typeToSpy = expression.typeArguments.first()!!
         val classToSpy = typeToSpy.getClass()!!
         messageCollector.info {
             "Recognized spy call with type ${typeToSpy.asString()} at: ${expression.locationInFile(irFile)}"
