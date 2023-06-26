@@ -10,6 +10,9 @@ import kotlin.test.assertFailsWith
 class SpyTest {
 
     private val realImpl = object : TestDependency {
+
+        override var property: String = "1"
+
         override fun callWithPrimitives(i: Int): Double = i.toDouble()
 
         override fun Int.callWithExtensionReceiver(): String = toString()

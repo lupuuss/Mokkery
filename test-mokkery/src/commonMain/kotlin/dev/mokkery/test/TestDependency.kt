@@ -2,6 +2,8 @@ package dev.mokkery.test
 
 interface TestDependency {
 
+    var property: String
+
     fun callWithPrimitives(i: Int): Double
 
     fun Int.callWithExtensionReceiver(): String

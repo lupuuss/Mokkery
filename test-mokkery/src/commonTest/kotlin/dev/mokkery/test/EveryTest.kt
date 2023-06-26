@@ -1,11 +1,11 @@
 package dev.mokkery.test
 
-import dev.mokkery.matcher.any
-import dev.mokkery.answering.returns
 import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.matcher.anyVarargs
 import dev.mokkery.mock
 import kotlinx.coroutines.test.runTest
@@ -45,5 +45,19 @@ class EveryTest {
     fun testMocksMethodsWithNothingReturnType() {
         every { dependencyMock.callNothing() } throws IllegalArgumentException("FAILED!")
         assertFailsWith<IllegalArgumentException> { dependencyMock.callNothing() }
+    }
+
+    @Test
+    fun testMocksPropertyGetter() {
+        every { dependencyMock.property } returns "1234"
+        assertEquals("1234", dependencyMock.property)
+    }
+
+    @Test
+    fun testMocksPropertySetter() {
+        var capture: String? = null
+        every { dependencyMock.property = any() } calls { (value: String) -> capture = value }
+        dependencyMock.property = "1234"
+        assertEquals("1234", capture)
     }
 }
