@@ -20,7 +20,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
         target.extensions.create("mokkery", MokkeryGradleExtension::class.java).apply {
             targetSourceSets = setOfNotNull(
-                target.kotlinExtension.sourceSets.getByName("commonTest")
+                target.kotlinExtension.sourceSets.findByName("commonTest")
             )
         }
         target.afterEvaluate {
