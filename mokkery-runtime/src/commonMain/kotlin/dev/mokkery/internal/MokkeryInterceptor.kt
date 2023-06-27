@@ -1,19 +1,19 @@
 package dev.mokkery.internal
 
 import dev.mokkery.internal.answering.autofillValue
+import dev.mokkery.internal.tracing.CallArg
 import kotlin.reflect.KClass
 
 
 internal interface MokkeryInterceptor {
 
-    fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any?
+    fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any?
 
     suspend fun interceptSuspendCall(
-        signature: String,
+        name: String,
         returnType: KClass<*>,
-        varArgPosition: Int,
-        vararg args: Any?
-    ): Any? = interceptCall(signature, returnType, varArgPosition, *args)
+        vararg args: CallArg
+    ): Any? = interceptCall(name, returnType, *args)
 
 }
 
@@ -26,9 +26,9 @@ internal fun combine(vararg interceptors: MokkeryInterceptor): MokkeryIntercepto
 }
 
 private class CombinedInterceptor(private val interceptors: Array<out MokkeryInterceptor>) : MokkeryInterceptor {
-    override fun interceptCall(signature: String, returnType: KClass<*>, varArgPosition: Int, vararg args: Any?): Any? {
+    override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
         interceptors.forEach {
-            when (val result = it.interceptCall(signature, returnType, varArgPosition, *args)) {
+            when (val result = it.interceptCall(name, returnType, *args)) {
                 MokkeryToken.CALL_NEXT -> Unit
                 MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
                 else -> return result
@@ -38,13 +38,12 @@ private class CombinedInterceptor(private val interceptors: Array<out MokkeryInt
     }
 
     override suspend fun interceptSuspendCall(
-        signature: String,
+        name: String,
         returnType: KClass<*>,
-        varArgPosition: Int,
-        vararg args: Any?
+        vararg args: CallArg
     ): Any? {
         interceptors.forEach {
-            when (val result = it.interceptSuspendCall(signature, returnType, varArgPosition, *args)) {
+            when (val result = it.interceptSuspendCall(name, returnType, *args)) {
                 MokkeryToken.CALL_NEXT -> Unit
                 MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
                 else -> return result

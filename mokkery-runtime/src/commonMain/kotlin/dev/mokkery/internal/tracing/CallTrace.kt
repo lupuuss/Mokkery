@@ -1,30 +1,27 @@
 package dev.mokkery.internal.tracing
 
-import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.templating.CallTemplate
 
 internal data class CallTrace(
     val receiver: String,
-    val signature: String,
-    val args: List<Any?>,
+    val name: String,
+    val args: List<CallArg>,
     val orderStamp: Long,
 ) {
+
+    val signature: String = "$name(${args.joinToString { "${it.name}: ${it.type.simpleName}" }})"
 
     override fun toString(): String = buildString {
         append(receiver)
         append(".")
-        append(signature.substringBefore("/"))
-        append("(")
-        val argsToString = args.joinToString { arg ->
-            arg.toListOrNull()?.toString()  ?: return@joinToString arg.toString()
-        }
-        append(argsToString)
-        append(")")
+        append(signature)
     }
 }
 
 internal infix fun CallTrace.matches(template: CallTemplate): Boolean {
-    return receiver == template.receiver && signature == template.signature && template.matchers.zip(args).all { (matcher, arg) -> matcher.matches(arg) }
+    return receiver == template.receiver && name == template.name && args
+        .map { arg -> arg to template.matchers.find { it.name == arg.name } }
+        .all { (arg, named) -> named?.matcher?.matches(arg.value) ?: false }
 }
 
 internal infix fun CallTrace.doesNotMatch(template: CallTemplate): Boolean = matches(template).not()
