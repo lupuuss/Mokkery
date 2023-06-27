@@ -1,11 +1,5 @@
 package dev.mokkery.plugin
 
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irGetObject
-import org.jetbrains.kotlin.ir.util.companionObject
-import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -17,6 +11,7 @@ object Mokkery {
         val mokkery = FqName("dev.mokkery")
         val mokkery_internal = FqName("dev.mokkery.internal")
         val mokkery_internal_templating = FqName("dev.mokkery.internal.templating")
+        val mokkery_internal_tracing = FqName("dev.mokkery.internal.tracing")
     }
 
     object Function {
@@ -32,11 +27,12 @@ object Mokkery {
         val MokkeryInterceptor = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptor"))
         val MokkeryInterceptorScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptorScope"))
 
-        val MokkeryMock = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
-        val MokkeryMockScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryMockScope"))
+        val MokkeryMock = ClassId(Package.mokkery_internal, Name.identifier("MokkeryMock"))
+        val MokkeryMockScope = ClassId(Package.mokkery_internal, Name.identifier("MokkeryMockScope"))
 
-        val MokkerySpy = ClassId(Package.mokkery_internal,Name.identifier("MokkerySpy"))
-        val MokkerySpyScope = ClassId(Package.mokkery_internal,Name.identifier("MokkerySpyScope"))
+        val MokkerySpy = ClassId(Package.mokkery_internal, Name.identifier("MokkerySpy"))
+        val MokkerySpyScope = ClassId(Package.mokkery_internal, Name.identifier("MokkerySpyScope"))
+        val CallArg = ClassId(Package.mokkery_internal_tracing, Name.identifier("CallArg"))
 
         val TemplatingInterceptor = ClassId(
             Package.mokkery_internal_templating,

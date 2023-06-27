@@ -50,9 +50,6 @@ fun IrBuilderWithScope.irGetEnumEntry(irClass: IrClass, name: String): IrGetEnum
     return IrGetEnumValueImpl(startOffset, endOffset, irClass.defaultType, irClass.getEnumEntry(name).symbol)
 }
 
-fun IrBuilderWithScope.irAnyVarargParams(parameters: List<IrValueParameter>) =
-    irVararg(context.irBuiltIns.anyType, parameters.map { irGet(it) })
-
 fun IrBuilderWithScope.irVararg(values: List<IrExpression>) = irVararg(context.irBuiltIns.anyType, values)
 
 fun IrBuilderWithScope.irCallHashCodeIf(irClass: IrClass) = context

@@ -5,10 +5,8 @@ import dev.mokkery.plugin.ext.addOverridingMethod
 import dev.mokkery.plugin.ext.firstFunction
 import dev.mokkery.plugin.ext.getClass
 import dev.mokkery.plugin.ext.getProperty
-import dev.mokkery.plugin.ext.irAnyVarargParams
 import dev.mokkery.plugin.ext.irCallMokkeryClassIdentifier
 import dev.mokkery.plugin.ext.kClassReferenceUnified
-import dev.mokkery.plugin.ext.mokkerySignature
 import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import dev.mokkery.plugin.ext.overridePropertyBackingField
 import dev.mokkery.plugin.infoAt
@@ -22,24 +20,29 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.irVararg
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.defaultConstructor
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.isInterface
@@ -75,6 +78,7 @@ abstract class MokkeryBaseTransformer(
         val TemplatingInterceptor = pluginContext.getClass(Mokkery.ClassId.TemplatingInterceptor)
 
         val MockMode = pluginContext.getClass(Mokkery.ClassId.MockMode)
+        val CallArg = pluginContext.getClass(Mokkery.ClassId.CallArg)
     }
 
     inner class IrFunctions {
@@ -96,13 +100,12 @@ abstract class MokkeryBaseTransformer(
             .apply {
                 dispatchReceiver = thisParam
             }
-        mokkeryCall.putValueArgument(0, irString(function.mokkerySignature))
+        mokkeryCall.putValueArgument(0, irString(function.name.asString()))
         mokkeryCall.putValueArgument(
             index = 1,
             valueArgument = kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext))
         )
-        mokkeryCall.putValueArgument(2, irInt(function.valueParameters.indexOfFirst { it.isVararg }))
-        mokkeryCall.putValueArgument(3, irAnyVarargParams(function.fullValueParameterList))
+        mokkeryCall.putValueArgument(2, irCallArgVarargParams(function.fullValueParameterList))
         return mokkeryCall
     }
 
@@ -160,5 +163,20 @@ abstract class MokkeryBaseTransformer(
         messageCollector.infoAt(this, irFile) {
             "Recognized $functionNameString call with type ${typeToMock.asString()}!"
         }
+    }
+
+    private fun IrBuilderWithScope.irCallArgVarargParams(parameters: List<IrValueParameter>): IrVarargImpl {
+        return irVararg(
+            elementType = irClasses.CallArg.defaultType,
+            values = parameters
+                .map {
+                    irCall(irClasses.CallArg.primaryConstructor!!).apply {
+                        putValueArgument(0, irString(it.name.asString()))
+                        putValueArgument(1, kClassReferenceUnified(pluginContext, it.nonGenericReturnTypeOrAny(pluginContext)))
+                        putValueArgument(2, irGet(it))
+                        putValueArgument(3, irBoolean(it.isVararg))
+                    }
+                }
+        )
     }
 }
