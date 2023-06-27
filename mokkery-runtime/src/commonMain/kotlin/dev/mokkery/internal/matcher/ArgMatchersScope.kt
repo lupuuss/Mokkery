@@ -19,7 +19,7 @@ private class ArgMatchersScopeImpl(private val context: TemplatingContext) : Arg
     }
 
     @InternalMokkeryApi
-    override fun <T> named(name: String, arg: T): T {
+    override fun named(name: String, arg: Any?): Any? {
         context.registerName(name)
         return arg
     }

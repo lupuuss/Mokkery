@@ -10,7 +10,8 @@ public interface ArgMatchersScope {
     public fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T
 
     @InternalMokkeryApi
-    public fun <T> named(name: String, arg: T): T
+    public fun named(name: String, arg: Any?): Any?
+
 }
 
 @DelicateMokkeryApi

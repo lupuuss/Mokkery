@@ -14,7 +14,10 @@ internal data class CallTrace(
     override fun toString(): String = buildString {
         append(receiver)
         append(".")
-        append(signature)
+        append(name)
+        append("(")
+        append(args.joinToString { "${it.name} = ${it.value}" })
+        append(")")
     }
 }
 

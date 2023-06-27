@@ -13,7 +13,7 @@ internal data class CallTemplate(
         append(".")
         append(name)
         append("(")
-        append(matchers.joinToString())
+        append(matchers.joinToString { "${it.name} = ${it.matcher}" })
         append(")")
     }
 }
