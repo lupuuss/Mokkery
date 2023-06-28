@@ -1,11 +1,12 @@
 package dev.mokkery.internal.templating
 
-import dev.mokkery.internal.matcher.NamedMatcher
+import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
     val receiver: String,
     val name: String,
-    val matchers: List<NamedMatcher>
+    val signature: String,
+    val matchers: Map<String, ArgMatcher<Any?>>
 ) {
 
     override fun toString(): String = buildString {
@@ -13,7 +14,7 @@ internal data class CallTemplate(
         append(".")
         append(name)
         append("(")
-        append(matchers.joinToString { "${it.name} = ${it.matcher}" })
+        append(matchers.entries.joinToString { "${it.key} = ${it.value}" })
         append(")")
     }
 }

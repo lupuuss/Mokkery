@@ -42,7 +42,7 @@ private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : T
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
-        templatingContext?.saveTemplate(receiver, name, args)
+        templatingContext?.saveTemplate(receiver, name, args.toList())
             ?: throw ConcurrentTemplatingException()
         return MokkeryToken.RETURN_DEFAULT
     }

@@ -3,7 +3,7 @@ package dev.mokkery.internal.templating
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.arrayElementType
-import dev.mokkery.internal.matcher.NamedMatcher
+import dev.mokkery.internal.generateSignature
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
@@ -19,7 +19,7 @@ internal interface TemplatingContext {
 
     fun registerVarargElement(arg: Any?)
 
-    fun saveTemplate(receiver: String, name: String, args: Array<out CallArg>)
+    fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
 }
 
 internal fun TemplatingContext(): TemplatingContext = TemplatingContextImpl()
@@ -49,20 +49,20 @@ private class TemplatingContextImpl: TemplatingContext {
         varargsMatchersCount += size
     }
 
-    override fun saveTemplate(receiver: String, name: String, args: Array<out CallArg>) {
+    override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
         val matchers = flush(args)
-        templates += CallTemplate(receiver, name, matchers)
+        templates += CallTemplate(receiver, name, generateSignature(name, args), matchers.toMap())
     }
 
-    private fun flush(args: Array<out CallArg>): List<NamedMatcher> {
+    private fun flush(args: List<CallArg>): List<Pair<String, ArgMatcher<Any?>>> {
         val matchersSnapshot = matchers.toMutableMap()
         matchers.clear()
         return args.map {
             val matchers = matchersSnapshot[it.name].orEmpty()
             when {
                 !it.isVararg && matchers.size > 1 -> throw MultipleMatchersForSingleArgException(it.name, matchers)
-                !it.isVararg -> NamedMatcher(it.name, matchers.singleOrNull() ?: ArgMatcher.Equals(it.value))
-                else -> NamedMatcher(it.name, varargMatcher(it, matchers))
+                !it.isVararg -> it.name to (matchers.singleOrNull() ?: ArgMatcher.Equals(it.value))
+                else -> it.name to varargMatcher(it, matchers)
             }
         }
     }
