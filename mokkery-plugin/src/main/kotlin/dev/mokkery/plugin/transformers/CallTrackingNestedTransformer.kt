@@ -17,6 +17,9 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
+import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.expressions.putElement
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.makeNullable
@@ -75,10 +78,28 @@ class CallTrackingNestedTransformer(
                         val param = expression.symbol.owner.valueParameters[index]
                         this.dispatchReceiver = irGet(argMatchersScopeParam)
                         putValueArgument(0, irString(param.name.asString()))
-                        putValueArgument(1, arg)
+                        putValueArgument(1, interceptArg(arg))
                     }
                 }
             )
+        }
+    }
+
+    private fun DeclarationIrBuilder.interceptArg(arg: IrExpression): IrExpression {
+        if (arg !is IrVararg) return arg
+        arg.elements.forEachIndexed { index, element ->
+            when (element) {
+                is IrSpreadElement -> element.expression = interceptVarargElement(element.expression)
+                is IrExpression -> arg.putElement(index, interceptVarargElement(element))
+            }
+        }
+        return arg
+    }
+
+    private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression): IrExpression {
+        return irCall(argMatchersScopeClass.getSimpleFunction("varargElement")!!).apply {
+            this.dispatchReceiver = irGet(argMatchersScopeParam)
+            putValueArgument(0, expression)
         }
     }
 }

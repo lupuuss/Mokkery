@@ -32,6 +32,6 @@ internal class DefaultNothingException : MokkeryRuntimeException("This is the de
 
 internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
 
-internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>>) : MokkeryRuntimeException(
+internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>?>) : MokkeryRuntimeException(
     "Multiple matchers for param '$name' = $matchers"
 )

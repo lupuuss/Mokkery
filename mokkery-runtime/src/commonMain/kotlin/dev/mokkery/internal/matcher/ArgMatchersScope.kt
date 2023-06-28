@@ -24,4 +24,10 @@ private class ArgMatchersScopeImpl(private val context: TemplatingContext) : Arg
         return arg
     }
 
+    @InternalMokkeryApi
+    override fun varargElement(arg: Any?): Any? {
+        context.registerVarargElement(arg)
+        return arg
+    }
+
 }

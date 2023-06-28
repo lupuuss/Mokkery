@@ -12,6 +12,9 @@ public interface ArgMatchersScope {
     @InternalMokkeryApi
     public fun named(name: String, arg: Any?): Any?
 
+    @InternalMokkeryApi
+    public fun varargElement(arg: Any?): Any?
+
 }
 
 @DelicateMokkeryApi

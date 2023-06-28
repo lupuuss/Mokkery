@@ -17,6 +17,8 @@ internal interface TemplatingContext {
 
     fun registerMatcher(matcher: ArgMatcher<Any?>)
 
+    fun registerVarargElement(arg: Any?)
+
     fun saveTemplate(receiver: String, name: String, args: Array<out CallArg>)
 }
 
@@ -24,8 +26,9 @@ internal fun TemplatingContext(): TemplatingContext = TemplatingContextImpl()
 
 private class TemplatingContextImpl: TemplatingContext {
 
-    private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
-    private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>>>()
+    private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
+    private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()
+    private var varargsMatchersCount = 0
     override val templates = mutableListOf<CallTemplate>()
     override fun registerName(name: String) {
         matchers[name] = currentMatchers.toMutableList()
@@ -33,7 +36,17 @@ private class TemplatingContextImpl: TemplatingContext {
     }
 
     override fun registerMatcher(matcher: ArgMatcher<Any?>) {
+        if (matcher is VarArgMatcher<*>) varargsMatchersCount++
         currentMatchers.add(matcher)
+    }
+
+    override fun registerVarargElement(arg: Any?) {
+        val size = arg.toListOrNull()?.size ?: 1
+        for (index in 0 until size) {
+            val matcher = currentMatchers.getOrNull(varargsMatchersCount + index)
+            if (matcher == null) currentMatchers.add(null)
+        }
+        varargsMatchersCount += size
     }
 
     override fun saveTemplate(receiver: String, name: String, args: Array<out CallArg>) {
@@ -54,18 +67,17 @@ private class TemplatingContextImpl: TemplatingContext {
         }
     }
 
-    private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
+    private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>?>): ArgMatcher<Any?> {
         val varArgs = arg.value.toListOrNull() ?: error("Unexpected vararg param!")
         val before = mutableListOf<ArgMatcher<Any?>>()
         var wildcardMatcher: VarArgMatcher<Any?>? = null
         val after = mutableListOf<ArgMatcher<Any?>>()
-        varArgs.forEachIndexed { index, varArg ->
-            val matcher = matchers.getOrNull(index)
+        matchers.forEachIndexed { index, matcher ->
             when {
                 wildcardMatcher != null && matcher is VarArgMatcher<Any?> -> throw MultipleVarargGenericMatchersException()
                 matcher is VarArgMatcher<Any?> -> wildcardMatcher = matcher
-                wildcardMatcher != null -> after.add(matcher ?: ArgMatcher.Equals(varArg))
-                else -> before.add(matcher ?: ArgMatcher.Equals(varArg))
+                wildcardMatcher != null -> after.add(matcher ?: ArgMatcher.Equals(varArgs[index - 1]))
+                else -> before.add(matcher ?: ArgMatcher.Equals(varArgs[index]))
             }
         }
         return MergedVarArgMatcher(arg.arrayElementType(), before, wildcardMatcher, after)
