@@ -1,5 +1,7 @@
 package dev.mokkery.internal
 
+import dev.mokkery.matcher.ArgMatcher
+
 internal open class MokkeryRuntimeException(
     message: String? = null,
     cause: Throwable? = null
@@ -26,8 +28,10 @@ internal class ConcurrentTemplatingException : MokkeryRuntimeException(
     "Any concurrent calls involving verify and every are illegal!"
 )
 
-internal class MixingMatchersWithLiteralsException : MokkeryRuntimeException("Mixing literals with matchers is illegal!")
+internal class DefaultNothingException : MokkeryRuntimeException("This is the default exception for Nothing return type!")
 
 internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
 
-internal class DefaultNothingException : MokkeryRuntimeException("This is the default exception for Nothing return type!")
+internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>>) : MokkeryRuntimeException(
+    "Multiple matchers for param '$name' = $matchers"
+)

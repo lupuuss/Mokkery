@@ -11,6 +11,7 @@ object Mokkery {
         val mokkery = FqName("dev.mokkery")
         val mokkery_internal = FqName("dev.mokkery.internal")
         val mokkery_internal_templating = FqName("dev.mokkery.internal.templating")
+        val mokkery_matcher = FqName("dev.mokkery.matcher")
         val mokkery_internal_tracing = FqName("dev.mokkery.internal.tracing")
     }
 
@@ -40,6 +41,7 @@ object Mokkery {
         )
 
         val MockMode = ClassId(Package.mokkery,Name.identifier("MockMode"))
+        val ArgMatchersScope = ClassId(Package.mokkery_matcher, Name.identifier("ArgMatchersScope"))
     }
     object FunctionId {
         val MokkeryMock = CallableId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
