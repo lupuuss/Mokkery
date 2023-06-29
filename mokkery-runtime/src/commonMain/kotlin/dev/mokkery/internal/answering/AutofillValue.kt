@@ -23,6 +23,7 @@ private val autoFillMap = mapOf(
     ULong::class to 0uL,
     Double::class to 0.0,
     Float::class to 0f,
+    Boolean::class to false,
     Unit::class to Unit,
     KClass::class to Any::class,
     String::class to "",
