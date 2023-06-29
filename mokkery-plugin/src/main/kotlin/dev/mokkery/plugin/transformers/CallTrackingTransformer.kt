@@ -48,7 +48,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = CallTrackingNestedTransformer(pluginContext, table)
+        val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table)
         val block = expression.getValueArgument(0)!!
         block.assertFunctionExpressionThatOriginatesLambda()
         block.transformChildren(nestedTransformer, null)
@@ -64,7 +64,7 @@ class CallTrackingTransformer(
     }
 
     private fun transformVerify(expression: IrCall, function: IrSimpleFunctionSymbol): IrCall {
-        val nestedTransformer = CallTrackingNestedTransformer(pluginContext, table)
+        val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table)
         val mode = expression.getValueArgument(0)
         val block = expression.getValueArgument(1)!!
         block.assertFunctionExpressionThatOriginatesLambda()
