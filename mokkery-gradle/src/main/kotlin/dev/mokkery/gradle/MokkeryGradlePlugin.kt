@@ -44,6 +44,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
+        kotlinCompilation.compilerOptions.options.freeCompilerArgs.add("-Xno-param-assertions")
         target.project.provider {
             listOf(
                 SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.toString()),
