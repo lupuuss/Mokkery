@@ -39,6 +39,8 @@ object Mokkery {
             Package.mokkery_internal_templating,
             Name.identifier("TemplatingInterceptor")
         )
+        val TemplatingContext = ClassId(Package.mokkery_internal_templating, Name.identifier("TemplatingContext"))
+
 
         val MockMode = ClassId(Package.mokkery,Name.identifier("MockMode"))
         val ArgMatchersScope = ClassId(Package.mokkery_matcher, Name.identifier("ArgMatchersScope"))
@@ -46,6 +48,7 @@ object Mokkery {
     object FunctionId {
         val MokkeryMock = CallableId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
         val MokkerySpy = CallableId(Package.mokkery_internal,Name.identifier("MokkerySpy"))
+        val TemplatingContext = CallableId(Package.mokkery_internal_templating, Name.identifier("TemplatingContext"))
 
         val internalEvery = CallableId(Package.mokkery_internal,Name.identifier("internalEvery"))
         val internalEverySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalEverySuspend"))

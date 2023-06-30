@@ -15,11 +15,9 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
@@ -36,15 +34,15 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 class CallTrackingNestedTransformer(
     private val pluginContext: IrPluginContext,
     private val irFile: IrFile,
-    private val table: Map<IrClass, IrClass>
+    private val table: Map<IrClass, IrClass>,
+    private val variable: IrVariable
 ) : IrElementTransformerVoid() {
 
     private var firstDeclarationsToSkip = 2
     private lateinit var argMatchersScopeParam: IrValueParameter
     private val localDeclarations = mutableListOf<IrDeclaration>()
-    private val _trackedExpressions = mutableMapOf<IrSymbolOwner, IrExpression>()
     private val argMatchersScopeClass = pluginContext.getClass(Mokkery.ClassId.ArgMatchersScope)
-    val trackedExpressions: List<IrExpression> get() = _trackedExpressions.values.toList()
+    private val templatingContextClass = pluginContext.getClass(Mokkery.ClassId.TemplatingContext)
 
     override fun visitCall(expression: IrCall): IrExpression {
         val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
@@ -55,15 +53,15 @@ class CallTrackingNestedTransformer(
         if (!expression.type.isPrimitiveType(nullable = false)) {
             expression.type = expression.type.makeNullable()
         }
+        expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
+            irCall(templatingContextClass.getSimpleFunction("ensureInContext")!!).apply {
+                this.dispatchReceiver = irGet(variable)
+                putTypeArgument(0, dispatchReceiver.type)
+                putValueArgument(0, dispatchReceiver)
+            }
+        }
         interceptArgumentNames(expression)
         return super.visitCall(expression)
-    }
-
-    override fun visitDeclarationReference(expression: IrDeclarationReference): IrExpression {
-        if (!table.containsKey(expression.type.getClass())) return super.visitDeclarationReference(expression)
-        if (localDeclarations.contains(expression.symbol.owner)) return super.visitDeclarationReference(expression)
-        _trackedExpressions[expression.symbol.owner] = expression
-        return super.visitDeclarationReference(expression)
     }
 
     override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
