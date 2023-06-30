@@ -20,37 +20,31 @@ import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerify(
-    spied: Array<Any>,
+    context: TemplatingContext,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
-) = internalBaseVerify(spied, mode, block)
+) = internalBaseVerify(context, mode, block)
 
 internal fun internalVerifySuspend(
-    spied: Array<Any>,
+    context: TemplatingContext,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
-) = internalBaseVerify(spied, mode) {
+) = internalBaseVerify(context, mode) {
     runSuspension { block() }
 }
 
 internal inline fun internalBaseVerify(
-    spied: Array<Any>,
+    context: TemplatingContext,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val spyInterceptors = spied
-        .toSet()
-        .filterIsInstance<MokkerySpyScope>()
-        .associate { it.id to it.interceptor }
-    val context = TemplatingContext()
-    spyInterceptors.values.forEach { it.templating.start(context) }
-    try {
-        block(ArgMatchersScope(context))
-    } catch (e: DefaultNothingException) {
-        // function with Nothing return type was called
-    } finally {
-        spyInterceptors.values.forEach { it.templating.stop() }
+    val result = runCatching { block(ArgMatchersScope(context)) }
+    val exception = result.exceptionOrNull()
+    if  (exception != null && exception !is DefaultNothingException) {
+        context.release()
+        throw exception
     }
+    val spyInterceptors = context.spies.associate { it.id to it.interceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }
@@ -63,7 +57,11 @@ internal inline fun internalBaseVerify(
         NotVerifyMode -> NotVerifier
         is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
     }
-    verifier.verify(calls, context.templates).forEach {
-        spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)
+    try {
+        verifier.verify(calls, context.templates).forEach {
+            spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)
+        }
+    } finally {
+        context.release()
     }
 }

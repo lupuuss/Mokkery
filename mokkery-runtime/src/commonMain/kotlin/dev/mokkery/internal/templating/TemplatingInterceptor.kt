@@ -11,6 +11,8 @@ internal interface TemplatingInterceptor : MokkeryInterceptor {
 
     val isEnabled: Boolean
 
+    fun isEnabledWith(context: TemplatingContext): Boolean
+
     fun start(context: TemplatingContext)
 
     fun stop()
@@ -25,6 +27,7 @@ private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : T
     private var _isEnabled by atomic(false)
     private var templatingContext by atomic<TemplatingContext?>(null)
     override val isEnabled: Boolean get() = _isEnabled
+    override fun isEnabledWith(context: TemplatingContext): Boolean = templatingContext == context
 
     override fun start(context: TemplatingContext) {
         if (_isEnabled) throw ConcurrentTemplatingException()

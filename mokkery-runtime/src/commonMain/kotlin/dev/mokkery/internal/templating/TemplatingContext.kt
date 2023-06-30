@@ -1,5 +1,7 @@
 package dev.mokkery.internal.templating
 
+import dev.mokkery.internal.ConcurrentTemplatingException
+import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.arrayElementType
@@ -11,7 +13,10 @@ import dev.mokkery.matcher.VarArgMatcher
 
 internal interface TemplatingContext {
 
+    val spies: Set<MokkerySpyScope>
     val templates: List<CallTemplate>
+
+    fun <T> ensureInContext(obj: T): T
 
     fun registerName(name: String)
 
@@ -20,6 +25,8 @@ internal interface TemplatingContext {
     fun registerVarargElement(arg: Any?)
 
     fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
+
+    fun release()
 }
 
 internal fun TemplatingContext(): TemplatingContext = TemplatingContextImpl()
@@ -29,7 +36,29 @@ private class TemplatingContextImpl: TemplatingContext {
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
     private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()
     private var varargsMatchersCount = 0
+    override val spies = mutableSetOf<MokkerySpyScope>()
     override val templates = mutableListOf<CallTemplate>()
+
+    override fun <T> ensureInContext(obj: T): T {
+        if (obj is MokkerySpyScope) {
+            val templating = obj.interceptor.templating
+            when {
+                templating.isEnabledWith(this) -> return obj
+                templating.isEnabled -> throw ConcurrentTemplatingException()
+                else -> {
+                    spies.add(obj)
+                    templating.start(this)
+                }
+            }
+        }
+        return obj
+    }
+
+    override fun release() {
+        spies.forEach { it.interceptor.templating.stop() }
+        spies.clear()
+    }
+
     override fun registerName(name: String) {
         matchers[name] = currentMatchers.toMutableList()
         currentMatchers.clear()

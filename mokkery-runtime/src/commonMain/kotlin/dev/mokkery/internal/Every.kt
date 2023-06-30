@@ -13,32 +13,32 @@ import dev.mokkery.internal.templating.TemplatingContext
 import dev.mokkery.matcher.ArgMatchersScope
 
 internal fun <T> internalEvery(
-    mocks: Array<Any>,
+    context: TemplatingContext,
     block: ArgMatchersScope.() -> T
-): RegularAnsweringScope<T> = internalBaseEvery(mocks) { block() }.let { UnifiedAnsweringScope(it.first, it.second) }
+): RegularAnsweringScope<T> = internalBaseEvery(context) { block() }.let { UnifiedAnsweringScope(it.first, it.second) }
 
 internal fun <T> internalEverySuspend(
-    mocks: Array<Any>,
+    context: TemplatingContext,
     block: suspend ArgMatchersScope.() -> T
-): SuspendAnsweringScope<T> = internalBaseEvery(mocks) { runSuspension { block() } }
+): SuspendAnsweringScope<T> = internalBaseEvery(context) { runSuspension { block() } }
     .let { UnifiedAnsweringScope(it.first, it.second) }
 
 private inline fun <T> internalBaseEvery(
-    mocks: Array<Any>,
+    context: TemplatingContext,
     block: ArgMatchersScope.() -> T
 ): Pair<AnsweringInterceptor, CallTemplate> {
-    val mockScope = mocks.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-    if (mockScope !is MokkeryMockScope) throw ObjectNotMockedException(mockScope)
-    val mock = mockScope.interceptor
-    val context = TemplatingContext()
-    try {
-        mock.templating.start(context)
-        block(ArgMatchersScope(context))
-    } catch (e: DefaultNothingException) {
-        // function with Nothing return type was called
-    } finally {
-        mock.templating.stop()
+    val result = runCatching { block(ArgMatchersScope(context)) }
+    val exception = result.exceptionOrNull()
+    if  (exception != null && exception !is DefaultNothingException) {
+        context.release()
+        throw exception
     }
-    val template = context.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-    return mock.answering to template
+    return try {
+        val template = context.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
+        val mock = context.spies.first { it.id == template.receiver }
+        if (mock !is MokkeryMockScope) throw ObjectNotMockedException(mock)
+        mock.interceptor.answering to template
+    } finally {
+        context.release()
+    }
 }
