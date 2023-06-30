@@ -35,14 +35,19 @@ class CallTrackingNestedTransformer(
     private val pluginContext: IrPluginContext,
     private val irFile: IrFile,
     private val table: Map<IrClass, IrClass>,
-    private val variable: IrVariable
+    private val contextVar: IrVariable
 ) : IrElementTransformerVoid() {
 
-    private var firstDeclarationsToSkip = 2
     private lateinit var argMatchersScopeParam: IrValueParameter
     private val localDeclarations = mutableListOf<IrDeclaration>()
     private val argMatchersScopeClass = pluginContext.getClass(Mokkery.ClassId.ArgMatchersScope)
     private val templatingContextClass = pluginContext.getClass(Mokkery.ClassId.TemplatingContext)
+
+    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
+        if (declaration is IrValueParameter) argMatchersScopeParam = declaration
+        localDeclarations.add(declaration)
+        return super.visitDeclaration(declaration)
+    }
 
     override fun visitCall(expression: IrCall): IrExpression {
         val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
@@ -55,23 +60,13 @@ class CallTrackingNestedTransformer(
         }
         expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irCall(templatingContextClass.getSimpleFunction("ensureInContext")!!).apply {
-                this.dispatchReceiver = irGet(variable)
+                this.dispatchReceiver = irGet(contextVar)
                 putTypeArgument(0, dispatchReceiver.type)
                 putValueArgument(0, dispatchReceiver)
             }
         }
         interceptArgumentNames(expression)
         return super.visitCall(expression)
-    }
-
-    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
-        if (firstDeclarationsToSkip > 0) {
-            if (declaration is IrValueParameter) argMatchersScopeParam = declaration
-            firstDeclarationsToSkip--
-            return super.visitDeclaration(declaration)
-        }
-        localDeclarations.add(declaration)
-        return super.visitDeclaration(declaration)
     }
 
     private fun interceptArgumentNames(expression: IrCall) {
