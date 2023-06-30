@@ -75,6 +75,15 @@ class CallTrackingNestedTransformer(
     }
 
     private fun interceptArgumentNames(expression: IrCall) {
+        val extensionReceiver = expression.extensionReceiver
+        val extensionReceiverParam = expression.symbol.owner.extensionReceiverParameter
+        if (extensionReceiver != null && extensionReceiverParam != null) {
+            expression.extensionReceiver = interceptWithNamed(
+                symbol = expression.symbol,
+                param = extensionReceiverParam,
+                arg = extensionReceiver
+            )
+        }
         for (index in expression.valueArguments.indices) {
             val arg = expression.valueArguments[index] ?: continue
             val param = expression.symbol.owner.valueParameters[index]
