@@ -43,7 +43,6 @@ class MokkeryIrGenerationExtension(
             val interceptedTypesTable = mockTable + spyTable
             moduleFragment.files.forEach { irFile ->
                 CallTrackingTransformer(
-                    messageCollector = messageCollector,
                     irFile = irFile,
                     pluginContext = pluginContext,
                     table = interceptedTypesTable,

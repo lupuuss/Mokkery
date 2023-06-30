@@ -16,7 +16,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
-        override fun toString(): String = "eq($value)"
+        override fun toString(): String = value.toString()
     }
 
     public data class NotEqual<T>(private val value: T) : ArgMatcher<T> {

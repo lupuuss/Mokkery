@@ -9,7 +9,6 @@ import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -17,7 +16,6 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
-import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -29,7 +27,6 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CallTrackingTransformer(
-    private val messageCollector: MessageCollector,
     private val irFile: IrFile,
     private val pluginContext: IrPluginContext,
     private val table: Map<IrClass, IrClass>,
@@ -97,7 +94,6 @@ class CallTrackingTransformer(
     }
 
     private fun IrExpression.assertFunctionExpressionThatOriginatesLambda() {
-        MessageCollector
         if (this !is IrFunctionExpression) mokkeryError(irFile) { "Block of 'verify' and 'every' must be a lambda! " }
     }
 
