@@ -125,7 +125,12 @@ abstract class MokkeryBaseTransformer(
                 +irDelegatingConstructorCall(
                     classToMock.defaultConstructor ?: pluginContext.irBuiltIns.anyClass.owner.primaryConstructor!!
                 )
-                val id = createTmpVariable(irCallMokkeryClassIdentifier(this@inheritMokkeryInterceptor, classToMock))
+                val identifierCall = irCallMokkeryClassIdentifier(
+                    pluginContext = pluginContext,
+                    mockClass = this@inheritMokkeryInterceptor,
+                    classToMock = classToMock
+                )
+                val id = createTmpVariable(identifierCall)
                 val initializerCall = interceptorInit(this@apply)
                 initializerCall.putValueArgument(0, irGet(id))
                 +irSetField(irGet(thisReceiver!!), interceptor.backingField!!, initializerCall)
@@ -172,7 +177,10 @@ abstract class MokkeryBaseTransformer(
                 .map {
                     irCall(irClasses.CallArg.primaryConstructor!!).apply {
                         putValueArgument(0, irString(it.name.asString()))
-                        putValueArgument(1, kClassReferenceUnified(pluginContext, it.nonGenericReturnTypeOrAny(pluginContext)))
+                        putValueArgument(
+                            1,
+                            kClassReferenceUnified(pluginContext, it.nonGenericReturnTypeOrAny(pluginContext))
+                        )
                         putValueArgument(2, irGet(it))
                         putValueArgument(3, irBoolean(it.isVararg))
                     }
