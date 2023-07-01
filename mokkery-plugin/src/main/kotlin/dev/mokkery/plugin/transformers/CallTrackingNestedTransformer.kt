@@ -38,13 +38,11 @@ class CallTrackingNestedTransformer(
     private val contextVar: IrVariable
 ) : IrElementTransformerVoid() {
 
-    private lateinit var argMatchersScopeParam: IrValueParameter
     private val localDeclarations = mutableListOf<IrDeclaration>()
     private val argMatchersScopeClass = pluginContext.getClass(Mokkery.ClassId.ArgMatchersScope)
     private val templatingContextClass = pluginContext.getClass(Mokkery.ClassId.TemplatingContext)
 
     override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
-        if (declaration is IrValueParameter) argMatchersScopeParam = declaration
         localDeclarations.add(declaration)
         return super.visitDeclaration(declaration)
     }
@@ -59,7 +57,7 @@ class CallTrackingNestedTransformer(
             expression.type = expression.type.makeNullable()
         }
         expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
-            irCall(templatingContextClass.getSimpleFunction("ensureInContext")!!).apply {
+            irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!).apply {
                 this.dispatchReceiver = irGet(contextVar)
                 putTypeArgument(0, dispatchReceiver.type)
                 putValueArgument(0, dispatchReceiver)
@@ -89,8 +87,8 @@ class CallTrackingNestedTransformer(
 
     private fun interceptWithNamed(symbol: IrSymbol, param: IrValueParameter, arg: IrExpression): IrExpression {
         return DeclarationIrBuilder(pluginContext, symbol).run {
-            irCall(argMatchersScopeClass.getSimpleFunction("named")!!).apply {
-                this.dispatchReceiver = irGet(argMatchersScopeParam)
+            irCall(templatingContextClass.getSimpleFunction("interceptNamedArg")!!).apply {
+                this.dispatchReceiver = irGet(contextVar)
                 putValueArgument(0, irString(param.name.asString()))
                 putValueArgument(1, interceptArg(arg))
             }
@@ -109,8 +107,8 @@ class CallTrackingNestedTransformer(
     }
 
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression): IrExpression {
-        return irCall(argMatchersScopeClass.getSimpleFunction("varargElement")!!).apply {
-            this.dispatchReceiver = irGet(argMatchersScopeParam)
+        return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
+            this.dispatchReceiver = irGet(contextVar)
             putValueArgument(0, expression)
         }
     }

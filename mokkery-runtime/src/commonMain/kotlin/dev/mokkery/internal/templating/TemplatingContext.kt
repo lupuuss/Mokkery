@@ -16,13 +16,13 @@ internal interface TemplatingContext {
     val spies: Set<MokkerySpyScope>
     val templates: List<CallTemplate>
 
-    fun <T> ensureInContext(obj: T): T
-
-    fun registerName(name: String)
+    fun <T> ensureBinding(obj: T): T
 
     fun registerMatcher(matcher: ArgMatcher<Any?>)
 
-    fun registerVarargElement(arg: Any?)
+    fun interceptNamedArg(name: String, arg: Any?): Any?
+
+    fun interceptVarargElement(arg: Any?): Any?
 
     fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
 
@@ -39,7 +39,7 @@ private class TemplatingContextImpl: TemplatingContext {
     override val spies = mutableSetOf<MokkerySpyScope>()
     override val templates = mutableListOf<CallTemplate>()
 
-    override fun <T> ensureInContext(obj: T): T {
+    override fun <T> ensureBinding(obj: T): T {
         if (obj is MokkerySpyScope) {
             val templating = obj.interceptor.templating
             when {
@@ -59,23 +59,25 @@ private class TemplatingContextImpl: TemplatingContext {
         spies.clear()
     }
 
-    override fun registerName(name: String) {
-        matchers[name] = currentMatchers.toMutableList()
-        currentMatchers.clear()
-    }
-
     override fun registerMatcher(matcher: ArgMatcher<Any?>) {
         if (matcher is VarArgMatcher<*>) varargsMatchersCount++
         currentMatchers.add(matcher)
     }
 
-    override fun registerVarargElement(arg: Any?) {
+    override fun interceptNamedArg(name: String, arg: Any?): Any? {
+        matchers[name] = currentMatchers.toMutableList()
+        currentMatchers.clear()
+        return arg
+    }
+
+    override fun interceptVarargElement(arg: Any?): Any? {
         val size = arg.toListOrNull()?.size ?: 1
         for (index in 0 until size) {
             val matcher = currentMatchers.getOrNull(varargsMatchersCount + index)
             if (matcher == null) currentMatchers.add(null)
         }
         varargsMatchersCount += size
+        return arg
     }
 
     override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {

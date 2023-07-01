@@ -9,12 +9,6 @@ public interface ArgMatchersScope {
     @DelicateMokkeryApi
     public fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T
 
-    @InternalMokkeryApi
-    public fun named(name: String, arg: Any?): Any?
-
-    @InternalMokkeryApi
-    public fun varargElement(arg: Any?): Any?
-
 }
 
 @DelicateMokkeryApi
