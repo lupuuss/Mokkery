@@ -11,6 +11,8 @@ import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.androidJvm
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
@@ -44,7 +46,9 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
-        kotlinCompilation.compilerOptions.options.freeCompilerArgs.add("-Xno-param-assertions")
+        if (kotlinCompilation.platformType in listOf(jvm, androidJvm)) {
+            kotlinCompilation.compilerOptions.options.freeCompilerArgs.add("-Xno-param-assertions")
+        }
         target.project.provider {
             listOf(
                 SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.toString()),
