@@ -88,7 +88,7 @@ private class TemplatingContextImpl: TemplatingContext {
 
     private fun flush(args: List<CallArg>): List<Pair<String, ArgMatcher<Any?>>> {
         val matchersSnapshot = matchers.toMutableMap()
-        matchers.clear()
+        clearCurrent()
         return args.map {
             val matchers = matchersSnapshot[it.name].orEmpty()
             when {
@@ -113,6 +113,12 @@ private class TemplatingContextImpl: TemplatingContext {
             }
         }
         return MergedVarArgMatcher(arg.arrayElementType(), before, wildcardMatcher, after)
+    }
+
+    private fun clearCurrent() {
+        matchers.clear()
+        varargsMatchersCount = 0
+        currentMatchers.clear()
     }
 
 }
