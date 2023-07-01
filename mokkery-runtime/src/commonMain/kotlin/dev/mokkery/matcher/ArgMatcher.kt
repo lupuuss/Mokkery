@@ -1,15 +1,13 @@
 package dev.mokkery.matcher
 
-import kotlin.reflect.KClass
-
 public fun interface ArgMatcher<in T> {
     public fun matches(arg: T): Boolean
 
-    public data class AnyOf<T>(private val type: KClass<*>) : ArgMatcher<T> {
+    public class AnyOf<T> : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = true
 
-        override fun toString(): String = "any(${type.simpleName})"
+        override fun toString(): String = "any()"
     }
 
     public data class Equals<T>(private val value: T) : ArgMatcher<T> {
@@ -40,14 +38,11 @@ public fun interface ArgMatcher<in T> {
         override fun toString(): String = "noEqRef($value)"
     }
 
-    public class Matching<T>(
-        private val type: KClass<*>,
-        private val predicate: (T) -> Boolean
-    ) : ArgMatcher<T> {
+    public class Matching<T>(private val predicate: (T) -> Boolean) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = predicate(arg)
 
-        override fun toString(): String = "matching(${type.simpleName})"
+        override fun toString(): String = "matching(...)"
     }
 
     public class Comparing<T>(

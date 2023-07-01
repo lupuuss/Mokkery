@@ -1,4 +1,4 @@
-package dev.mokkery.internal.templating
+package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
@@ -29,7 +29,11 @@ public class MergedVarArgMatcher(
         when {
             before.isEmpty() && after.isEmpty() && wildCard == null -> append("no${varargNameByElementType(type).capitalize()}()")
             before.isEmpty() && after.isEmpty() -> append(wildCard.toString())
-            after.isEmpty() && wildCard == null -> append(before.joinToString())
+            after.isEmpty() && wildCard == null -> {
+                append("[")
+                append(before.joinToString())
+                append("]")
+            }
             else -> {
                 append(varargNameByElementType(type))
                 append("(")

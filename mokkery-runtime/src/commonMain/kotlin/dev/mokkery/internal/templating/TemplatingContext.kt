@@ -6,6 +6,7 @@ import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.generateSignature
+import dev.mokkery.internal.matcher.MergedVarArgMatcher
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher

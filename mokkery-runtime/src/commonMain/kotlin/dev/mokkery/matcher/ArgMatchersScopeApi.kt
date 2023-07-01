@@ -1,6 +1,6 @@
 package dev.mokkery.matcher
 
-public inline fun <reified T> ArgMatchersScope.any(): T = matches(ArgMatcher.AnyOf(T::class))
+public inline fun <reified T> ArgMatchersScope.any(): T = matches(ArgMatcher.AnyOf())
 
 public inline fun <reified T> ArgMatchersScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
 
@@ -12,7 +12,7 @@ public inline fun <reified T> ArgMatchersScope.notEqRef(value: T): T = matches(A
 
 public inline fun <reified T> ArgMatchersScope.matching(
     noinline predicate: (T) -> Boolean
-): T = matches(ArgMatcher.Matching(T::class, predicate))
+): T = matches(ArgMatcher.Matching(predicate))
 
 public inline fun <reified T> ArgMatchersScope.lt(
     value: T
