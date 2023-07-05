@@ -4,9 +4,11 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
+import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.generateSignature
 import dev.mokkery.internal.matcher.MergedVarArgMatcher
+import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
@@ -36,6 +38,7 @@ private class TemplatingScopeImpl: TemplatingScope {
 
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
     private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()
+    private var varargGenericMatcherFlag = false
     private var varargsMatchersCount = 0
     override val spies = mutableSetOf<MokkerySpyScope>()
     override val templates = mutableListOf<CallTemplate>()
@@ -61,23 +64,33 @@ private class TemplatingScopeImpl: TemplatingScope {
     }
 
     override fun registerMatcher(matcher: ArgMatcher<Any?>) {
-        if (matcher is VarArgMatcher<*>) varargsMatchersCount++
+        if (matcher is VarArgMatcher<*>) {
+            varargGenericMatcherFlag = true
+        }
         currentMatchers.add(matcher)
-    }
-
-    override fun interceptNamedArg(name: String, arg: Any?): Any? {
-        matchers[name] = currentMatchers.toMutableList()
-        currentMatchers.clear()
-        return arg
     }
 
     override fun interceptVarargElement(arg: Any?): Any? {
         val size = arg.toListOrNull()?.size ?: 1
+        val elementMatchersSize = currentMatchers.subListAfter(varargsMatchersCount).size
+        if (varargGenericMatcherFlag) {
+            varargGenericMatcherFlag = false
+            if (elementMatchersSize != 1) throw VarargsAmbiguityDetectedException()
+            varargsMatchersCount++
+            return arg
+        }
+        if (elementMatchersSize != 0 && elementMatchersSize != size) throw VarargsAmbiguityDetectedException()
         for (index in 0 until size) {
             val matcher = currentMatchers.getOrNull(varargsMatchersCount + index)
             if (matcher == null) currentMatchers.add(null)
         }
         varargsMatchersCount += size
+        return arg
+    }
+
+    override fun interceptNamedArg(name: String, arg: Any?): Any? {
+        matchers[name] = currentMatchers.toMutableList()
+        currentMatchers.clear()
         return arg
     }
 
@@ -118,6 +131,7 @@ private class TemplatingScopeImpl: TemplatingScope {
     private fun clearCurrent() {
         matchers.clear()
         varargsMatchersCount = 0
+        varargGenericMatcherFlag = false
         currentMatchers.clear()
     }
 

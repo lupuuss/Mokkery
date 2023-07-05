@@ -35,3 +35,7 @@ internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException(
 internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>?>) : MokkeryRuntimeException(
     "Multiple matchers for param '$name' = $matchers"
 )
+
+internal class VarargsAmbiguityDetectedException : MokkeryRuntimeException(
+    "Varargs matchers registered in a ambiguous way. Pleas read the documentation how to avoid varargs ambiguity or report an issue."
+)
