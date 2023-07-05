@@ -38,11 +38,14 @@ public fun interface ArgMatcher<in T> {
         override fun toString(): String = "noEqRef($value)"
     }
 
-    public class Matching<T>(private val predicate: (T) -> Boolean) : ArgMatcher<T> {
+    public class Matching<T>(
+        private val predicate: (T) -> Boolean,
+        private val toStringFun: (() -> String)
+    ) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = predicate(arg)
 
-        override fun toString(): String = "matching(...)"
+        override fun toString(): String = toStringFun()
     }
 
     public class Comparing<T>(
