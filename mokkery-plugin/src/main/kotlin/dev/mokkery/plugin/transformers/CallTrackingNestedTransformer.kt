@@ -63,39 +63,60 @@ class CallTrackingNestedTransformer(
                 putValueArgument(0, dispatchReceiver)
             }
         }
-        interceptArgumentNames(expression)
+        interceptAllArgsOf(expression)
         return super.visitCall(expression)
     }
 
-    private fun interceptArgumentNames(expression: IrCall) {
+    private fun interceptAllArgsOf(expression: IrCall) {
         val extensionReceiver = expression.extensionReceiver
         val extensionReceiverParam = expression.symbol.owner.extensionReceiverParameter
         if (extensionReceiver != null && extensionReceiverParam != null) {
-            expression.extensionReceiver = interceptWithNamed(
-                symbol = expression.symbol,
-                param = extensionReceiverParam,
-                arg = extensionReceiver
-            )
+            expression.extensionReceiver = interceptArg(expression.symbol, extensionReceiverParam, extensionReceiver)
         }
         for (index in expression.valueArguments.indices) {
             val arg = expression.valueArguments[index] ?: continue
             val param = expression.symbol.owner.valueParameters[index]
-            if (arg is IrGetValue && arg.interceptInitializerWithNamed(param)) continue
-            expression.putValueArgument(index, interceptWithNamed(expression.symbol, param, arg))
+            if (arg is IrGetValue && arg.interceptArgInitializer(param)) continue
+            expression.putValueArgument(index, interceptArg(expression.symbol, param, arg))
         }
     }
 
-    private fun interceptWithNamed(symbol: IrSymbol, param: IrValueParameter, arg: IrExpression): IrExpression {
+    private fun checkOrigin(variable: IrVariable) {
+        if (variable.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) return
+        val initializer = variable.initializer
+        if (initializer !is IrCall) return
+        val types = listOfNotNull(initializer.dispatchReceiver?.type, initializer.extensionReceiver?.type)
+        if (types.any { it == argMatchersScopeClass.defaultType }) initializer.mokkeryError(irFile) {
+            "Assigning matchers to variables is prohibited!"
+        }
+    }
+
+    private fun interceptArg(symbol: IrSymbol, param: IrValueParameter, arg: IrExpression): IrExpression {
         return DeclarationIrBuilder(pluginContext, symbol).run {
-            irCall(templatingContextClass.getSimpleFunction("interceptNamedArg")!!).apply {
+            irCall(templatingContextClass.getSimpleFunction("interceptArg")!!).apply {
                 this.dispatchReceiver = irGet(scopeVar)
                 putValueArgument(0, irString(param.name.asString()))
-                putValueArgument(1, interceptArg(arg))
+                putValueArgument(1, interceptArgVarargs(arg))
             }
         }
     }
 
-    private fun DeclarationIrBuilder.interceptArg(arg: IrExpression): IrExpression {
+    private fun IrGetValue.interceptArgInitializer(param: IrValueParameter): Boolean {
+        val owner = symbol.owner
+        if (!localDeclarations.contains(owner)) return false
+        if (owner !is IrVariable) return false
+        return when (val initializer = owner.initializer) {
+            is IrGetValue -> initializer.interceptArgInitializer(param)
+            null -> false
+            else -> {
+                checkOrigin(owner)
+                owner.initializer = interceptArg(owner.symbol, param, initializer)
+                true
+            }
+        }
+    }
+
+    private fun DeclarationIrBuilder.interceptArgVarargs(arg: IrExpression): IrExpression {
         if (arg !is IrVararg) return arg
         arg.elements.forEachIndexed { index, element ->
             when (element) {
@@ -110,31 +131,6 @@ class CallTrackingNestedTransformer(
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
             this.dispatchReceiver = irGet(scopeVar)
             putValueArgument(0, expression)
-        }
-    }
-
-    private fun IrGetValue.interceptInitializerWithNamed(param: IrValueParameter): Boolean {
-        val owner = symbol.owner
-        if (!localDeclarations.contains(owner)) return false
-        if (owner !is IrVariable) return false
-        return when (val initializer = owner.initializer) {
-            is IrGetValue -> initializer.interceptInitializerWithNamed(param)
-            null -> false
-            else -> {
-                checkOrigin(owner)
-                owner.initializer = interceptWithNamed(owner.symbol, param, initializer)
-                true
-            }
-        }
-    }
-
-    private fun checkOrigin(variable: IrVariable) {
-        if (variable.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) return
-        val initializer = variable.initializer
-        if (initializer !is IrCall) return
-        val types = listOfNotNull(initializer.dispatchReceiver?.type, initializer.extensionReceiver?.type)
-        if (types.any { it == argMatchersScopeClass.defaultType }) initializer.mokkeryError(irFile) {
-            "Assigning matchers to variables is prohibited!"
         }
     }
 }

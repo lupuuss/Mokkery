@@ -23,7 +23,7 @@ internal interface TemplatingScope {
 
     fun registerMatcher(matcher: ArgMatcher<Any?>)
 
-    fun interceptNamedArg(name: String, arg: Any?): Any?
+    fun interceptArg(name: String, arg: Any?): Any?
 
     fun interceptVarargElement(arg: Any?): Any?
 
@@ -88,7 +88,7 @@ private class TemplatingScopeImpl: TemplatingScope {
         return arg
     }
 
-    override fun interceptNamedArg(name: String, arg: Any?): Any? {
+    override fun interceptArg(name: String, arg: Any?): Any? {
         matchers[name] = currentMatchers.toMutableList()
         currentMatchers.clear()
         return arg
