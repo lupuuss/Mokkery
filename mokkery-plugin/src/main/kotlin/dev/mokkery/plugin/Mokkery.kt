@@ -1,58 +1,55 @@
 package dev.mokkery.plugin
 
-import org.jetbrains.kotlin.name.CallableId
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import dev.mokkery.plugin.ext.fqName
+import dev.mokkery.plugin.ext.function
+import dev.mokkery.plugin.ext.klass
 
 object Mokkery {
 
-    object Package {
-        val mokkery = FqName("dev.mokkery")
-        val mokkery_internal = FqName("dev.mokkery.internal")
-        val mokkery_internal_templating = FqName("dev.mokkery.internal.templating")
-        val mokkery_matcher = FqName("dev.mokkery.matcher")
-        val mokkery_internal_tracing = FqName("dev.mokkery.internal.tracing")
-    }
+    val dev_mokkery by fqName
+    val dev_mokkery_internal by fqName
+    val dev_mokkery_internal_templating by fqName
+    val dev_mokkery_matcher by fqName
+    val dev_mokkery_internal_tracing by fqName
 
     object Function {
-        val mock = Package.mokkery.child(Name.identifier("mock"))
-        val spy = Package.mokkery.child(Name.identifier("spy"))
-        val every = Package.mokkery.child(Name.identifier("every"))
-        val everySuspend = Package.mokkery.child(Name.identifier("everySuspend"))
-        val verify = Package.mokkery.child(Name.identifier("verify"))
-        val verifySuspend = Package.mokkery.child(Name.identifier("verifySuspend"))
+        val mock by dev_mokkery.fqName
+        val spy by dev_mokkery.fqName
+        val every by dev_mokkery.fqName
+        val everySuspend by dev_mokkery.fqName
+        val verify by dev_mokkery.fqName
+        val verifySuspend by dev_mokkery.fqName
     }
 
     object ClassId {
-        val MokkeryInterceptor = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptor"))
-        val MokkeryInterceptorScope = ClassId(Package.mokkery_internal,Name.identifier("MokkeryInterceptorScope"))
 
-        val MokkeryMock = ClassId(Package.mokkery_internal, Name.identifier("MokkeryMock"))
-        val MokkeryMockScope = ClassId(Package.mokkery_internal, Name.identifier("MokkeryMockScope"))
+        val MockMode by dev_mokkery.klass
+        val ArgMatchersScope by dev_mokkery_matcher.klass
 
-        val MokkerySpy = ClassId(Package.mokkery_internal, Name.identifier("MokkerySpy"))
-        val MokkerySpyScope = ClassId(Package.mokkery_internal, Name.identifier("MokkerySpyScope"))
-        val CallArg = ClassId(Package.mokkery_internal_tracing, Name.identifier("CallArg"))
+        val MokkeryInterceptor by dev_mokkery_internal.klass
+        val MokkeryInterceptorScope by dev_mokkery_internal.klass
 
-        val TemplatingInterceptor = ClassId(
-            Package.mokkery_internal_templating,
-            Name.identifier("TemplatingInterceptor")
-        )
-        val TemplatingContext = ClassId(Package.mokkery_internal_templating, Name.identifier("TemplatingContext"))
+        val MokkeryMock by dev_mokkery_internal.klass
+        val MokkeryMockScope by dev_mokkery_internal.klass
 
+        val MokkerySpy by dev_mokkery_internal.klass
+        val MokkerySpyScope by dev_mokkery_internal.klass
 
-        val MockMode = ClassId(Package.mokkery,Name.identifier("MockMode"))
-        val ArgMatchersScope = ClassId(Package.mokkery_matcher, Name.identifier("ArgMatchersScope"))
+        val CallArg by dev_mokkery_internal_tracing.klass
+
+        val TemplatingInterceptor by dev_mokkery_internal_templating.klass
+        val TemplatingContext by dev_mokkery_internal_templating.klass
     }
     object FunctionId {
-        val MokkeryMock = CallableId(Package.mokkery_internal,Name.identifier("MokkeryMock"))
-        val MokkerySpy = CallableId(Package.mokkery_internal,Name.identifier("MokkerySpy"))
-        val TemplatingContext = CallableId(Package.mokkery_internal_templating, Name.identifier("TemplatingContext"))
+        val MokkeryMock by dev_mokkery_internal.function
+        val MokkerySpy by dev_mokkery_internal.function
 
-        val internalEvery = CallableId(Package.mokkery_internal,Name.identifier("internalEvery"))
-        val internalEverySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalEverySuspend"))
-        val internalVerify = CallableId(Package.mokkery_internal,Name.identifier("internalVerify"))
-        val internalVerifySuspend = CallableId(Package.mokkery_internal,Name.identifier("internalVerifySuspend"))
+        val internalEvery by dev_mokkery_internal.function
+        val internalEverySuspend by dev_mokkery_internal.function
+        val internalVerify by dev_mokkery_internal.function
+        val internalVerifySuspend by dev_mokkery_internal.function
+
+        val TemplatingContext by dev_mokkery_internal_templating.function
     }
 }
+

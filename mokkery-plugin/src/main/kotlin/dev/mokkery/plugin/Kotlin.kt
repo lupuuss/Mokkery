@@ -1,18 +1,17 @@
 package dev.mokkery.plugin
 
+import dev.mokkery.plugin.ext.fqName
+import dev.mokkery.plugin.ext.function
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 object Kotlin {
 
-    object Package {
-        val kotlin_text = FqName("kotlin.text")
-    }
+    val kotlin_text by fqName
 
     object FunctionId {
 
-        val ToStringRadix = CallableId(Package.kotlin_text, Name.identifier("toString"))
-
+        val toString by kotlin_text.function
     }
 }

@@ -67,7 +67,7 @@ fun IrBuilderWithScope.irToString(
     expression: IrExpression,
     radix: Int,
 ) = pluginContext
-    .referenceFunctions(Kotlin.FunctionId.ToStringRadix)
+    .referenceFunctions(Kotlin.FunctionId.toString)
     .first { it.owner.extensionReceiverParameter?.type == context.irBuiltIns.intType }
     .let {
         irCall(it).apply {
