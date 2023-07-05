@@ -7,7 +7,7 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.VarArgMatcher
 import kotlin.reflect.KClass
 
-public class MergedVarArgMatcher(
+internal class MergedVarArgMatcher(
     private val type: KClass<*>,
     private val before: List<ArgMatcher<Any?>> = emptyList(),
     private val wildCard: VarArgMatcher<Any?>? = null,
