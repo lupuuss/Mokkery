@@ -12,7 +12,7 @@ import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.VarArgMatcher
 
-internal interface TemplatingContext {
+internal interface TemplatingScope {
 
     val spies: Set<MokkerySpyScope>
     val templates: List<CallTemplate>
@@ -30,9 +30,9 @@ internal interface TemplatingContext {
     fun release()
 }
 
-internal fun TemplatingContext(): TemplatingContext = TemplatingContextImpl()
+internal fun TemplatingScope(): TemplatingScope = TemplatingScopeImpl()
 
-private class TemplatingContextImpl: TemplatingContext {
+private class TemplatingScopeImpl: TemplatingScope {
 
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
     private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()

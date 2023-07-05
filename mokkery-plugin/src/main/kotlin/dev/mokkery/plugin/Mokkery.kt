@@ -38,7 +38,7 @@ object Mokkery {
         val CallArg by dev_mokkery_internal_tracing.klass
 
         val TemplatingInterceptor by dev_mokkery_internal_templating.klass
-        val TemplatingContext by dev_mokkery_internal_templating.klass
+        val TemplatingScope by dev_mokkery_internal_templating.klass
     }
     object FunctionId {
         val MokkeryMock by dev_mokkery_internal.function
@@ -49,7 +49,7 @@ object Mokkery {
         val internalVerify by dev_mokkery_internal.function
         val internalVerifySuspend by dev_mokkery_internal.function
 
-        val TemplatingContext by dev_mokkery_internal_templating.function
+        val TemplatingScope by dev_mokkery_internal_templating.function
     }
 }
 

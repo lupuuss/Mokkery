@@ -51,7 +51,7 @@ class CallTrackingTransformer(
         block.assertFunctionExpressionThatOriginatesLambda()
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irBlock {
-                val variable = createTmpVariable(irCall(irFunctions.TemplatingContext))
+                val variable = createTmpVariable(irCall(irFunctions.TemplatingScope))
                 val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table, variable)
                 block.transformChildren(nestedTransformer, null)
                 +irCall(function).apply {
@@ -68,7 +68,7 @@ class CallTrackingTransformer(
         block.assertFunctionExpressionThatOriginatesLambda()
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irBlock {
-                val variable = createTmpVariable(irCall(irFunctions.TemplatingContext))
+                val variable = createTmpVariable(irCall(irFunctions.TemplatingScope))
                 val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table, variable)
                 block.transformChildren(nestedTransformer, null)
                 +irCall(function).apply {
@@ -98,7 +98,7 @@ class CallTrackingTransformer(
     }
 
     inner class IrFunctions {
-        val TemplatingContext = pluginContext.firstFunction(Mokkery.FunctionId.TemplatingContext)
+        val TemplatingScope = pluginContext.firstFunction(Mokkery.FunctionId.TemplatingScope)
         val internalEvery = pluginContext.firstFunction(Mokkery.FunctionId.internalEvery)
         val internalEverySuspend = pluginContext.firstFunction(Mokkery.FunctionId.internalEverySuspend)
         val internalVerify = pluginContext.firstFunction(Mokkery.FunctionId.internalVerify)

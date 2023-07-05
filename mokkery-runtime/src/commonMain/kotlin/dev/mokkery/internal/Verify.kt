@@ -4,7 +4,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.internal.coroutines.runSuspension
 import dev.mokkery.internal.matcher.ArgMatchersScope
-import dev.mokkery.internal.templating.TemplatingContext
+import dev.mokkery.internal.templating.TemplatingScope
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
@@ -20,31 +20,31 @@ import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerify(
-    context: TemplatingContext,
+    scope: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
-) = internalBaseVerify(context, mode, block)
+) = internalBaseVerify(scope, mode, block)
 
 internal fun internalVerifySuspend(
-    context: TemplatingContext,
+    scope: TemplatingScope,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
-) = internalBaseVerify(context, mode) {
+) = internalBaseVerify(scope, mode) {
     runSuspension { block() }
 }
 
 internal inline fun internalBaseVerify(
-    context: TemplatingContext,
+    scope: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val result = runCatching { block(ArgMatchersScope(context)) }
+    val result = runCatching { block(ArgMatchersScope(scope)) }
     val exception = result.exceptionOrNull()
     if  (exception != null && exception !is DefaultNothingException) {
-        context.release()
+        scope.release()
         throw exception
     }
-    val spyInterceptors = context.spies.associate { it.id to it.interceptor }
+    val spyInterceptors = scope.spies.associate { it.id to it.interceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }
@@ -58,10 +58,10 @@ internal inline fun internalBaseVerify(
         is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
     }
     try {
-        verifier.verify(calls, context.templates).forEach {
+        verifier.verify(calls, scope.templates).forEach {
             spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)
         }
     } finally {
-        context.release()
+        scope.release()
     }
 }

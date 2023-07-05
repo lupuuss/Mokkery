@@ -11,9 +11,9 @@ internal interface TemplatingInterceptor : MokkeryInterceptor {
 
     val isEnabled: Boolean
 
-    fun isEnabledWith(context: TemplatingContext): Boolean
+    fun isEnabledWith(scope: TemplatingScope): Boolean
 
-    fun start(context: TemplatingContext)
+    fun start(scope: TemplatingScope)
 
     fun stop()
 }
@@ -25,27 +25,27 @@ internal fun TemplatingInterceptor(receiver: String): TemplatingInterceptor {
 private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : TemplatingInterceptor {
 
     private var _isEnabled by atomic(false)
-    private var templatingContext by atomic<TemplatingContext?>(null)
+    private var templatingScope by atomic<TemplatingScope?>(null)
     override val isEnabled: Boolean get() = _isEnabled
-    override fun isEnabledWith(context: TemplatingContext): Boolean = templatingContext == context
+    override fun isEnabledWith(scope: TemplatingScope): Boolean = templatingScope == scope
 
-    override fun start(context: TemplatingContext) {
+    override fun start(scope: TemplatingScope) {
         if (_isEnabled) throw ConcurrentTemplatingException()
         _isEnabled = true
-        templatingContext = context
+        templatingScope = scope
     }
 
     override fun stop() {
         if (!_isEnabled) throw ConcurrentTemplatingException()
         _isEnabled = false
-        templatingContext = null
+        templatingScope = null
     }
 
     override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any {
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
-        templatingContext?.saveTemplate(receiver, name, args.toList())
+        templatingScope?.saveTemplate(receiver, name, args.toList())
             ?: throw ConcurrentTemplatingException()
         return MokkeryToken.RETURN_DEFAULT
     }
