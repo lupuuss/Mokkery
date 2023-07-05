@@ -19,28 +19,20 @@ import dev.mokkery.verify.OrderVerifyMode
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
-internal fun internalVerify(
-    scope: TemplatingScope,
-    mode: VerifyMode,
-    block: ArgMatchersScope.() -> Unit
-) = internalBaseVerify(scope, mode, block)
-
 internal fun internalVerifySuspend(
     scope: TemplatingScope,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
-) = internalBaseVerify(scope, mode) {
-    runSuspension { block() }
-}
+) = internalVerify(scope, mode) { runSuspension { block() } }
 
-internal inline fun internalBaseVerify(
+internal fun internalVerify(
     scope: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
     val result = runCatching { block(ArgMatchersScope(scope)) }
     val exception = result.exceptionOrNull()
-    if  (exception != null && exception !is DefaultNothingException) {
+    if (exception != null && exception !is DefaultNothingException) {
         scope.release()
         throw exception
     }
