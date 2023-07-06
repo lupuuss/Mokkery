@@ -1,7 +1,6 @@
 package dev.mokkery.answering
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import dev.mokkery.internal.answering.autofillValue
 import kotlin.reflect.KClass

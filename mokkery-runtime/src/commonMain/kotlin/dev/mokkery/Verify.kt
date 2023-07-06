@@ -8,7 +8,6 @@ import dev.mokkery.internal.ObjectNotSpiedException
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
-
 public fun verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: ArgMatchersScope.() -> Unit
