@@ -10,5 +10,5 @@ public interface AnsweringScope<T> {
 
 public interface SuspendAnsweringScope<T> : AnsweringScope<T>
 
-public interface RegularAnsweringScope<T> : AnsweringScope<T>
+public interface BlockingAnsweringScope<T> : AnsweringScope<T>
 

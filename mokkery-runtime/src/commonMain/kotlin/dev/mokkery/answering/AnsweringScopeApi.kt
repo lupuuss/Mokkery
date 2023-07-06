@@ -8,7 +8,7 @@ public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
     answers(Answer.Throws(error))
 }
 
-public infix fun <T> RegularAnsweringScope<T>.calls(block: (CallArgs) -> T) {
+public infix fun <T> BlockingAnsweringScope<T>.calls(block: (CallArgs) -> T) {
     answers(Answer.Block(block))
 }
 

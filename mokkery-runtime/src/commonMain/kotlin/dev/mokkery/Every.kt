@@ -2,14 +2,14 @@
 
 package dev.mokkery
 
-import dev.mokkery.answering.RegularAnsweringScope
+import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.matcher.ArgMatchersScope
 
 public fun <T> every(
     block: ArgMatchersScope.() -> T
-): RegularAnsweringScope<T> = throw MokkeryPluginNotAppliedException()
+): BlockingAnsweringScope<T> = throw MokkeryPluginNotAppliedException()
 
 public fun <T> everySuspend(
     block: suspend ArgMatchersScope.() -> T
