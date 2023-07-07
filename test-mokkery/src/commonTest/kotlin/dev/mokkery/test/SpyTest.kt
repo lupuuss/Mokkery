@@ -23,6 +23,8 @@ class SpyTest {
 
         override suspend fun callWithSuspension(i: Int): List<String> = listOf(i.toString())
 
+        override fun callWithSelf(dependency: TestDependency) = Unit
+
         override fun callUnit() = Unit
 
         override fun callNothing(): Nothing = throw IllegalArgumentException()
