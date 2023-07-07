@@ -4,10 +4,14 @@ import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
-internal fun <T> autofillValue(returnType: KClass<*>): T = if (returnType == Nothing::class) {
-    throw DefaultNothingException()
-} else {
-    autoFillMap[returnType].unsafeCast()
+internal fun <T> autofillValue(returnType: KClass<*>): T {
+    // don't change this to returnType == Nothing::class
+    // it fails when returnType is non-primitive type on jsBrowser (probably a K/JS bug)
+    return if (Nothing::class == returnType) {
+        throw DefaultNothingException()
+    } else {
+        autoFillMap[returnType].unsafeCast()
+    }
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
