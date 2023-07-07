@@ -75,7 +75,7 @@ private class TemplatingScopeImpl: TemplatingScope {
         val elementMatchersSize = currentMatchers.subListAfter(varargsMatchersCount).size
         if (varargGenericMatcherFlag) {
             varargGenericMatcherFlag = false
-            if (elementMatchersSize != 1) throw VarargsAmbiguityDetectedException()
+            if (elementMatchersSize != size + 1) throw VarargsAmbiguityDetectedException()
             varargsMatchersCount++
             return arg
         }
