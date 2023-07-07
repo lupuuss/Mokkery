@@ -2,7 +2,7 @@ package dev.mokkery.answering
 
 import dev.mokkery.internal.unsafeCast
 
-public class CallArgs(public val args: List<Any?>) {
+public class FunctionScope(public val args: List<Any?>) {
 
     override fun toString(): String = args.toString()
 
@@ -10,7 +10,7 @@ public class CallArgs(public val args: List<Any?>) {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as CallArgs
+        other as FunctionScope
 
         return args == other.args
     }

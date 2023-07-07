@@ -17,13 +17,13 @@ public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
 /**
  * Function call executes [block].
  */
-public infix fun <T> BlockingAnsweringScope<T>.calls(block: (CallArgs) -> T) {
+public infix fun <T> BlockingAnsweringScope<T>.calls(block: (FunctionScope) -> T) {
     answers(Answer.Block(block))
 }
 
 /**
  * Suspend function call executes [block].
  */
-public infix fun <T> SuspendAnsweringScope<T>.calls(block: suspend (CallArgs) -> T) {
+public infix fun <T> SuspendAnsweringScope<T>.calls(block: suspend (FunctionScope) -> T) {
     answers(Answer.BlockSuspend(block))
 }
