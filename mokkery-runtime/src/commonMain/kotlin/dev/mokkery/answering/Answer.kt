@@ -46,7 +46,7 @@ public interface Answer<out T> {
      * Calls [block] on [call] and [callSuspend].
      */
     public class Block<T>(private val block: (FunctionScope) -> T) : Answer<T> {
-        override fun call(returnType: KClass<*>, args: List<Any?>): T = block(FunctionScope(args))
+        override fun call(returnType: KClass<*>, args: List<Any?>): T = block(FunctionScope(returnType, args))
     }
 
     /**
@@ -62,7 +62,7 @@ public interface Answer<out T> {
     public class BlockSuspend<T>(private val block: suspend (FunctionScope) -> T) : Suspending<T> {
 
         override suspend fun callSuspend(returnType: KClass<*>, args: List<Any?>): T {
-            return block(FunctionScope(args))
+            return block(FunctionScope(returnType, args))
         }
     }
 

@@ -1,8 +1,12 @@
 package dev.mokkery.answering
 
 import dev.mokkery.internal.unsafeCast
+import kotlin.reflect.KClass
 
-public class FunctionScope(public val args: List<Any?>) {
+public class FunctionScope(
+    public val returnType: KClass<*>,
+    public val args: List<Any?>
+) {
 
     override fun toString(): String = args.toString()
 
