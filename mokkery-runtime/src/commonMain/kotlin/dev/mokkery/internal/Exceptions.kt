@@ -1,11 +1,7 @@
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.matcher.ArgMatcher
-
-internal open class MokkeryRuntimeException(
-    message: String? = null,
-    cause: Throwable? = null
-) : RuntimeException(message, cause)
 
 internal class CallNotMockedException(name: String) : MokkeryRuntimeException(message = "Call $name not mocked!")
 
