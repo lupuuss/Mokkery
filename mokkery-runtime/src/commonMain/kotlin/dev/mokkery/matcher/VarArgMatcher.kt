@@ -5,6 +5,9 @@ import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
 import kotlin.reflect.KClass
 
+/**
+ * Checks if given vararg argument satisfies provided conditions.
+ */
 public interface VarArgMatcher<T> : ArgMatcher<T> {
 
     public class AllThat(

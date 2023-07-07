@@ -1,11 +1,15 @@
 package dev.mokkery.matcher
 
+/**
+ * Checks if given argument satisfies provided conditions.
+ */
 public fun interface ArgMatcher<in T> {
+
     public fun matches(arg: T): Boolean
 
-    public class AnyOf<T> : ArgMatcher<T> {
+    public object Any : ArgMatcher<kotlin.Any?> {
 
-        override fun matches(arg: T): Boolean = true
+        override fun matches(arg: kotlin.Any?): Boolean = true
 
         override fun toString(): String = "any()"
     }
@@ -51,7 +55,7 @@ public fun interface ArgMatcher<in T> {
     public class Comparing<T>(
         private val value: T,
         private val type: Type,
-    ) : ArgMatcher<T> where T : Number, T : Comparable<T> {
+    ) : ArgMatcher<T> where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
         override fun toString(): String = "${type.toString().lowercase()}($value)"
