@@ -29,7 +29,7 @@ private class AnsweringInterceptorImpl(
 ) : AnsweringInterceptor {
 
     private var isSetup by atomic(false)
-    private var answers by atomic(mapOf<CallTemplate, Answer<*>>())
+    private var answers by atomic(linkedMapOf<CallTemplate, Answer<*>>())
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
         isSetup = true
@@ -38,7 +38,7 @@ private class AnsweringInterceptorImpl(
     }
 
     override fun reset() {
-        answers = emptyMap()
+        answers = linkedMapOf()
     }
 
     override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
@@ -58,7 +58,7 @@ private class AnsweringInterceptorImpl(
         val answers = this.answers
         return answers
             .keys
-            .find { trace matches it }
+            .findLast { trace matches it }
             ?.let { answers.getValue(it) }
             ?: handleMissingAnswer(trace, returnType)
     }

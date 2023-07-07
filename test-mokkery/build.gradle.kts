@@ -6,7 +6,10 @@ plugins {
 kotlin {
 
     jvm()
-    js(IR) {}
+    js(IR) {
+        browser()
+        nodejs()
+    }
 
     ios()
     iosSimulatorArm64()
