@@ -7,6 +7,7 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.anyVarargs
+import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -23,6 +24,13 @@ class EveryTest {
         assertEquals(1.0, dependencyMock.callWithPrimitives(1))
     }
 
+
+    @Test
+    fun testMocksRegularMethodCallWithComplexTypes() {
+        every { dependencyMock.callWithComplex(any()) } returns listOf(1, 2, 3)
+        assertEquals(listOf(1, 2, 3), dependencyMock.callWithComplex(listOf()))
+    }
+
     @Test
     fun testMocksRegularMethodWithExtensionReceiver() {
         every { dependencyMock.run { any<Int>().callWithExtensionReceiver() } } calls { (i: Int) -> i.toString() }
@@ -33,6 +41,16 @@ class EveryTest {
     fun testMockMethodsWithAnyVarargs() {
         every { dependencyMock.callWithVararg(any(), *anyVarargs()) } returns (1.0 to 1.0)
         assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "2", "3"))
+        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "2"))
+        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1))
+    }
+
+    @Test
+    fun testMockMethodsWithAnyMixedVarargs() {
+        every { dependencyMock.callWithVararg(any(), "1", *anyVarargs(), eq("3")) } returns (1.0 to 1.0)
+        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "2", "2", "3"))
+        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "2", "3"))
+        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "3"))
     }
 
     @Test
@@ -59,5 +77,18 @@ class EveryTest {
         every { dependencyMock.property = any() } calls { (value: String) -> capture = value }
         dependencyMock.property = "1234"
         assertEquals("1234", capture)
+    }
+
+    @Test
+    fun testMockSupportsNamedParametersWithMixedLiteralsAndMatchers() {
+        every { dependencyMock.callWithPrimitives(j = 2, i = any()) } returns 2.0
+        assertEquals(2.0, dependencyMock.callWithPrimitives(3, 2))
+    }
+
+    @Test
+    fun testMockAnswersAreResolvedInReversedOrder() {
+        every { dependencyMock.callWithPrimitives(any(), any()) } returns 1.0
+        every { dependencyMock.callWithPrimitives(1, 1) } returns 2.0
+        assertEquals(2.0, dependencyMock.callWithPrimitives(1, 1))
     }
 }

@@ -6,6 +6,8 @@ interface TestDependency {
 
     fun callWithPrimitives(i: Int, j: Int = 1): Double
 
+    fun callWithComplex(list: List<String>): List<Int>
+
     fun Int.callWithExtensionReceiver(): String
 
     fun callWithVararg(i: Int, vararg args: String): Pair<Double, Double>

@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
@@ -15,6 +16,15 @@ class VerifyTest {
         assertVerified {
             verify {
                 dependencyMock.callWithPrimitives(1)
+            }
+        }
+    }
+
+    @Test
+    fun testVerifiesRegularMethodCallWithComplexTypes() {
+        assertVerified {
+            verify {
+                dependencyMock.callWithComplex(any())
             }
         }
     }

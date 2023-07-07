@@ -15,6 +15,8 @@ class SpyTest {
 
         override fun callWithPrimitives(i: Int, j: Int): Double = i.toDouble()
 
+        override fun callWithComplex(list: List<String>): List<Int> = list.map { it.toInt() }
+
         override fun Int.callWithExtensionReceiver(): String = toString()
 
         override fun callWithVararg(i: Int, vararg args: String): Pair<Double, Double> = 0.0 to 0.0
