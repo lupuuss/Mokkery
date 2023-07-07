@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
@@ -39,18 +40,41 @@ class EveryTest {
 
     @Test
     fun testMockMethodsWithAnyVarargs() {
-        every { dependencyMock.callWithVararg(any(), *anyVarargs()) } returns (1.0 to 1.0)
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "2", "3"))
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "2"))
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1))
+        every { dependencyMock.callWithVararg(any(), *anyVarargs()) } returns 1.0
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "2", "3"))
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "2"))
+        assertEquals(1.0, dependencyMock.callWithVararg(1))
     }
 
     @Test
     fun testMockMethodsWithAnyMixedVarargs() {
-        every { dependencyMock.callWithVararg(any(), "1", *anyVarargs(), eq("3")) } returns (1.0 to 1.0)
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "2", "2", "3"))
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "2", "3"))
-        assertEquals(1.0 to 1.0, dependencyMock.callWithVararg(1, "1", "3"))
+        every { dependencyMock.callWithVararg(any(), "1", *anyVarargs(), eq("3")) } returns 1.0
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "1", "2", "2", "3"))
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "1", "2", "3"))
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "1", "3"))
+    }
+
+    @Test
+    fun testRecognizesAmbiguousVarargs() {
+        assertFailsWith<MokkeryRuntimeException> {
+            every { dependencyMock.callWithVararg(1, args = arrayOf("1", "2", *anyVarargs())) }
+        }
+        assertFailsWith<MokkeryRuntimeException> {
+            every { dependencyMock.callWithVararg(1, args = arrayOf(*anyVarargs(), "1", "2")) }
+        }
+        assertFailsWith<MokkeryRuntimeException> {
+            every { dependencyMock.callWithVararg(1, args = arrayOf("1", any(), "3")) }
+        }
+    }
+
+    @Test
+    fun testAllowsSolvingVarargsAmbiguity() {
+        every { dependencyMock.callWithVararg(1, args = arrayOf(eq("1"), any(), eq("3"))) } returns 1.0
+        every { dependencyMock.callWithVararg(1, args = arrayOf(eq("1"), eq("2"), *anyVarargs())) } returns 2.0
+        every { dependencyMock.callWithVararg(1, args = arrayOf(*anyVarargs(), eq("1"), eq("2"))) } returns 3.0
+        assertEquals(1.0, dependencyMock.callWithVararg(1, "1", "5", "3"))
+        assertEquals(2.0, dependencyMock.callWithVararg(1, "1", "2", "2"))
+        assertEquals(3.0, dependencyMock.callWithVararg(1, "1", "1", "2"))
     }
 
     @Test
@@ -90,5 +114,11 @@ class EveryTest {
         every { dependencyMock.callWithPrimitives(any(), any()) } returns 1.0
         every { dependencyMock.callWithPrimitives(1, 1) } returns 2.0
         assertEquals(2.0, dependencyMock.callWithPrimitives(1, 1))
+    }
+
+    @Test
+    fun testMockMethodsWithSelfParam() {
+        every { dependencyMock.callWithSelf(dependencyMock) } returns Unit
+        dependencyMock.callWithSelf(dependencyMock)
     }
 }

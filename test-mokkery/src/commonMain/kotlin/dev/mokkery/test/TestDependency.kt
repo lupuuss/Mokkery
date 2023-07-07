@@ -10,9 +10,11 @@ interface TestDependency {
 
     fun Int.callWithExtensionReceiver(): String
 
-    fun callWithVararg(i: Int, vararg args: String): Pair<Double, Double>
+    fun callWithVararg(i: Int, vararg args: String): Double
 
     suspend fun callWithSuspension(i: Int): List<String>
+
+    fun callWithSelf(dependency: TestDependency)
 
     fun callUnit(): Unit
 
