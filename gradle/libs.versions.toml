@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.8.21"
+kotlin = "1.8.22"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.20.2"

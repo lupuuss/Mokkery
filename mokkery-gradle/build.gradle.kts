@@ -16,27 +16,28 @@ kotlin.sourceSets.all {
 }
 
 val functionalTest by testing.suites.creating(JvmTestSuite::class) {
+    val compilations = kotlin.target.compilations
+    compilations.getByName("functionalTest").associateWith(compilations.getByName("main"))
     useJUnitJupiter()
+    targets.configureEach {
+        testTask.configure {
+            listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core").forEach {
+                dependsOn(project(it).tasks.named("publishToMavenLocal"))
+            }
+        }
+    }
     dependencies {
         implementation(gradleTestKit())
-    }
-}
-
-functionalTest.targets.configureEach {
-    testTask.configure {
-        listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core").forEach {
-            dependsOn( project(it).tasks.named("publishToMavenLocal"))
-        }
     }
 }
 
 gradlePlugin {
     plugins {
         create(rootProject.name) {
-            id = project.ext["pluginId"] as String
+            id = rootProject.extra["pluginId"] as String
             displayName = "Mokkery"
             description = "Hello mokkery!"
-            version = "1.0"
+            version = project.version
             implementationClass = "${project.group}.gradle.MokkeryGradlePlugin"
             tags.set(listOf("kotlin", "mock"))
         }

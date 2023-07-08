@@ -4,6 +4,7 @@ import dev.mokkery.BuildConfig
 import dev.mokkery.BuildConfig.MOKKERY_GROUP
 import dev.mokkery.BuildConfig.MOKKERY_PLUGIN_ARTIFACT_ID
 import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
+import dev.mokkery.BuildConfig.MOKKERY_SUPPORTED_KOTLIN_VERSIONS
 import dev.mokkery.BuildConfig.MOKKERY_VERSION
 import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
@@ -16,10 +17,23 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
+    lateinit var kotlinVersion: String
+
     override fun apply(target: Project) {
+        val kotlinVersion = target.getKotlinPluginVersion()
+        val versions = MOKKERY_SUPPORTED_KOTLIN_VERSIONS.split(", ")
+        if (kotlinVersion !in versions) {
+            error(
+                "Current kotlin version ($kotlinVersion) is unsupported by current Mokkery version!" +
+                    " Mokkery version: $MOKKERY_VERSION" +
+                    " Supported kotlin versions: $versions"
+            )
+        }
+        this.kotlinVersion = kotlinVersion
         target.extensions.create("mokkery", MokkeryGradleExtension::class.java).apply {
             targetSourceSets = setOfNotNull(
                 target.kotlinExtension.sourceSets.findByName("commonTest")
@@ -59,11 +73,13 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun getCompilerPluginId(): String = BuildConfig.MOKKERY_PLUGIN_ID
 
-    override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
-        groupId = MOKKERY_GROUP,
-        artifactId = MOKKERY_PLUGIN_ARTIFACT_ID,
-        version = MOKKERY_VERSION,
-    )
+    override fun getPluginArtifact(): SubpluginArtifact {
+        return SubpluginArtifact(
+            groupId = MOKKERY_GROUP,
+            artifactId = MOKKERY_PLUGIN_ARTIFACT_ID,
+            version = "$kotlinVersion-$MOKKERY_VERSION",
+        )
+    }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
         val extension = kotlinCompilation.project.mokkery

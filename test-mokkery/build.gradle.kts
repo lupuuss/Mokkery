@@ -1,6 +1,6 @@
 plugins {
     kotlin("multiplatform")
-    id("dev.mokkery.plugin")
+    id("dev.mokkery")
 }
 
 kotlin {
