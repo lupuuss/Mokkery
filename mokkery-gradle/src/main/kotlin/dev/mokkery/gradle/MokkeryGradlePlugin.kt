@@ -9,6 +9,7 @@ import dev.mokkery.BuildConfig.MOKKERY_VERSION
 import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -17,14 +18,15 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 
 class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     lateinit var kotlinVersion: String
 
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     override fun apply(target: Project) {
-        val kotlinVersion = target.getKotlinPluginVersion()
+        val kotlinVersion = target.kotlinToolingVersion.toString()
         val versions = MOKKERY_SUPPORTED_KOTLIN_VERSIONS.split(", ")
         if (kotlinVersion !in versions) {
             error(
