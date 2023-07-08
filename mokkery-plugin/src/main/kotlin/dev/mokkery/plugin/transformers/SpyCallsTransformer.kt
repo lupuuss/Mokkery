@@ -3,16 +3,15 @@ package dev.mokkery.plugin.transformers
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.buildClass
 import dev.mokkery.plugin.ext.createUniqueMockName
+import dev.mokkery.plugin.ext.defaultTypeErased
+import dev.mokkery.plugin.ext.eraseFullValueParametersList
 import dev.mokkery.plugin.ext.irCallConstructor
 import dev.mokkery.plugin.ext.irTryCatchAny
-import dev.mokkery.plugin.ext.locationInFile
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
-import dev.mokkery.plugin.info
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -35,6 +34,7 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
+import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
@@ -51,9 +51,6 @@ class SpyCallsTransformer(
         expression.checkInterceptionPossibilities(Mokkery.Function.spy)
         val typeToSpy = expression.typeArguments.first()!!
         val classToSpy = typeToSpy.getClass()!!
-        messageCollector.info {
-            "Recognized spy call with type ${typeToSpy.asString()} at: ${expression.locationInFile(irFile)}"
-        }
         val spiedClass = spyTable.getOrPut(classToSpy) {
             declareSpy(classToSpy).also {
                 irFile.addChild(it)
@@ -67,25 +64,24 @@ class SpyCallsTransformer(
     }
 
     private fun declareSpy(classToMock: IrClass): IrClass {
+        val typeToMockProjected = classToMock.defaultTypeErased
         val newClass = pluginContext.irFactory.buildClass(
             classToMock.createUniqueMockName("Spy"),
-            classToMock.defaultType,
-            irClasses.MokkerySpyScope.defaultType,
-            pluginContext.irBuiltIns.anyType
+            typeToMockProjected,
+            irClasses.MokkeryMockScope.defaultType,
+            if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
         )
-        val delegateField = newClass.addField(fieldName = "delegate", classToMock.defaultType)
+        val delegateField = newClass.addField(fieldName = "delegate", typeToMockProjected)
         newClass.inheritMokkeryInterceptor(
             interceptorScopeClass = irClasses.MokkerySpyScope,
             classToMock = classToMock,
             interceptorInit = { constructor ->
-                constructor.addValueParameter("obj", classToMock.defaultType)
+                constructor.addValueParameter("obj", typeToMockProjected)
                 +irSetField(irGet(newClass.thisReceiver!!), delegateField, irGet(constructor.valueParameters[0]))
                 irCall(irFunctions.MokkerySpy)
             }
         )
-        newClass.overrideAllOverridableFunctions(pluginContext, classToMock) {
-            spyingBody(delegateField, it)
-        }
+        newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { spyingBody(delegateField, it) }
         newClass.overrideAllOverridableProperties(
             context = pluginContext,
             superClass = classToMock,
@@ -96,6 +92,7 @@ class SpyCallsTransformer(
     }
 
     private fun IrBlockBodyBuilder.spyingBody(delegateField: IrField, function: IrSimpleFunction) {
+        function.eraseFullValueParametersList()
         val interceptingCall = if (function.returnType != pluginContext.irBuiltIns.nothingType) {
             irCallInterceptingMethod(function)
         } else {

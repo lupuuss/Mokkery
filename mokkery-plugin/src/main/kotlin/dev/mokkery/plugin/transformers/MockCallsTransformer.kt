@@ -4,6 +4,8 @@ import dev.mokkery.MockMode
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.buildClass
 import dev.mokkery.plugin.ext.createUniqueMockName
+import dev.mokkery.plugin.ext.defaultTypeErased
+import dev.mokkery.plugin.ext.eraseFullValueParametersList
 import dev.mokkery.plugin.ext.irCallConstructor
 import dev.mokkery.plugin.ext.irGetEnumEntry
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
@@ -15,6 +17,7 @@ import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
+import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
@@ -23,13 +26,14 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
+import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
@@ -66,16 +70,16 @@ class MockCallsTransformer(
     private fun declareMock(classToMock: IrClass): IrClass {
         val newClass = pluginContext.irFactory.buildClass(
             classToMock.createUniqueMockName("Mock"),
-            classToMock.defaultType,
+            classToMock.defaultTypeErased,
             irClasses.MokkeryMockScope.defaultType,
-            pluginContext.irBuiltIns.anyType
+            if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
         )
         newClass.inheritMokkeryInterceptor(
             interceptorScopeClass = irClasses.MokkeryMockScope,
             classToMock = classToMock,
             interceptorInit = { constructor ->
                 constructor.addValueParameter("mode", irClasses.MockMode.defaultType)
-                constructor.addValueParameter("block", pluginContext.irBuiltIns.functionN(1).defaultType.makeNullable())
+                constructor.addValueParameter("block", context.irBuiltIns.functionN(1).defaultTypeErased)
                 irCall(irFunctions.MokkeryMock).apply {
                     putValueArgument(1, irGet(constructor.valueParameters[0]))
                 }
@@ -91,13 +95,18 @@ class MockCallsTransformer(
                 )
             }
         )
-        newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { +irReturn(irCallInterceptingMethod(it)) }
+        newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { mockBody(it) }
         newClass.overrideAllOverridableProperties(
             context = pluginContext,
             superClass = classToMock,
-            getterBlock = { +irReturn(irCallInterceptingMethod(it)) },
-            setterBlock = { +irReturn(irCallInterceptingMethod(it)) }
+            getterBlock = { mockBody(it) },
+            setterBlock = { mockBody(it) }
         )
         return newClass
+    }
+
+    private fun IrBlockBodyBuilder.mockBody(function: IrSimpleFunction) {
+        function.eraseFullValueParametersList()
+        +irReturn(irCallInterceptingMethod(function))
     }
 }
