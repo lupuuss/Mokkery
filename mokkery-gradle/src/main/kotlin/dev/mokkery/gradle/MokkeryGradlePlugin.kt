@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.androidJvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
@@ -36,11 +35,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             )
         }
         this.kotlinVersion = kotlinVersion
-        target.extensions.create("mokkery", MokkeryGradleExtension::class.java).apply {
-            targetSourceSets = setOfNotNull(
-                target.kotlinExtension.sourceSets.findByName("commonTest")
-            )
-        }
+        target.extensions.create("mokkery", MokkeryGradleExtension::class.java)
         target.afterEvaluate {
             // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
             target.configurations.matching {
@@ -48,8 +43,10 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             }.all {
                 it.isTransitive = true
             }
-            target.mokkery
-                .run { targetSourceSets - excludeSourceSets }
+            val rule = target.mokkery.rule
+            target.kotlinExtension
+                .sourceSets
+                .filter { rule.isApplicable(it) }
                 .forEach {
                     it.dependencies {
                         implementation("$MOKKERY_GROUP:$MOKKERY_RUNTIME:$MOKKERY_VERSION")
@@ -83,15 +80,12 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         )
     }
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        val extension = kotlinCompilation.project.mokkery
-        val allDependsOn by lazy { kotlinCompilation.defaultSourceSet.allDependsOn }
-        if (kotlinCompilation.defaultSourceSet in extension.excludeSourceSets) return false
-        if (kotlinCompilation.defaultSourceSet in extension.targetSourceSets) return true
-        return allDependsOn.any { it in extension.targetSourceSets && it !in extension.excludeSourceSets }
-    }
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = kotlinCompilation
+        .project
+        .mokkery
+        .rule
+        .isApplicable(kotlinCompilation.defaultSourceSet)
 
-    private val KotlinSourceSet.allDependsOn get(): List<KotlinSourceSet> = dependsOn.flatMap { it.allDependsOn + it }
 }
 
 private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)
