@@ -1,6 +1,7 @@
 package dev.mokkery.plugin.ext
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
@@ -10,20 +11,30 @@ import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
+import org.jetbrains.kotlin.ir.builders.declarations.buildTypeParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.deepCopyWithVariables
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
+import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTo
+import org.jetbrains.kotlin.ir.util.copyToWithoutSuperTypes
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.name.Name
 
@@ -33,8 +44,9 @@ fun IrClass.getProperty(name: String): IrProperty {
 }
 
 fun IrClass.getEnumEntry(name: String): IrEnumEntry {
-    return declarations.filterIsInstance<IrEnumEntry>()
-        .first{ it.name == Name.identifier(name) }
+    return declarations
+        .filterIsInstance<IrEnumEntry>()
+        .first { it.name == Name.identifier(name) }
 }
 
 fun IrClass.buildThisValueParam() = buildReceiverParameter(
@@ -58,7 +70,7 @@ fun IrClass.addOverridingMethod(
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
         overriddenSymbols = function.overriddenSymbols + function.symbol
-        typeParameters = function.typeParameters
+        typeParameters = function.typeParameters.map { it.copyTo(this) }
         valueParameters = function.valueParameters.map { it.copyTo(this).apply { defaultValue = null } }
         dispatchReceiverParameter = buildThisValueParam()
         extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
@@ -109,18 +121,21 @@ fun IrClass.addOverridingProperty(
     }.apply {
         overriddenSymbols = property.overriddenSymbols + property.symbol
         setDeclarationsParent(this@addOverridingProperty)
-        addGetter().also {
-            it.overriddenSymbols = listOf(property.getter!!.symbol)
-            it.returnType = property.getter!!.returnType
-            it.dispatchReceiverParameter = buildThisValueParam()
-            it.extensionReceiverParameter = property.getter!!.extensionReceiverParameter?.copyTo(it)
-            it.body = DeclarationIrBuilder(context, it.symbol).irBlockBody { getterBlock(it) }
+        addGetter().also { getter ->
+            getter.overriddenSymbols = listOf(property.getter!!.symbol)
+            getter.returnType = property.getter!!.returnType
+            getter.dispatchReceiverParameter = buildThisValueParam()
+            getter.extensionReceiverParameter = property.getter!!.extensionReceiverParameter?.copyTo(getter)
+            getter.typeParameters = getter.typeParameters.map { it.copyTo(getter) }
+            getter.valueParameters = getter.valueParameters.map { it.copyTo(getter) }
+            getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
         if (property.isVar) {
             addSetter().also { setter ->
                 setter.returnType = property.setter!!.returnType
                 setter.dispatchReceiverParameter = buildThisValueParam()
                 setter.valueParameters = property.setter!!.valueParameters.map { it.copyTo(setter) }
+                setter.typeParameters = setter.typeParameters.map { it.copyTo(setter) }
                 setter.overriddenSymbols = listOf(property.setter!!.symbol)
                 setter.extensionReceiverParameter = property.setter!!.extensionReceiverParameter?.copyTo(setter)
                 setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
@@ -156,3 +171,5 @@ fun IrClass.createUniqueMockName(type: String) = kotlinFqName
     .replace(".", "_")
     .plus("${type}ByMokkery")
     .let(Name::identifier)
+
+val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
