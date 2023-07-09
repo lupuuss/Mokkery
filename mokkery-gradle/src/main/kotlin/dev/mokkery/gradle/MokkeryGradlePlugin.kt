@@ -1,6 +1,7 @@
 package dev.mokkery.gradle
 
 import dev.mokkery.MokkeryConfig
+import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
 import dev.mokkery.MokkeryConfig.SUPPORTED_KOTLIN_VERSIONS
 import dev.mokkery.MokkeryConfig.VERSION
 import dev.mokkery.verify.VerifyModeSerializer
@@ -28,12 +29,12 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         if (kotlinVersion !in SUPPORTED_KOTLIN_VERSIONS) {
             error(
                 "Current kotlin version ($kotlinVersion) is unsupported by current Mokkery version!" +
-                    " Mokkery version: $VERSION" +
-                    " Supported kotlin versions: $SUPPORTED_KOTLIN_VERSIONS"
+                        " Mokkery version: $VERSION" +
+                        " Supported kotlin versions: $SUPPORTED_KOTLIN_VERSIONS"
             )
         }
         this.kotlinVersion = kotlinVersion
-        target.logger.log(LogLevel.WARN, "Selected plugin artifact based on kotlin version ($kotlinVersion) => $pluginVersion")
+        target.mokkeryInfo("Selected plugin artifact based on kotlin version ($kotlinVersion) => $pluginVersion")
         target.extensions.create("mokkery", MokkeryGradleExtension::class.java)
         target.afterEvaluate {
             // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
@@ -47,6 +48,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 .sourceSets
                 .filter { rule.isApplicable(it) }
                 .forEach {
+                    target.mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
                     it.dependencies {
                         implementation(MokkeryConfig.RUNTIME_DEPENDENCY)
                     }
@@ -59,12 +61,18 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
         if (kotlinCompilation.platformType in listOf(jvm, androidJvm)) {
+            kotlinCompilation.project.mokkeryInfo(
+                "-Xno-param-assertions flag applied for source set => ${kotlinCompilation.defaultSourceSet.name}!"
+            )
             kotlinCompilation.compilerOptions.options.freeCompilerArgs.add("-Xno-param-assertions")
         }
         target.project.provider {
             listOf(
                 SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.toString()),
-                SubpluginOption(key = "verifyMode", value = VerifyModeSerializer.serialize(project.mokkery.defaultVerifyMode))
+                SubpluginOption(
+                    key = "verifyMode",
+                    value = VerifyModeSerializer.serialize(project.mokkery.defaultVerifyMode)
+                )
             )
         }
     }
