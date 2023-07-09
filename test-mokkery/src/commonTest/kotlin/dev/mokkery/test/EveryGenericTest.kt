@@ -45,7 +45,7 @@ class EveryGenericTest {
 
     @Test
     fun testMocksGenericExtensionFunction() {
-        every { genericDependency.run { any<List<Any?>>().genericExtension() } } returns "123"
+        every { genericDependency.run { any<List<Comparable<*>>>().genericExtension() } } returns "123"
         assertEquals("123", genericDependency.run { listOf<Int>().genericExtension() })
     }
 
