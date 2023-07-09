@@ -1,8 +1,8 @@
 package dev.mokkery.plugin
 
 import com.google.auto.service.AutoService
-import dev.mokkery.BuildConfig
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryConfig
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verify.VerifyModeSerializer
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
@@ -17,7 +17,7 @@ val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {
 
-    override val pluginId = BuildConfig.MOKKERY_PLUGIN_ID
+    override val pluginId = MokkeryConfig.PLUGIN_ID
 
     override val pluginOptions: Collection<AbstractCliOption> = listOf(
         CliOption(

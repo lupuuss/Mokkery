@@ -1,11 +1,9 @@
 package dev.mokkery.gradle
 
+import dev.mokkery.MokkeryConfig
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import java.io.File
-import dev.mokkery.BuildConfig.MOKKERY_VERSION
-import dev.mokkery.BuildConfig.MOKKERY_KOTLIN_VERSION
-
 class MokkeryGradlePluginFunctionalTest {
 
     private val testProjectDir = File("../test-mokkery")
@@ -16,8 +14,8 @@ class MokkeryGradlePluginFunctionalTest {
             .withProjectDir(testProjectDir)
             .withArguments(
                 "-PisTest=true",
-                "-PmokkeryVersion=${MOKKERY_VERSION}",
-                "-PkotlinVersion=${MOKKERY_KOTLIN_VERSION}",
+                "-PmokkeryVersion=${MokkeryConfig.VERSION}",
+                "-PkotlinVersion=${MokkeryConfig.KOTLIN_VERSION}",
                 "clean",
                 "kotlinUpgradeYarnLock",
                 "allTests"

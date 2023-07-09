@@ -1,13 +1,11 @@
 package dev.mokkery.gradle
 
-import dev.mokkery.BuildConfig
-import dev.mokkery.BuildConfig.MOKKERY_GROUP
-import dev.mokkery.BuildConfig.MOKKERY_PLUGIN_ARTIFACT_ID
-import dev.mokkery.BuildConfig.MOKKERY_RUNTIME
-import dev.mokkery.BuildConfig.MOKKERY_SUPPORTED_KOTLIN_VERSIONS
-import dev.mokkery.BuildConfig.MOKKERY_VERSION
+import dev.mokkery.MokkeryConfig
+import dev.mokkery.MokkeryConfig.SUPPORTED_KOTLIN_VERSIONS
+import dev.mokkery.MokkeryConfig.VERSION
 import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
@@ -25,16 +23,17 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     override fun apply(target: Project) {
+        if (target.extensions.findByName("kotlin") == null) error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
         val kotlinVersion = target.kotlinToolingVersion.toString()
-        val versions = MOKKERY_SUPPORTED_KOTLIN_VERSIONS.split(", ")
-        if (kotlinVersion !in versions) {
+        if (kotlinVersion !in SUPPORTED_KOTLIN_VERSIONS) {
             error(
                 "Current kotlin version ($kotlinVersion) is unsupported by current Mokkery version!" +
-                    " Mokkery version: $MOKKERY_VERSION" +
-                    " Supported kotlin versions: $versions"
+                    " Mokkery version: $VERSION" +
+                    " Supported kotlin versions: $SUPPORTED_KOTLIN_VERSIONS"
             )
         }
         this.kotlinVersion = kotlinVersion
+        target.logger.log(LogLevel.WARN, "Selected plugin artifact based on kotlin version ($kotlinVersion) => $pluginVersion")
         target.extensions.create("mokkery", MokkeryGradleExtension::class.java)
         target.afterEvaluate {
             // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
@@ -49,7 +48,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 .filter { rule.isApplicable(it) }
                 .forEach {
                     it.dependencies {
-                        implementation("$MOKKERY_GROUP:$MOKKERY_RUNTIME:$MOKKERY_VERSION")
+                        implementation(MokkeryConfig.RUNTIME_DEPENDENCY)
                     }
                 }
         }
@@ -70,13 +69,13 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    override fun getCompilerPluginId(): String = BuildConfig.MOKKERY_PLUGIN_ID
+    override fun getCompilerPluginId(): String = MokkeryConfig.PLUGIN_ID
 
     override fun getPluginArtifact(): SubpluginArtifact {
         return SubpluginArtifact(
-            groupId = MOKKERY_GROUP,
-            artifactId = MOKKERY_PLUGIN_ARTIFACT_ID,
-            version = "$kotlinVersion-$MOKKERY_VERSION",
+            groupId = MokkeryConfig.GROUP,
+            artifactId = MokkeryConfig.PLUGIN_ARTIFACT_ID,
+            version = pluginVersion,
         )
     }
 
@@ -86,6 +85,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         .rule
         .isApplicable(kotlinCompilation.defaultSourceSet)
 
+    private val pluginVersion get() = "$kotlinVersion-$VERSION"
 }
 
 private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)
