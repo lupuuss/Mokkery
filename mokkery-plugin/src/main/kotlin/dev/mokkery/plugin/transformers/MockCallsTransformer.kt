@@ -8,19 +8,17 @@ import dev.mokkery.plugin.ext.defaultTypeErased
 import dev.mokkery.plugin.ext.eraseFullValueParametersList
 import dev.mokkery.plugin.ext.irCallConstructor
 import dev.mokkery.plugin.ext.irGetEnumEntry
+import dev.mokkery.plugin.ext.irInvokeIfNotNull
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irIfThen
-import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
@@ -32,7 +30,6 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -84,16 +81,7 @@ class MockCallsTransformer(
                     putValueArgument(1, irGet(constructor.valueParameters[0]))
                 }
             },
-            block = {
-                val param = it.valueParameters[1]
-                +irIfThen(
-                    condition = irNot(irEqualsNull(argument = irGet(param))),
-                    thenPart = irCall(pluginContext.irBuiltIns.functionN(1).invokeFun!!).apply {
-                        dispatchReceiver = irGet(param)
-                        putValueArgument(0, irGet(newClass.thisReceiver!!))
-                    }
-                )
-            }
+            block = { +irInvokeIfNotNull(irGet(it.valueParameters[1]), irGet(newClass.thisReceiver!!)) }
         )
         newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { mockBody(it) }
         newClass.overrideAllOverridableProperties(
