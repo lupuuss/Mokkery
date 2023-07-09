@@ -5,12 +5,9 @@ pluginManagement {
         kotlin("multiplatform") version kotlinVersion
         id("dev.mokkery") version mokkeryVersion
     }
-    val isTest: String by settings
-    if (!isTest.toBoolean()) {
-        repositories {
-            mavenLocal()
-            mavenCentral()
-        }
+    repositories {
+        mavenLocal()
+        mavenCentral()
     }
 }
 

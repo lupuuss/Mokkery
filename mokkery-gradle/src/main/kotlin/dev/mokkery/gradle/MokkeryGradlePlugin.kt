@@ -6,7 +6,6 @@ import dev.mokkery.MokkeryConfig.SUPPORTED_KOTLIN_VERSIONS
 import dev.mokkery.MokkeryConfig.VERSION
 import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
