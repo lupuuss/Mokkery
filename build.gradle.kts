@@ -17,7 +17,7 @@ buildscript {
 rootProject.version = "1.0"
 rootProject.group = "dev.mokkery"
 
-val supportedKotlinVersions = listOf("1.8.22")
+val supportedKotlinVersions = listOf("1.8.22", "1.9.0")
 if (libs.versions.kotlin.get() !in supportedKotlinVersions) error("Unsupported kotlin version!")
 
 rootProject.ext["kotlinVersion"] = libs.versions.kotlin.get()
