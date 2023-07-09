@@ -15,7 +15,7 @@ class MockTest {
 
     @Test
     fun testReturnsMockableInterfaceImpl() {
-        val mocked = mock<TestDependency> {
+        val mocked = mock<TestInterface> {
             every { callWithPrimitives(1) } returns 1.0
         }
         assertEquals(1.0, mocked.callWithPrimitives(1))
@@ -31,7 +31,7 @@ class MockTest {
 
     @Test
     fun testAutofillAlwaysReturnsSuccessfullyOnNonSuspendingMethods() {
-        val mock = mock<TestDependency>(autofill)
+        val mock = mock<TestInterface>(autofill)
         mock.callWithPrimitives(1)
         mock.callWithVararg(1, "1", "2")
         mock.run { 1.callWithExtensionReceiver() }
@@ -39,20 +39,20 @@ class MockTest {
 
     @Test
     fun testAutoUnitReturnsSuccessfullyFromUnitMethods() = runTest {
-        val mock = mock<TestDependency>(autoUnit)
+        val mock = mock<TestInterface>(autoUnit)
         mock.callUnit()
     }
 
     @Test
     fun testAutoUnitFailsOnNonUnitMethods() = runTest {
-        val mock = mock<TestDependency>(autoUnit)
+        val mock = mock<TestInterface>(autoUnit)
         assertFails { mock.callWithPrimitives(1) }
         assertFails { mock.callWithSuspension(1) }
     }
 
     @Test
     fun testStrictAlwaysFails() = runTest {
-        val mock = mock<TestDependency>(strict)
+        val mock = mock<TestInterface>(strict)
         assertFails { mock.callWithPrimitives(1) }
         assertFails { mock.callWithSuspension(1) }
         assertFails { mock.callUnit() }

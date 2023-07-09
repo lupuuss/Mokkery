@@ -17,7 +17,7 @@ import kotlin.test.assertFailsWith
 
 class EveryTest {
 
-    private val dependencyMock = mock<TestDependency>()
+    private val dependencyMock = mock<TestInterface>()
 
     @Test
     fun testMocksRegularMethodCallWithPrimitiveTypes() {

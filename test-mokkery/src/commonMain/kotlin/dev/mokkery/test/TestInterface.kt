@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-interface TestDependency {
+interface TestInterface {
 
     var property: String
 
@@ -14,7 +14,7 @@ interface TestDependency {
 
     suspend fun callWithSuspension(i: Int): List<String>
 
-    fun callWithSelf(dependency: TestDependency)
+    fun callWithSelf(dependency: TestInterface)
 
     fun callUnit(): Unit
 

@@ -9,7 +9,7 @@ import kotlin.test.assertFailsWith
 
 class SpyTest {
 
-    private val realImpl = object : TestDependency {
+    private val realImpl = object : TestInterface {
 
         override var property: String = "1"
 
@@ -23,14 +23,14 @@ class SpyTest {
 
         override suspend fun callWithSuspension(i: Int): List<String> = listOf(i.toString())
 
-        override fun callWithSelf(dependency: TestDependency) = Unit
+        override fun callWithSelf(dependency: TestInterface) = Unit
 
         override fun callUnit() = Unit
 
         override fun callNothing(): Nothing = throw IllegalArgumentException()
     }
 
-    private val spied = spy<TestDependency>(realImpl)
+    private val spied = spy<TestInterface>(realImpl)
 
     @Test
     fun testEveryMethodReturnsFromRealImpl() = runTest {

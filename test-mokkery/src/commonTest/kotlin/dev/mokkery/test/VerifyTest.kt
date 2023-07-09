@@ -9,7 +9,7 @@ import kotlin.test.assertFailsWith
 
 class VerifyTest {
 
-    private val dependencyMock = mock<TestDependency>()
+    private val dependencyMock = mock<TestInterface>()
 
     @Test
     fun testVerifiesRegularMethodCallWithPrimitiveTypes() {
