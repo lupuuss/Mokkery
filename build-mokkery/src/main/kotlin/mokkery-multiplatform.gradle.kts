@@ -1,7 +1,7 @@
 @file:Suppress("UNUSED_VARIABLE")
 
 plugins {
-    id("mokkery-base")
+    id("mokkery-publish")
     kotlin("multiplatform")
 }
 

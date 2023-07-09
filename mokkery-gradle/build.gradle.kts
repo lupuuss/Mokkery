@@ -2,7 +2,6 @@
 
 plugins {
     kotlin("jvm")
-    id("mokkery-base")
     id("com.gradle.plugin-publish") version "1.1.0"
 }
 
@@ -32,14 +31,26 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
 }
 
 gradlePlugin {
+    website.set(MokkeryUrls.Website)
+    vcsUrl.set(MokkeryUrls.GitHttp)
     plugins {
         create(rootProject.name) {
             id = rootProject.extra["pluginId"] as String
             displayName = "Mokkery"
-            description = "Hello mokkery!"
+            description =
+                "Gradle plugin for Mokkery - mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
             version = project.version
             implementationClass = "${project.group}.gradle.MokkeryGradlePlugin"
-            tags.set(listOf("kotlin", "mock"))
+            tags.set(
+                listOf(
+                    "kotlin",
+                    "mock",
+                    "test",
+                    "kotlin-multiplatform",
+                    "kotlin-multiplatform-mobile",
+                    "kotlin-compiler-plugin"
+                )
+            )
         }
     }
     testSourceSet(functionalTest.sources)
