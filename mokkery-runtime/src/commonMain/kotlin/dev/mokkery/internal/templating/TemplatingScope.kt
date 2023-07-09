@@ -12,7 +12,7 @@ import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.VarArgMatcher
+import dev.mokkery.matcher.varargs.VarArgMatcher
 
 internal interface TemplatingScope {
 

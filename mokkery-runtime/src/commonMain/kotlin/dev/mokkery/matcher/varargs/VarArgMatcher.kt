@@ -1,8 +1,9 @@
-package dev.mokkery.matcher
+package dev.mokkery.matcher.varargs
 
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
+import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 /**

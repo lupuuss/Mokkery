@@ -4,7 +4,7 @@ import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.VarArgMatcher
+import dev.mokkery.matcher.varargs.VarArgMatcher
 import kotlin.reflect.KClass
 
 internal class MergedVarArgMatcher(
