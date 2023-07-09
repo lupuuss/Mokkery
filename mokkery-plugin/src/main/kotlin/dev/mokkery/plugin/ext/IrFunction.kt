@@ -5,8 +5,11 @@ import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
 import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
@@ -29,16 +32,29 @@ fun IrSimpleFunction.copyAnnotationsFrom(function: IrSimpleFunction) {
 fun IrSimpleFunction.copyParametersFrom(function: IrSimpleFunction) {
     typeParameters = function.typeParameters.map { it.deepCopyWithSymbols(this) }
     val mapper = IrTypeParameterRemapper(function.typeParameters.zip(typeParameters).toMap())
-    fun IrValueParameter.deepCopyWithTypeParameters(): IrValueParameter = deepCopyWithSymbols(this@copyParametersFrom) { symbolRemapper, _ ->
-        DeepCopyIrTreeWithSymbols(symbolRemapper, mapper)
-    }
+    fun IrValueParameter.deepCopyWithTypeParameters(): IrValueParameter =
+        deepCopyWithSymbols(this@copyParametersFrom) { symbolRemapper, _ ->
+            DeepCopyIrTreeWithSymbols(symbolRemapper, mapper)
+        }
     extensionReceiverParameter = function.extensionReceiverParameter?.deepCopyWithTypeParameters()
     valueParameters = function.valueParameters.map { it.deepCopyWithTypeParameters().apply { defaultValue = null } }
 }
 
-fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach {
-    val typeClassifier = it.type.classifierOrNull
-    if (typeClassifier !is IrTypeParameterSymbol || typeClassifier.owner !in typeParameters) {
-        it.type = it.type.eraseTypeParameters()
+fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach { param ->
+    val consumedParams = param.type.extractAllConsumedTypeParameters()
+    if (consumedParams.any { it in typeParameters }) return@forEach
+    param.type = param.type.eraseTypeParameters()
+}
+
+fun IrType.extractAllConsumedTypeParameters(): List<IrTypeParameter> {
+    val param = asTypeParamOrNull()
+    return when {
+        param != null -> listOf(param)
+        this is IrSimpleType -> arguments.flatMap { if (it is IrType) it.extractAllConsumedTypeParameters() else emptyList() }
+        else -> emptyList()
     }
 }
+
+fun IrType.asTypeParamOrNull() = classifierOrNull
+    .let { it as? IrTypeParameterSymbol }
+    ?.owner
