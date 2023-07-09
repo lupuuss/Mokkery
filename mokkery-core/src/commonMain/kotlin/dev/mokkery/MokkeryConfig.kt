@@ -2,6 +2,9 @@ package dev.mokkery
 
 import dev.mokkery.annotations.InternalMokkeryApi
 
+/**
+ * Internal Mokkery config constants.
+ */
 @InternalMokkeryApi
 public object MokkeryConfig {
 

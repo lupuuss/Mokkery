@@ -16,12 +16,12 @@ public interface AnsweringScope<T> {
 }
 
 /**
- * Marker interface for defining an answer for non-suspend function call.
+ * Marker interface for defining an answer for suspend function call.
  */
 public interface SuspendAnsweringScope<T> : AnsweringScope<T>
 
 /**
- * Marker interface for defining an answer for suspend function call.
+ * Marker interface for defining an answer for non-suspend function call.
  */
 public interface BlockingAnsweringScope<T> : AnsweringScope<T>
 

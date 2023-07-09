@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 /**
  * An answer for a function call. For blocking answers only [call] implementation is required. For suspending answers
- * [callSuspend] should be implemented and call implementation should throw an exception. Use [Suspending] for convenience.
+ * [callSuspend] should be implemented and [call] implementation should throw an exception. Use [Suspending] for convenience.
  *
  */
 @DelicateMokkeryApi

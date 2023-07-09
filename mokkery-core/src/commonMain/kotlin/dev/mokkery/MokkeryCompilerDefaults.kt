@@ -4,7 +4,7 @@ import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.verify.VerifyMode
 
 /**
- * Contains defaults for mokkery. Plugin only sets those values if there are not specified by the user.
+ * Contains defaults for Mokkery. Plugin only uses those values if they are not specified by the user.
  * Those values do not represent actual runtime defaults.
  */
 @InternalMokkeryApi

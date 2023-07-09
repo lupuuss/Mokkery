@@ -56,21 +56,39 @@ public sealed class VerifyMode {
     }
 }
 
+/**
+ * Verify mode used by [VerifyMode.not].
+ */
 @InternalMokkeryApi
 public object NotVerifyMode : VerifyMode()
 
+/**
+ * Verify mode used by [VerifyMode.order]
+ */
 @InternalMokkeryApi
 public object OrderVerifyMode : VerifyMode()
 
+/**
+ * Verify mode used by [VerifyMode.exhaustiveOrder]
+ */
 @InternalMokkeryApi
 public object ExhaustiveOrderVerifyMode : VerifyMode()
 
+/**
+ * Verify mode used by [VerifyMode.exhaustive]
+ */
 @InternalMokkeryApi
 public object ExhaustiveSoftVerifyMode : VerifyMode()
 
+/**
+ * Verify mode used by [VerifyMode.soft], [VerifyMode.atLeast], [VerifyMode.atMost], [VerifyMode.exactly], [VerifyMode.inRange]
+ */
 @InternalMokkeryApi
 public data class SoftVerifyMode(val atLeast: Int, val atMost: Int) : VerifyMode()
 
+/**
+ * Serializes and deserializes [VerifyMode] to pass it as compiler plugin option.
+ */
 @InternalMokkeryApi
 public object VerifyModeSerializer {
     public fun serialize(verifyMode: VerifyMode): String = when (verifyMode) {

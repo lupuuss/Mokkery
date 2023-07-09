@@ -1,5 +1,6 @@
 package dev.mokkery.annotations
 
+@MustBeDocumented
 @Retention(value = AnnotationRetention.BINARY)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.TYPEALIAS, AnnotationTarget.PROPERTY)
 @RequiresOptIn(
@@ -8,6 +9,7 @@ package dev.mokkery.annotations
 )
 public annotation class DelicateMokkeryApi
 
+@MustBeDocumented
 @Retention(value = AnnotationRetention.BINARY)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.TYPEALIAS, AnnotationTarget.PROPERTY)
 @RequiresOptIn(
