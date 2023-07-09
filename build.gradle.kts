@@ -1,8 +1,14 @@
 @file:Suppress("OPT_IN_USAGE")
 
+import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 import org.jetbrains.kotlin.tooling.core.toKotlinVersion
+
+plugins {
+    alias(libs.plugins.dokka)
+}
 
 buildscript {
     repositories {
@@ -54,4 +60,10 @@ allprojects {
             toolchain.languageVersion.set(JavaLanguageVersion.of(8))
         }
     }
+}
+
+val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class)
+val syncDocs by tasks.registering(Sync::class) {
+    from(dokkaHtmlMultiModule.outputDirectory)
+    into(rootProject.layout.projectDirectory.dir("docs"))
 }

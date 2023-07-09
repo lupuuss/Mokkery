@@ -3,10 +3,15 @@ kotlin = "1.9.0"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.21.0"
+dokka = "1.8.20"
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 buildconfig-plugin = { module = "com.github.gmazzo.buildconfig:plugin", version.ref = "buildconfig" }
+dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
 google-autoservice = { module = "com.google.auto.service:auto-service", version.ref = "google-autoservice"}

@@ -1,0 +1,12 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+module:mokkery-core
+dev.mokkery
+dev.mokkery.annotations
+dev.mokkery.verify
+module:mokkery-runtime
+dev.mokkery
+dev.mokkery.answering
+dev.mokkery.matcher
+dev.mokkery.matcher.varargs
