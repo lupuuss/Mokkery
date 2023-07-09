@@ -50,6 +50,6 @@ class MokkeryIrGenerationExtension(
                 ).visitFile(irFile)
             }
         }
-        messageCollector.info { "Plugin time: $time" }
+        messageCollector.log { "Plugin time: $time" }
     }
 }

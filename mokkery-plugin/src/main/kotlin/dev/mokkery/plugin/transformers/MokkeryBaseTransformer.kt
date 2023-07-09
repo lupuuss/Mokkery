@@ -11,7 +11,7 @@ import dev.mokkery.plugin.ext.irToString
 import dev.mokkery.plugin.ext.kClassReferenceUnified
 import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import dev.mokkery.plugin.ext.overridePropertyBackingField
-import dev.mokkery.plugin.infoAt
+import dev.mokkery.plugin.logAt
 import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -143,7 +143,7 @@ abstract class MokkeryBaseTransformer(
         if (!classToMock.isInterface && classToMock.defaultConstructor == null) mokkeryError(irFile) {
             "${functionNameString.capitalizeAsciiOnly()} type must have no-arg constructor!"
         }
-        messageCollector.infoAt(this, irFile) {
+        messageCollector.logAt(this, irFile) {
             "Recognized $functionNameString call with type ${typeToMock.asString()}!"
         }
     }

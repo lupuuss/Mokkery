@@ -7,14 +7,14 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
-internal inline fun MessageCollector.info(message: () -> String) {
-    report(CompilerMessageSeverity.INFO, "${MokkeryConfig.PLUGIN_ID}: ${message()}")
+internal inline fun MessageCollector.log(message: () -> String) {
+    report(CompilerMessageSeverity.LOGGING, "${MokkeryConfig.PLUGIN_ID}: ${message()}")
 }
 
 
-internal inline fun MessageCollector.infoAt(expression: IrExpression, file: IrFile, message: () -> String) {
+internal inline fun MessageCollector.logAt(expression: IrExpression, file: IrFile, message: () -> String) {
     report(
-        severity = CompilerMessageSeverity.INFO,
+        severity = CompilerMessageSeverity.LOGGING,
         message = "${MokkeryConfig.PLUGIN_ID}: ${message()} Expression at: ${expression.locationInFile(file)}"
     )
 }
