@@ -20,7 +20,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     useJUnitJupiter()
     targets.configureEach {
         testTask.configure {
-            listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core").forEach {
+            listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core", ":mokkery-gradle").forEach {
                 dependsOn(project(it).tasks.named("publishToMavenLocal"))
             }
         }

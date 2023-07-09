@@ -7,7 +7,7 @@ import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.anyVarargs
+import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.test.runTest
