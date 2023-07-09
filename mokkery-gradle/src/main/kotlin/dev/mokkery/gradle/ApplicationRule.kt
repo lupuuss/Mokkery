@@ -21,6 +21,6 @@ fun interface ApplicationRule {
 
     companion object {
 
-        val AllTests: ApplicationRule = MatchesName(Regex(".+Test.+"))
+        val AllTests: ApplicationRule = MatchesName(Regex(".*Test.*"))
     }
 }
