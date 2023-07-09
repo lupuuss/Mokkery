@@ -53,7 +53,7 @@ class CallTrackingNestedTransformer(
             return super.visitCall(expression)
         }
         // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
-        if (!expression.type.isPrimitiveType(nullable = false)) {
+        if (!expression.symbol.owner.returnType.isPrimitiveType(nullable = false)) {
             expression.type = expression.type.makeNullable()
         }
         expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
