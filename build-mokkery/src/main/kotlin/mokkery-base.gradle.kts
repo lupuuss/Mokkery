@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 plugins {
     id("com.github.gmazzo.buildconfig")
     `maven-publish`
