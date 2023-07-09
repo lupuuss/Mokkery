@@ -64,10 +64,10 @@ class VerifyTest {
             }
         }
     }
+}
 
-    private inline fun assertVerified(crossinline block: () -> Unit) {
-        assertFailsWith<AssertionError> {
-            block()
-        }
+internal inline fun assertVerified(crossinline block: () -> Unit) {
+    assertFailsWith<AssertionError> {
+        block()
     }
 }
