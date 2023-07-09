@@ -19,4 +19,6 @@ interface TestInterface {
     fun callUnit(): Unit
 
     fun callNothing(): Nothing
+
+    fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number
 }

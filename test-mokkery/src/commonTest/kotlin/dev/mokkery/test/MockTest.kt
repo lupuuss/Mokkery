@@ -22,12 +22,29 @@ class MockTest {
     }
 
     @Test
+    fun testReturnsMockableGenericInterfaceImpl() {
+        val mocked = mock<TestGenericInterface<Int>> {
+            every { call(1) } returns true
+        }
+       assertEquals(true, mocked.call(1))
+    }
+
+    @Test
     fun testReturnsMockableClassImpl() {
         val mocked = mock<TestClass> {
             every { call() } returns "1"
         }
         assertEquals("1", mocked.call())
     }
+
+    @Test
+    fun testReturnsMockableGenericClassImpl() {
+        val mocked = mock<TestGenericClass<String>> {
+            every { call("123") } returns "321"
+        }
+        assertEquals("321", mocked.call("123"))
+    }
+
 
     @Test
     fun testAutofillAlwaysReturnsSuccessfullyOnNonSuspendingMethods() {
