@@ -7,12 +7,12 @@ plugins {
 
 buildConfig {
     val pluginProject = project(":mokkery-plugin")
-    val supportedVersions = rootProject.ext["supportedKotlinVersions"] as List<String>
+    val supportedVersions = rootProject.ext["supportedKotlinVersions"] as List<KotlinVersion>
     packageName(rootProject.group.toString())
     buildConfigField(
         type = "String",
         name = "SUPPORTED_KOTLIN_VERSIONS",
-        value = "\"" + supportedVersions.joinToString { it } + "\""
+        value = "\"" + supportedVersions.joinToString() + "\""
     )
     buildConfigField("String", "KOTLIN_VERSION", "\"${rootProject.ext["kotlinVersion"]}\"")
     buildConfigField("String", "GROUP", "\"${rootProject.group}\"")

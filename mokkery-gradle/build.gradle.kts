@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin"))
+    compileOnly(kotlin("gradle-plugin"))
     implementation(project(":mokkery-core"))
 }
 
