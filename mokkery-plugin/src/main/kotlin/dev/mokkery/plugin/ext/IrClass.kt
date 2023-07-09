@@ -11,31 +11,20 @@ import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
-import org.jetbrains.kotlin.ir.builders.declarations.buildTypeParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.deepCopyWithVariables
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
-import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
-import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
-import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
-import org.jetbrains.kotlin.ir.util.copyTo
-import org.jetbrains.kotlin.ir.util.copyToWithoutSuperTypes
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
-import org.jetbrains.kotlin.ir.util.remapTypeParameters
-import org.jetbrains.kotlin.ir.util.setDeclarationsParent
 import org.jetbrains.kotlin.name.Name
 
 fun IrClass.getProperty(name: String): IrProperty {
@@ -61,19 +50,17 @@ fun IrClass.addOverridingMethod(
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
 ) {
     addFunction {
+        updateFrom(function)
         name = function.name
         returnType = function.returnType
-        isSuspend = function.isSuspend
-        isInfix = function.isInfix
-        isOperator = function.isOperator
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
         overriddenSymbols = function.overriddenSymbols + function.symbol
-        typeParameters = function.typeParameters.map { it.copyTo(this) }
-        valueParameters = function.valueParameters.map { it.copyTo(this).apply { defaultValue = null } }
+        metadata = function.metadata
         dispatchReceiverParameter = buildThisValueParam()
-        extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
+        copyParametersFrom(function)
+        copyAnnotationsFrom(function)
         contextReceiverParametersCount = function.contextReceiverParametersCount
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
@@ -120,24 +107,23 @@ fun IrClass.addOverridingProperty(
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
         overriddenSymbols = property.overriddenSymbols + property.symbol
-        setDeclarationsParent(this@addOverridingProperty)
         addGetter().also { getter ->
             getter.overriddenSymbols = listOf(property.getter!!.symbol)
             getter.returnType = property.getter!!.returnType
+            getter.metadata = property.getter!!.metadata
             getter.dispatchReceiverParameter = buildThisValueParam()
-            getter.extensionReceiverParameter = property.getter!!.extensionReceiverParameter?.copyTo(getter)
-            getter.typeParameters = getter.typeParameters.map { it.copyTo(getter) }
-            getter.valueParameters = getter.valueParameters.map { it.copyTo(getter) }
+            getter.copyParametersFrom(property.getter!!)
+            getter.copyAnnotationsFrom(property.getter!!)
             getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
         if (property.isVar) {
             addSetter().also { setter ->
                 setter.returnType = property.setter!!.returnType
+                setter.metadata = property.setter!!.metadata
                 setter.dispatchReceiverParameter = buildThisValueParam()
-                setter.valueParameters = property.setter!!.valueParameters.map { it.copyTo(setter) }
-                setter.typeParameters = setter.typeParameters.map { it.copyTo(setter) }
+                setter.copyParametersFrom(property.setter!!)
+                setter.copyAnnotationsFrom(property.setter!!)
                 setter.overriddenSymbols = listOf(property.setter!!.symbol)
-                setter.extensionReceiverParameter = property.setter!!.extensionReceiverParameter?.copyTo(setter)
                 setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
             }
         }
