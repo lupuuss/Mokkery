@@ -3,6 +3,9 @@ package dev.mokkery.answering
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
+/**
+ * Provides function call arguments.
+ */
 public class FunctionScope(
     public val returnType: KClass<*>,
     public val args: List<Any?>
