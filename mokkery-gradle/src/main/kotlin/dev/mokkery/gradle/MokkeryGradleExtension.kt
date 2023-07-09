@@ -3,9 +3,10 @@ package dev.mokkery.gradle
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryCompilerDefaults
 import dev.mokkery.verify.VerifyMode
+import org.gradle.api.provider.Property
 
-open class MokkeryGradleExtension {
-    var rule: ApplicationRule = ApplicationRule.AllTests
-    var defaultMockMode: MockMode = MokkeryCompilerDefaults.mockMode
-    var defaultVerifyMode: VerifyMode = MokkeryCompilerDefaults.verifyMode
+interface MokkeryGradleExtension {
+    val rule: Property<ApplicationRule>
+    val defaultMockMode: Property<MockMode>
+    val defaultVerifyMode: Property<VerifyMode>
 }
