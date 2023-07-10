@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 @Suppress("OPT_IN_USAGE")
 class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
-    lateinit var kotlinVersion: String
+    private lateinit var kotlinVersion: String
 
     override fun apply(target: Project) {
         target.checkKotlinSetup()
