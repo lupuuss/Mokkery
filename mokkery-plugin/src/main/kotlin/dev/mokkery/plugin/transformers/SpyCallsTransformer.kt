@@ -18,6 +18,8 @@ import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
+import org.jetbrains.kotlin.ir.builders.irBlock
+import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
@@ -93,25 +95,22 @@ class SpyCallsTransformer(
 
     private fun IrBlockBodyBuilder.spyingBody(delegateField: IrField, function: IrSimpleFunction) {
         function.eraseFullValueParametersList()
-        val interceptingCall = if (function.returnType != pluginContext.irBuiltIns.nothingType) {
-            irCallInterceptingMethod(function)
-        } else {
-            irTryCatchAny(irCallInterceptingMethod(function))
-        }
-        val interceptionResult = createTmpVariable(interceptingCall)
         +irIfThenElse(
             type = function.returnType,
             condition = irCallIsTemplatingEnabled(function),
-            thenPart = irReturn(irGet(interceptionResult)),
-            elsePart = irReturn(irCall(function.overriddenSymbols.first()).apply {
-                dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
-                function.valueParameters.forEachIndexed { index, irValueParameter ->
-                    putValueArgument(index, irGet(irValueParameter))
-                }
-                function.extensionReceiverParameter?.let {
-                    extensionReceiver = irGet(it)
-                }
-            })
+            thenPart = irReturn(irCallInterceptingMethod(function)),
+            elsePart = irBlock {
+                +irTryCatchAny(irCallInterceptingMethod(function))
+                +irReturn(irCall(function.overriddenSymbols.first()).apply {
+                    dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
+                    function.valueParameters.forEachIndexed { index, irValueParameter ->
+                        putValueArgument(index, irGet(irValueParameter))
+                    }
+                    function.extensionReceiverParameter?.let {
+                        extensionReceiver = irGet(it)
+                    }
+                })
+            }
         )
     }
 
