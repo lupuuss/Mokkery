@@ -84,6 +84,18 @@ class EveryTest {
     }
 
     @Test
+    fun testMocksBaseInterfaceMethod() = runTest {
+        every { dependencyMock.baseInterfaceMethod() } returns Unit
+        dependencyMock.baseInterfaceMethod()
+    }
+
+    @Test
+    fun testMocksBaseInterfaceProperty() = runTest {
+        every { dependencyMock.baseInterfaceProperty } returns "123"
+        assertEquals("123", dependencyMock.baseInterfaceProperty)
+    }
+
+    @Test
     fun testMocksMethodsWithNothingReturnType() {
         every { dependencyMock.callNothing() } throws IllegalArgumentException("FAILED!")
         assertFailsWith<IllegalArgumentException> { dependencyMock.callNothing() }

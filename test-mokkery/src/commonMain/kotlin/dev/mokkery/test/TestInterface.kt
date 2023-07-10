@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-interface TestInterface {
+interface TestInterface : BaseInterface {
 
     var property: String
 
