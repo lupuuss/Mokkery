@@ -6,10 +6,22 @@ import MokkeryUrls.Website
 plugins {
     `maven-publish`
     signing
+    id("org.jetbrains.dokka")
 }
 
 loadLocalProperties()
 
+signing {
+    // disables signing for publishToMavenLocal
+    setRequired { gradle.taskGraph.allTasks.any { it is PublishToMavenRepository } }
+    sign(publishing.publications)
+}
+
+val dokkaJar by tasks.registering( Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    archiveClassifier.set("javadoc")
+    from(tasks.getByName("dokkaGfm"))
+}
 
 publishing {
 
@@ -24,18 +36,6 @@ publishing {
         }
     }
     publications.withType<MavenPublication> {
-        val publication = this
-        signing {
-            // disables signing for publishToMavenLocal
-            setRequired { gradle.taskGraph.allTasks.any { it is PublishToMavenRepository } }
-            sign(publication)
-        }
-        val dokkaJar = tasks.register("${publication.name}DokkaJar", Jar::class) {
-            group = JavaBasePlugin.DOCUMENTATION_GROUP
-            archiveClassifier.set("javadoc")
-            archiveBaseName.set("${archiveBaseName.get()}-${publication.name}")
-            from(tasks.findByName("dokkaGfm"))
-        }
         artifact(dokkaJar)
         pom {
             name.set(project.name)

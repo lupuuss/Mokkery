@@ -1,7 +1,6 @@
 plugins {
     id("kotlinx-atomicfu")
     id("mokkery-multiplatform")
-    id("org.jetbrains.dokka")
 }
 
 dependencies {
