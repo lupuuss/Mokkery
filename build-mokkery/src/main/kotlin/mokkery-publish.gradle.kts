@@ -17,6 +17,11 @@ signing {
     sign(publishing.publications)
 }
 
+val signingTasks = tasks.withType<Sign>()
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    dependsOn(signingTasks)
+}
+
 val dokkaJar by tasks.registering( Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
