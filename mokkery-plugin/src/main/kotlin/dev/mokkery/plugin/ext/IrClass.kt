@@ -108,25 +108,25 @@ fun IrClass.addOverridingProperty(
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
         overriddenSymbols = property.overriddenSymbols + property.symbol
-        addGetter().also { getter ->
-            getter.overriddenSymbols = listOf(property.getter!!.symbol)
-            getter.returnType = property.getter!!.returnType
-            getter.metadata = property.getter!!.metadata
-            getter.dispatchReceiverParameter = buildThisValueParam()
-            getter.copyParametersFrom(property.getter!!)
-            getter.copyAnnotationsFrom(property.getter!!)
-            getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
-        }
+        val baseGetter = property.getter!!
+        val getter = addGetter()
+        getter.overriddenSymbols = listOf(baseGetter.symbol)
+        getter.returnType = baseGetter.returnType
+        getter.metadata = baseGetter.metadata
+        getter.dispatchReceiverParameter = buildThisValueParam()
+        getter.copyParametersFrom(baseGetter)
+        getter.copyAnnotationsFrom(baseGetter)
+        getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         if (property.isVar) {
-            addSetter().also { setter ->
-                setter.returnType = property.setter!!.returnType
-                setter.metadata = property.setter!!.metadata
-                setter.dispatchReceiverParameter = buildThisValueParam()
-                setter.copyParametersFrom(property.setter!!)
-                setter.copyAnnotationsFrom(property.setter!!)
-                setter.overriddenSymbols = listOf(property.setter!!.symbol)
-                setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
-            }
+            val baseSetter = property.setter!!
+            val setter = addSetter()
+            setter.returnType = baseSetter.returnType
+            setter.metadata = baseSetter.metadata
+            setter.dispatchReceiverParameter = buildThisValueParam()
+            setter.copyParametersFrom(baseSetter)
+            setter.copyAnnotationsFrom(baseSetter)
+            setter.overriddenSymbols = listOf(baseSetter.symbol)
+            setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
         }
     }
 }
