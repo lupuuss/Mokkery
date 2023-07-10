@@ -27,9 +27,11 @@ class SpyTest {
     fun testRegistersMethodCalls() = runTest {
         spied.callWithPrimitives(1)
         spied.callWithSuspension(1)
+        runCatching { spied.callNothing() }
         verifySuspend {
             spied.callWithPrimitives(1)
             spied.callWithSuspension(1)
+            spied.callNothing()
         }
     }
 }
