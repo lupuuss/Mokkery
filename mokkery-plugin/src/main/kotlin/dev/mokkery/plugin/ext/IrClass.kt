@@ -55,6 +55,7 @@ fun IrClass.addOverridingMethod(
         returnType = function.returnType
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
+        isFakeOverride = false
     }.apply {
         overriddenSymbols = function.overriddenSymbols + function.symbol
         metadata = function.metadata
