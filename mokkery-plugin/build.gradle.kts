@@ -11,6 +11,12 @@ plugins {
     signing
 }
 
+signing {
+    // disables signing for publishToMavenLocal
+    setRequired { gradle.taskGraph.allTasks.any { it is PublishToMavenRepository } }
+    sign(publishing.publications)
+}
+
 kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
