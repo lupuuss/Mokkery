@@ -6,12 +6,9 @@ import dev.mokkery.internal.tracing.matches
 
 internal object OrderVerifier : Verifier {
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
-        println(callTraces)
-        println(callTemplates)
         var currentTraces = callTraces.toMutableList()
         var previousTemplate: CallTemplate? = null
         val verifiedTraces = mutableListOf<CallTrace>()
-        println(currentTraces)
         callTemplates.forEach { template ->
             val index = currentTraces.indexOfFirst { it matches template }
             if (index == -1) {
@@ -26,7 +23,6 @@ internal object OrderVerifier : Verifier {
             verifiedTraces.add(currentTraces[index])
             previousTemplate = template
             currentTraces = currentTraces.subList(index + 1, currentTraces.size)
-            println(currentTraces)
         }
         return verifiedTraces
     }
