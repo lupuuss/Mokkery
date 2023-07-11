@@ -32,7 +32,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
 
 gradlePlugin {
     website.set(MokkeryUrls.Website)
-    vcsUrl.set(MokkeryUrls.GitHttp)
+    vcsUrl.set("${MokkeryUrls.GitHttp}.git")
     plugins {
         create(rootProject.name) {
             id = rootProject.extra["pluginId"] as String
