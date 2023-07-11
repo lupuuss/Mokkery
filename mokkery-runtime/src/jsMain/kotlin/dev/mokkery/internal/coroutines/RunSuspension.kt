@@ -12,7 +12,11 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 
 internal actual fun runSuspension(block: suspend () -> Unit) {
-    NoSuspensionScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
+    var exception: Throwable? = null
+    NoSuspensionScope.launch(start = CoroutineStart.UNDISPATCHED) {
+        exception = runCatching { block() }.exceptionOrNull()
+    }
+    exception?.let { throw it }
 }
 
 private val NoSuspensionScope = CoroutineScope(NoSuspensionDispatcher)
