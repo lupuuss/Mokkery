@@ -4,7 +4,7 @@ import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
 /**
- * Provides function call arguments.
+ * Provides function call arguments. If function has any extension receiver, it is provided at the beginning of the [args] list.
  */
 public class FunctionScope(
     public val returnType: KClass<*>,

@@ -2,6 +2,7 @@ package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
+import dev.mokkery.answering.FunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
@@ -44,13 +45,13 @@ private class AnsweringInterceptorImpl(
     override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
         val argsList = args.toList()
-        return find(name, returnType, argsList).call(returnType, argsList.map { it.value })
+        return find(name, returnType, argsList).call(FunctionScope(returnType, argsList.map { it.value }))
     }
 
     override suspend fun interceptSuspendCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
         val argsList = args.toList()
-        return find(name, returnType, argsList).callSuspend(returnType, argsList.map { it.value })
+        return find(name, returnType, argsList).callSuspend(FunctionScope(returnType, argsList.map { it.value }))
     }
 
     private fun find(signature: String, returnType: KClass<*>, args: List<CallArg>): Answer<*> {

@@ -14,15 +14,14 @@ import kotlin.reflect.KClass
 public interface Answer<out T> {
 
     /**
-     * Provides a return value for a function call with given [returnType] and [args].
-     * If function has any extension receiver, it is provided at the beginning of the [args] list.
+     * Provides a return value for a function call with given [scope].
      */
-    public fun call(returnType: KClass<*>, args: List<Any?>): T
+    public fun call(scope: FunctionScope): T
 
     /**
      * Just like [call] but suspends. By default, it calls [call].
      */
-    public suspend fun callSuspend(returnType: KClass<*>, args: List<Any?>): T = call(returnType, args)
+    public suspend fun callSuspend(scope: FunctionScope): T = call(scope)
 
     /**
      * Convenience interface for custom suspending answers. By default, it throws runtime exception on [call].
@@ -32,28 +31,28 @@ public interface Answer<out T> {
         /**
          * By default, it throws runtime exception.
          */
-        override fun call(returnType: KClass<*>, args: List<Any?>): Nothing = throw SuspendingFunctionBlockingCallException()
+        override fun call(scope: FunctionScope): Nothing = throw SuspendingFunctionBlockingCallException()
     }
 
     /**
      * Returns [value] on [call] and [callSuspend].
      */
     public class Const<T>(private val value: T) : Answer<T> {
-        override fun call(returnType: KClass<*>, args: List<Any?>): T = value
+        override fun call(scope: FunctionScope): T = value
     }
 
     /**
      * Calls [block] on [call] and [callSuspend].
      */
     public class Block<T>(private val block: (FunctionScope) -> T) : Answer<T> {
-        override fun call(returnType: KClass<*>, args: List<Any?>): T = block(FunctionScope(returnType, args))
+        override fun call(scope: FunctionScope): T = block(scope)
     }
 
     /**
      * Throws [throwable] on [call] and [callSuspend]
      */
     public class Throws(private val throwable: Throwable) : Answer<Nothing> {
-        override fun call(returnType: KClass<*>, args: List<Any?>): Nothing = throw throwable
+        override fun call(scope: FunctionScope): Nothing = throw throwable
     }
 
     /**
@@ -61,8 +60,8 @@ public interface Answer<out T> {
      */
     public class BlockSuspend<T>(private val block: suspend (FunctionScope) -> T) : Suspending<T> {
 
-        override suspend fun callSuspend(returnType: KClass<*>, args: List<Any?>): T {
-            return block(FunctionScope(returnType, args))
+        override suspend fun callSuspend(scope: FunctionScope): T {
+            return block(scope)
         }
     }
 
@@ -70,7 +69,7 @@ public interface Answer<out T> {
      * Provides *empty* value for standard types (e.g. 0 for numbers, "" for string, null for complex type).
      */
     public object Autofill : Answer<Any?> {
-        override fun call(returnType: KClass<*>, args: List<Any?>): Any? = autofillValue(returnType)
+        override fun call(scope: FunctionScope): Any? = autofillValue(scope.returnType)
     }
 
 }
