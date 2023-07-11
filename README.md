@@ -40,7 +40,7 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 
 ### Setup
 
-To apply the Gradle plugin to your Kotlin project, add the following code to your `build.gradle` file:
+Apply Gradle plugin to your kotlin project:
 
 ```kotlin
 plugins {
