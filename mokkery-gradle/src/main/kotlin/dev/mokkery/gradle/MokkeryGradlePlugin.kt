@@ -2,8 +2,8 @@ package dev.mokkery.gradle
 
 import dev.mokkery.MokkeryCompilerDefaults
 import dev.mokkery.MokkeryConfig
+import dev.mokkery.MokkeryConfig.KOTLIN_VERSION
 import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
-import dev.mokkery.MokkeryConfig.SUPPORTED_KOTLIN_VERSIONS
 import dev.mokkery.MokkeryConfig.VERSION
 import dev.mokkery.verify.VerifyModeSerializer
 import org.gradle.api.Project
@@ -53,7 +53,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         return SubpluginArtifact(
             groupId = MokkeryConfig.GROUP,
             artifactId = MokkeryConfig.PLUGIN_ARTIFACT_ID,
-            version = pluginVersion,
+            version = VERSION,
         )
     }
 
@@ -64,20 +64,13 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         .get()
         .isApplicable(kotlinCompilation.defaultSourceSet)
 
-    private val pluginVersion get() = "$kotlinVersion-$VERSION"
-
     private fun Project.checkKotlinSetup() {
         if (extensions.findByName("kotlin") == null) error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
         val kotlinVersion = kotlinToolingVersion.toString()
-        if (kotlinVersion !in SUPPORTED_KOTLIN_VERSIONS) {
-            error(
-                "Current kotlin version ($kotlinVersion) is unsupported by current Mokkery version!" +
-                        " Mokkery version: $VERSION" +
-                        " Supported kotlin versions: $SUPPORTED_KOTLIN_VERSIONS"
-            )
+        if (kotlinVersion != KOTLIN_VERSION) {
+            error("Current Kotlin version ($kotlinVersion) does not match Kotlin version for Mokkery ($KOTLIN_VERSION)!")
         }
         this@MokkeryGradlePlugin.kotlinVersion = kotlinVersion
-        mokkeryInfo("Selected plugin artifact based on kotlin version ($kotlinVersion) => $pluginVersion")
     }
 
     private fun KotlinCompilation<*>.disableJvmParamAssertions() {
@@ -101,7 +94,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 .forEach {
                     mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
                     it.dependencies {
-                        implementation(RUNTIME_DEPENDENCY)
+                        implementation("$RUNTIME_DEPENDENCY:")
                     }
                 }
         }

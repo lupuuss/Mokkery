@@ -14,5 +14,4 @@ public object MokkeryConfig {
     public const val RUNTIME_DEPENDENCY: String = "$GROUP:${BuildConfig.RUNTIME}:$VERSION"
     public const val PLUGIN_ID: String = BuildConfig.PLUGIN_ID
     public const val PLUGIN_ARTIFACT_ID: String = BuildConfig.PLUGIN_ARTIFACT_ID
-    public val SUPPORTED_KOTLIN_VERSIONS: List<String> = BuildConfig.SUPPORTED_KOTLIN_VERSIONS.split(", ")
 }
