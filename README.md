@@ -85,10 +85,16 @@ pluginManagement {
 
 ### Compatibility
 
-Currently, Mokkery is compatible with Kotlin versions `1.8.20`, `1.8.21`, `1.8.22` and `1.9.0`. The goal is to support
-4 latest versions of Kotlin for each library release. However, if a new Kotlin release introduces breaking changes, 
-especially in the compiler API, it might result in dropped support for older versions. The latest Kotlin version is 
-always prioritized.
+The goal is to support 4 latest versions of Kotlin for each library release. However, if a new Kotlin release introduces 
+breaking changes, especially in the compiler API, it might result in dropped support for older versions. The latest 
+Kotlin version is always prioritized.
+
+| Plugin version                  	 | Kotlin version                              	 |
+|-----------------------------------|-----------------------------------------------|
+| 1.8.20-1.01 	                     | 1.8.20        	                               |
+| 1.8.21-1.01 	                     | 1.8.21   	                                    |
+| 1.8.22-1.01 	                     | 1.8.22 	                                      |
+| 1.9.0-1.01 	                      | 1.9.0 	                                       |
 
 ### Targets
 
