@@ -1,6 +1,5 @@
 # Mokkery
 
-[![Maven Central](https://img.shields.io/maven-central/v/dev.mokkery/mokkery-runtime)](https://mvnrepository.com/artifact/dev.mokkery)
 ![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
@@ -37,7 +36,6 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 7. [Mocking and verifying limitations](#mocking-and-verifying-limitations)
 8. [Regular matchers](#regular-matchers)
 9. [Vararg matchers](#vararg-matchers)
-10. [Limitations](Limitations)
 
 ### Setup
 
@@ -46,15 +44,18 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.0"
+    id("dev.mokkery") version "1.9.0-1.0.1"
 }
 ```
+
+Please ensure that the Kotlin versions for both the Kotlin plugin and the Mokkery plugin are the same.
+Refer to the [compatibility](#compatibility) section to find the supported versions.
 
 The plugin will be applied to all Kotlin source sets in the project that contain the "test" phrase. To change this behavior, you can provide a different rule in your Gradle file:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.0"
+    id("dev.mokkery") version "1.9.0-1.0.1"
 }
 
 mokkery {
@@ -66,9 +67,10 @@ mokkery {
 
 ### Compatibility
 
-Currently, Mokkery is compatible with Kotlin versions `1.8.21`, `1.8.22` and `1.9.0`. The main goal is to always support
-the latest version and maintain single code base for the compiler plugin. If a new Kotlin release introduces breaking 
-changes, especially in the compiler API, it might result in dropped support for older versions.
+Currently, Mokkery is compatible with Kotlin versions `1.8.20`, `1.8.21`, `1.8.22` and `1.9.0`. The goal is to support
+4 latest versions of Kotlin for each library release. However, if a new Kotlin release introduces breaking changes, 
+especially in the compiler API, it might result in dropped support for older versions. The latest Kotlin version is 
+always prioritized.
 
 ### Targets
 
