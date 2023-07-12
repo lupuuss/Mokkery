@@ -1,6 +1,7 @@
 # Mokkery
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.mokkery/mokkery-runtime)](https://mvnrepository.com/artifact/dev.mokkery)
+![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
 [![API reference](https://img.shields.io/static/v1?label=api&message=reference&labelColor=gray&color=blueviolet&logo=gitbook&logoColor=white)](https://mokkery.dev)
