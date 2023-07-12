@@ -94,7 +94,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 .forEach {
                     mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
                     it.dependencies {
-                        implementation("$RUNTIME_DEPENDENCY:")
+                        implementation(RUNTIME_DEPENDENCY)
                     }
                 }
         }
