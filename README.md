@@ -190,6 +190,9 @@ object RandomIntAnswer : Answer<Int> {
 everySuspend { repository.countAllBooks() } answers RandomIntAnswer
 ```
 
+> **Warning**
+>When multiple answers match a call, the last one takes precedence.
+
 ### Verifying
 
 To verify method call use `verify` or `verifySuspend`. Verification result depends on the `VerifyMode`.
@@ -203,7 +206,7 @@ mokkery.defaultVerifyMode.set(VerifyMode.exhaustiveOrder)
 
 #### Soft modes family
 
-By default `verify` uses `Verify.soft`. It checks only if calls from the verification block happened and marks all
+By default `verify` uses `VerifyMode.soft`. It checks only if calls from the verification block happened and marks all
 matching calls as verified.
 
 ```kotlin
