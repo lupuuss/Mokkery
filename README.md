@@ -36,6 +36,7 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 7. [Mocking and verifying limitations](#mocking-and-verifying-limitations)
 8. [Regular matchers](#regular-matchers)
 9. [Vararg matchers](#vararg-matchers)
+10. [Custom matchers](#custom-matchers)
 
 ### Setup
 
@@ -62,6 +63,23 @@ mokkery {
     rule.set(ApplicationRule.Listed("jvmTest")) // now Mokkery affects only jvmTest
     // or provide a custom rule
     rule.set { sourceSet -> sourceSet.name.endsWith("Test") } // now Mokkery affects all "*Test" source sets
+}
+```
+
+Make sure that you have `mavenCentral()` in your repository list:
+```kotlin
+repositories {
+    mavenCentral()
+}
+```
+
+Also, it might be necessary to add `gradlePluginPortal()` and `mavenCentral()` to your plugin repositories:
+```kotlin
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
 }
 ```
 
@@ -339,3 +357,27 @@ If you have to pass varargs as arrays make sure that you don't mix matchers with
 everySuspend { respository.findAllById(ids = arrayOf(eq("1"), *anyVarargs(), eq("3"))) } returns emptyList()
 everySuspend { respository.findAllById(ids = arrayOf(eq("1"), any())) } returns emptyList()
 ```
+
+### Custom matchers
+
+The most straightforward way to define a custom matcher is by defining an extension on `ArgMatchersScope`:
+
+```kotlin
+// only for strings
+fun ArgMatchersScope.regex(
+    regex: Regex
+): String = matching(toString = { "regex($regex)" }, predicate = regex::matches)
+
+// for any type
+inline fun <reified T> ArgMatchersScope.eqAnyOf(
+    vararg values: T
+): T = matching(
+    toString = { "eqAnyOf(${values.contentToString()})" },
+    predicate = { values.contains(it) }
+)
+```
+
+It is possible to use `matching` as anonymous matcher directly.
+
+You can also implement [ArgMatcher](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/-arg-matcher/index.html) 
+and pass its instance as an argument to [ArgMatchersScope.matches](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
