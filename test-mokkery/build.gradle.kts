@@ -1,6 +1,11 @@
 plugins {
     kotlin("multiplatform")
     id("dev.mokkery")
+    id("org.jetbrains.kotlin.plugin.allopen")
+}
+
+allOpen {
+    annotation("dev.mokkery.test.OpenForMokkery")
 }
 
 kotlin {
