@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.varargs
 
+import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
@@ -11,6 +12,7 @@ import kotlin.reflect.KClass
  */
 public interface VarArgMatcher<T> : ArgMatcher<T> {
 
+    @DelicateMokkeryApi
     public class AllThat(
         private val type: KClass<*>,
         private val predicate: (Any?) -> Boolean
@@ -23,6 +25,7 @@ public interface VarArgMatcher<T> : ArgMatcher<T> {
         override fun toString(): String = "${varargNameByElementType(type)} {...}"
     }
 
+    @DelicateMokkeryApi
     public class AnyOf(
         private val type: KClass<*>,
     ) : VarArgMatcher<Any?> {
