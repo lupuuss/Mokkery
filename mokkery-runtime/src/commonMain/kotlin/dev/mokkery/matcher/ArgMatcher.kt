@@ -37,7 +37,7 @@ public fun interface ArgMatcher<in T> {
 
     public data class NotEqualRef<T>(private val value: T) : ArgMatcher<T> {
 
-        override fun matches(arg: T): Boolean = arg === value
+        override fun matches(arg: T): Boolean = arg !== value
 
         override fun toString(): String = "noEqRef($value)"
     }
