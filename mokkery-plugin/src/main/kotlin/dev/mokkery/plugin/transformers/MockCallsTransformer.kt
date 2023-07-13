@@ -11,8 +11,10 @@ import dev.mokkery.plugin.ext.irGetEnumEntry
 import dev.mokkery.plugin.ext.irInvokeIfNotNull
 import dev.mokkery.plugin.ext.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ext.overrideAllOverridableProperties
+import dev.mokkery.plugin.mokkeryError
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
@@ -27,12 +29,14 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.ir.util.render
 
 class MockCallsTransformer(
     pluginContext: IrPluginContext,
@@ -58,8 +62,10 @@ class MockCallsTransformer(
                 val modeArg = expression.valueArguments
                     .getOrNull(0)
                     ?: irGetEnumEntry(irClasses.MockMode, mockMode.toString())
+                val block = expression.valueArguments.getOrNull(1)
+                block?.applyMockCallsTransformerIfPossible()
                 it.putValueArgument(0, modeArg)
-                it.putValueArgument(1, expression.valueArguments.getOrNull(1) ?: irNull())
+                it.putValueArgument(1, block ?: irNull())
             }
         }
     }
@@ -96,5 +102,10 @@ class MockCallsTransformer(
     private fun IrBlockBodyBuilder.mockBody(function: IrSimpleFunction) {
         function.eraseFullValueParametersList()
         +irReturn(irCallInterceptingMethod(function))
+    }
+
+    private fun IrExpression.applyMockCallsTransformerIfPossible() {
+        if (this !is IrFunctionExpression) mokkeryError(irFile) { "Block of 'mock' must be a lambda expression! " }
+        transformChildren(this@MockCallsTransformer, null)
     }
 }
