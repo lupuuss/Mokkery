@@ -12,6 +12,11 @@ import kotlin.reflect.KClass
  */
 public interface VarArgMatcher<T> : ArgMatcher<T> {
 
+
+    /**
+     * Matches an array with all elements matching the [predicate]. Returns false if it's not an array.
+     * @param type of array element to provide vararg type information in [AnyOf.toString]
+     */
     @DelicateMokkeryApi
     public class AllThat(
         private val type: KClass<*>,
@@ -25,6 +30,10 @@ public interface VarArgMatcher<T> : ArgMatcher<T> {
         override fun toString(): String = "${varargNameByElementType(type)} {...}"
     }
 
+    /**
+     * Matches any arg. It should be used only in context of varargs to not confuse the end user.
+     * @param type of array element to provide vararg type information in [AnyOf.toString]
+     */
     @DelicateMokkeryApi
     public class AnyOf(
         private val type: KClass<*>,
