@@ -71,24 +71,22 @@ abstract class MokkeryBaseTransformer(
     protected val irFunctions = IrFunctions()
 
     protected fun IrBlockBodyBuilder.irCallInterceptingMethod(function: IrSimpleFunction): IrCall {
-        val thisParam = irGet(function.dispatchReceiverParameter!!)
+        val getThisParam = irGet(function.dispatchReceiverParameter!!)
         val mokkeryCall = if (function.isSuspend) {
             irCall(irClasses.MokkeryInterceptor.symbol.functionByName("interceptSuspendCall"))
         } else {
             irCall(irClasses.MokkeryInterceptor.symbol.functionByName("interceptCall"))
         }
-        val idCall = irCall(irClasses.MokkeryInterceptorScope.getPropertyGetter("id")!!).apply {
-            dispatchReceiver = thisParam
-        }
+
         mokkeryCall.dispatchReceiver = irClasses
             .MokkeryInterceptorScope
             .getPropertyGetter("interceptor")!!
             .let(::irCall)
             .apply {
-                dispatchReceiver = thisParam
+                dispatchReceiver = getThisParam
             }
         val contextCreationCall = irCall(irClasses.CallContext.primaryConstructor!!).apply {
-            putValueArgument(0, idCall)
+            putValueArgument(0, getThisParam)
             putValueArgument(1, irString(function.name.asString()))
             putValueArgument(2, kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext)))
             putValueArgument(3, irCallListOf(irCallArgVarargParams(function.fullValueParameterList)))
