@@ -1,11 +1,11 @@
 package dev.mokkery.internal.tracing
 
+import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.MokkeryToken
 import dev.mokkery.internal.MokkeryInterceptor
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
-import kotlin.reflect.KClass
 
 internal interface CallTracingInterceptor : MokkeryInterceptor {
 
@@ -18,12 +18,9 @@ internal interface CallTracingInterceptor : MokkeryInterceptor {
     fun markVerified(trace: CallTrace)
 }
 
-internal fun CallTracingInterceptor(receiver: String, clock: CallTraceClock): CallTracingInterceptor {
-    return CallTracingInterceptorImpl(receiver, clock)
-}
+internal fun CallTracingInterceptor(clock: CallTraceClock): CallTracingInterceptor = CallTracingInterceptorImpl(clock)
 
 private class CallTracingInterceptorImpl(
-    private val receiver: String,
     private val clock: CallTraceClock,
 ) : CallTracingInterceptor {
 
@@ -44,11 +41,11 @@ private class CallTracingInterceptorImpl(
         lock.withLock { verified += trace }
     }
 
-    override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any {
-        lock.withLock {
-            _all += CallTrace(receiver, name, args.toList(), clock.nextStamp())
-        }
+    override fun interceptCall(context: CallContext): Any {
+        lock.withLock { _all += context.toTrace() }
         return MokkeryToken.CALL_NEXT
     }
+
+    private fun CallContext.toTrace() = CallTrace(receiver, signature, args, clock.nextStamp())
 
 }

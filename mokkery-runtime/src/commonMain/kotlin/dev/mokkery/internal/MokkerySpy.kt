@@ -10,12 +10,10 @@ internal interface MokkerySpy : MokkeryInterceptor {
 }
 
 @Suppress("unused")
-internal fun MokkerySpy(receiver: String): MokkerySpy {
-    return MokkerySpyImpl(
-        TemplatingInterceptor(receiver),
-        CallTracingInterceptor(receiver, CallTraceClock.current)
-    )
-}
+internal fun MokkerySpy(): MokkerySpy = MokkerySpyImpl(
+    TemplatingInterceptor(),
+    CallTracingInterceptor(CallTraceClock.current)
+)
 
 private class MokkerySpyImpl(
     override val templating: TemplatingInterceptor,

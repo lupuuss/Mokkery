@@ -7,13 +7,9 @@ import kotlin.reflect.KClass
 
 internal interface MokkeryInterceptor {
 
-    fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any?
+    fun interceptCall(context: CallContext): Any?
 
-    suspend fun interceptSuspendCall(
-        name: String,
-        returnType: KClass<*>,
-        vararg args: CallArg
-    ): Any? = interceptCall(name, returnType, *args)
+    suspend fun interceptSuspendCall(context: CallContext): Any? = interceptCall(context)
 
 }
 
@@ -26,30 +22,26 @@ internal fun combine(vararg interceptors: MokkeryInterceptor): MokkeryIntercepto
 }
 
 private class CombinedInterceptor(private val interceptors: Array<out MokkeryInterceptor>) : MokkeryInterceptor {
-    override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
+    override fun interceptCall(context: CallContext): Any? {
         interceptors.forEach {
-            when (val result = it.interceptCall(name, returnType, *args)) {
+            when (val result = it.interceptCall(context)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofillValue(context.returnType)
                 else -> return result
             }
         }
-        return autofillValue(returnType)
+        return autofillValue(context.returnType)
     }
 
-    override suspend fun interceptSuspendCall(
-        name: String,
-        returnType: KClass<*>,
-        vararg args: CallArg
-    ): Any? {
+    override suspend fun interceptSuspendCall(context: CallContext): Any? {
         interceptors.forEach {
-            when (val result = it.interceptSuspendCall(name, returnType, *args)) {
+            when (val result = it.interceptSuspendCall(context)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofillValue(returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofillValue(context.returnType)
                 else -> return result
             }
         }
-        return autofillValue(returnType)
+        return autofillValue(context.returnType)
     }
 
 }

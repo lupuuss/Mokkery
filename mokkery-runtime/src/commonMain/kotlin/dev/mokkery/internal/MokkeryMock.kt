@@ -11,13 +11,11 @@ internal interface MokkeryMock : MokkerySpy {
 }
 
 @Suppress("unused")
-internal fun MokkeryMock(receiver: String, mockMode: MockMode): MokkeryMock {
-    return MokkeryMockImpl(
-        TemplatingInterceptor(receiver),
-        CallTracingInterceptor(receiver, CallTraceClock.current),
-        AnsweringInterceptor(receiver, mockMode)
-    )
-}
+internal fun MokkeryMock(mockMode: MockMode): MokkeryMock = MokkeryMockImpl(
+    TemplatingInterceptor(),
+    CallTracingInterceptor(CallTraceClock.current),
+    AnsweringInterceptor(mockMode)
+)
 
 private class MokkeryMockImpl(
     override val templating: TemplatingInterceptor,

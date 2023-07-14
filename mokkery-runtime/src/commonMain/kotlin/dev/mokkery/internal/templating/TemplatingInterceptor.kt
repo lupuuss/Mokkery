@@ -1,11 +1,10 @@
 package dev.mokkery.internal.templating
 
+import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryToken
 import dev.mokkery.internal.MokkeryInterceptor
-import dev.mokkery.internal.tracing.CallArg
 import kotlinx.atomicfu.atomic
-import kotlin.reflect.KClass
 
 internal interface TemplatingInterceptor : MokkeryInterceptor {
 
@@ -18,11 +17,9 @@ internal interface TemplatingInterceptor : MokkeryInterceptor {
     fun stop()
 }
 
-internal fun TemplatingInterceptor(receiver: String): TemplatingInterceptor {
-    return TemplatingMokkeryInterceptorImpl(receiver)
-}
+internal fun TemplatingInterceptor(): TemplatingInterceptor = TemplatingMokkeryInterceptorImpl()
 
-private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : TemplatingInterceptor {
+private class TemplatingMokkeryInterceptorImpl : TemplatingInterceptor {
 
     private var _isEnabled by atomic(false)
     private var templatingScope by atomic<TemplatingScope?>(null)
@@ -41,11 +38,11 @@ private class TemplatingMokkeryInterceptorImpl(private val receiver: String) : T
         templatingScope = null
     }
 
-    override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any {
+    override fun interceptCall(context: CallContext): Any {
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
-        templatingScope?.saveTemplate(receiver, name, args.toList())
+        templatingScope?.saveTemplate(context.receiver, context.signature, context.args)
             ?: throw ConcurrentTemplatingException()
         return MokkeryToken.RETURN_DEFAULT
     }

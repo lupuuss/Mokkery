@@ -3,6 +3,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
+import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
@@ -20,12 +21,11 @@ internal interface AnsweringInterceptor : MokkeryInterceptor {
     fun reset()
 }
 
-internal fun AnsweringInterceptor(receiver: String, mockMode: MockMode): AnsweringInterceptor {
-    return AnsweringInterceptorImpl(receiver, mockMode)
+internal fun AnsweringInterceptor(mockMode: MockMode): AnsweringInterceptor {
+    return AnsweringInterceptorImpl(mockMode)
 }
 
 private class AnsweringInterceptorImpl(
-    private val receiver: String,
     private val mockMode: MockMode,
 ) : AnsweringInterceptor {
 
@@ -42,26 +42,24 @@ private class AnsweringInterceptorImpl(
         answers = linkedMapOf()
     }
 
-    override fun interceptCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
+    override fun interceptCall(context: CallContext): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
-        val argsList = args.toList()
-        return find(name, returnType, argsList).call(FunctionScope(returnType, argsList.map { it.value }))
+        return findAnswerFor(context).call(context.toFunctionScope())
     }
 
-    override suspend fun interceptSuspendCall(name: String, returnType: KClass<*>, vararg args: CallArg): Any? {
+    override suspend fun interceptSuspendCall(context: CallContext): Any? {
         if (isSetup) throw ConcurrentTemplatingException()
-        val argsList = args.toList()
-        return find(name, returnType, argsList).callSuspend(FunctionScope(returnType, argsList.map { it.value }))
+        return findAnswerFor(context).callSuspend(context.toFunctionScope())
     }
 
-    private fun find(signature: String, returnType: KClass<*>, args: List<CallArg>): Answer<*> {
-        val trace = CallTrace(receiver, signature, args, 0)
+    private fun findAnswerFor(context: CallContext): Answer<*> {
+        val trace = CallTrace(context.receiver, context.signature, context.args, 0)
         val answers = this.answers
         return answers
             .keys
             .findLast { trace matches it }
             ?.let { answers.getValue(it) }
-            ?: handleMissingAnswer(trace, returnType)
+            ?: handleMissingAnswer(trace, context.returnType)
     }
 
     private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): Answer<*> = when {
@@ -69,4 +67,6 @@ private class AnsweringInterceptorImpl(
         mockMode == MockMode.autoUnit && returnType == Unit::class -> Answer.Const(Unit)
         else -> throw CallNotMockedException(trace.toString())
     }
+
+    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value))
 }
