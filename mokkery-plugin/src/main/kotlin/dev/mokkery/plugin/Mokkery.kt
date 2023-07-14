@@ -34,6 +34,7 @@ object Mokkery {
 
         val MokkerySpy by dev_mokkery_internal.klass
         val MokkerySpyScope by dev_mokkery_internal.klass
+        val CallContext by dev_mokkery_internal.klass
 
         val CallArg by dev_mokkery_internal_tracing.klass
 

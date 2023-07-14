@@ -84,7 +84,7 @@ class MockCallsTransformer(
                 constructor.addValueParameter("mode", irClasses.MockMode.defaultType)
                 constructor.addValueParameter("block", context.irBuiltIns.functionN(1).defaultTypeErased)
                 irCall(irFunctions.MokkeryMock).apply {
-                    putValueArgument(1, irGet(constructor.valueParameters[0]))
+                    putValueArgument(0, irGet(constructor.valueParameters[0]))
                 }
             },
             block = { +irInvokeIfNotNull(irGet(it.valueParameters[1]), irGet(newClass.thisReceiver!!)) }

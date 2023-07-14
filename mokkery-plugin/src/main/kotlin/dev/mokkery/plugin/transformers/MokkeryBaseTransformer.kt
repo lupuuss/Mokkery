@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.transformers
 
+import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.ext.addOverridingMethod
 import dev.mokkery.plugin.ext.firstFunction
@@ -23,7 +24,6 @@ import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irBoolean
@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
+import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
@@ -76,6 +77,9 @@ abstract class MokkeryBaseTransformer(
         } else {
             irCall(irClasses.MokkeryInterceptor.symbol.functionByName("interceptCall"))
         }
+        val idCall = irCall(irClasses.MokkeryInterceptorScope.getPropertyGetter("id")!!).apply {
+            dispatchReceiver = thisParam
+        }
         mokkeryCall.dispatchReceiver = irClasses
             .MokkeryInterceptorScope
             .getPropertyGetter("interceptor")!!
@@ -83,12 +87,13 @@ abstract class MokkeryBaseTransformer(
             .apply {
                 dispatchReceiver = thisParam
             }
-        mokkeryCall.putValueArgument(0, irString(function.name.asString()))
-        mokkeryCall.putValueArgument(
-            index = 1,
-            valueArgument = kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext))
-        )
-        mokkeryCall.putValueArgument(2, irCallArgVarargParams(function.fullValueParameterList))
+        val contextCreationCall = irCall(irClasses.CallContext.primaryConstructor!!).apply {
+            putValueArgument(0, idCall)
+            putValueArgument(1, irString(function.name.asString()))
+            putValueArgument(2, kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext)))
+            putValueArgument(3, irCallListOf(irCallArgVarargParams(function.fullValueParameterList)))
+        }
+        mokkeryCall.putValueArgument(0, contextCreationCall)
         return mokkeryCall
     }
 
@@ -108,11 +113,9 @@ abstract class MokkeryBaseTransformer(
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
                 +irDelegatingDefaultConstructorOrAny(classToMock)
                 val identifierCall = irCallMokkeryClassIdentifier(pluginContext, mockClass, classToMock)
-                val id = createTmpVariable(identifierCall)
                 val initializerCall = interceptorInit(this@apply)
-                initializerCall.putValueArgument(0, irGet(id))
                 +irSetField(irGet(thisReceiver!!), interceptor.backingField!!, initializerCall)
-                +irSetField(irGet(thisReceiver!!), idProperty.backingField!!, irGet(id))
+                +irSetField(irGet(thisReceiver!!), idProperty.backingField!!, identifierCall)
                 block(this@apply)
             }
         }
@@ -166,6 +169,15 @@ abstract class MokkeryBaseTransformer(
         )
     }
 
+    private fun IrBuilderWithScope.irCallListOf(varargExpression: IrVararg): IrCall {
+        val listOf = pluginContext.referenceFunctions(Kotlin.FunctionId.listOf).first {
+            it.owner.valueParameters.firstOrNull()?.isVararg == true
+        }
+        return irCall(listOf).apply {
+            putValueArgument(0, varargExpression)
+        }
+    }
+
     private fun IrBuilderWithScope.irCallMokkeryClassIdentifier(
         pluginContext: IrPluginContext,
         mockClass: IrClass,
@@ -192,6 +204,7 @@ abstract class MokkeryBaseTransformer(
 
         val MockMode = pluginContext.getClass(Mokkery.ClassId.MockMode)
         val CallArg = pluginContext.getClass(Mokkery.ClassId.CallArg)
+        val CallContext = pluginContext.getClass(Mokkery.ClassId.CallContext)
     }
 
     inner class IrFunctions {

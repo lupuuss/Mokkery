@@ -9,9 +9,11 @@ import org.jetbrains.kotlin.name.Name
 object Kotlin {
 
     val kotlin_text by fqName
+    val kotlin_collections by fqName
 
     object FunctionId {
 
         val toString by kotlin_text.function
+        val listOf by kotlin_collections.function
     }
 }
