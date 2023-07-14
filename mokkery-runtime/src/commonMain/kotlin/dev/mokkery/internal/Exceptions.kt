@@ -35,3 +35,7 @@ internal class MultipleMatchersForSingleArgException(name: String, matchers: Lis
 internal class VarargsAmbiguityDetectedException : MokkeryRuntimeException(
     "Varargs matchers registered in a ambiguous way. Pleas read the documentation how to avoid varargs ambiguity or report an issue."
 )
+
+internal class NoMoreSequentialAnswersException : MokkeryRuntimeException(
+    "No more sequentially defined answers!"
+)
