@@ -9,9 +9,13 @@ public object CollectionArgMatchers {
 
     public data class ValueInIterable<T>(val iterable: Iterable<T>): ArgMatcher<T> {
         override fun matches(arg: T): Boolean = arg in iterable
+
+        override fun toString(): String = "isIn(${iterable.joinToString()})"
     }
 
     public data class ValueNotInIterable<T>(val iterable: Iterable<T>): ArgMatcher<T> {
         override fun matches(arg: T): Boolean = arg !in iterable
+
+        override fun toString(): String = "isNotIn(${iterable.joinToString()})"
     }
 }

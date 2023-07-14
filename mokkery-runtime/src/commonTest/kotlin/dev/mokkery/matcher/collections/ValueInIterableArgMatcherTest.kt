@@ -1,6 +1,7 @@
 package dev.mokkery.matcher.collections
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -21,5 +22,10 @@ class ValueInIterableArgMatcherTest {
         assertFalse(matcher.matches(0))
         assertFalse(matcher.matches(4))
         assertFalse(matcher.matches(5))
+    }
+
+    @Test
+    fun testToStringReturnsCorrectDescription() {
+        assertEquals("isIn(1, 2, 3)", matcher.toString())
     }
 }
