@@ -8,7 +8,8 @@ class FunctionScopeTest {
 
     private val scope = FunctionScope(
         Int::class,
-        listOf(1, "2", 2.0)
+        listOf(1, "2", 2.0),
+        Unit
     )
 
     @Test
@@ -21,8 +22,21 @@ class FunctionScopeTest {
 
     @Test
     fun testEquality() {
-        assertEquals(FunctionScope(Int::class, listOf(1, 2, 3)), FunctionScope(Int::class, listOf(1, 2, 3)))
-        assertNotEquals(FunctionScope(String::class, listOf(1, 2, 3)), FunctionScope(Int::class, listOf(1, 2, 3)))
-        assertNotEquals(FunctionScope(Int::class, listOf(2, 3)), FunctionScope(Int::class, listOf(1, 2, 3)))
+        assertEquals(
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit)
+        )
+        assertNotEquals(
+            FunctionScope(String::class, listOf(1, 2, 3), Unit),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit)
+        )
+        assertNotEquals(
+            FunctionScope(Int::class, listOf(2, 3), Unit),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit)
+        )
+        assertNotEquals(
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit),
+            FunctionScope(Int::class, listOf(1, 2, 3), 1)
+        )
     }
 }

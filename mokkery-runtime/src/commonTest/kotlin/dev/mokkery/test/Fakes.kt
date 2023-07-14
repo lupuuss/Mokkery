@@ -5,8 +5,10 @@ import kotlin.reflect.KClass
 
 fun fakeFunctionScope(
     returnType: KClass<*> = Unit::class,
+    self: Any? = Unit,
     vararg args: Any?
 ) = FunctionScope(
     returnType = returnType,
-    args = args.toList()
+    args = args.toList(),
+    self = self,
 )

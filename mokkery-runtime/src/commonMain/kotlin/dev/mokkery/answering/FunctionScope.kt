@@ -8,10 +8,20 @@ import kotlin.reflect.KClass
  */
 public class FunctionScope(
     public val returnType: KClass<*>,
-    public val args: List<Any?>
+    public val args: List<Any?>,
+    public val self: Any?,
 ) {
+    public operator fun <T> component1(): T = args[0].unsafeCast()
+    public operator fun <T> component2(): T = args[1].unsafeCast()
+    public operator fun <T> component3(): T = args[2].unsafeCast()
+    public operator fun <T> component4(): T = args[3].unsafeCast()
+    public operator fun <T> component5(): T = args[4].unsafeCast()
+    public operator fun <T> component6(): T = args[5].unsafeCast()
+    public operator fun <T> component7(): T = args[6].unsafeCast()
 
-    override fun toString(): String = "FunctionScope(returnType=$returnType, args=$args)"
+    public inline fun <reified T> self(): T = self as T
+
+    override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -20,20 +30,14 @@ public class FunctionScope(
         other as FunctionScope
 
         if (returnType != other.returnType) return false
-        return args == other.args
+        if (args != other.args) return false
+        return self == other.self
     }
 
     override fun hashCode(): Int {
         var result = returnType.hashCode()
         result = 31 * result + args.hashCode()
+        result = 31 * result + (self?.hashCode() ?: 0)
         return result
     }
-
-    public operator fun <T> component1(): T = args[0].unsafeCast()
-    public operator fun <T> component2(): T = args[1].unsafeCast()
-    public operator fun <T> component3(): T = args[2].unsafeCast()
-    public operator fun <T> component4(): T = args[3].unsafeCast()
-    public operator fun <T> component5(): T = args[4].unsafeCast()
-    public operator fun <T> component6(): T = args[5].unsafeCast()
-    public operator fun <T> component7(): T = args[6].unsafeCast()
 }

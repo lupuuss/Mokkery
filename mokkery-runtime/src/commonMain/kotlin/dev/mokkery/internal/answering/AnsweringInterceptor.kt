@@ -68,5 +68,5 @@ private class AnsweringInterceptorImpl(
         else -> throw CallNotMockedException(trace.toString())
     }
 
-    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value))
+    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value), self)
 }
