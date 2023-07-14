@@ -46,6 +46,6 @@ private class CallTracingInterceptorImpl(
         return MokkeryToken.CALL_NEXT
     }
 
-    private fun CallContext.toTrace() = CallTrace(thisRef.id, name, args, clock.nextStamp())
+    private fun CallContext.toTrace() = CallTrace(self.id, name, args, clock.nextStamp())
 
 }
