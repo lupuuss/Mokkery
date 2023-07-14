@@ -1,9 +1,9 @@
 package dev.mokkery.answering
 
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import dev.mokkery.internal.answering.autofillValue
-import kotlin.reflect.KClass
 
 /**
  * An answer for a function call. For blocking answers only [call] implementation is required. For suspending answers
@@ -37,28 +37,28 @@ public interface Answer<out T> {
     /**
      * Returns [value] on [call] and [callSuspend].
      */
-    public class Const<T>(private val value: T) : Answer<T> {
+    public data class Const<T>(val value: T) : Answer<T> {
         override fun call(scope: FunctionScope): T = value
     }
 
     /**
      * Calls [block] on [call] and [callSuspend].
      */
-    public class Block<T>(private val block: (FunctionScope) -> T) : Answer<T> {
+    public data class Block<T>(val block: (FunctionScope) -> T) : Answer<T> {
         override fun call(scope: FunctionScope): T = block(scope)
     }
 
     /**
      * Throws [throwable] on [call] and [callSuspend]
      */
-    public class Throws(private val throwable: Throwable) : Answer<Nothing> {
+    public data class Throws(val throwable: Throwable) : Answer<Nothing> {
         override fun call(scope: FunctionScope): Nothing = throw throwable
     }
 
     /**
      * Just like [Block] but for suspending functions.
      */
-    public class BlockSuspend<T>(private val block: suspend (FunctionScope) -> T) : Suspending<T> {
+    public data class BlockSuspend<T>(val block: suspend (FunctionScope) -> T) : Suspending<T> {
 
         override suspend fun callSuspend(scope: FunctionScope): T {
             return block(scope)
@@ -70,6 +70,50 @@ public interface Answer<out T> {
      */
     public object Autofill : Answer<Any?> {
         override fun call(scope: FunctionScope): Any? = autofillValue(scope.returnType)
+    }
+
+    /**
+     * Interface for every answer that have to be called in repeat when specified in [sequentially].
+     */
+    public interface Sequential<T> : Answer<T> {
+
+        /**
+         * Returns true if answer should be called again.
+         */
+        public fun hasNext(): Boolean
+    }
+
+    /**
+     * Returns results of answers from [iterator] until empty. It supports nested [Sequential] answers and calls
+     * them until they are empty.
+     */
+    public data class SequentialByIterator<T>(val iterator: Iterator<Answer<T>>) : Sequential<T> {
+
+        private var nestedSequential: Sequential<T>? = null
+
+        override fun hasNext(): Boolean = iterator.hasNext()
+
+        override fun call(scope: FunctionScope): T = getCurrent().call(scope)
+
+        override suspend fun callSuspend(scope: FunctionScope): T = getCurrent().callSuspend(scope)
+
+        private fun getCurrent(): Answer<T> {
+            val nested = nestedSequential
+            if (nested != null) {
+                if (nested.hasNext()) return nested
+                nestedSequential = null
+            }
+            return switchToNext()
+        }
+
+        private fun switchToNext(): Answer<T> {
+            if (!iterator.hasNext()) throw NoMoreSequentialAnswersException()
+            val next = iterator.next()
+            if (next is Sequential<T>) {
+                nestedSequential = next
+            }
+            return next
+        }
     }
 
 }
