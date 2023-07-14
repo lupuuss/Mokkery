@@ -11,7 +11,7 @@ public class FunctionScope(
     public val args: List<Any?>
 ) {
 
-    override fun toString(): String = args.toString()
+    override fun toString(): String = "FunctionScope(returnType=$returnType, args=$args)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -19,11 +19,14 @@ public class FunctionScope(
 
         other as FunctionScope
 
+        if (returnType != other.returnType) return false
         return args == other.args
     }
 
     override fun hashCode(): Int {
-        return args.hashCode()
+        var result = returnType.hashCode()
+        result = 31 * result + args.hashCode()
+        return result
     }
 
     public operator fun <T> component1(): T = args[0].unsafeCast()
