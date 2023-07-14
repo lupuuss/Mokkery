@@ -7,13 +7,13 @@ import kotlin.test.assertTrue
 
 class MatchingArgMatcherTest {
 
-    private var predicateArg: String? = null
+    private var capturedArg: String? = null
     private var predicateResult = false
     private var toStringResult = "customMatcher()"
     private val matcher = ArgMatcher.Matching<String>(
         toStringFun = { toStringResult },
         predicate = {
-            predicateArg = it
+            capturedArg = it
             predicateResult
         },
     )
@@ -21,9 +21,9 @@ class MatchingArgMatcherTest {
     @Test
     fun testCallsPredicateWithGivenArg() {
         matcher.matches("1")
-        assertEquals("1", predicateArg)
+        assertEquals("1", capturedArg)
         matcher.matches("2")
-        assertEquals("2", predicateArg)
+        assertEquals("2", capturedArg)
     }
 
     @Test
