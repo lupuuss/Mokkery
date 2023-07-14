@@ -14,37 +14,37 @@ public fun interface ArgMatcher<in T> {
         override fun toString(): String = "any()"
     }
 
-    public data class Equals<T>(private val value: T) : ArgMatcher<T> {
+    public data class Equals<T>(val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
         override fun toString(): String = value.toString()
     }
 
-    public data class NotEqual<T>(private val value: T) : ArgMatcher<T> {
+    public data class NotEqual<T>(val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
         override fun toString(): String = "notEq($value)"
     }
 
-    public data class EqualsRef<T>(private val value: T) : ArgMatcher<T> {
+    public data class EqualsRef<T>(val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg === value
 
         override fun toString(): String = "eqRef($value)"
     }
 
-    public data class NotEqualRef<T>(private val value: T) : ArgMatcher<T> {
+    public data class NotEqualRef<T>(val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg !== value
 
         override fun toString(): String = "noEqRef($value)"
     }
 
-    public class Matching<T>(
-        private val predicate: (T) -> Boolean,
-        private val toStringFun: (() -> String)
+    public data class Matching<T>(
+        val predicate: (T) -> Boolean,
+        val toStringFun: (() -> String)
     ) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = predicate(arg)
@@ -52,9 +52,9 @@ public fun interface ArgMatcher<in T> {
         override fun toString(): String = toStringFun()
     }
 
-    public class Comparing<T>(
-        private val value: T,
-        private val type: Type,
+    public data class Comparing<T>(
+        val value: T,
+        val type: Type,
     ) : ArgMatcher<T> where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
