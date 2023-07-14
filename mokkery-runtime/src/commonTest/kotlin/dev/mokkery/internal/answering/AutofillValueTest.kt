@@ -10,7 +10,7 @@ class AutofillValueTest {
 
     @Test
     fun testCallReturnsFromAutofillMapping() {
-        autoFillMapping.forEach { (type, value) ->
+        autofillMapping.forEach { (type, value) ->
             assertEquals(value, autofillValue(type))
         }
     }

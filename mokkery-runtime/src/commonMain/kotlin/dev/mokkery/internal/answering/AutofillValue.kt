@@ -10,12 +10,12 @@ internal fun <T> autofillValue(returnType: KClass<*>): T {
     return if (Nothing::class == returnType) {
         throw DefaultNothingException()
     } else {
-        autoFillMapping[returnType].unsafeCast()
+        autofillMapping[returnType].unsafeCast()
     }
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-internal val autoFillMapping = mapOf(
+internal val autofillMapping = mapOf(
     Byte::class to 0.toByte(),
     UByte::class to 0u.toUByte(),
     Char::class to '0',

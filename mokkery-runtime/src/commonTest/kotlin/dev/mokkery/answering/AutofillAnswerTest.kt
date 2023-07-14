@@ -1,7 +1,7 @@
 package dev.mokkery.answering
 
 import dev.mokkery.internal.DefaultNothingException
-import dev.mokkery.internal.answering.autoFillMapping
+import dev.mokkery.internal.answering.autofillMapping
 import dev.mokkery.test.fakeFunctionScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -15,7 +15,7 @@ class AutofillAnswerTest {
 
     @Test
     fun testCallReturnsFromAutofillMapping() {
-        autoFillMapping.forEach { (type, value) ->
+        autofillMapping.forEach { (type, value) ->
             assertEquals(value, answer.call(fakeFunctionScope(type)))
         }
     }
@@ -35,7 +35,7 @@ class AutofillAnswerTest {
 
     @Test
     fun testCallSuspendReturnsFromAutofillMapping() = runTest {
-        autoFillMapping.forEach { (type, value) ->
+        autofillMapping.forEach { (type, value) ->
             assertEquals(value, answer.callSuspend(fakeFunctionScope(type)))
         }
     }
