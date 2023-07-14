@@ -6,7 +6,6 @@ import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.coroutines.runSuspension
-import dev.mokkery.internal.matcher.ArgMatchersScope
 import dev.mokkery.internal.templating.TemplatingScope
 import dev.mokkery.matcher.ArgMatchersScope
 
@@ -19,7 +18,7 @@ internal fun <T> internalEvery(
     scope: TemplatingScope,
     block: ArgMatchersScope.() -> T
 ): BlockingAnsweringScope<T> {
-    val result = runCatching { block(ArgMatchersScope(scope)) }
+    val result = runCatching { block(scope) }
     val exception = result.exceptionOrNull()
     if  (exception != null && exception !is DefaultNothingException) {
         scope.release()

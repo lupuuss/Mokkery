@@ -1,27 +1,30 @@
 package dev.mokkery.internal.templating
 
+import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
+import dev.mokkery.internal.answering.autofillValue
 import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.generateSignature
 import dev.mokkery.internal.matcher.MergedVarArgMatcher
 import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.varargs.VarArgMatcher
+import kotlin.reflect.KClass
 
-internal interface TemplatingScope {
+internal interface TemplatingScope : ArgMatchersScope {
 
     val spies: Set<MokkerySpyScope>
     val templates: List<CallTemplate>
 
     fun <T> ensureBinding(obj: T): T
-
-    fun registerMatcher(matcher: ArgMatcher<Any?>)
 
     fun interceptArg(name: String, arg: Any?): Any?
 
@@ -63,11 +66,13 @@ private class TemplatingScopeImpl: TemplatingScope {
         spies.clear()
     }
 
-    override fun registerMatcher(matcher: ArgMatcher<Any?>) {
+    @DelicateMokkeryApi
+    override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
         if (matcher is VarArgMatcher<*>) {
             varargGenericMatcherFlag = true
         }
-        currentMatchers.add(matcher)
+        currentMatchers.add(matcher.unsafeCast())
+        return autofillValue(argType)
     }
 
     override fun interceptVarargElement(arg: Any?): Any? {
