@@ -43,8 +43,8 @@ private class TemplatingScopeImpl(
     private val signatureGenerator: SignatureGenerator,
 ): TemplatingScope {
 
-    private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
-    private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()
+    private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
+    private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>>>()
     private var varargGenericMatcherFlag = false
     private var varargsMatchersCount = 0
     override val spies = mutableSetOf<MokkerySpyScope>()
@@ -80,7 +80,12 @@ private class TemplatingScopeImpl(
     }
 
     override fun interceptVarargElement(arg: Any?, isSpread: Boolean): Any? {
-        val size = arg.toListOrNull()?.size ?: 1
+        val args = if (isSpread) {
+            arg.toListOrNull() ?: error("Expected array for spread operator, but $arg encountered!")
+        } else {
+            listOf(arg)
+        }
+        val size = args.size
         val elementMatchersSize = currentMatchers.subListAfter(varargsMatchersCount).size
         if (varargGenericMatcherFlag) {
             varargGenericMatcherFlag = false
@@ -89,9 +94,9 @@ private class TemplatingScopeImpl(
             return arg
         }
         if (elementMatchersSize != 0 && elementMatchersSize != size) throw VarargsAmbiguityDetectedException()
-        for (index in 0 until size) {
+        args.forEachIndexed { index, vararg ->
             val matcher = currentMatchers.getOrNull(varargsMatchersCount + index)
-            if (matcher == null) currentMatchers.add(null)
+            if (matcher == null) currentMatchers.add(ArgMatcher.Equals(vararg))
         }
         varargsMatchersCount += size
         return arg
@@ -121,17 +126,16 @@ private class TemplatingScopeImpl(
         }
     }
 
-    private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>?>): ArgMatcher<Any?> {
-        val varArgs = arg.value.toListOrNull() ?: error("Unexpected vararg param!")
+    private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
         val before = mutableListOf<ArgMatcher<Any?>>()
         var wildcardMatcher: VarArgMatcher? = null
         val after = mutableListOf<ArgMatcher<Any?>>()
-        matchers.forEachIndexed { index, matcher ->
+        matchers.forEach {  matcher ->
             when {
                 wildcardMatcher != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
                 matcher is VarArgMatcher -> wildcardMatcher = matcher
-                wildcardMatcher != null -> after.add(matcher ?: ArgMatcher.Equals(varArgs[index - 1]))
-                else -> before.add(matcher ?: ArgMatcher.Equals(varArgs[index]))
+                wildcardMatcher != null -> after.add(matcher)
+                else -> before.add(matcher)
             }
         }
         return MergedVarArgMatcher(arg.arrayElementType(), before, wildcardMatcher, after)
