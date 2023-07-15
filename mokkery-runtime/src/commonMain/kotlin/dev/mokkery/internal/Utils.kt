@@ -1,17 +1,13 @@
 package dev.mokkery.internal
 
 import dev.mokkery.internal.tracing.CallArg
+import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @PublishedApi
 internal inline fun <T> Any?.unsafeCast(): T = this as T
 
 internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-
-internal fun generateSignature(
-    name: String,
-    args: List<CallArg>
-): String = "$name(${args.joinToString { "${it.name}: ${it.type.simpleName}" }})"
 
 internal fun callToString(
     receiver: String,
@@ -30,3 +26,5 @@ internal fun <T> List<T>.subListAfter(index: Int): List<T> {
     if (index >= size) return emptyList()
     return subList(index, size)
 }
+
+internal expect fun KClass<*>.bestName(): String

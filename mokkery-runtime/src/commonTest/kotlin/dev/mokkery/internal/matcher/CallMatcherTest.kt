@@ -1,6 +1,7 @@
 package dev.mokkery.internal.matcher
 
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.test.TestSignatureGenerator
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -10,14 +11,19 @@ import kotlin.test.assertTrue
 
 class CallMatcherTest {
 
-    private val matcher = CallMatcher()
+    private val generator = TestSignatureGenerator()
+    private val matcher = CallMatcher(generator)
+
+    init {
+        generator.returns("call(i: kotlin.Int)")
+    }
 
     @Test
     fun testReturnsTrueForFullyMatchingCall() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1)
             )
@@ -35,7 +41,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1)
             )
@@ -43,7 +49,7 @@ class CallMatcherTest {
         val call = fakeCallTrace(
             receiver = "mock@1",
             name = "calle",
-            args = listOf(fakeCallArg(name = "i", value = 1))
+            args = listOf(fakeCallArg(name = "j", value = 1))
         )
         assertFalse(matcher.matches(call, template))
     }
@@ -53,7 +59,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int, j: Int)",
+            signature = "call(i: kotlin.Int, j: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1)
             )
@@ -71,7 +77,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1)
             )
@@ -89,7 +95,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1)
             )
@@ -107,7 +113,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(2)
             )
@@ -125,7 +131,7 @@ class CallMatcherTest {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
-            signature = "call(i: Int)",
+            signature = "call(i: kotlin.Int)",
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(2)
             )

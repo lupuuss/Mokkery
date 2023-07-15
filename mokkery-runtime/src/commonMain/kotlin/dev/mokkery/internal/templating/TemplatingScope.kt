@@ -8,8 +8,8 @@ import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.answering.autofillValue
 import dev.mokkery.internal.arrayElementType
-import dev.mokkery.internal.generateSignature
 import dev.mokkery.internal.matcher.MergedVarArgMatcher
+import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
@@ -35,9 +35,13 @@ internal interface TemplatingScope : ArgMatchersScope {
     fun release()
 }
 
-internal fun TemplatingScope(): TemplatingScope = TemplatingScopeImpl()
+internal fun TemplatingScope(
+    signatureGenerator: SignatureGenerator = SignatureGenerator()
+): TemplatingScope = TemplatingScopeImpl(signatureGenerator)
 
-private class TemplatingScopeImpl: TemplatingScope {
+private class TemplatingScopeImpl(
+    private val signatureGenerator: SignatureGenerator,
+): TemplatingScope {
 
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>?>()
     private val matchers = mutableMapOf<String, List<ArgMatcher<Any?>?>>()
@@ -101,7 +105,7 @@ private class TemplatingScopeImpl: TemplatingScope {
 
     override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
         val matchers = flush(args)
-        templates += CallTemplate(receiver, name, generateSignature(name, args), matchers.toMap())
+        templates += CallTemplate(receiver, name, signatureGenerator.generate(name, args), matchers.toMap())
     }
 
     private fun flush(args: List<CallArg>): List<Pair<String, ArgMatcher<Any?>>> {

@@ -7,8 +7,8 @@ import dev.mokkery.internal.tracing.CallTrace
 internal class TestCallMatcher(
     var calls: (trace: CallTrace, template: CallTemplate) -> Boolean = { _, _ -> false }
 ): CallMatcher {
-    private val _calls = mutableListOf<Pair<CallTrace, CallTemplate>>()
-    val recordedCalls: List<Pair<CallTrace, CallTemplate>> = _calls
+    private val _recordedCalls = mutableListOf<Pair<CallTrace, CallTemplate>>()
+    val recordedCalls: List<Pair<CallTrace, CallTemplate>> = _recordedCalls
 
     fun returns(value: Boolean) {
         calls = { _, _ -> value }
@@ -20,7 +20,7 @@ internal class TestCallMatcher(
     }
 
     override fun matches(trace: CallTrace, template: CallTemplate): Boolean {
-        _calls.add(trace to template)
+        _recordedCalls.add(trace to template)
         return calls(trace, template)
     }
 }
