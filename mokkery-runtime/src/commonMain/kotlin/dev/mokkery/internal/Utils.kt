@@ -13,6 +13,19 @@ internal fun generateSignature(
     args: List<CallArg>
 ): String = "$name(${args.joinToString { "${it.name}: ${it.type.simpleName}" }})"
 
+internal fun callToString(
+    receiver: String,
+    name: String,
+    args: List<CallArg>,
+) = buildString {
+    append(receiver)
+    append(".")
+    append(name)
+    append("(")
+    append(args.joinToString { "${it.name} = ${it.value.toListOrNull() ?: it.value}" })
+    append(")")
+}
+
 internal fun <T> List<T>.subListAfter(index: Int): List<T> {
     if (index >= size) return emptyList()
     return subList(index, size)

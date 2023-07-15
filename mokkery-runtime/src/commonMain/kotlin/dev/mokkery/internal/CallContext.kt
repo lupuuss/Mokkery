@@ -8,4 +8,7 @@ internal data class CallContext(
     val name: String,
     val returnType: KClass<*>,
     val args: List<CallArg>
-)
+) {
+
+    override fun toString() = callToString(self.id, name, args)
+}
