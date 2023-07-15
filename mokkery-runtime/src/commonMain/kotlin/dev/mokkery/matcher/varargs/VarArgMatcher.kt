@@ -8,7 +8,7 @@ import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 /**
- * Checks if given vararg argument satisfies provided conditions.
+ * Wildcard vararg matcher that checks a subset of varargs. It can occur only once.
  */
 public interface VarArgMatcher : ArgMatcher<Any?> {
 
