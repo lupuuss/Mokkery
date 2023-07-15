@@ -7,6 +7,7 @@ import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
+import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
@@ -21,12 +22,13 @@ internal interface AnsweringInterceptor : MokkeryInterceptor {
     fun reset()
 }
 
-internal fun AnsweringInterceptor(mockMode: MockMode): AnsweringInterceptor {
-    return AnsweringInterceptorImpl(mockMode)
+internal fun AnsweringInterceptor(mockMode: MockMode, callMatcher: CallMatcher = CallMatcher()): AnsweringInterceptor {
+    return AnsweringInterceptorImpl(mockMode, callMatcher)
 }
 
 private class AnsweringInterceptorImpl(
     private val mockMode: MockMode,
+    private val callMatcher: CallMatcher,
 ) : AnsweringInterceptor {
 
     private var isSetup by atomic(false)
@@ -57,7 +59,7 @@ private class AnsweringInterceptorImpl(
         val answers = this.answers
         return answers
             .keys
-            .findLast { trace matches it }
+            .findLast { callMatcher.matches(trace, it) }
             ?.let { answers.getValue(it) }
             ?: handleMissingAnswer(trace, context.returnType)
     }
