@@ -1,7 +1,10 @@
 package dev.mokkery.test
 
 import dev.mokkery.answering.FunctionScope
+import dev.mokkery.internal.CallContext
+import dev.mokkery.internal.MokkeryInterceptorScope
 import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
@@ -16,13 +19,30 @@ fun fakeFunctionScope(
 )
 
 internal fun fakeCallTemplate(
-    receiver: String = "Receiver",
+    receiver: String = "mock@1",
     name: String = "call",
-    signature: String = "call(i: Int)",
-    matchers: Map<String, ArgMatcher<Any?>> = mapOf("i" to ArgMatcher.Equals(1)),
+    signature: String = "call()",
+    matchers: Map<String, ArgMatcher<Any?>> = emptyMap(),
 ) = CallTemplate(
     receiver = receiver,
     name = name,
     signature = signature,
     matchers = matchers,
+)
+
+internal inline fun <reified T> fakeCallArg(
+    value: T,
+    name: String = "arg",
+    isVararg: Boolean = false
+) = CallArg(name, T::class, value, isVararg = isVararg)
+
+internal inline fun <reified T> fakeCallContext(
+    selfId: String = "mock@1",
+    name: String = "call",
+    args: List<CallArg> = emptyList()
+) = CallContext(
+    self = TestMokkeryInterceptorScope(selfId),
+    name = name,
+    returnType = T::class,
+    args = args
 )
