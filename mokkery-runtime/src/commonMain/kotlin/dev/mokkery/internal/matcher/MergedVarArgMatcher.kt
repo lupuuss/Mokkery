@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 internal class MergedVarArgMatcher(
     private val type: KClass<*>,
     private val before: List<ArgMatcher<Any?>> = emptyList(),
-    private val wildCard: VarArgMatcher<Any?>? = null,
+    private val wildCard: VarArgMatcher? = null,
     private val after: List<ArgMatcher<Any?>> = emptyList()
 ) : ArgMatcher<Any?> {
 

@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 /**
  * Checks if given vararg argument satisfies provided conditions.
  */
-public interface VarArgMatcher<T> : ArgMatcher<T> {
+public interface VarArgMatcher : ArgMatcher<Any?> {
 
 
     /**
@@ -21,7 +21,7 @@ public interface VarArgMatcher<T> : ArgMatcher<T> {
     public class AllThat(
         private val type: KClass<*>,
         private val predicate: (Any?) -> Boolean
-    ) : VarArgMatcher<Any?> {
+    ) : VarArgMatcher {
         override fun matches(arg: Any?): Boolean {
             val arrayAsList = arg.toListOrNull() ?: return false
             return arrayAsList.all(predicate)
@@ -37,7 +37,7 @@ public interface VarArgMatcher<T> : ArgMatcher<T> {
     @DelicateMokkeryApi
     public class AnyOf(
         private val type: KClass<*>,
-    ) : VarArgMatcher<Any?> {
+    ) : VarArgMatcher {
         override fun matches(arg: Any?): Boolean = true
 
         override fun toString(): String = "any${varargNameByElementType(type).capitalize()}()"

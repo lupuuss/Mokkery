@@ -72,7 +72,7 @@ private class TemplatingScopeImpl(
 
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
-        if (matcher is VarArgMatcher<*>) {
+        if (matcher is VarArgMatcher) {
             varargGenericMatcherFlag = true
         }
         currentMatchers.add(matcher.unsafeCast())
@@ -124,12 +124,12 @@ private class TemplatingScopeImpl(
     private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>?>): ArgMatcher<Any?> {
         val varArgs = arg.value.toListOrNull() ?: error("Unexpected vararg param!")
         val before = mutableListOf<ArgMatcher<Any?>>()
-        var wildcardMatcher: VarArgMatcher<Any?>? = null
+        var wildcardMatcher: VarArgMatcher? = null
         val after = mutableListOf<ArgMatcher<Any?>>()
         matchers.forEachIndexed { index, matcher ->
             when {
-                wildcardMatcher != null && matcher is VarArgMatcher<Any?> -> throw MultipleVarargGenericMatchersException()
-                matcher is VarArgMatcher<Any?> -> wildcardMatcher = matcher
+                wildcardMatcher != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
+                matcher is VarArgMatcher -> wildcardMatcher = matcher
                 wildcardMatcher != null -> after.add(matcher ?: ArgMatcher.Equals(varArgs[index - 1]))
                 else -> before.add(matcher ?: ArgMatcher.Equals(varArgs[index]))
             }
