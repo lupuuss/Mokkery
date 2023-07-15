@@ -5,6 +5,7 @@ import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.MokkeryInterceptorScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
@@ -45,4 +46,16 @@ internal inline fun <reified T> fakeCallContext(
     name = name,
     returnType = T::class,
     args = args
+)
+
+internal fun fakeCallTrace(
+    receiver: String = "mock@1",
+    name: String = "call",
+    args: List<CallArg> = emptyList(),
+    orderStamp: Long = 0
+) = CallTrace(
+    receiver = receiver,
+    name = name,
+    args = args,
+    orderStamp = orderStamp,
 )
