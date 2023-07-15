@@ -7,7 +7,7 @@ import dev.mokkery.internal.tracing.CallTrace
 internal class ExhaustiveSoftVerifier(private val callMatcher: CallMatcher = CallMatcher()) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
-        val unverifiedTracks = callTraces.sortedBy { it.orderStamp }.toMutableList()
+        val unverifiedTracks = callTraces.toMutableList()
         callTemplates.forEach { template ->
             val matchingCalls = callTraces.filter { callMatcher.matches(it, template) }
             if (matchingCalls.isEmpty()) {
