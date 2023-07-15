@@ -22,7 +22,7 @@ internal class TestTemplatingScope(
 
     override fun interceptArg(name: String, arg: Any?): Any =  pluginMethodError()
 
-    override fun interceptVarargElement(arg: Any?): Any? = pluginMethodError()
+    override fun interceptVarargElement(arg: Any?, isSpread: Boolean): Any = pluginMethodError()
 
     override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
         _recordedSaveCalls.add(TemplateParams(receiver, name, args))

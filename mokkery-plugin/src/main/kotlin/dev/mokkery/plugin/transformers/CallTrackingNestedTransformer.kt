@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
+import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irString
@@ -120,17 +121,18 @@ class CallTrackingNestedTransformer(
         if (arg !is IrVararg) return arg
         arg.elements.forEachIndexed { index, element ->
             when (element) {
-                is IrSpreadElement -> element.expression = interceptVarargElement(element.expression)
-                is IrExpression -> arg.putElement(index, interceptVarargElement(element))
+                is IrSpreadElement -> element.expression = interceptVarargElement(element.expression, true)
+                is IrExpression -> arg.putElement(index, interceptVarargElement(element, false))
             }
         }
         return arg
     }
 
-    private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression): IrExpression {
+    private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
             this.dispatchReceiver = irGet(scopeVar)
             putValueArgument(0, expression)
+            putValueArgument(1, irBoolean(isSpread))
         }
     }
 }

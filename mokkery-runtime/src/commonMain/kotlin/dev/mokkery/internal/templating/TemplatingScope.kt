@@ -28,7 +28,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 
     fun interceptArg(name: String, arg: Any?): Any?
 
-    fun interceptVarargElement(arg: Any?): Any?
+    fun interceptVarargElement(arg: Any?, isSpread: Boolean): Any?
 
     fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
 
@@ -79,7 +79,7 @@ private class TemplatingScopeImpl(
         return autofillValue(argType)
     }
 
-    override fun interceptVarargElement(arg: Any?): Any? {
+    override fun interceptVarargElement(arg: Any?, isSpread: Boolean): Any? {
         val size = arg.toListOrNull()?.size ?: 1
         val elementMatchersSize = currentMatchers.subListAfter(varargsMatchersCount).size
         if (varargGenericMatcherFlag) {
