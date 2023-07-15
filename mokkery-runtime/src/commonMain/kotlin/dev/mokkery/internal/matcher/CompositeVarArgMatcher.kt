@@ -1,5 +1,6 @@
 package dev.mokkery.internal.matcher
 
+import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.varargNameByElementType
@@ -7,12 +8,12 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.varargs.VarArgMatcher
 import kotlin.reflect.KClass
 
-internal class MergedVarArgMatcher(
-    private val type: KClass<*>,
-    private val before: List<ArgMatcher<Any?>> = emptyList(),
-    private val wildCard: VarArgMatcher? = null,
-    private val after: List<ArgMatcher<Any?>> = emptyList()
-) : ArgMatcher<Any?> {
+internal data class CompositeVarArgMatcher(
+    val type: KClass<*>,
+    val before: List<ArgMatcher<Any?>> = emptyList(),
+    val wildCard: VarArgMatcher? = null,
+    val after: List<ArgMatcher<Any?>> = emptyList()
+) : ArgMatcher.Composite<Any?> {
 
     override fun matches(arg: Any?): Boolean {
         val arrayAsList = arg.toListOrNull() ?: return false
@@ -24,6 +25,17 @@ internal class MergedVarArgMatcher(
         val rest = arrayAsList.subList(before.size, arrayAsList.size - after.size)
         return wildCard?.matches(rest) ?: rest.isEmpty()
     }
+
+    override fun compose(matcher: ArgMatcher<Any?>): ArgMatcher.Composite<Any?> {
+        return when {
+            wildCard != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
+            matcher is VarArgMatcher -> copy(wildCard = matcher)
+            wildCard != null -> copy(before = listOf(matcher) + before)
+            else ->  copy(after = listOf(matcher) + after)
+        }
+    }
+
+    override fun isFilled(): Boolean = false
 
     override fun toString(): String = buildString {
         when {

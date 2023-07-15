@@ -3,12 +3,9 @@ package dev.mokkery.internal.templating
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
-import dev.mokkery.internal.MultipleMatchersForSingleArgException
-import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.answering.autofillValue
-import dev.mokkery.internal.arrayElementType
-import dev.mokkery.internal.matcher.MergedVarArgMatcher
+import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.toListOrNull
@@ -36,11 +33,13 @@ internal interface TemplatingScope : ArgMatchersScope {
 }
 
 internal fun TemplatingScope(
-    signatureGenerator: SignatureGenerator = SignatureGenerator()
-): TemplatingScope = TemplatingScopeImpl(signatureGenerator)
+    signatureGenerator: SignatureGenerator = SignatureGenerator(),
+    composer: ArgMatchersComposer = ArgMatchersComposer(),
+): TemplatingScope = TemplatingScopeImpl(signatureGenerator, composer)
 
 private class TemplatingScopeImpl(
     private val signatureGenerator: SignatureGenerator,
+    private val composer: ArgMatchersComposer,
 ): TemplatingScope {
 
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
@@ -93,7 +92,7 @@ private class TemplatingScopeImpl(
             varargsMatchersCount++
             return arg
         }
-        if (elementMatchersSize != 0 && elementMatchersSize != size) throw VarargsAmbiguityDetectedException()
+        if (elementMatchersSize != 0 && elementMatchersSize < size) throw VarargsAmbiguityDetectedException()
         args.forEachIndexed { index, vararg ->
             val matcher = currentMatchers.getOrNull(varargsMatchersCount + index)
             if (matcher == null) currentMatchers.add(ArgMatcher.Equals(vararg))
@@ -118,27 +117,8 @@ private class TemplatingScopeImpl(
         clearCurrent()
         return args.map {
             val matchers = matchersSnapshot[it.name].orEmpty()
-            when {
-                !it.isVararg && matchers.size > 1 -> throw MultipleMatchersForSingleArgException(it.name, matchers)
-                !it.isVararg -> it.name to (matchers.singleOrNull() ?: ArgMatcher.Equals(it.value))
-                else -> it.name to varargMatcher(it, matchers)
-            }
+            it.name to composer.compose(it, matchers)
         }
-    }
-
-    private fun varargMatcher(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
-        val before = mutableListOf<ArgMatcher<Any?>>()
-        var wildcardMatcher: VarArgMatcher? = null
-        val after = mutableListOf<ArgMatcher<Any?>>()
-        matchers.forEach {  matcher ->
-            when {
-                wildcardMatcher != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
-                matcher is VarArgMatcher -> wildcardMatcher = matcher
-                wildcardMatcher != null -> after.add(matcher)
-                else -> before.add(matcher)
-            }
-        }
-        return MergedVarArgMatcher(arg.arrayElementType(), before, wildcardMatcher, after)
     }
 
     private fun clearCurrent() {

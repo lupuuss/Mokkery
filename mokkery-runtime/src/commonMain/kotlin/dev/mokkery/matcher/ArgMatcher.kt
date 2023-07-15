@@ -65,4 +65,13 @@ public fun interface ArgMatcher<in T> {
         }
     }
 
+    public interface Composite<T> : ArgMatcher<T> {
+
+        public fun compose(matcher: ArgMatcher<T>): Composite<T>
+
+        public fun isFilled(): Boolean
+
+        public fun assertValid(): Unit = Unit
+    }
+
 }
