@@ -9,8 +9,10 @@ import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
+import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTemplate
+import dev.mokkery.test.fakeCallTrace
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -145,10 +147,25 @@ class AnsweringInterceptorTest {
         answering.setup(template1, Answer.Const(2))
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
-        answering.interceptSuspendCall(fakeCallContext<Int>())
+        val context = fakeCallContext<Int>(
+            selfId = "mock@1",
+            name = "call",
+            args = listOf(fakeCallArg(name = "1", value = 1))
+        )
+        val expectedTrace = fakeCallTrace(
+            receiver = "mock@1",
+            name = "call",
+            args = listOf(fakeCallArg(name = "1", value = 1)),
+            orderStamp = 0
+        )
+        answering.interceptSuspendCall(context)
         assertEquals(
             listOf(template1, template2, template3),
             callMatcher.recordedCalls.map { it.second }
+        )
+        assertEquals(
+            listOf(expectedTrace, expectedTrace, expectedTrace),
+            callMatcher.recordedCalls.map { it.first }
         )
     }
 

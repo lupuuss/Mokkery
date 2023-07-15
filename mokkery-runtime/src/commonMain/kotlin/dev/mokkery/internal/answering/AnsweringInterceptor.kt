@@ -54,7 +54,7 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun findAnswerFor(context: CallContext): Answer<*> {
-        val trace = CallTrace(context.self.id, context.name, context.args, 0)
+        val trace = CallTrace(receiver = context.self.id, name = context.name, args = context.args, orderStamp = 0)
         val answers = this.answers
         return answers
             .keys
