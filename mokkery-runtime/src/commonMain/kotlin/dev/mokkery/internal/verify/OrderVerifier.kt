@@ -1,16 +1,17 @@
 package dev.mokkery.internal.verify
 
+import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.matches
 
-internal object OrderVerifier : Verifier {
+internal class OrderVerifier(private val callMatcher: CallMatcher = CallMatcher()) : Verifier {
+
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
         var currentTraces = callTraces.toMutableList()
         var previousTemplate: CallTemplate? = null
         val verifiedTraces = mutableListOf<CallTrace>()
         callTemplates.forEach { template ->
-            val index = currentTraces.indexOfFirst { it matches template }
+            val index = currentTraces.indexOfFirst { callMatcher.matches(it, template) }
             if (index == -1) {
                 failAssertion(callTraces, callTemplates) {
                     if (previousTemplate == null) {

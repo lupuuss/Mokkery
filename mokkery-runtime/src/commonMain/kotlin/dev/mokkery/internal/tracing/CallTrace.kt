@@ -17,10 +17,3 @@ internal data class CallTrace(
     override fun toString(): String = callToString(receiver, name, args)
 }
 
-internal infix fun CallTrace.matches(template: CallTemplate): Boolean {
-    return receiver == template.receiver &&
-            signature == template.signature &&
-            args.all { arg -> template.matchers[arg.name]?.matches(arg.value) ?: false }
-}
-
-internal infix fun CallTrace.doesNotMatch(template: CallTemplate): Boolean = matches(template).not()

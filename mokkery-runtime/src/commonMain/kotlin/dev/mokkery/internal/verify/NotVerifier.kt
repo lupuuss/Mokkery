@@ -1,17 +1,18 @@
 package dev.mokkery.internal.verify
 
+import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.matches
 
-internal object NotVerifier : Verifier {
+internal class NotVerifier(private val callMatcher: CallMatcher = CallMatcher()) : Verifier {
+
     override fun verify(
         callTraces: List<CallTrace>,
         callTemplates: List<CallTemplate>
     ): List<CallTrace> {
         callTemplates.forEach { template ->
             callTraces.forEach {
-                if (it matches template) {
+                if (callMatcher.matches(it, template)) {
                     failAssertion(callTraces, callTemplates) {
                         "Call of $template was not expected, but it occurred as $it"
                     }

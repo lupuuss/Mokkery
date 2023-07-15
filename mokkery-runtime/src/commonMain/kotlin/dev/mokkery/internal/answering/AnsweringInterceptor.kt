@@ -11,7 +11,6 @@ import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.matches
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 

@@ -10,6 +10,7 @@ import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
 import dev.mokkery.internal.verify.NotVerifier
 import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.internal.verify.SoftVerifier
+import dev.mokkery.internal.verify.Verifier
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.ExhaustiveOrderVerifyMode
 import dev.mokkery.verify.ExhaustiveSoftVerifyMode
@@ -29,6 +30,17 @@ internal fun internalVerify(
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
+    val verifier = when (mode) {
+        OrderVerifyMode -> OrderVerifier()
+        ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier()
+        ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier()
+        NotVerifyMode -> NotVerifier()
+        is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
+    }
+    internalBaseVerify(scope, verifier, block)
+}
+
+internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, block: ArgMatchersScope.() -> Unit) {
     val result = runCatching { block(scope) }
     val exception = result.exceptionOrNull()
     if (exception != null && exception !is DefaultNothingException) {
@@ -41,13 +53,6 @@ internal fun internalVerify(
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
-    val verifier = when (mode) {
-        OrderVerifyMode -> OrderVerifier
-        ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier
-        ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier
-        NotVerifyMode -> NotVerifier
-        is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
-    }
     try {
         verifier.verify(calls, scope.templates).forEach {
             spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)

@@ -1,14 +1,15 @@
 package dev.mokkery.internal.verify
 
+import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.matches
 
-internal object ExhaustiveSoftVerifier : Verifier {
+internal class ExhaustiveSoftVerifier(private val callMatcher: CallMatcher = CallMatcher()) : Verifier {
+
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
         val unverifiedTracks = callTraces.sortedBy { it.orderStamp }.toMutableList()
         callTemplates.forEach { template ->
-            val matchingCalls = callTraces.filter { it matches template }
+            val matchingCalls = callTraces.filter { callMatcher.matches(it, template) }
             if (matchingCalls.isEmpty()) {
                 failAssertion(callTraces, callTemplates) { "No matching call for $template!" }
             }
