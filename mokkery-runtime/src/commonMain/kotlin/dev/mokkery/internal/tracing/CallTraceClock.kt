@@ -2,7 +2,7 @@ package dev.mokkery.internal.tracing
 
 import kotlinx.atomicfu.atomic
 
-internal interface CallTraceClock {
+internal fun interface CallTraceClock {
 
     fun nextStamp(): Long
 

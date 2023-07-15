@@ -18,7 +18,9 @@ internal interface CallTracingInterceptor : MokkeryInterceptor {
     fun markVerified(trace: CallTrace)
 }
 
-internal fun CallTracingInterceptor(clock: CallTraceClock): CallTracingInterceptor = CallTracingInterceptorImpl(clock)
+internal fun CallTracingInterceptor(
+    clock: CallTraceClock = CallTraceClock.current
+): CallTracingInterceptor = CallTracingInterceptorImpl(clock)
 
 private class CallTracingInterceptorImpl(
     private val clock: CallTraceClock,
@@ -30,7 +32,7 @@ private class CallTracingInterceptorImpl(
     private val lock = reentrantLock()
 
     override val unverified: List<CallTrace> get() = lock.withLock { _all - verified.toSet() }
-    override val all: List<CallTrace> = _all
+    override val all: List<CallTrace> get() = _all
 
     override fun reset() = lock.withLock {
         verified = emptyList()

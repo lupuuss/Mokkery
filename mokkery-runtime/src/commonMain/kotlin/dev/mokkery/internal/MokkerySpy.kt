@@ -12,7 +12,7 @@ internal interface MokkerySpy : MokkeryInterceptor {
 @Suppress("unused")
 internal fun MokkerySpy(): MokkerySpy = MokkerySpyImpl(
     TemplatingInterceptor(),
-    CallTracingInterceptor(CallTraceClock.current)
+    CallTracingInterceptor()
 )
 
 private class MokkerySpyImpl(
