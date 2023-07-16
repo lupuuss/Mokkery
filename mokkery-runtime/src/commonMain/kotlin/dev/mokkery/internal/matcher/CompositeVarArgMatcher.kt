@@ -10,10 +10,20 @@ import kotlin.reflect.KClass
 
 internal data class CompositeVarArgMatcher(
     val type: KClass<*>,
-    val before: List<ArgMatcher<Any?>> = emptyList(),
-    val wildCard: VarArgMatcher? = null,
-    val after: List<ArgMatcher<Any?>> = emptyList()
+    val matchers: List<ArgMatcher<Any?>> = emptyList()
 ) : ArgMatcher.Composite<Any?> {
+
+    private val wildCard: VarArgMatcher? = matchers.filterIsInstance<VarArgMatcher>().firstOrNull()
+    private val before: List<ArgMatcher<Any?>> = if (wildCard != null) {
+        matchers.subList(0, matchers.indexOf(wildCard))
+    } else {
+        matchers
+    }
+    private val after: List<ArgMatcher<Any?>> = if (wildCard != null) {
+        matchers.subList(matchers.indexOf(wildCard) + 1, matchers.size)
+    } else {
+        emptyList()
+    }
 
     override fun matches(arg: Any?): Boolean {
         val arrayAsList = arg.toListOrNull() ?: return false
@@ -29,9 +39,7 @@ internal data class CompositeVarArgMatcher(
     override fun compose(matcher: ArgMatcher<Any?>): ArgMatcher.Composite<Any?> {
         return when {
             wildCard != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
-            matcher is VarArgMatcher -> copy(wildCard = matcher)
-            wildCard != null -> copy(before = listOf(matcher) + before)
-            else ->  copy(after = listOf(matcher) + after)
+            else -> copy(matchers = listOf(matcher) + matchers)
         }
     }
 
