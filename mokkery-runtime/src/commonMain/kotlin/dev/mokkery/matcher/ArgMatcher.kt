@@ -37,7 +37,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
-        override fun toString(): String = "notEq($value)"
+        override fun toString(): String = "neq($value)"
     }
 
     /**
@@ -57,7 +57,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg !== value
 
-        override fun toString(): String = "noEqRef($value)"
+        override fun toString(): String = "neqRef($value)"
     }
 
     /**

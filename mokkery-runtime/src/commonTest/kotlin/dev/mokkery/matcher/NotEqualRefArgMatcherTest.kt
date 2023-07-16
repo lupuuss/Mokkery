@@ -1,6 +1,7 @@
 package dev.mokkery.matcher
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -24,6 +25,11 @@ class NotEqualRefArgMatcherTest {
         assertTrue(matcher.matches(DataClassArg(2)))
         assertTrue(matcher.matches(DataClassArg(3)))
         assertTrue(matcher.matches(DataClassArg(4)))
+    }
+
+    @Test
+    fun testReturnsCorrectDescriptionOnToString() {
+        assertEquals("neqRef(DataClassArg(value=1))", matcher.toString())
     }
 
 }

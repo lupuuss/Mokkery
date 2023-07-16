@@ -23,6 +23,6 @@ class NotEqualArgMatcherTest {
 
     @Test
     fun testToStringReturnsCorrectDescription() {
-        assertEquals("notEq(1)", matcher.toString())
+        assertEquals("neq(1)", matcher.toString())
     }
 }
