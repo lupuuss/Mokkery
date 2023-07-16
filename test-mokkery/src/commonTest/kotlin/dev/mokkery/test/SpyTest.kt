@@ -61,4 +61,8 @@ private object TestInterfaceImpl : TestInterface {
     override val baseInterfaceProperty = "123"
 
     override fun baseInterfaceMethod() = Unit
+
+    override fun <T> callWithArray(array: Array<T>): T = array.first()
+
+    override fun callWithIntArray(array: IntArray): String = array.contentToString()
 }

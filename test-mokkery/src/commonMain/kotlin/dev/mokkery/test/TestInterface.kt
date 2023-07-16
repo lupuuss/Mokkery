@@ -21,4 +21,8 @@ interface TestInterface : BaseInterface {
     fun callNothing(): Nothing
 
     fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number
+
+    fun <T> callWithArray(array: Array<T>): T
+
+    fun callWithIntArray(array: IntArray): String
 }
