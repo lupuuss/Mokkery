@@ -71,7 +71,7 @@ public fun interface ArgMatcher<in T> {
 
         public fun isFilled(): Boolean
 
-        public fun assertValid(): Unit = Unit
+        public fun assertFilled()
     }
 
 }

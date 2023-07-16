@@ -32,7 +32,7 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
             while (stack.isNotEmpty() && !composite.isFilled()) {
                 composite = composite.compose(stack.removeLast())
             }
-            composite.assertValid()
+            composite.assertFilled()
             stack += composite
         }
         return stack.singleOrNull() ?: throw MultipleMatchersForSingleArgException(name, stack)

@@ -37,6 +37,8 @@ internal data class CompositeVarArgMatcher(
 
     override fun isFilled(): Boolean = false
 
+    override fun assertFilled() = Unit
+
     override fun toString(): String = buildString {
         when {
             before.isEmpty() && after.isEmpty() && wildCard == null -> append("no${varargNameByElementType(type).capitalize()}()")
