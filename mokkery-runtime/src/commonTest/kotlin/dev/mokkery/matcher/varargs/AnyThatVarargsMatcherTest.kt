@@ -4,12 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class AllThatVarargsMatcherTest {
+class AnyThatVarArgMatcherTest {
 
-    private val matcher = VarArgMatcher.AllThat(
-        Long::class,
-        predicate = { it as Long > 1 }
-    )
+    private val matcher = VarArgMatcher.AnyThat<Long>(Long::class) { it == 2L }
 
     @Test
     fun returnsTrueIfAllElementsMatchThePredicate() {
@@ -18,6 +15,6 @@ class AllThatVarargsMatcherTest {
 
     @Test
     fun returnsFalseIfAnyElementDoesNotMatchThePredicate() {
-        assertFalse(matcher.matches(longArrayOf(2, 3, 4, 0)))
+        assertFalse(matcher.matches(longArrayOf(0, 1, 3, 4)))
     }
 }

@@ -74,7 +74,7 @@ class CompositeVarargMatcherTest {
     @Test
     fun testDoesNotMatchSequenceOfValuesWithAdditionalArgsWhenWildcardDoesNotMatchAdditionalValues() {
         val matcher = matcher
-            .compose(VarArgMatcher.AllThat(Int::class) { it == 1 })
+            .compose(VarArgMatcher.AllThat<Int>(Int::class) { it == 1 })
             .compose(ArgMatcher.Equals(2))
             .compose(ArgMatcher.Equals(1))
         assertFalse(matcher.matches(intArrayOf(1, 2, 3, 4, 5)))
@@ -116,7 +116,7 @@ class CompositeVarargMatcherTest {
         val matcher = matcher
             .compose(ArgMatcher.Equals(4))
             .compose(ArgMatcher.Equals(3))
-            .compose(VarArgMatcher.AllThat(Int::class) { it == 1 })
+            .compose(VarArgMatcher.AllThat<Int>(Int::class) { it == 1 })
             .compose(ArgMatcher.Equals(2))
             .compose(ArgMatcher.Equals(1))
         assertFalse(matcher.matches(intArrayOf(1, 2, 0, 0, 0, 3, 4)))
@@ -127,7 +127,7 @@ class CompositeVarargMatcherTest {
         val matcher = matcher
             .compose(ArgMatcher.Equals(4))
             .compose(ArgMatcher.Equals(3))
-            .compose(VarArgMatcher.AllThat(Int::class) { it == 1 })
+            .compose(VarArgMatcher.AllThat<Any>(Int::class) { it == 1 })
             .compose(ArgMatcher.Equals(2))
             .compose(ArgMatcher.Equals(1))
         assertFalse(matcher.matches(intArrayOf(1, 1, 0, 0, 0, 3, 4)))

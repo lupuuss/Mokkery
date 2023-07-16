@@ -3,44 +3,69 @@ package dev.mokkery.matcher.varargs
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.capitalize
+import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.varargNameByElementType
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 /**
  * Wildcard vararg matcher that checks a subset of varargs. It can occur only once.
+ * To provide your own implementation use [Base].
  */
-public interface VarArgMatcher : ArgMatcher<Any?> {
+public sealed interface VarArgMatcher : ArgMatcher<Any?> {
 
 
     /**
-     * Matches an array with all elements matching the [predicate]. Returns false if it's not an array.
-     * @param type of array element to provide vararg type information in [AnyOf.toString]
+     * Base class for any [VarArgMatcher]. Returns false if arg is not an array or list.
      */
-    @DelicateMokkeryApi
-    public data class AllThat(
-        private val type: KClass<*>,
-        private val predicate: (Any?) -> Boolean
-    ) : VarArgMatcher {
-        override fun matches(arg: Any?): Boolean {
-            val arrayAsList = arg.toListOrNull() ?: return false
-            return arrayAsList.all(predicate)
+    public abstract class Base<T> : VarArgMatcher {
+
+        final override fun matches(arg: Any?): Boolean {
+            val varargs = arg.toListOrNull() ?: return false
+            return matchesVarargs(varargs.unsafeCast())
         }
 
-        override fun toString(): String = "${varargNameByElementType(type)} {...}"
+        public abstract fun matchesVarargs(varargs: List<T>): Boolean
     }
 
     /**
-     * Matches any arg. It should be used only in context of varargs to not confuse the end user.
-     * @param type of array element to provide vararg type information in [AnyOf.toString]
+     * Matches a sequence of varargs with all elements matching the [predicate].
+     * @param type of vararg element to provide vararg type information in [AllThat.toString]
+     */
+    @DelicateMokkeryApi
+    public data class AllThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
+
+        override fun matchesVarargs(varargs: List<T>): Boolean = varargs.all(predicate)
+
+        override fun toString(): String = "${varargNameByElementType(type)}All {...}"
+    }
+
+    /**
+     * Matches a sequence of varargs with any element matching the [predicate].
+     * @param type of vararg element to provide vararg type information in [AnyThat.toString]
+     */
+    @DelicateMokkeryApi
+    public data class AnyThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
+
+        override fun matchesVarargs(varargs: List<T>): Boolean = varargs.any(predicate)
+
+        override fun toString(): String = "${varargNameByElementType(type).capitalize()}Any { ... }"
+
+    }
+
+    /**
+     * Matches any sequence of varargs.
+     * @param type of vararg element to provide vararg type information in [AnyOf.toString]
      */
     @DelicateMokkeryApi
     public data class AnyOf(
         private val type: KClass<*>,
-    ) : VarArgMatcher {
-        override fun matches(arg: Any?): Boolean = true
+    ) : Base<Any?>() {
+
+        override fun matchesVarargs(varargs: List<Any?>): Boolean = true
 
         override fun toString(): String = "any${varargNameByElementType(type).capitalize()}()"
 
     }
 }
+
