@@ -48,6 +48,20 @@ class ArgMatcherComposerTest {
         }
     }
 
+
+    @Test
+    fun testFailsOnAmbiguousVarargMatchersWithIncorrectlyConsumedVarargMatcher() {
+        val matchers = listOf<ArgMatcher<Any?>>(
+            ArgMatcher.Equals(1),
+            VarArgMatcher.AnyOf(Int::class),
+            ArgMatcher.Equals(2),
+            TestCompositeMatcher(2)
+        )
+        assertFailsWith<VarargsAmbiguityDetectedException> {
+            composer.compose(fakeCallArg(arrayOf(0, 0), isVararg = true), matchers)
+        }
+    }
+
     @Test
     fun testReturnsEqualsValueWhenNoMatcher() {
         assertEquals<ArgMatcher<Any?>>(ArgMatcher.Equals(2), composer.compose(fakeCallArg(2), emptyList()))
