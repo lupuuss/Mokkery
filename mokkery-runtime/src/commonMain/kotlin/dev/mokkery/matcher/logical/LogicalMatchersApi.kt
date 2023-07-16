@@ -30,7 +30,7 @@ public inline fun <reified T> ArgMatchersScope.and(first: T, second: T, vararg m
  */
 public inline fun <reified T> ArgMatchersScope.or(first: T, second: T, vararg moreMatchers: T): T {
     val matchers = listOf(first, second) + moreMatchers
-    return matches(LogicalMatchers.And(matchers.size))
+    return matches(LogicalMatchers.Or(matchers.size))
 }
 
 /**
