@@ -1,9 +1,12 @@
 package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
+import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.arrayElementType
+import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.varargs.VarArgMatcher
 
 internal interface ArgMatchersComposer {
 
@@ -15,7 +18,7 @@ internal fun ArgMatchersComposer(): ArgMatchersComposer = ArgMatchersComposerImp
 private class ArgMatchersComposerImpl : ArgMatchersComposer {
     override fun compose(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
         return when {
-            arg.isVararg -> compose(arg.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
+            arg.isVararg -> composeVarargs(arg, matchers)
             matchers.isEmpty() -> ArgMatcher.Equals(arg.value)
             else -> compose(arg.name, matchers)
         }
@@ -36,5 +39,15 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
             stack += composite
         }
         return stack.singleOrNull() ?: throw MultipleMatchersForSingleArgException(name, stack)
+    }
+
+    private fun composeVarargs(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
+        val matcher = compose(arg.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
+        require(matcher is CompositeVarArgMatcher)
+        val matchersSize = matcher.matchers.size
+        val wildcards = matcher.matchers.count { it is VarArgMatcher }
+        val expectedMatchersSize = (arg.value.toListOrNull()?.size ?: 0) + wildcards
+        if (matchersSize != expectedMatchersSize) throw VarargsAmbiguityDetectedException()
+        return matcher
     }
 }

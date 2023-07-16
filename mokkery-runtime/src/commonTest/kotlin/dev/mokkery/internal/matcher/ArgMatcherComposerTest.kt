@@ -1,6 +1,7 @@
 package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
+import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.varargs.VarArgMatcher
 import dev.mokkery.test.TestCompositeMatcher
@@ -32,6 +33,18 @@ class ArgMatcherComposerTest {
         )
         assertFailsWith<MultipleMatchersForSingleArgException> {
             composer.compose(fakeCallArg(1), matchers)
+        }
+    }
+
+    @Test
+    fun testFailsOnAmbiguousVarargMatchers() {
+        val matchers = listOf<ArgMatcher<Any?>>(
+            ArgMatcher.Equals(1),
+            ArgMatcher.Equals(2),
+            TestCompositeMatcher(2)
+        )
+        assertFailsWith<VarargsAmbiguityDetectedException> {
+            composer.compose(fakeCallArg(arrayOf(0, 0), isVararg = true), matchers)
         }
     }
 
