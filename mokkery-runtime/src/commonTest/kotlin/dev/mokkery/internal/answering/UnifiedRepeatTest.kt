@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class UnifiedKeepTest {
+class UnifiedRepeatTest {
 
     private val builder = UnifiedSequentialAnswerBuilder<Int>()
 
