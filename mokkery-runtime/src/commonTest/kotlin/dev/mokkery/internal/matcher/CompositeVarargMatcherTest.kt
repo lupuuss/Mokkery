@@ -132,4 +132,32 @@ class CompositeVarargMatcherTest {
             .compose(ArgMatcher.Equals(1))
         assertFalse(matcher.matches(intArrayOf(1, 1, 0, 0, 0, 3, 4)))
     }
+
+    @Test
+    fun testToStringIsCorrectWithOnlyStartingValues() {
+        val matcher = matcher
+            .compose(ArgMatcher.Equals(2))
+            .compose(ArgMatcher.Equals(1))
+        assertEquals("[1, 2]", matcher.toString())
+    }
+
+    @Test
+    fun testToStringIsCorrectWithStartingValuesAndWildcard() {
+        val matcher = matcher
+            .compose(VarArgMatcher.AnyOf(Int::class))
+            .compose(ArgMatcher.Equals(2))
+            .compose(ArgMatcher.Equals(1))
+        assertEquals("[1, 2, anyVarargsInt()]", matcher.toString())
+    }
+
+    @Test
+    fun testToStringIsCorrectWithStartingValuesEndingValuesAndWildcard() {
+        val matcher = matcher
+            .compose(ArgMatcher.Equals(4))
+            .compose(ArgMatcher.Equals(3))
+            .compose(VarArgMatcher.AnyOf(Int::class))
+            .compose(ArgMatcher.Equals(2))
+            .compose(ArgMatcher.Equals(1))
+        assertEquals("[1, 2, anyVarargsInt(), 3, 4]", matcher.toString())
+    }
 }

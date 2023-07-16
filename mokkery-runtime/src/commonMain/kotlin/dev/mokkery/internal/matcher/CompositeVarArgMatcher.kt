@@ -47,22 +47,5 @@ internal data class CompositeVarArgMatcher(
 
     override fun assertFilled() = Unit
 
-    override fun toString(): String = buildString {
-        when {
-            before.isEmpty() && after.isEmpty() && wildCard == null -> append("no${varargNameByElementType(type).capitalize()}()")
-            before.isEmpty() && after.isEmpty() -> append(wildCard.toString())
-            after.isEmpty() && wildCard == null -> {
-                append("[")
-                append(before.joinToString())
-                append("]")
-            }
-            else -> {
-                append(varargNameByElementType(type))
-                append("(")
-                val middle = if (wildCard != null) "..." else null
-                append((before + listOfNotNull(middle) + after).joinToString())
-                append(")")
-            }
-        }
-    }
+    override fun toString(): String = "[${matchers.joinToString()}]"
 }
