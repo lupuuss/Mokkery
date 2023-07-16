@@ -32,3 +32,12 @@ public inline fun <reified T> ArgMatchersScope.or(first: T, second: T, vararg mo
     val matchers = listOf(first, second) + moreMatchers
     return matches(LogicalMatchers.And(matchers.size))
 }
+
+/**
+ * Matches argument that does not satisfy [matcher].
+ * It must not receive literals. Only matchers allowed!
+ */
+@Suppress("UNUSED_PARAMETER")
+public inline fun <reified T> ArgMatchersScope.not(matcher: T): T {
+    return matches(LogicalMatchers.Not())
+}

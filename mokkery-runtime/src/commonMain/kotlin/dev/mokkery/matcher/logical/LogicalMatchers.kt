@@ -56,4 +56,23 @@ public object LogicalMatchers {
 
         override fun toString(): String = "or(${matchers.joinToString()})"
     }
+
+    /**
+     * Matches argument that does not satisfy [matcher].
+     */
+    public data class Not<T>(val matcher: ArgMatcher<T>? = null) : ArgMatcher.Composite<T> {
+        override fun matches(arg: T): Boolean = matcher!!.matches(arg).not()
+
+        override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = copy(matcher = matcher)
+
+        override fun isFilled(): Boolean = matcher != null
+
+        override fun assertFilled() {
+            if (matcher == null) {
+                throw MissingMatchersForComposite("not", 1, listOf())
+            }
+        }
+
+        override fun toString(): String = "not($matcher)"
+    }
 }
