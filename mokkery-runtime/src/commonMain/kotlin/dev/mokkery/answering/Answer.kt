@@ -91,7 +91,7 @@ public interface Answer<out T> {
 
         private var nestedSequential: Sequential<T>? = null
 
-        override fun hasNext(): Boolean = iterator.hasNext()
+        override fun hasNext(): Boolean = iterator.hasNext() || nestedSequential?.hasNext() ?: false
 
         override fun call(scope: FunctionScope): T = getCurrent().call(scope)
 

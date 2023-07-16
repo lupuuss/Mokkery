@@ -65,5 +65,27 @@ class SequentialByIteratorAnswerTest {
         assertEquals(3, answer.callSuspend(fakeFunctionScope()))
     }
 
+
+    @Test
+    fun testAllowsMultiLevelNesting() {
+        val nest4 = Answer.SequentialByIterator(
+            listOf(Answer.Const(8), Answer.Const(9)).iterator()
+        )
+        val nest3 = Answer.SequentialByIterator(
+            listOf(Answer.Const(6), Answer.Const(7), nest4).iterator()
+        )
+        val nest2 = Answer.SequentialByIterator(
+            listOf(Answer.Const(4), Answer.Const(5), nest3).iterator()
+        )
+        val nest1 = Answer.SequentialByIterator(
+            listOf(Answer.Const(2), Answer.Const(3), nest2).iterator()
+        )
+        answers = listOf(Answer.Const(0), Answer.Const(1), nest1)
+        val result = generateSequence { answer.call(fakeFunctionScope()) }
+            .take(10)
+            .toList()
+        assertEquals(List(10) { it },  result)
+    }
+
     private fun <T> List<T>.toAnswers() = map { Answer.Const(it) }
 }
