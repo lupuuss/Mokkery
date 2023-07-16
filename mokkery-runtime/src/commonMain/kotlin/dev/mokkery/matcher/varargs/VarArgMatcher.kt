@@ -18,7 +18,7 @@ public interface VarArgMatcher : ArgMatcher<Any?> {
      * @param type of array element to provide vararg type information in [AnyOf.toString]
      */
     @DelicateMokkeryApi
-    public class AllThat(
+    public data class AllThat(
         private val type: KClass<*>,
         private val predicate: (Any?) -> Boolean
     ) : VarArgMatcher {
@@ -35,7 +35,7 @@ public interface VarArgMatcher : ArgMatcher<Any?> {
      * @param type of array element to provide vararg type information in [AnyOf.toString]
      */
     @DelicateMokkeryApi
-    public class AnyOf(
+    public data class AnyOf(
         private val type: KClass<*>,
     ) : VarArgMatcher {
         override fun matches(arg: Any?): Boolean = true
