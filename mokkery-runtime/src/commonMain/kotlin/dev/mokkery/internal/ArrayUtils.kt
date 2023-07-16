@@ -6,6 +6,7 @@ import kotlin.reflect.KClass
 
 internal fun Any?.toListOrNull(): List<Any?>? {
     return  when (this) {
+        is List<*> -> toList()
         is Array<*> -> toList()
         is IntArray -> toList()
         is ByteArray -> toList()
