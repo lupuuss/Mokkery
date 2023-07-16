@@ -31,7 +31,7 @@ class ArgMatcherComposerTest {
             TestCompositeMatcher(2)
         )
         assertFailsWith<MultipleMatchersForSingleArgException> {
-            composer.compose(fakeCallArg(1), matchers).also { println(it) }
+            composer.compose(fakeCallArg(1), matchers)
         }
     }
 
@@ -84,7 +84,7 @@ class ArgMatcherComposerTest {
     fun testReturnsCompositeVarArgMatcherForVararg() {
         val matchers = listOf<ArgMatcher<Any?>>(ArgMatcher.Equals(1), VarArgMatcher.AnyOf(Int::class), ArgMatcher.Equals(2))
         val result = composer.compose(fakeCallArg(intArrayOf(), isVararg = true), matchers)
-        assertEquals(CompositeVarArgMatcher(Int::class, matchers).also { println(it) }, result)
+        assertEquals(CompositeVarArgMatcher(Int::class, matchers), result)
     }
 
     @Test
