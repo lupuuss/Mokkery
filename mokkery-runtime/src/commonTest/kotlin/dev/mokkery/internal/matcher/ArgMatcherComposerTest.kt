@@ -96,7 +96,7 @@ class ArgMatcherComposerTest {
     @Test
     fun testReturnsCompositeVarArgMatcherForVararg() {
         val matchers = listOf<ArgMatcher<Any?>>(ArgMatcher.Equals(1), VarArgMatcher.AnyOf(Int::class), ArgMatcher.Equals(2))
-        val result = composer.compose(fakeCallArg(intArrayOf(), isVararg = true), matchers)
+        val result = composer.compose(fakeCallArg(intArrayOf(0, 0), isVararg = true), matchers)
         assertEquals(CompositeVarArgMatcher(Int::class, matchers), result)
     }
 
@@ -111,7 +111,7 @@ class ArgMatcherComposerTest {
             ArgMatcher.Equals(4),
             TestCompositeMatcher(2)
         )
-        val result = composer.compose(fakeCallArg(intArrayOf(), isVararg = true), matchers)
+        val result = composer.compose(fakeCallArg(intArrayOf(0, 0), isVararg = true), matchers)
         val expectedMatchers = listOf<ArgMatcher<Any?>>(
             TestCompositeMatcher(2, listOf(ArgMatcher.Equals(1),ArgMatcher.Equals(2))),
             VarArgMatcher.AnyOf(Int::class),
