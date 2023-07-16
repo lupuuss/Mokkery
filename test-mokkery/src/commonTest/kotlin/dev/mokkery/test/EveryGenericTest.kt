@@ -27,7 +27,7 @@ class EveryGenericTest {
 
     @Test
     fun testMocksGenericMethod() {
-        everySuspend { genericDependency.callGeneric(1) } returns 2
+        every { genericDependency.callGeneric(1) } returns 2
         assertEquals(2, genericDependency.callGeneric(1))
     }
 
