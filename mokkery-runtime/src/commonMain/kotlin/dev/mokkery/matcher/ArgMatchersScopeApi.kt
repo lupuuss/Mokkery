@@ -70,8 +70,8 @@ public inline fun <reified T : Comparable<T>> ArgMatchersScope.gte(
 /**
  * Matches an argument that is an instance of [P].
  */
-public inline fun <reified T, reified P : T> ArgMatchersScope.ofType(): T {
-    return matches(ArgMatcher.OfType(P::class))
+public inline fun <reified T> ArgMatchersScope.ofType(): T {
+    return matches(ArgMatcher.OfType(T::class))
 }
 
 @PublishedApi
