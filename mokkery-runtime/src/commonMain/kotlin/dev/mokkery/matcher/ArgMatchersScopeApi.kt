@@ -67,6 +67,13 @@ public inline fun <reified T : Comparable<T>> ArgMatchersScope.gte(
     value: T
 ): T = matches(ArgMatcher.Comparing(value, Gte))
 
+/**
+ * Matches an argument that is an instance of [P].
+ */
+public inline fun <reified T, reified P : T> ArgMatchersScope.ofType(): T {
+    return matches(ArgMatcher.OfType(P::class))
+}
+
 @PublishedApi
 internal fun <T> ArgMatchersScope.matching(
     argType: KClass<*>,

@@ -1,6 +1,7 @@
 package dev.mokkery.matcher
 
 import dev.mokkery.annotations.DelicateMokkeryApi
+import kotlin.reflect.KClass
 
 /**
  * Checks if given argument satisfies provided conditions.
@@ -86,6 +87,13 @@ public fun interface ArgMatcher<in T> {
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
         }
+    }
+
+    /**
+     * Matches an argument that is instance of [type].
+     */
+    public data class OfType<T>(val type: KClass<*>) : ArgMatcher<T> {
+        override fun matches(arg: T): Boolean = type.isInstance(arg)
     }
 
     /**
