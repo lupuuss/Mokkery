@@ -9,6 +9,7 @@ import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -52,7 +53,13 @@ class CallTrackingTransformer(
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irBlock {
                 val variable = createTmpVariable(irCall(irFunctions.TemplatingScope))
-                val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table, variable)
+                val nestedTransformer = CallTrackingNestedTransformer(
+                    pluginContext = pluginContext,
+                    irFile = irFile,
+                    table = table,
+                    scopeVar = variable,
+                    stubMockReturns = true
+                )
                 block.transformChildren(nestedTransformer, null)
                 +irCall(function).apply {
                     putValueArgument(0, irGet(variable))
