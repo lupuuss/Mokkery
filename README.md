@@ -35,8 +35,9 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 6. [Verifying](#verifying)
 7. [Mocking and verifying limitations](#mocking-and-verifying-limitations)
 8. [Regular matchers](#regular-matchers)
-9. [Vararg matchers](#vararg-matchers)
-10. [Custom matchers](#custom-matchers)
+9. [Logical matchers](#logical-matchers)
+10. [Vararg matchers](#vararg-matchers)
+11. [Custom matchers](#custom-matchers)
 
 ### Setup
 
@@ -109,8 +110,11 @@ You can refer to [this file](build-mokkery/src/main/kotlin/mokkery-multiplatform
 ### <a id="mock-and-spy" /> Mock & Spy
 
 Mokkery supports the creation of mocks and spies, although not for every type. At the moment, it is possible
-to mock/spy interfaces and all fully overridable classes with no-args constructors. Mocking final classes is partially
-supported with [all-open plugin](#mocking-final-classes).
+to mock/spy interfaces and all fully overridable classes with no-args constructors. 
+
+Mocking final classes is partially supported with [all-open plugin](#mocking-final-classes).
+
+Mocking function types is not supported yet on JS, and it will be supported in version 1.2.0 or 1.3.0.
 
 #### Mock:
 
@@ -153,7 +157,7 @@ val spiedRepository = spy<BookRepository>(repository)
 > Ensure that you specify a type for the `spy`. Inferred type would be `BookRepositoryImpl`, which is very likely to be a
 > final class, and it is not supported to spy them!
 
-#### Limitations
+#### Mock creation limitations
 
 Type passed to `spy` and `mock` must be directly specified. Following code is illegal:
 
@@ -393,6 +397,18 @@ you **must not** assign matchers to variables.
 
 Full list of matchers with documentation is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/-arg-matchers-scope/index.html).
 
+### Logical matchers
+
+Logical matchers allows combining regular matchers into logical expressions. 
+
+```kotlin
+everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
+```
+> **Warning**
+>You must not use literals with logical matchers. Only matchers allowed!
+
+Full list of logical matchers is available [here](https://mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/-arg-matchers-scope/index.html).
+
 ### Vararg matchers
 
 To match a method with varargs you can use regular matchers:
@@ -411,6 +427,15 @@ everySuspend { respository.findAllById("1", *anyVarargs(), "3") } returns emptyL
 ```
 
 Now all `findAllById` calls with "1" as the first argument and "3" as the last argument return an empty list.
+
+You can apply restrictions with wildcard matchers using `varargsAny` and `varargsAll`:
+
+```kotlin
+everySuspend { respository.findAllById("1", *varargsAll { it != "2" }, "3") } returns emptyList()
+
+repository.findAllById("1", "3", "3", "3") // returns empty list
+repository.findAllById("1", "2", "3", "3") // fails - method not mocked
+```
 
 #### Varargs ambiguity
 
