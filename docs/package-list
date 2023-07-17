@@ -9,4 +9,6 @@ module:mokkery-runtime
 dev.mokkery
 dev.mokkery.answering
 dev.mokkery.matcher
+dev.mokkery.matcher.collections
+dev.mokkery.matcher.logical
 dev.mokkery.matcher.varargs

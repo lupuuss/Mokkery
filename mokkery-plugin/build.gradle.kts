@@ -4,7 +4,6 @@ import MokkeryUrls.GitHttp
 import MokkeryUrls.Website
 
 plugins {
-    id("org.jetbrains.dokka")
     kotlin("jvm")
     kotlin("kapt")
     `maven-publish`
@@ -63,7 +62,6 @@ publishing {
         groupId = project.group as String
         artifactId = project.name
         version = project.version as String
-        artifact(dokkaJar)
         from(components["java"])
         pom {
             name.set(project.name)

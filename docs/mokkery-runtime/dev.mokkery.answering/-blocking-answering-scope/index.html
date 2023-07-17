@@ -34,7 +34,7 @@
     <div class="library-name">
 <a href="../../../index.html">
 <span>mokkery</span>            </a>    </div>
-    <div>1.0
+    <div>1.9.0-1.1.0
     </div>
     <div class="pull-right d-flex">
         <div class="filter-section" id="filter-section">
@@ -53,7 +53,7 @@
   <div class="breadcrumbs"><a href="../../index.html">mokkery-runtime</a><span class="delimiter">/</span><a href="../index.html">dev.mokkery.answering</a><span class="delimiter">/</span><span class="current">BlockingAnsweringScope</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Blocking</span><wbr><span>Answering</span><wbr><span><span>Scope</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">BlockingAnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="index.html">T</a><span class="token operator">&gt;</span> : <a href="../-answering-scope/index.html">AnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="index.html">T</a><span class="token operator">&gt; </span></div><p class="paragraph">Marker interface for defining an answer for non-suspend function call.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">BlockingAnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="index.html">T</a><span class="token operator">&gt;</span> : <a href="../-answering-scope/index.html">AnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="index.html">T</a><span class="token operator">&gt; </span></div><p class="paragraph">Marker interface for defining an answer for non-suspend function call.</p><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-blocking-sequential-answer-builder/index.html">BlockingSequentialAnswerBuilder</a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
@@ -101,6 +101,51 @@
               <div>
                 <div class="title">
                   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../returns.html">T</a><span class="token operator">&gt; </span><a href="../-answering-scope/index.html">AnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../returns.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../returns.html"><span class="token function">returns</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="../returns.html">T</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Function call always returns <a href="../returns.html">value</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1536602397%2FFunctions%2F-1732877104" anchor-label="sequentially" id="-1536602397%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../sequentially.html"><span><span>sequentially</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1536602397%2FFunctions%2F-1732877104"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially.html">T</a><span class="token operator">&gt; </span><a href="index.html">BlockingAnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../sequentially.html"><span class="token function">sequentially</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><span class="token keyword"></span><a href="../-blocking-sequential-answer-builder/index.html">BlockingSequentialAnswerBuilder</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Function call will answer sequentially with answers defined in <a href="../sequentially.html">block</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2009907280%2FFunctions%2F-1732877104" anchor-label="sequentiallyReturns" id="2009907280%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../sequentially-returns.html"><span>sequentially</span><wbr><span><span>Returns</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2009907280%2FFunctions%2F-1732877104"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially-returns.html">T</a><span class="token operator">&gt; </span><a href="../-answering-scope/index.html">AnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially-returns.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../sequentially-returns.html"><span class="token function">sequentiallyReturns</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">values<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially-returns.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Simplification for <a href="../sequentially.html">sequentially</a> with multiple <a href="../returns.html">returns</a> calls.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1993937473%2FFunctions%2F-1732877104" anchor-label="sequentiallyThrows" id="-1993937473%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../sequentially-throws.html"><span>sequentially</span><wbr><span><span>Throws</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1993937473%2FFunctions%2F-1732877104"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">infix </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially-throws.html">T</a><span class="token operator">&gt; </span><a href="../-answering-scope/index.html">AnsweringScope</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../sequentially-throws.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../sequentially-throws.html"><span class="token function">sequentiallyThrows</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">errors<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-throwable/index.html">Throwable</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Simplification for <a href="../sequentially.html">sequentially</a> with multiple <a href="../throws.html">throws</a> calls.</p></div></div></div>
                 </div>
               </div>
             </div>
