@@ -45,7 +45,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.0.1"
+    id("dev.mokkery") version "1.9.0-1.1.0"
 }
 ```
 
@@ -56,7 +56,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.0.1"
+    id("dev.mokkery") version "1.9.0-1.1.0"
 }
 
 mokkery {
@@ -91,10 +91,14 @@ Kotlin version is always prioritized.
 
 | Plugin version                  	 | Kotlin version                              	 |
 |-----------------------------------|-----------------------------------------------|
-| 1.8.20-1.01 	                     | 1.8.20        	                               |
-| 1.8.21-1.01 	                     | 1.8.21   	                                    |
-| 1.8.22-1.01 	                     | 1.8.22 	                                      |
-| 1.9.0-1.01 	                      | 1.9.0 	                                       |
+| 1.9.0-1.1.0 	                     | 1.9.0 	                                       |
+| 1.8.22-1.1.0 	                    | 1.8.22 	                                      |
+| 1.8.21-1.1.0 	                    | 1.8.21   	                                    |
+| 1.8.20-1.1.0 	                    | 1.8.20        	                               |
+| 1.9.0-1.0.1 	                     | 1.9.0 	                                       |
+| 1.8.22-1.0.1 	                    | 1.8.22 	                                      |
+| 1.8.21-1.0.1 	                    | 1.8.21   	                                    |
+| 1.8.20-1.0.1 	                    | 1.8.20        	                               |
 
 ### Targets
 
@@ -200,6 +204,58 @@ everySuspend { repository.getById(id = any()) } calls { (id: String) ->
     delay(1_000) // suspension is allowed here!
     stubBook()
 }
+```
+
+You can define a sequence of answers using `sequentially`:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    calls { stubBook("2") }
+    throws(IllegalStateException())
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+runCatching { repository.getById("3") } // throws IllegalStateException
+repository.getById("4") // fails - no more answers
+```
+At the end of `sequentially` block you can repeat a sequence of answers with `repeat`:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    repeat { returns(stubBook("2")) }
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // returns stubBook("2")
+repository.getById("4") // returns stubBook("2")
+```
+
+You can use `sequentiallyReturns` and `sequentiallyThrows` as a shorthand:
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // no more answers
+```
+
+You can nest `sequentially` calls:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    sequentially {
+        returns(stubBook("2"))
+        returns(stubBook("3"))
+    }
+    returns(stubBook("4"))
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // returns stubBook("3")
+repository.getById("4") // returns stubBook("4")
+repository.getById("5") // fails - no more answers
 ```
 
 Also, it is possible to implement your own reusable answer by
