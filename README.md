@@ -407,7 +407,7 @@ everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
 > **Warning**
 >You must not use literals with logical matchers. Only matchers allowed!
 
-Full list of logical matchers is available [here](https://mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/-arg-matchers-scope/index.html).
+Full list of logical matchers is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
 
 ### Vararg matchers
 
