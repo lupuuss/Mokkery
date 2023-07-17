@@ -14,8 +14,8 @@ class SpyGenericTest {
     fun testEveryMethodReturnsFromRealImpl() = runTest {
         assertEquals("1", spied.value)
         assertEquals(true, spied.call("123"))
-        assertEquals(2, spied.callGeneric(2))
-        assertEquals(2.0, spied.callSuspendGeneric(2.0))
+        assertEquals(2, spied.callBoundedGeneric(2))
+        assertEquals(2.0, spied.callSuspendBoundedGeneric(2.0))
         spied.run {
             assertEquals("[1]", listOf(1).genericExtension())
             assertEquals("[1, 2]", listOf("1", "2").extension())
@@ -27,10 +27,10 @@ class SpyGenericTest {
     @Test
     fun testRegistersMethodCalls() = runTest {
         assertEquals(true, spied.call("123"))
-        assertEquals(2.0, spied.callSuspendGeneric(2.0))
+        assertEquals(2.0, spied.callSuspendBoundedGeneric(2.0))
         verifySuspend {
             spied.call("123")
-            spied.callSuspendGeneric(2.0)
+            spied.callSuspendBoundedGeneric(2.0)
         }
     }
 }
@@ -38,9 +38,9 @@ class SpyGenericTest {
 object TestInterfaceGenericImpl : TestGenericInterface<String> {
     override val value: String = "1"
 
-    override fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number = value
+    override fun <T> callBoundedGeneric(value: T): T where T : Comparable<T>, T : Number = value
 
-    override suspend fun <T> callSuspendGeneric(value: T): T where T : Comparable<T>, T : Number = value
+    override suspend fun <T> callSuspendBoundedGeneric(value: T): T where T : Comparable<T>, T : Number = value
 
     override fun <T> List<Comparable<T>>.genericExtension(): String = toString()
 

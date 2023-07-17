@@ -26,15 +26,15 @@ class EveryGenericTest {
     }
 
     @Test
-    fun testMocksGenericMethod() {
-        every { genericDependency.callGeneric(1) } returns 2
-        assertEquals(2, genericDependency.callGeneric(1))
+    fun testMocksBoundedGenericMethod() {
+        every { genericDependency.callBoundedGeneric(1) } returns 2
+        assertEquals(2, genericDependency.callBoundedGeneric(1))
     }
 
     @Test
-    fun testMocksSuspendGenericMethod() = runTest {
-        everySuspend { genericDependency.callSuspendGeneric(1) } returns 2
-        assertEquals(2, genericDependency.callSuspendGeneric(1))
+    fun testMocksSuspendBoundedGenericMethod() = runTest {
+        everySuspend { genericDependency.callSuspendBoundedGeneric(1) } returns 2
+        assertEquals(2, genericDependency.callSuspendBoundedGeneric(1))
     }
 
     @Test

@@ -28,19 +28,19 @@ class VerifyGenericTest {
     }
 
     @Test
-    fun testVerifiesGenericMethodCalls() {
+    fun testVerifiesBoundedGenericMethodCalls() {
         assertVerified {
             verify {
-                dependencyMock.callGeneric(1)
+                dependencyMock.callBoundedGeneric(1)
             }
         }
     }
 
     @Test
-    fun testVerifiesGenericSuspendMethodCalls() {
+    fun testVerifiesBoundedGenericSuspendMethodCalls() {
         assertVerified {
             verifySuspend {
-                dependencyMock.callSuspendGeneric(2.0)
+                dependencyMock.callSuspendBoundedGeneric(2.0)
             }
         }
     }
