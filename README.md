@@ -109,7 +109,8 @@ You can refer to [this file](build-mokkery/src/main/kotlin/mokkery-multiplatform
 ### <a id="mock-and-spy" /> Mock & Spy
 
 Mokkery supports the creation of mocks and spies, although not for every type. At the moment, it is possible
-to mock/spy interfaces and all fully overridable classes with no-args constructors.
+to mock/spy interfaces and all fully overridable classes with no-args constructors. Mocking final classes is partially
+supported with [all-open plugin](#mocking-final-classes).
 
 #### Mock:
 
@@ -164,6 +165,12 @@ However, it is not completely forbidden to use generic parameters. Following cod
 ```kotlin
 fun <T : Any> myListMock() = mock<List<T>>()
 ```
+
+#### Mocking final classes
+
+Mocking final classes that are already compiled is currently not possible. This includes any class defined in main
+source set, therefore this feature is not supported. However, you can "open" your final classes from 
+main source set with [all-open plugin](https://kotlinlang.org/docs/all-open-plugin.html#gradle). 
 
 ### Mocking
 
