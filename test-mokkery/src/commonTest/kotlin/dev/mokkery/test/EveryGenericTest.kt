@@ -26,6 +26,30 @@ class EveryGenericTest {
     }
 
     @Test
+    fun testMocksGenericMethodWithComplexType() {
+        every { genericDependency.callGeneric(any<List<String>>()) } returns listOf("1")
+        assertEquals(listOf("1"), genericDependency.callGeneric(listOf()))
+    }
+
+    @Test
+    fun testMocksGenericMethodWithUnit() {
+        every { genericDependency.callGeneric(Unit) } returns Unit
+        assertEquals(Unit, genericDependency.callGeneric(Unit))
+    }
+
+    @Test
+    fun testMocksGenericMethodWithPrimitive() {
+        every { genericDependency.callGeneric(1) } returns 1
+        assertEquals(1, genericDependency.callGeneric(1))
+    }
+
+    @Test
+    fun testMocksGenericMethodWithNullablePrimitive() {
+        every { genericDependency.callGeneric<Int?>(1) } returns 1
+        assertEquals(1, genericDependency.callGeneric(1))
+    }
+
+    @Test
     fun testMocksBoundedGenericMethod() {
         every { genericDependency.callBoundedGeneric(1) } returns 2
         assertEquals(2, genericDependency.callBoundedGeneric(1))

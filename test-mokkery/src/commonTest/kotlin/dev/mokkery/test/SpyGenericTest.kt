@@ -40,6 +40,8 @@ object TestInterfaceGenericImpl : TestGenericInterface<String> {
 
     override fun <T> callBoundedGeneric(value: T): T where T : Comparable<T>, T : Number = value
 
+    override fun <T> callGeneric(value: T): T = value
+
     override suspend fun <T> callSuspendBoundedGeneric(value: T): T where T : Comparable<T>, T : Number = value
 
     override fun <T> List<Comparable<T>>.genericExtension(): String = toString()

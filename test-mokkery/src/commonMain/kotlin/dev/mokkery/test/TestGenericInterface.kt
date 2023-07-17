@@ -8,6 +8,8 @@ interface TestGenericInterface<T : Comparable<T>> {
 
     fun <T> callBoundedGeneric(value: T): T where T : Comparable<T>, T : Number
 
+    fun <T> callGeneric(value: T): T
+
     suspend fun <T> callSuspendBoundedGeneric(value: T): T where T : Comparable<T>, T : Number
 
     fun List<T>.extension(): String
