@@ -1,10 +1,10 @@
 @file:Suppress( "UNUSED_PARAMETER", "unused")
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryInterceptorScope
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.ObjectNotSpiedException
+import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -33,7 +33,7 @@ public fun verifySuspend(
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     mocks.forEach { mock ->
         val tracing = mock
-            .let { it as? MokkeryInterceptorScope }
+            .let { MokkeryScopeLookup.current.resolve(it) }
             ?.interceptor
             ?.let { it as? MokkerySpy }
             ?.callTracing ?: throw ObjectNotSpiedException(mock)

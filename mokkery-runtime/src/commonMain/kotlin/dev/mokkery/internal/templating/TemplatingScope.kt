@@ -5,6 +5,7 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.answering.autofillValue
+import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
@@ -35,11 +36,13 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(
     signatureGenerator: SignatureGenerator = SignatureGenerator(),
     composer: ArgMatchersComposer = ArgMatchersComposer(),
-): TemplatingScope = TemplatingScopeImpl(signatureGenerator, composer)
+    scopeLookup: MokkeryScopeLookup = MokkeryScopeLookup.current,
+): TemplatingScope = TemplatingScopeImpl(signatureGenerator, composer, scopeLookup)
 
 private class TemplatingScopeImpl(
     private val signatureGenerator: SignatureGenerator,
     private val composer: ArgMatchersComposer,
+    private val scopeLookup: MokkeryScopeLookup,
 ): TemplatingScope {
 
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
@@ -50,13 +53,14 @@ private class TemplatingScopeImpl(
     override val templates = mutableListOf<CallTemplate>()
 
     override fun <T> ensureBinding(obj: T): T {
-        if (obj is MokkerySpyScope) {
-            val templating = obj.interceptor.templating
+        val scope = scopeLookup.resolve(obj)
+        if (scope is MokkerySpyScope) {
+            val templating = scope.interceptor.templating
             when {
                 templating.isEnabledWith(this) -> return obj
                 templating.isEnabled -> throw ConcurrentTemplatingException()
                 else -> {
-                    spies.add(obj)
+                    spies.add(scope)
                     templating.start(this)
                 }
             }
