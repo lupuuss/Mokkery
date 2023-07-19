@@ -133,7 +133,7 @@ class AnsweringInterceptorTest {
         answering.setup(template3, Answer.Const(4))
         answering.interceptCall(fakeCallContext<Int>())
         assertEquals(
-            listOf(template1, template2, template3),
+            listOf(template3),
             callMatcher.recordedCalls.map { it.second }
         )
     }
@@ -160,11 +160,11 @@ class AnsweringInterceptorTest {
         )
         answering.interceptSuspendCall(context)
         assertEquals(
-            listOf(template1, template2, template3),
+            listOf(template3),
             callMatcher.recordedCalls.map { it.second }
         )
         assertEquals(
-            listOf(expectedTrace, expectedTrace, expectedTrace),
+            listOf(expectedTrace),
             callMatcher.recordedCalls.map { it.first }
         )
     }

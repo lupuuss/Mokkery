@@ -58,7 +58,8 @@ private class AnsweringInterceptorImpl(
         val answers = this.answers
         return answers
             .keys
-            .findLast { callMatcher.matches(trace, it) }
+            .reversed()
+            .find { callMatcher.matches(trace, it) }
             ?.let { answers.getValue(it) }
             ?: handleMissingAnswer(trace, context.returnType)
     }
