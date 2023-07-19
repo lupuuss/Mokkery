@@ -86,7 +86,7 @@ class SpyCallsTransformer(
                         elsePart = irBlock {
                             val args = lambdaFun.valueParameters.map { irGet(it) }.toTypedArray()
                             +irTryCatchAny(irCallInterceptOn(irGet(scopeVar), lambdaFun))
-                            +irInvoke(spiedObj, *args)
+                            +irReturn(irInvoke(spiedObj, lambdaFun.isSuspend, *args))
                         }
                     )
                     +irReturn(expr)

@@ -123,16 +123,18 @@ fun IrBuilderWithScope.irLambda(
     parent: IrDeclarationParent,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
 ): IrFunctionExpression {
+    val func = lambdaType.getClass()!!.invokeFun!!
     val lambda = context.irFactory.buildFun {
         this.startOffset = UNDEFINED_OFFSET
         this.endOffset = UNDEFINED_OFFSET
         this.name = Name.identifier("invoke")
         this.returnType = returnType
+        this.isSuspend = func.isSuspend
         visibility = DescriptorVisibilities.LOCAL
         origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
     }.apply {
         val bodyBuilder = DeclarationIrBuilder(context, symbol, startOffset, endOffset)
-        this.copyParametersFrom(lambdaType.getClass()!!.invokeFun!!)
+        this.copyParametersFrom(func)
         this.parent = parent
         body = bodyBuilder.irBlockBody {
             block(this@apply)
@@ -147,15 +149,16 @@ fun IrBuilderWithScope.irLambda(
     )
 }
 
-fun IrBuilderWithScope.irInvokeIfNotNull(function: IrExpression, vararg args: IrExpression): IrIfThenElseImpl {
+fun IrBuilderWithScope.irInvokeIfNotNull(function: IrExpression, isSuspend: Boolean, vararg args: IrExpression): IrIfThenElseImpl {
     return irIfNotNull(
         function,
-        irInvoke(function, *args)
+        irInvoke(function, isSuspend, *args)
     )
 }
 
-fun IrBuilderWithScope.irInvoke(function: IrExpression, vararg args: IrExpression): IrFunctionAccessExpression {
-    return irCall(context.irBuiltIns.functionN(args.size).invokeFun!!).apply {
+fun IrBuilderWithScope.irInvoke(function: IrExpression, isSuspend: Boolean, vararg args: IrExpression): IrFunctionAccessExpression {
+    val functionClass = context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
+    return irCall(functionClass.invokeFun!!).apply {
         dispatchReceiver = function
         args.forEachIndexed { index, arg ->
             putValueArgument(index, arg)

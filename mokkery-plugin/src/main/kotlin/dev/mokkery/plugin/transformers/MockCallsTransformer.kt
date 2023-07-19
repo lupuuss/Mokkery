@@ -89,7 +89,7 @@ class MockCallsTransformer(
                 val block = expression.valueArguments.getOrNull(1)
                 if (block != null) {
                     block.applyMockCallsTransformer()
-                    +irInvoke(block, irGet(lambdaVar))
+                    +irInvoke(block, false, irGet(lambdaVar))
                 }
                 +irGet(lambdaVar)
             }
@@ -132,7 +132,7 @@ class MockCallsTransformer(
                     putValueArgument(0, irGet(constructor.valueParameters[0]))
                 }
             },
-            block = { +irInvokeIfNotNull(irGet(it.valueParameters[1]), irGet(newClass.thisReceiver!!)) }
+            block = { +irInvokeIfNotNull(irGet(it.valueParameters[1]), false, irGet(newClass.thisReceiver!!)) }
         )
         newClass.overrideAllOverridableFunctions(pluginContext, classToMock) { mockBody(it) }
         newClass.overrideAllOverridableProperties(
