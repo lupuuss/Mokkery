@@ -11,6 +11,7 @@ object Mokkery {
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_tracing by fqName
+    val dev_mokkery_internal_dynamic by fqName
 
     object Function {
         val mock by dev_mokkery.fqName
@@ -40,6 +41,7 @@ object Mokkery {
 
         val TemplatingInterceptor by dev_mokkery_internal_templating.klass
         val TemplatingScope by dev_mokkery_internal_templating.klass
+        val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
     }
     object FunctionId {
         val MokkeryMock by dev_mokkery_internal.function
@@ -51,6 +53,7 @@ object Mokkery {
         val internalVerifySuspend by dev_mokkery_internal.function
 
         val TemplatingScope by dev_mokkery_internal_templating.function
+        val MokkeryMockScope by dev_mokkery_internal.function
     }
 }
 
