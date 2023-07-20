@@ -6,9 +6,7 @@ import dev.mokkery.plugin.ext.addOverridingMethod
 import dev.mokkery.plugin.ext.firstFunction
 import dev.mokkery.plugin.ext.getClass
 import dev.mokkery.plugin.ext.getProperty
-import dev.mokkery.plugin.ext.irCallHashCode
 import dev.mokkery.plugin.ext.irDelegatingDefaultConstructorOrAny
-import dev.mokkery.plugin.ext.irToString
 import dev.mokkery.plugin.ext.kClassReferenceUnified
 import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import dev.mokkery.plugin.ext.overridePropertyBackingField
@@ -28,7 +26,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irConcat
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irReturn
@@ -42,9 +39,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.expressions.IrVararg
-import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.getClass
@@ -121,7 +116,6 @@ abstract class MokkeryBaseTransformer(
         interceptorInit: IrBlockBodyBuilder.(IrConstructor) -> IrCall,
         block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { },
     ) {
-        val mockClass = this
         val interceptor = overridePropertyBackingField(pluginContext, interceptorScopeClass.getProperty("interceptor"))
         val idProperty = overridePropertyBackingField(pluginContext, interceptorScopeClass.getProperty("id"))
         addConstructor {
@@ -129,7 +123,7 @@ abstract class MokkeryBaseTransformer(
         }.apply {
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
                 +irDelegatingDefaultConstructorOrAny(classToMock)
-                val identifierCall = irCallMokkeryClassIdentifier(pluginContext, mockClass, classToMock)
+                val identifierCall = irCallMokkeryClassIdentifier(classToMock)
                 val initializerCall = interceptorInit(this@apply)
                 +irSetField(irGet(thisReceiver!!), interceptor.backingField!!, initializerCall)
                 +irSetField(irGet(thisReceiver!!), idProperty.backingField!!, identifierCall)
@@ -195,14 +189,9 @@ abstract class MokkeryBaseTransformer(
         }
     }
 
-    private fun IrBuilderWithScope.irCallMokkeryClassIdentifier(
-        pluginContext: IrPluginContext,
-        mockClass: IrClass,
-        classToMock: IrClass
-    ): IrStringConcatenation {
-        return irConcat().apply {
-            addArgument(irString(classToMock.kotlinFqName.asString() + "@"))
-            addArgument(irToString(pluginContext, irCallHashCode(mockClass), 33))
+    private fun IrBuilderWithScope.irCallMokkeryClassIdentifier(classToMock: IrClass): IrExpression {
+        return irCall(irFunctions.generateMockId).apply {
+            putValueArgument(0, irString(classToMock.kotlinFqName.asString()))
         }
     }
 
@@ -210,8 +199,6 @@ abstract class MokkeryBaseTransformer(
         val MokkerySpy = pluginContext.getClass(Mokkery.ClassId.MokkerySpy)
         val MokkerySpyScope = pluginContext.getClass(Mokkery.ClassId.MokkerySpyScope)
 
-
-        val MokkeryMock = pluginContext.getClass(Mokkery.ClassId.MokkeryMock)
         val MokkeryMockScope = pluginContext.getClass(Mokkery.ClassId.MokkeryMockScope)
 
         val MokkeryInterceptor = pluginContext.getClass(Mokkery.ClassId.MokkeryInterceptor)
@@ -230,6 +217,7 @@ abstract class MokkeryBaseTransformer(
         val MokkerySpy = pluginContext.firstFunction(Mokkery.FunctionId.MokkerySpy)
         val MokkeryMockScope = pluginContext.firstFunction(Mokkery.FunctionId.MokkeryMockScope)
         val MokkerySpyScope = pluginContext.firstFunction(Mokkery.FunctionId.MokkerySpyScope)
+        val generateMockId = pluginContext.firstFunction(Mokkery.FunctionId.generateMockId)
     }
 
 }

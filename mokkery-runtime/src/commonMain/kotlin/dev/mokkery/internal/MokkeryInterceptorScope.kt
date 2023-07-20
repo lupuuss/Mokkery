@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package dev.mokkery.internal
 
 import dev.mokkery.MockMode
@@ -35,12 +37,12 @@ private class DynamicMokkeryMockScope(
 ) : MokkeryMockScope {
     override val interceptor = MokkeryMock(mode)
 
-    override val id = "$typeName@${hashCode().toString(33)}"
+    override val id = generateMockId(typeName)
 }
 
 private class DynamicMokkerySpyScope(typeName: String) : MokkerySpyScope {
 
     override val interceptor = MokkerySpy()
 
-    override val id = "$typeName@${hashCode().toString(33)}"
+    override val id = generateMockId(typeName)
 }

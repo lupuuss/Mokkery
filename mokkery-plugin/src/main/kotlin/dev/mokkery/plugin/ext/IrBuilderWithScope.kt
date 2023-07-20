@@ -1,6 +1,5 @@
 package dev.mokkery.plugin.ext
 
-import dev.mokkery.plugin.Kotlin
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irCatch
@@ -18,8 +17,6 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
-import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irTry
 import org.jetbrains.kotlin.ir.builders.parent
@@ -47,7 +44,6 @@ import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
@@ -66,29 +62,6 @@ fun IrBuilderWithScope.kClassReferenceUnified(context: IrPluginContext, classTyp
 fun IrBuilderWithScope.irGetEnumEntry(irClass: IrClass, name: String): IrGetEnumValue {
     return IrGetEnumValueImpl(startOffset, endOffset, irClass.defaultType, irClass.getEnumEntry(name).symbol)
 }
-
-fun IrBuilderWithScope.irCallHashCode(irClass: IrClass) = context
-    .irBuiltIns
-    .anyClass
-    .getSimpleFunction("hashCode")!!
-    .let { irCall(it) }
-    .apply {
-        dispatchReceiver = irGet(irClass.thisReceiver!!)
-    }
-
-fun IrBuilderWithScope.irToString(
-    pluginContext: IrPluginContext,
-    expression: IrExpression,
-    radix: Int,
-) = pluginContext
-    .referenceFunctions(Kotlin.FunctionId.toString)
-    .first { it.owner.extensionReceiverParameter?.type == context.irBuiltIns.intType }
-    .let {
-        irCall(it).apply {
-            extensionReceiver = expression
-            putValueArgument(0, irInt(radix))
-        }
-    }
 
 fun IrBuilderWithScope.irCallConstructor(constructor: IrConstructor) =
     irCallConstructor(constructor.symbol, emptyList())

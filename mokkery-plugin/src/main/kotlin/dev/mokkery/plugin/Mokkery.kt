@@ -55,6 +55,7 @@ object Mokkery {
         val TemplatingScope by dev_mokkery_internal_templating.function
         val MokkeryMockScope by dev_mokkery_internal.function
         val MokkerySpyScope by dev_mokkery_internal.function
+        val generateMockId by dev_mokkery_internal.function
     }
 }
 

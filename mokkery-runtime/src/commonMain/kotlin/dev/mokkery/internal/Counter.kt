@@ -8,26 +8,17 @@ internal fun interface Counter {
 
     companion object {
 
-        private val _callsClock = DelegateCounter(MonotonicCounter(Long.MIN_VALUE))
-        private val _mocksCounter = DelegateCounter(MonotonicCounter(0))
+        private val _callsClock = MonotonicCounter(Long.MIN_VALUE)
+        private val _mocksCounter = MonotonicCounter(1)
         val calls: Counter = _callsClock
         val mocks: Counter = _mocksCounter
     }
 }
 
-internal class DelegateCounter(
-    initial: Counter
-): Counter {
-
-    var current: Counter by atomic(initial)
-
-    override fun next(): Long = current.next()
-}
-
 internal class MonotonicCounter(start: Long): Counter {
 
-    private val currentStamp = atomic(start)
+    private val current = atomic(start)
 
-    override fun next(): Long = currentStamp.getAndIncrement()
+    override fun next(): Long = current.getAndIncrement()
 
 }
