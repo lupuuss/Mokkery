@@ -3,7 +3,6 @@ package dev.mokkery.internal
 import dev.mokkery.MockMode
 import dev.mokkery.internal.answering.AnsweringInterceptor
 import dev.mokkery.internal.templating.TemplatingInterceptor
-import dev.mokkery.internal.tracing.CallTraceClock
 import dev.mokkery.internal.tracing.CallTracingInterceptor
 
 internal interface MokkeryMock : MokkerySpy {
@@ -13,7 +12,7 @@ internal interface MokkeryMock : MokkerySpy {
 @Suppress("unused")
 internal fun MokkeryMock(mockMode: MockMode): MokkeryMock = MokkeryMockImpl(
     TemplatingInterceptor(),
-    CallTracingInterceptor(CallTraceClock.current),
+    CallTracingInterceptor(Counter.calls),
     AnsweringInterceptor(mockMode)
 )
 

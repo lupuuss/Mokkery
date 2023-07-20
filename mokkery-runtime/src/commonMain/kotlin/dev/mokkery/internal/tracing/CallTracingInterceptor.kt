@@ -1,6 +1,7 @@
 package dev.mokkery.internal.tracing
 
 import dev.mokkery.internal.CallContext
+import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MokkeryToken
 import dev.mokkery.internal.MokkeryInterceptor
 import kotlinx.atomicfu.atomic
@@ -19,11 +20,11 @@ internal interface CallTracingInterceptor : MokkeryInterceptor {
 }
 
 internal fun CallTracingInterceptor(
-    clock: CallTraceClock = CallTraceClock.current
-): CallTracingInterceptor = CallTracingInterceptorImpl(clock)
+    counter: Counter = Counter.calls
+): CallTracingInterceptor = CallTracingInterceptorImpl(counter)
 
 private class CallTracingInterceptorImpl(
-    private val clock: CallTraceClock,
+    private val counter: Counter,
 ) : CallTracingInterceptor {
 
     private var verified by atomic(listOf<CallTrace>())
@@ -48,6 +49,6 @@ private class CallTracingInterceptorImpl(
         return MokkeryToken.CALL_NEXT
     }
 
-    private fun CallContext.toTrace() = CallTrace(self.id, name, args, clock.nextStamp())
+    private fun CallContext.toTrace() = CallTrace(self.id, name, args, counter.next())
 
 }

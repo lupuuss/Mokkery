@@ -1,5 +1,6 @@
 package dev.mokkery.internal.tracing
 
+import dev.mokkery.internal.Counter
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTrace
@@ -9,7 +10,7 @@ import kotlin.test.assertEquals
 
 class CallTracingInterceptorTest {
     private var clockStamp = 0L
-    private val clock = CallTraceClock { clockStamp }
+    private val clock = Counter { clockStamp }
     private val tracing = CallTracingInterceptor(clock)
     private val args1 = listOf(
         fakeCallArg(name = "i", value = 1),

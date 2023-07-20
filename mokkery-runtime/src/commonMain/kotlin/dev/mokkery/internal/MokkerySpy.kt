@@ -1,7 +1,6 @@
 package dev.mokkery.internal
 
 import dev.mokkery.internal.templating.TemplatingInterceptor
-import dev.mokkery.internal.tracing.CallTraceClock
 import dev.mokkery.internal.tracing.CallTracingInterceptor
 
 internal interface MokkerySpy : MokkeryInterceptor {
