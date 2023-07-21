@@ -6,9 +6,9 @@ import dev.mokkery.matcher.ArgMatcher
 /**
  * Matches an argument with [matcher] and captures matching arguments into [capture].
  */
-public data class CaptureMatcher<T>(
-    val capture: Capture<T>,
-    val matcher: ArgMatcher<T>? = null,
+public class CaptureMatcher<T>(
+    public val capture: Capture<T>,
+    public val matcher: ArgMatcher<T>? = null,
 ) : ArgMatcher.Composite<T> {
 
     override fun matches(arg: T): Boolean {
@@ -19,7 +19,7 @@ public data class CaptureMatcher<T>(
         return false
     }
 
-    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = copy(matcher = matcher)
+    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = CaptureMatcher(capture, matcher)
 
     override fun isFilled(): Boolean = matcher != null
 
@@ -28,4 +28,19 @@ public data class CaptureMatcher<T>(
             throw MissingMatchersForComposite("capture", 1, listOfNotNull(matcher))
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as CaptureMatcher<*>
+
+        return matcher == other.matcher
+    }
+
+    override fun hashCode(): Int {
+        return matcher?.hashCode() ?: 0
+    }
+
+    override fun toString(): String = "capture($capture, $matcher)"
 }
