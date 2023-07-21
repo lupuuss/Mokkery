@@ -16,6 +16,8 @@ import kotlin.reflect.KClass
 
 internal interface AnsweringInterceptor : MokkeryInterceptor {
 
+    val answers: Map<CallTemplate, Answer<*>>
+
     fun setup(template: CallTemplate, answer: Answer<*>)
 
     fun reset()
@@ -31,16 +33,17 @@ private class AnsweringInterceptorImpl(
 ) : AnsweringInterceptor {
 
     private var isSetup by atomic(false)
-    private var answers by atomic(linkedMapOf<CallTemplate, Answer<*>>())
+    private var _answers by atomic(linkedMapOf<CallTemplate, Answer<*>>())
+    override val answers: Map<CallTemplate, Answer<*>> get() = _answers
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
         isSetup = true
-        answers += template to answer
+        _answers += template to answer
         isSetup = false
     }
 
     override fun reset() {
-        answers = linkedMapOf()
+        _answers = linkedMapOf()
     }
 
     override fun interceptCall(context: CallContext): Any? {
@@ -55,7 +58,7 @@ private class AnsweringInterceptorImpl(
 
     private fun findAnswerFor(context: CallContext): Answer<*> {
         val trace = CallTrace(receiver = context.self.id, name = context.name, args = context.args, orderStamp = 0)
-        val answers = this.answers
+        val answers = this._answers
         return answers
             .keys
             .reversed()
