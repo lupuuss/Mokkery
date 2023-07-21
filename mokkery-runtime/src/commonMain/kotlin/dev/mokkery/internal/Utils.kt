@@ -16,6 +16,10 @@ internal fun callToString(
 ) = buildString {
     append(receiver)
     append(".")
+    append(callFunctionToString(name, args))
+}
+
+internal fun callFunctionToString(name: String, args: List<CallArg>): String = buildString {
     append(name)
     append("(")
     append(args.joinToString { "${it.name} = ${it.value.toListOrNull() ?: it.value}" })

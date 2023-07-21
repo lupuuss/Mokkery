@@ -1,5 +1,6 @@
 package dev.mokkery.internal.tracing
 
+import dev.mokkery.internal.callFunctionToString
 import dev.mokkery.internal.callToString
 
 internal data class CallTrace(
@@ -9,5 +10,7 @@ internal data class CallTrace(
     val orderStamp: Long,
 ) {
     override fun toString(): String = callToString(receiver, name, args)
+
+    fun toStringNoReceiver() = callFunctionToString(name, args)
 }
 

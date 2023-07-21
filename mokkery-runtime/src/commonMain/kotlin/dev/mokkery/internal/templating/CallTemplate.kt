@@ -12,6 +12,10 @@ internal data class CallTemplate(
     override fun toString(): String = buildString {
         append(receiver)
         append(".")
+        append(toStringNoReceiver())
+    }
+
+    fun toStringNoReceiver() = buildString {
         append(name)
         append("(")
         append(matchers.entries.joinToString { "${it.key} = ${it.value}" })
