@@ -116,7 +116,7 @@ class SpyCallsTransformer(
         val newClass = pluginContext.irFactory.buildClass(
             classToSpy.createUniqueMockName("Spy"),
             typeToMockProjected,
-            irClasses.MokkeryMockScope.defaultType,
+            irClasses.MokkerySpyScope.defaultType,
             if (classToSpy.isInterface) pluginContext.irBuiltIns.anyType else null
         )
         val delegateField = newClass.addField(fieldName = "delegate", typeToMockProjected)
