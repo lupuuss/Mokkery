@@ -12,6 +12,7 @@ internal object JsMokkeryScopeLookup : MokkeryScopeLookup {
         map[obj ?: return] = scope
     }
     override fun resolve(obj: Any?): MokkeryInterceptorScope? {
+        if (obj is MokkeryInterceptorScope) return obj
         return map[obj ?: return null]
     }
 }
