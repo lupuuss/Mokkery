@@ -3,7 +3,7 @@ package dev.mokkery.debug
 internal interface HierarchicalStringBuilder {
     fun startSection(headline: String)
 
-    fun addItem(item: String)
+    fun line(line: String)
 
     fun endSection()
 
@@ -17,11 +17,11 @@ internal fun buildHierarchicalString(builder: HierarchicalStringBuilder.() -> Un
 
 
 internal fun HierarchicalStringBuilder.addItem(builder: StringBuilder.() -> Unit) {
-    addItem(StringBuilder().apply(builder).toString())
+    line(StringBuilder().apply(builder).toString())
 }
 
-internal fun HierarchicalStringBuilder.addValue(key: String, value: String) {
-    addItem("$key = $value")
+internal fun HierarchicalStringBuilder.value(key: String, value: String) {
+    line("$key = $value")
 }
 
 internal fun HierarchicalStringBuilder.section(headline: String, renderer: HierarchicalStringBuilder.() -> Unit) {
@@ -36,21 +36,21 @@ private class JsonLikeStringBuilder : HierarchicalStringBuilder {
     private var nestedSectionCounter = 0
 
     override fun startSection(headline: String) {
-        addItem("$headline {")
+        line("$headline {")
         nestedSectionCounter++
         indent = buildIndent(nestedSectionCounter)
     }
 
-    override fun addItem(item: String) {
+    override fun line(line: String) {
         builder.append(indent)
-        builder.append(item)
+        builder.append(line)
         builder.appendLine()
     }
 
     override fun endSection() {
         nestedSectionCounter--
         indent = buildIndent(nestedSectionCounter)
-        addItem("}")
+        line("}")
     }
 
     override fun build(): String = builder.toString()

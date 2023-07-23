@@ -28,14 +28,14 @@ public fun printMokkeryDebug(obj: Any) {
 private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String {
     return buildHierarchicalString {
         section("mock") {
-            addValue("id", scope.toString())
-            addValue("mode", mock.mode.name)
+            value("id", scope.toString())
+            value("mode", mock.mode.name)
             section("answers") {
                 if (mock.answering.answers.isEmpty()) {
-                    addItem("")
+                    line("")
                 } else {
                     mock.answering.answers.forEach { (template, answer) ->
-                        addItem("${template.toStringNoReceiver()} ${answer.debug()}")
+                        line("${template.toStringNoReceiver()} ${answer.debug()}")
                     }
                 }
             }
@@ -47,7 +47,7 @@ private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String
 private fun mokkeryDebugSpy(scope: MokkerySpyScope, spy: MokkerySpy): String {
     return buildHierarchicalString {
         section("spy") {
-            addValue("id", scope.toString())
+            value("id", scope.toString())
             callsSection(spy)
         }
     }
@@ -57,10 +57,10 @@ private fun HierarchicalStringBuilder.callsSection(spy: MokkerySpy) {
     section("calls") {
         val calls = spy.callTracing.all
         if (calls.isEmpty()) {
-            addItem("")
+            line("")
             return@section
         }
-        calls.forEach { addItem(it.toStringNoReceiver()) }
+        calls.forEach { line(it.toStringNoReceiver()) }
     }
 }
 
