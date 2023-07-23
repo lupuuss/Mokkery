@@ -6,7 +6,6 @@ import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
-import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -83,6 +82,46 @@ class MockTest {
             every { finalMethod() } returns "123"
         }
         assertEquals("123", mock.finalMethod())
+    }
+
+    @Test
+    fun testMocksFunctionalTypeWithPrimitives() {
+        val mock = mock<(Int, Int) -> Double> {
+            every { invoke(1, 2) } returns 1.0
+        }
+        assertEquals(1.0, mock(1, 2))
+    }
+
+    @Test
+    fun testMocksFunctionalTypeWithComplexTypes() {
+        val mock = mock<(List<Int>) -> List<String>> {
+            every { invoke(listOf(1)) } returns listOf("1")
+        }
+        assertEquals(listOf("1"), mock(listOf(1)))
+    }
+
+    @Test
+    fun testMocksFunctionalTypeWithReceiver() {
+        val mock = mock<Int.(Int) -> Double> {
+            every { invoke(1, 2) } returns 1.0
+        }
+        assertEquals(1.0, mock(1, 2))
+    }
+
+    @Test
+    fun testMocksSuspendFunctionalTypeWithPrimitives() = runTest {
+        val mock = mock<suspend (Int) -> Double> {
+            everySuspend { invoke(1) } returns 1.0
+        }
+        assertEquals(1.0, mock(1))
+    }
+
+    @Test
+    fun testMocksSuspendFunctionalTypeWithComplexTypes() = runTest {
+        val mock = mock<suspend (List<Int>) -> List<String>> {
+            everySuspend { invoke(listOf(1)) } returns listOf("1")
+        }
+        assertEquals(listOf("1"), mock(listOf(1)))
     }
 }
 

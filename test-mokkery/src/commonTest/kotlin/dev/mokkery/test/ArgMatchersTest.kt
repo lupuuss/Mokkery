@@ -23,6 +23,9 @@ import dev.mokkery.matcher.ofType
 import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.matcher.varargs.varargsAll
 import dev.mokkery.matcher.varargs.varargsAny
+import dev.mokkery.matcher.capture.Capture
+import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.capture.getIfPresent
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -247,6 +250,37 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callGeneric(2) }
         assertEquals(1,  mock.callGeneric(3))
         assertEquals(2,  mock.callGeneric(4))
+    }
+
+    @Test
+    fun testCapture() {
+        val slot = Capture.slot<Int>()
+        every { mock.callWithPrimitives(capture(slot), 1) } returns 0.0
+        mock.callWithPrimitives(2, 1)
+        mock.callWithPrimitives(3, 1)
+        assertEquals(3, slot.getIfPresent())
+    }
+
+    @Test
+    fun testCaptureWithNonDefaultMatcher() {
+        val slot = Capture.slot<Int>()
+        every { mock.callWithPrimitives(capture(slot, eq(2)), 1) } returns 0.0
+        mock.callWithPrimitives(2, 1)
+        assertFailsWith<MokkeryRuntimeException> {
+            mock.callWithPrimitives(3, 1)
+        }
+        assertEquals(2, slot.getIfPresent())
+    }
+
+    @Test
+    fun testCaptureWithNotFullMatch() {
+        val slot1 = Capture.slot<Int>()
+        val slot2 = Capture.slot<Int>()
+        every { mock.callWithPrimitives(capture(slot1), 1) } returns 0.0
+        every { mock.callWithPrimitives(capture(slot2), 2) } returns 0.0
+        mock.callWithPrimitives(2, 1)
+        assertEquals(2, slot1.getIfPresent())
+        assertEquals(null, slot2.getIfPresent())
     }
 }
 
