@@ -22,17 +22,21 @@ class MokkeryIrGenerationExtension(
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val time = measureTime {
+            val mockTable = mutableMapOf<IrClass, IrClass>()
+            val spyTable = mutableMapOf<IrClass, IrClass>()
             moduleFragment.files.forEach { irFile ->
                 MockCallsTransformer(
                     pluginContext = pluginContext,
                     messageCollector = messageCollector,
                     irFile = irFile,
                     mockMode = mockMode,
+                    mockTable = mockTable,
                 ).visitFile(irFile)
                 SpyCallsTransformer(
                     pluginContext = pluginContext,
                     messageCollector = messageCollector,
                     irFile = irFile,
+                    spyTable = spyTable
                 ).visitFile(irFile)
             }
             moduleFragment.files.forEach { irFile ->

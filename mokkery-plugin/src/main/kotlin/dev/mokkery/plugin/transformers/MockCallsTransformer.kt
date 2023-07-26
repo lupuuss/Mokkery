@@ -51,9 +51,8 @@ class MockCallsTransformer(
     messageCollector: MessageCollector,
     irFile: IrFile,
     private val mockMode: MockMode,
+    private val mockTable: MutableMap<IrClass, IrClass>
 ) : MokkeryBaseTransformer(pluginContext, messageCollector, irFile) {
-
-    private val mockTable = mutableMapOf<IrClass, IrClass>()
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
