@@ -51,8 +51,9 @@ class SpyCallsTransformer(
     pluginContext: IrPluginContext,
     messageCollector: MessageCollector,
     irFile: IrFile,
-    private val spyTable: MutableMap<IrClass, IrClass>,
 ) : MokkeryBaseTransformer(pluginContext, messageCollector, irFile) {
+
+    private val spyTable = mutableMapOf<IrClass, IrClass>()
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
@@ -68,7 +69,6 @@ class SpyCallsTransformer(
 
     private fun handleJsFunctionSpying(expression: IrCall, classToSpy: IrClass): IrExpression {
         val anyNType = pluginContext.irBuiltIns.anyNType
-        spyTable[classToSpy] = classToSpy // to mark type as spied for other components
         val typeToSpy = classToSpy.defaultTypeErased
         val returnType = typeToSpy.let { it as IrSimpleType }.arguments.last().typeOrNull ?: anyNType
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {

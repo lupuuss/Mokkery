@@ -50,9 +50,10 @@ class MockCallsTransformer(
     pluginContext: IrPluginContext,
     messageCollector: MessageCollector,
     irFile: IrFile,
-    private val mockTable: MutableMap<IrClass, IrClass>,
     private val mockMode: MockMode,
 ) : MokkeryBaseTransformer(pluginContext, messageCollector, irFile) {
+
+    private val mockTable = mutableMapOf<IrClass, IrClass>()
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
@@ -68,7 +69,6 @@ class MockCallsTransformer(
 
     private fun handleJsFunctionMock(expression: IrCall, classToMock: IrClass): IrExpression {
         val anyNType =  pluginContext.irBuiltIns.anyNType
-        mockTable[classToMock] = classToMock // to mark type as mocked for other components
         val typeToMock = classToMock.defaultTypeErased
         val returnType = typeToMock.let { it as IrSimpleType }.arguments.last().typeOrNull ?: anyNType
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {

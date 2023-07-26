@@ -9,7 +9,6 @@ import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -17,7 +16,6 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -30,7 +28,6 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 class CallTrackingTransformer(
     private val irFile: IrFile,
     private val pluginContext: IrPluginContext,
-    private val table: Map<IrClass, IrClass>,
     private val verifyMode: VerifyMode,
 ) : IrElementTransformerVoid() {
 
@@ -56,9 +53,7 @@ class CallTrackingTransformer(
                 val nestedTransformer = CallTrackingNestedTransformer(
                     pluginContext = pluginContext,
                     irFile = irFile,
-                    table = table,
-                    scopeVar = variable,
-                    stubMockReturns = true
+                    scopeVar = variable
                 )
                 block.transformChildren(nestedTransformer, null)
                 +irCall(function).apply {
@@ -76,7 +71,7 @@ class CallTrackingTransformer(
         return DeclarationIrBuilder(pluginContext, expression.symbol).run {
             irBlock {
                 val variable = createTmpVariable(irCall(irFunctions.TemplatingScope))
-                val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, table, variable)
+                val nestedTransformer = CallTrackingNestedTransformer(pluginContext, irFile, variable)
                 block.transformChildren(nestedTransformer, null)
                 +irCall(function).apply {
                     putValueArgument(0, irGet(variable))
