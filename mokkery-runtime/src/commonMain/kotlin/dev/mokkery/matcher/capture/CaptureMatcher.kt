@@ -7,17 +7,11 @@ import dev.mokkery.matcher.ArgMatcher
  * Matches an argument with [matcher] and captures matching arguments into [capture].
  */
 public class CaptureMatcher<T>(
-    public val capture: Capture<T>,
-    public val matcher: ArgMatcher<T>? = null,
-) : ArgMatcher.Composite<T> {
+    private val capture: Capture<T>,
+    private val matcher: ArgMatcher<T>? = null,
+) : ArgMatcher.Composite<T>, Capture<T> by capture {
 
-    override fun matches(arg: T): Boolean {
-        if (matcher!!.matches(arg)) {
-            capture.capture(arg)
-            return true
-        }
-        return false
-    }
+    override fun matches(arg: T): Boolean = matcher!!.matches(arg)
 
     override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = CaptureMatcher(capture, matcher)
 

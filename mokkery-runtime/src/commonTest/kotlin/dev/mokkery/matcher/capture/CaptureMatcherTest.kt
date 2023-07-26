@@ -29,11 +29,11 @@ class CaptureMatcherTest {
     }
 
     @Test
-    fun testComposedMatcherCapturesWhenMatcherMatches() {
-        val matcher = matcher.compose(ArgMatcher.Equals(1))
-        matcher.matches(2)
-        matcher.matches(1)
-        matcher.matches(3)
-        assertEquals(listOf(1), container.values)
+    fun testComposedMatcherCapturesIntoCapture() {
+        val matcher = matcher.compose(ArgMatcher.Equals(1)) as CaptureMatcher<Int>
+        matcher.capture(1)
+        matcher.capture(2)
+        matcher.capture(3)
+        assertEquals(listOf(1, 2, 3), container.values)
     }
 }

@@ -11,6 +11,7 @@ import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 
@@ -63,6 +64,7 @@ private class AnsweringInterceptorImpl(
             .keys
             .reversed()
             .find { callMatcher.matches(trace, it) }
+            ?.also { it.applyCapture(trace) }
             ?.let { answers.getValue(it) }
             ?: handleMissingAnswer(trace, context.returnType)
     }
@@ -74,4 +76,14 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value), self)
+
+    @Suppress("UNCHECKED_CAST")
+    private fun CallTemplate.applyCapture(trace: CallTrace) {
+        matchers.forEach { (name, matcher) ->
+            if (matcher !is Capture<*>) return@forEach
+            val capture = matcher as Capture<Any?>
+            val argValue = trace.args.find { it.name == name }?.value
+            capture.capture(argValue)
+        }
+    }
 }
