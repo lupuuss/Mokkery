@@ -4,13 +4,15 @@ import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
+internal expect fun autofillAny(kClass: KClass<*>): Any?
+
 internal fun <T> autofillValue(returnType: KClass<*>): T {
     // don't change this to returnType == Nothing::class
     // it fails when returnType is non-primitive type on jsBrowser (probably a K/JS bug)
     return if (Nothing::class == returnType) {
         throw DefaultNothingException()
     } else {
-        autofillMapping[returnType].unsafeCast()
+        (autofillMapping[returnType] ?: autofillAny(returnType)).unsafeCast()
     }
 }
 

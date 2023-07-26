@@ -72,18 +72,22 @@ kotlin {
         val androidNativeArm32Main by getting { dependsOn(androidNativeMain) }
         val androidNativeArm64Main by getting { dependsOn(androidNativeMain) }
 
+        val nativeSourceSets = listOf(
+            mingwX64Main,
+            linuxX64Main,
+            linuxArm64Main,
+            darwinMain,
+            androidNativeMain
+        )
+        val nativeMain by creating {
+            dependsOn(commonMain)
+            nativeSourceSets.forEach { it.dependsOn(this) }
+        }
+
         val blockingMain by creating {
             dependsOn(commonMain)
-            listOf(
-                jvmMain,
-                mingwX64Main,
-                linuxX64Main,
-                linuxArm64Main,
-                darwinMain,
-                androidNativeMain
-            ).forEach {
-                it.dependsOn(this)
-            }
+            jvmMain.dependsOn(this)
+            nativeMain.dependsOn(this)
         }
     }
 }
