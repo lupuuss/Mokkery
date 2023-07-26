@@ -7,7 +7,7 @@ import dev.mokkery.internal.templating.CallTemplate
 internal class TestAnsweringInterceptor : AnsweringInterceptor, TestMokkeryInterceptor() {
 
     private val _answers = mutableMapOf<CallTemplate, Answer<*>>()
-    val answers: Map<CallTemplate, Answer<*>> = _answers
+    override val answers: Map<CallTemplate, Answer<*>> = _answers
 
     var resetCalls = 0
     private set
