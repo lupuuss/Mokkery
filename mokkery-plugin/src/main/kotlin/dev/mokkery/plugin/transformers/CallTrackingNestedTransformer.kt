@@ -8,10 +8,12 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
+import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irReturnUnit
 import org.jetbrains.kotlin.ir.builders.irString
@@ -36,6 +38,7 @@ import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
+import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class CallTrackingNestedTransformer(
@@ -46,6 +49,7 @@ class CallTrackingNestedTransformer(
     private val stubMockReturns: Boolean = false,
 ) : IrElementTransformerVoid() {
 
+    private var token = 0
     private val localDeclarations = mutableListOf<IrDeclaration>()
     private val transformedTypes = mutableMapOf<IrExpression, IrType>()
     private val argMatchersScopeClass = pluginContext.getClass(Mokkery.ClassId.ArgMatchersScope)
@@ -77,23 +81,28 @@ class CallTrackingNestedTransformer(
 
     override fun visitCall(expression: IrCall): IrExpression {
         val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
-        if (!table.containsKey(dispatchReceiver.type.getClass())) {
-            return super.visitCall(expression)
-        }
+        val cls = dispatchReceiver.type.getClass() ?: return super.visitCall(expression)
+        if (cls.isFinalClass) return super.visitCall(expression)
+        super.visitCall(expression)
         // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
         if (!expression.symbol.owner.returnType.isPrimitiveType(nullable = false)) {
             transformedTypes[expression] = expression.type
             expression.type = expression.type.makeNullable()
         }
         expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
-            irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!).apply {
-                this.dispatchReceiver = irGet(scopeVar)
-                putTypeArgument(0, dispatchReceiver.type)
-                putValueArgument(0, dispatchReceiver)
+            irBlock {
+                val tmp = createTmpVariable(dispatchReceiver)
+                +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!).apply {
+                    this.dispatchReceiver = irGet(scopeVar)
+                    putValueArgument(0, irInt(token))
+                    putValueArgument(1, irGet(tmp))
+                }
+                +irGet(tmp)
             }
         }
         interceptAllArgsOf(expression)
-        return super.visitCall(expression)
+        token++
+        return expression
     }
 
     private fun interceptAllArgsOf(expression: IrCall) {
@@ -124,8 +133,9 @@ class CallTrackingNestedTransformer(
         return DeclarationIrBuilder(pluginContext, symbol).run {
             irCall(templatingContextClass.getSimpleFunction("interceptArg")!!).apply {
                 this.dispatchReceiver = irGet(scopeVar)
-                putValueArgument(0, irString(param.name.asString()))
-                putValueArgument(1, interceptArgVarargs(arg))
+                putValueArgument(0, irInt(token))
+                putValueArgument(1, irString(param.name.asString()))
+                putValueArgument(2, interceptArgVarargs(arg))
             }
         }
     }
@@ -159,8 +169,9 @@ class CallTrackingNestedTransformer(
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
             this.dispatchReceiver = irGet(scopeVar)
-            putValueArgument(0, expression)
-            putValueArgument(1, irBoolean(isSpread))
+            putValueArgument(0, irInt(token))
+            putValueArgument(1, expression)
+            putValueArgument(2, irBoolean(isSpread))
         }
     }
 }
