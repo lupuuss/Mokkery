@@ -155,12 +155,10 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridableProperty() }
 
-private val compilationId = Random.nextUInt().toString(16)
-
 fun IrClass.createUniqueMockName(type: String) = kotlinFqName
     .asString()
     .replace(".", "_")
-    .plus("${type}ByMokkery$compilationId")
+    .plus("${type}ByMokkery")
     .let(Name::identifier)
 
 val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
