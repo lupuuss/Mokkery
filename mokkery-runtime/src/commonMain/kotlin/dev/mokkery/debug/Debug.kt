@@ -29,7 +29,7 @@ public fun printMokkeryDebug(obj: Any) {
 private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String {
     return buildHierarchicalString {
         section("mock") {
-            value("id", scope.toString())
+            value("id", scope.id)
             value("mode", mock.mode.name)
             section("answers") {
                 if (mock.answering.answers.isEmpty()) {
@@ -48,7 +48,7 @@ private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String
 private fun mokkeryDebugSpy(scope: MokkerySpyScope, spy: MokkerySpy): String {
     return buildHierarchicalString {
         section("spy") {
-            value("id", scope.toString())
+            value("id", scope.id)
             callsSection(spy)
         }
     }
