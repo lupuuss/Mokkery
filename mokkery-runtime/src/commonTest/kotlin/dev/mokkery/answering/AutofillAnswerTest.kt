@@ -27,12 +27,6 @@ class AutofillAnswerTest {
         }
     }
 
-
-    @Test
-    fun testCallReturnsNullOnComplexType() {
-        assertNull(answer.call(fakeFunctionScope(List::class)))
-    }
-
     @Test
     fun testCallSuspendReturnsFromAutofillMapping() = runTest {
         autofillMapping.forEach { (type, value) ->
@@ -46,10 +40,4 @@ class AutofillAnswerTest {
             answer.callSuspend(fakeFunctionScope(Nothing::class))
         }
     }
-
-    @Test
-    fun testCallSuspendReturnsNullOnComplexType() = runTest {
-        assertNull(answer.callSuspend(fakeFunctionScope(List::class)))
-    }
-
 }

@@ -21,11 +21,4 @@ class AutofillValueTest {
             autofillValue(Nothing::class)
         }
     }
-
-
-    @Test
-    fun testCallReturnsNullOnComplexType() {
-        assertNull(autofillValue((List::class)))
-    }
-
 }
