@@ -4,7 +4,9 @@ import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
 
 /**
- * Matches an argument with [matcher] and captures matching arguments into [capture].
+ * Matches an argument with [matcher] and captures arguments into [capture].
+ *
+ * @see [Capture]
  */
 public class CaptureMatcher<T>(
     private val capture: Capture<T>,

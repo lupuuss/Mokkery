@@ -8,6 +8,7 @@ import dev.mokkery.matcher.matches
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [capture].
+ * Arguments are captured only if all other matchers match.
  */
 public inline fun <reified T> ArgMatchersScope.capture(
     container: Capture<T>,
@@ -18,6 +19,7 @@ public inline fun <reified T> ArgMatchersScope.capture(
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [list].
+ * Arguments are captured only if all other matchers match.
  */
 public inline fun <reified T> ArgMatchersScope.capture(
     list: MutableList<T>,

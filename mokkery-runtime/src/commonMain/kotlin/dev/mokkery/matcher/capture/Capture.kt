@@ -5,7 +5,9 @@ import dev.mokkery.internal.matcher.capture.DefaultCapture
 import dev.mokkery.internal.matcher.capture.DefaultSlotCapture
 
 /**
- * Container for values captured with [CaptureMatcher].
+ * Container for captured values. If [dev.mokkery.matcher.ArgMatcher] implements this interface,
+ * [Capture.capture] is called on full match (all matchers for given call match).
+ * Implementing [Capture] is not recommended. Use [CaptureMatcher].
  */
 public interface Capture<T> {
 

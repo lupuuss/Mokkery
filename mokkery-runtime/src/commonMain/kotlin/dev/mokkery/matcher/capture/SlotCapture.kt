@@ -3,7 +3,7 @@ package dev.mokkery.matcher.capture
 import kotlin.reflect.KProperty
 
 /**
- * Single value container for [CaptureMatcher]
+ * [Capture] that stores only the last value.
  */
 public interface SlotCapture<T> : Capture<T> {
 
