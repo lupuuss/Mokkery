@@ -45,6 +45,7 @@ private class TemplatingScopeImpl(
     private val scopeLookup: MokkeryScopeLookup,
 ) : TemplatingScope {
 
+    private var isReleased = false
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
     private var varargGenericMatcherFlag: Boolean = false
 
@@ -54,6 +55,7 @@ private class TemplatingScopeImpl(
     override val templates = mutableListOf<CallTemplate>()
 
     override fun ensureBinding(token: Int, obj: Any?) {
+        if (isReleased) return
         tokenToObj[token] = obj
         val scope = scopeLookup.resolve(obj)
         if (scope is MokkerySpyScope) {
@@ -71,12 +73,14 @@ private class TemplatingScopeImpl(
     }
 
     override fun release() {
+        isReleased = true
         spies.forEach { it.interceptor.templating.stop() }
         spies.clear()
     }
 
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
+        if (isReleased) return autofillValue(argType)
         if (matcher is VarArgMatcher) {
             varargGenericMatcherFlag = true
         }
@@ -85,6 +89,7 @@ private class TemplatingScopeImpl(
     }
 
     override fun interceptVarargElement(token: Int, arg: Any?, isSpread: Boolean): Any? {
+        if (isReleased) return arg
         if (isTokenDefinitelyNotMocked(token)) return arg
         val data = this.tokenToData.getOrPut(token) { TemplateData() }
         val args = if (isSpread) {
@@ -110,6 +115,7 @@ private class TemplatingScopeImpl(
     }
 
     override fun interceptArg(token: Int, name: String, arg: Any?): Any? {
+        if (isReleased) return arg
         if (isTokenDefinitelyNotMocked(token)) return arg
         val data = getDataFor(token)
         data.matchers[name] = currentMatchers.toMutableList()
@@ -118,6 +124,7 @@ private class TemplatingScopeImpl(
     }
 
     override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
+        if (isReleased) return
         val matchers = flush(args)
         templates += CallTemplate(receiver, name, signatureGenerator.generate(name, args), matchers.toMap())
     }
