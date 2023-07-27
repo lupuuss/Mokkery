@@ -1,7 +1,10 @@
 package dev.mokkery.test
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.spy
+import dev.mokkery.verify
 import dev.mokkery.verifySuspend
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,6 +24,56 @@ class SpyTest {
         assertEquals(listOf("1"), spied.callWithSuspension(1))
         assertEquals(Unit, spied.callWithSelf(spied))
         assertFailsWith<IllegalArgumentException> { spied.callNothing() }
+    }
+
+    @Test
+    fun testReturnsFromSpiedFunction() {
+        val func = { i: Int -> i.toString() }
+        val spied = spy(func)
+        assertEquals("1", spied(1))
+    }
+
+    @Test
+    fun testReturnsFromSpiedSuspendFunction() = runTest {
+        val func: suspend (Int) -> String = {
+            delay(1)
+            it.toString()
+        }
+        val spied = spy(func)
+        assertEquals("1", spied(1))
+    }
+
+    @Test
+    fun testRegistersSpiedFunctionCall() {
+        val func = { i: Int -> i.toString() }
+        val spied = spy(func)
+        assertEquals("1", spied(1))
+        verify {
+            spied(1)
+        }
+        assertFailsWith<AssertionError> {
+            verify {
+                spied(2)
+            }
+        }
+    }
+
+    @Test
+    fun testRegistersSpiedSuspendFunctionCall() = runTest {
+        val func: suspend (Int) -> String = {
+            delay(1)
+            it.toString()
+        }
+        val spied = spy(func)
+        spied(1)
+        verifySuspend {
+            spied(1)
+        }
+        assertFailsWith<AssertionError> {
+            verifySuspend {
+                spied(2)
+            }
+        }
     }
 
     @Test
