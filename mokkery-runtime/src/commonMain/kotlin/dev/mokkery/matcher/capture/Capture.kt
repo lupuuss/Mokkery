@@ -3,6 +3,7 @@ package dev.mokkery.matcher.capture
 import dev.mokkery.internal.matcher.capture.DebugCapture
 import dev.mokkery.internal.matcher.capture.DefaultCapture
 import dev.mokkery.internal.matcher.capture.DefaultSlotCapture
+import dev.mokkery.internal.matcher.capture.VoidCapture
 
 /**
  * Container for captured values. If [dev.mokkery.matcher.ArgMatcher] implements this interface,
@@ -35,6 +36,11 @@ public interface Capture<T> {
             name: String? = null,
             capture: Capture<T> = container()
         ): Capture<T> = DebugCapture(name, capture)
+
+        /**
+         * Creates a [Capture] that ignores incoming values.
+         */
+        public fun <T> void(): Capture<T> = VoidCapture()
     }
 }
 
