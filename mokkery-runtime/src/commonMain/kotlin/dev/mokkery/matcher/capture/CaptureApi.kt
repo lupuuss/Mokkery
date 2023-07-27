@@ -27,3 +27,10 @@ public inline fun <reified T> ArgMatchersScope.capture(
 ): T {
     return matches(CaptureMatcher(list.asCapture()))
 }
+
+/**
+ * Short for [capture] with [Capture.callback].
+ */
+public inline fun <reified T> ArgMatchersScope.onArg(matcher: T = any(), noinline block: (T) -> Unit): T {
+    return capture(Capture.callback(callback = block), matcher = matcher)
+}
