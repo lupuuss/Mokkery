@@ -22,7 +22,7 @@ internal fun callToString(
 internal fun callFunctionToString(name: String, args: List<CallArg>): String = buildString {
     append(name)
     append("(")
-    append(args.joinToString { "${it.name} = ${it.description()}" })
+    append(args.joinToString { "${it.name} = ${it.value.description()}" })
     append(")")
 }
 
