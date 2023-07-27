@@ -12,7 +12,7 @@ public interface AnsweringScope<T> {
      * suspending answer for non-suspend function.
      */
     @DelicateMokkeryApi
-    public fun answers(answer: Answer<T>)
+    public infix fun answers(answer: Answer<T>)
 }
 
 /**
