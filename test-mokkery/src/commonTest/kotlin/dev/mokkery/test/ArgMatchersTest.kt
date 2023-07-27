@@ -26,6 +26,7 @@ import dev.mokkery.matcher.varargs.varargsAny
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
 import dev.mokkery.matcher.capture.getIfPresent
+import dev.mokkery.matcher.capture.onArg
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -281,6 +282,29 @@ class ArgMatchersTest {
         mock.callWithPrimitives(2, 1)
         assertEquals(2, slot1.getIfPresent())
         assertEquals(null, slot2.getIfPresent())
+    }
+    
+    @Test
+    fun testCaptureCallbackIsCalled() {
+        val called = mutableListOf<Int>()
+        val callback = Capture.callback(callback = called::add)
+        every { mock.callWithPrimitives(any()) } returns 0.0
+        every { mock.callWithPrimitives(capture(callback, gte(1))) } returns 0.0
+        mock.callWithPrimitives(0)
+        mock.callWithPrimitives(1)
+        mock.callWithPrimitives(3)
+        assertEquals(listOf(1, 3), called)
+    }
+
+    @Test
+    fun testOnArgCallbackIsCalled() {
+        val called = mutableListOf<Int>()
+        every { mock.callWithPrimitives(any()) } returns 0.0
+        every { mock.callWithPrimitives(onArg(gte(1), called::add)) } returns 0.0
+        mock.callWithPrimitives(0)
+        mock.callWithPrimitives(1)
+        mock.callWithPrimitives(3)
+        assertEquals(listOf(1, 3), called)
     }
 }
 
