@@ -2,18 +2,17 @@ package dev.mokkery.internal.matcher.capture
 
 import dev.mokkery.matcher.capture.Capture
 
-internal data class DebugCapture<T>(
-    val name: String?,
+internal data class CallbackCapture<T>(
+    val onArg: (T) -> Unit,
     val capture: Capture<T>,
 ): Capture<T> {
-    private val tag = if (name != null) "Debug($name):" else "Debug(#${hashCode().toString(16)}):"
     override val values: List<T>
         get() = capture.values
 
     override fun capture(value: T) {
-        println("$tag $value")
+        onArg(value)
         capture.capture(value)
     }
 
-    override fun toString(): String = "debug($capture)"
+    override fun toString(): String = "callback($capture) {...}"
 }

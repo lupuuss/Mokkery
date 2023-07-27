@@ -1,6 +1,6 @@
 package dev.mokkery.matcher.capture
 
-import dev.mokkery.internal.matcher.capture.DebugCapture
+import dev.mokkery.internal.matcher.capture.CallbackCapture
 import dev.mokkery.internal.matcher.capture.DefaultCapture
 import dev.mokkery.internal.matcher.capture.DefaultSlotCapture
 import dev.mokkery.internal.matcher.capture.VoidCapture
@@ -29,13 +29,12 @@ public interface Capture<T> {
         public fun <T> container(): Capture<T> = DefaultCapture()
 
         /**
-         * Creates a [Capture] that prints incoming values and stores them in [capture].
-         * It is possible
+         * Creates a [Capture] that calls [callback] on each element and stores values in [capture] (by default it is [void]).
          */
-        public fun <T> debug(
-            name: String? = null,
-            capture: Capture<T> = container()
-        ): Capture<T> = DebugCapture(name, capture)
+        public fun <T> callback(
+            capture: Capture<T> = void(),
+            callback: (T) -> Unit,
+        ): Capture<T> = CallbackCapture(callback, capture)
 
         /**
          * Creates a [Capture] that ignores incoming values.
