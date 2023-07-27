@@ -22,7 +22,7 @@ internal fun callToString(
 internal fun callFunctionToString(name: String, args: List<CallArg>): String = buildString {
     append(name)
     append("(")
-    append(args.joinToString { "${it.name} = ${it.value.toListOrNull() ?: it.value}" })
+    append(args.joinToString { "${it.name} = ${it.description()}" })
     append(")")
 }
 
@@ -31,6 +31,15 @@ internal fun generateMockId(typeName: String) = "$typeName(${Counter.mocks.next(
 internal fun <T> List<T>.subListAfter(index: Int): List<T> {
     if (index >= size) return emptyList()
     return subList(index, size)
+}
+
+internal fun Any?.description(): String {
+    if (this == null) return "null"
+    if (this is String) return "\"$this\""
+    if (this is Function<*>) return "{...}"
+    val values = toListOrNull()
+    if (values != null) return values.toString()
+    return toString()
 }
 
 internal expect fun KClass<*>.bestName(): String

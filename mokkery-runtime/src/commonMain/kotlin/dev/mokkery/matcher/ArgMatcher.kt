@@ -1,6 +1,8 @@
 package dev.mokkery.matcher
 
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.internal.bestName
+import dev.mokkery.internal.description
 import kotlin.reflect.KClass
 
 /**
@@ -27,7 +29,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
-        override fun toString(): String = value.toString()
+        override fun toString(): String = value.description()
     }
 
     /**
@@ -37,7 +39,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
-        override fun toString(): String = "neq($value)"
+        override fun toString(): String = "neq(${value.description()})"
     }
 
     /**
@@ -47,7 +49,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg === value
 
-        override fun toString(): String = "eqRef($value)"
+        override fun toString(): String = "eqRef(${value.description()})"
     }
 
     /**
@@ -57,7 +59,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg !== value
 
-        override fun toString(): String = "neqRef($value)"
+        override fun toString(): String = "neqRef(${value.description()})"
     }
 
     /**
@@ -82,7 +84,7 @@ public fun interface ArgMatcher<in T> {
     ) : ArgMatcher<T> where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
-        override fun toString(): String = "${type.toString().lowercase()}($value)"
+        override fun toString(): String = "${type.toString().lowercase()}(${value.description()})"
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -94,6 +96,8 @@ public fun interface ArgMatcher<in T> {
      */
     public data class OfType<T>(val type: KClass<*>) : ArgMatcher<T> {
         override fun matches(arg: T): Boolean = type.isInstance(arg)
+
+        override fun toString(): String = "ofType<${type.bestName()}>()"
     }
 
     /**
