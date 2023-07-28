@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.name.Name
+import java.util.UUID
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
@@ -155,10 +156,10 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridableProperty() }
 
-fun IrClass.createUniqueMockName(type: String) = kotlinFqName
+fun IrClass.createUniqueMockName(type: String) = name
     .asString()
-    .replace(".", "_")
-    .plus("${type}ByMokkery")
+    .plus(UUID.randomUUID().toString().replace("-", ""))
+    .plus(type)
     .let(Name::identifier)
 
 val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()

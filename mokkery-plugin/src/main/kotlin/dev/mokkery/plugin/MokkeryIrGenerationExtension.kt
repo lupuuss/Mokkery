@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
-@OptIn(ExperimentalTime::class)
 class MokkeryIrGenerationExtension(
     private val messageCollector: MessageCollector,
     private val mockMode: MockMode,
@@ -22,9 +21,9 @@ class MokkeryIrGenerationExtension(
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         val time = measureTime {
-            val mockTable = mutableMapOf<IrClass, IrClass>()
-            val spyTable = mutableMapOf<IrClass, IrClass>()
             moduleFragment.files.forEach { irFile ->
+                val mockTable = mutableMapOf<IrClass, IrClass>()
+                val spyTable = mutableMapOf<IrClass, IrClass>()
                 MockCallsTransformer(
                     pluginContext = pluginContext,
                     messageCollector = messageCollector,
