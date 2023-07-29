@@ -68,7 +68,7 @@ public inline fun <reified T : Comparable<T>> ArgMatchersScope.gte(
 ): T = matches(ArgMatcher.Comparing(value, Gte))
 
 /**
- * Matches an argument that is an instance of [P].
+ * Matches an argument that is an instance of type [T].
  */
 public inline fun <reified T> ArgMatchersScope.ofType(): T {
     return matches(ArgMatcher.OfType(T::class))
