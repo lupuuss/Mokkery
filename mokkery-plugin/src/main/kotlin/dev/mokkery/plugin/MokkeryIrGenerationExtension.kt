@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
+@OptIn(ExperimentalTime::class)
 class MokkeryIrGenerationExtension(
     private val messageCollector: MessageCollector,
     private val mockMode: MockMode,
