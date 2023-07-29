@@ -8,7 +8,9 @@ dev.mokkery.verify
 module:mokkery-runtime
 dev.mokkery
 dev.mokkery.answering
+dev.mokkery.debug
 dev.mokkery.matcher
+dev.mokkery.matcher.capture
 dev.mokkery.matcher.collections
 dev.mokkery.matcher.logical
 dev.mokkery.matcher.varargs

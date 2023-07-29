@@ -38,7 +38,7 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 9. [Logical matchers](#logical-matchers)
 10. [Vararg matchers](#vararg-matchers)
 11. [Custom matchers](#custom-matchers)
-
+12. [Arguments capturing](#arguments-capturing)
 ### Setup
 
 Apply Gradle plugin to your kotlin project:
@@ -46,7 +46,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.1.0"
+    id("dev.mokkery") version "1.9.0-1.2.0"
 }
 ```
 
@@ -57,7 +57,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.1.0"
+    id("dev.mokkery") version "1.9.0-1.2.0"
 }
 
 mokkery {
@@ -92,6 +92,10 @@ Kotlin version is always prioritized.
 
 | Plugin version                  	 | Kotlin version                              	 |
 |-----------------------------------|-----------------------------------------------|
+| 1.9.0-1.2.0 	                     | 1.9.0 	                                       |
+| 1.8.22-1.2.0 	                    | 1.8.22 	                                      |
+| 1.8.21-1.2.0 	                    | 1.8.21   	                                    |
+| 1.8.20-1.2.0 	                    | 1.8.20        	                               |
 | 1.9.0-1.1.0 	                     | 1.9.0 	                                       |
 | 1.8.22-1.1.0 	                    | 1.8.22 	                                      |
 | 1.8.21-1.1.0 	                    | 1.8.21   	                                    |
@@ -113,8 +117,6 @@ Mokkery supports the creation of mocks and spies, although not for every type. A
 to mock/spy interfaces and all fully overridable classes with no-args constructors. 
 
 Mocking final classes is partially supported with [all-open plugin](#mocking-final-classes).
-
-Mocking function types is not supported yet on JS, and it will be supported in version 1.2.0 or 1.3.0.
 
 #### Mock:
 
@@ -404,6 +406,9 @@ Logical matchers allows combining regular matchers into logical expressions.
 ```kotlin
 everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
 ```
+
+Currently logical matchers does not work with wildcard vararg matchers.
+
 > **Warning**
 >You must not use literals with logical matchers. Only matchers allowed!
 
@@ -475,3 +480,48 @@ It is possible to use `matching` as anonymous matcher directly.
 
 You can also implement [ArgMatcher](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/-arg-matcher/index.html) 
 and pass its instance as an argument to [ArgMatchersScope.matches](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
+
+### Arguments capturing
+
+Arguments capturing allows accessing arguments passed to mocks:
+
+```kotlin
+val slot = Capture.slot<String>() // stores only the latest value
+everySuspend { respoitory.findById(capture(slot)) } returns stubBook()
+
+respoitory.findById("1")
+
+println(slot.get()) // prints "1"
+```
+
+By default `capture` matches any argument. You can change it by providing a different matcher:
+
+```kotlin
+val slot = Capture.slot<String>()
+everySuspend { respoitory.findById(capture(slot, neq("1"))) } returns stubBook()
+
+respoitory.findById("2")
+
+println(slot.get()) // prints "2"
+
+respoitory.findById("1") // fails - no answer provided for arg "1"
+```
+
+Argument capture occurs only if given definition is actually used to provide an answer for a call:
+
+```kotlin
+
+val container = Capture.container<String>() // stores multiple values
+
+everySuspend { respoitory.findByName(query = any(), limit = any()) } returns listOf(stubBook())
+everySuspend { respoitory.findByName(query = capture(container), limit = eq(10)) } returns listOf(stubBook())
+everySuspend { respoitory.findByName(query = eq("Book 3"), limit = any()) } returns listOf(stubBook())
+
+respoitory.findByName(query = "Book 1", limit = 10) // `query` arg is captured
+respoitory.findByName(query = "Book 2", limit = 20) // `limit` parameter does not match - argument is not captured
+respoitory.findByName(query = "Book 3", limit = 10) // answer defined later is selected here - argument is not captured
+
+println(container.values) // prints ["Book 1"]
+```
+
+Currently, arguments capturing works only for regular arguments. Support for varargs will be implemented in next releases.
