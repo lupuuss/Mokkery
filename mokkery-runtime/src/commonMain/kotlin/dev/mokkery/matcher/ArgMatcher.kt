@@ -3,6 +3,7 @@ package dev.mokkery.matcher
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.bestName
 import dev.mokkery.internal.description
+import dev.mokkery.matcher.capture.Capture
 import kotlin.reflect.KClass
 
 /**
@@ -102,10 +103,11 @@ public fun interface ArgMatcher<in T> {
 
     /**
      * Arg matcher that must be composed with other matchers. Check existing implementations to learn
-     * how to implement it correctly.
+     * how to implement it correctly. Every composite matcher has to implement [Capture] to propagate it to nested
+     * its children.
      */
     @DelicateMokkeryApi
-    public interface Composite<T> : ArgMatcher<T> {
+    public interface Composite<T> : ArgMatcher<T>, Capture<T> {
 
         /**
          * Returns new [Composite] with [matcher] merged. This method gets matchers in reversed order.
@@ -122,6 +124,11 @@ public fun interface ArgMatcher<in T> {
          * It is called when composite is considered "final". It is often used to verify missing matchers.
          */
         public fun assertFilled()
+
+        /**
+         * Propagates [value] to children matchers.
+         */
+        override fun capture(value: T)
     }
 
 }

@@ -2,6 +2,7 @@ package dev.mokkery.matcher.logical
 
 import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.capture.propagateCapture
 
 /**
  * Contains composite matchers for logical operations.
@@ -30,6 +31,10 @@ public object LogicalMatchers {
         }
 
         override fun toString(): String = "and(${matchers.joinToString()})"
+
+        override fun capture(value: T) {
+            matchers.propagateCapture(value)
+        }
     }
 
     /**
@@ -55,6 +60,10 @@ public object LogicalMatchers {
         }
 
         override fun toString(): String = "or(${matchers.joinToString()})"
+
+        override fun capture(value: T) {
+            matchers.propagateCapture(value)
+        }
     }
 
     /**
@@ -74,5 +83,9 @@ public object LogicalMatchers {
         }
 
         override fun toString(): String = "not($matcher)"
+
+        override fun capture(value: T) {
+            listOfNotNull(matcher).propagateCapture(value)
+        }
     }
 }

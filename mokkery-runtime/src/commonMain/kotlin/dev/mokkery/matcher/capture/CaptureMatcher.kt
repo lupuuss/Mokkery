@@ -11,7 +11,7 @@ import dev.mokkery.matcher.ArgMatcher
 public class CaptureMatcher<T>(
     private val capture: Capture<T>,
     private val matcher: ArgMatcher<T>? = null,
-) : ArgMatcher.Composite<T>, Capture<T> by capture {
+) : ArgMatcher.Composite<T> {
 
     override fun matches(arg: T): Boolean = matcher!!.matches(arg)
 
@@ -39,4 +39,9 @@ public class CaptureMatcher<T>(
     }
 
     override fun toString(): String = "capture($capture, $matcher)"
+
+    override fun capture(value: T) {
+        capture.capture(value)
+        listOfNotNull(matcher).propagateCapture(value)
+    }
 }

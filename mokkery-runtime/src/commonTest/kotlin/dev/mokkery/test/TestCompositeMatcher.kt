@@ -1,6 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.capture.propagateCapture
 
 data class TestCompositeMatcher<T>(
     val takes: Int,
@@ -17,6 +18,10 @@ data class TestCompositeMatcher<T>(
 
     override fun assertFilled() {
         validated = true
+    }
+
+    override fun capture(value: T) {
+        matchers.propagateCapture(value)
     }
 
 }
