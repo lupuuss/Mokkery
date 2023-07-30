@@ -5,7 +5,7 @@ import kotlin.reflect.KProperty
 /**
  * [Capture] that stores only the last value.
  */
-public interface SlotCapture<T> : Capture<T> {
+public interface SlotCapture<T> : ContainerCapture<T> {
 
     /**
      * Contains only latest value.

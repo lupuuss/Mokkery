@@ -1,7 +1,7 @@
 package dev.mokkery.matcher.capture
 
 import dev.mokkery.internal.matcher.capture.CallbackCapture
-import dev.mokkery.internal.matcher.capture.DefaultCapture
+import dev.mokkery.internal.matcher.capture.DefaultContainerCapture
 import dev.mokkery.internal.matcher.capture.DefaultSlotCapture
 import dev.mokkery.internal.matcher.capture.VoidCapture
 
@@ -10,9 +10,7 @@ import dev.mokkery.internal.matcher.capture.VoidCapture
  * [Capture.capture] is called on full match (all matchers for given call match).
  * Implementing [Capture] is not recommended. Use [CaptureMatcher].
  */
-public interface Capture<T> {
-
-    public val values: List<T>
+public interface Capture<in T> {
 
     public fun capture(value: T)
 
@@ -26,7 +24,7 @@ public interface Capture<T> {
         /**
          * Creates a [Capture] that is able to store multiple values.
          */
-        public fun <T> container(): Capture<T> = DefaultCapture()
+        public fun <T> container(): ContainerCapture<T> = DefaultContainerCapture()
 
         /**
          * Creates a [Capture] that calls [callback] on each element and stores values in [capture] (by default it is [void]).
@@ -39,7 +37,7 @@ public interface Capture<T> {
         /**
          * Creates a [Capture] that ignores incoming values.
          */
-        public fun <T> void(): Capture<T> = VoidCapture()
+        public fun <T> void(): Capture<T> = VoidCapture
     }
 }
 
@@ -47,6 +45,6 @@ public interface Capture<T> {
  * Returns a [Capture] that stores values in [this] list.
  */
 public fun <T> MutableList<T>.asCapture(): Capture<T> {
-    return DefaultCapture(this)
+    return DefaultContainerCapture(this)
 }
 
