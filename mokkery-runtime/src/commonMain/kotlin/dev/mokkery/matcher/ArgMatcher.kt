@@ -104,7 +104,7 @@ public fun interface ArgMatcher<in T> {
     /**
      * Arg matcher that must be composed with other matchers. Check existing implementations to learn
      * how to implement it correctly. Every composite matcher has to implement [Capture] to propagate it to nested
-     * its children.
+     * its children. Use [dev.mokkery.matcher.capture.propagateCapture] for convenience.
      */
     @DelicateMokkeryApi
     public interface Composite<T> : ArgMatcher<T>, Capture<T> {
