@@ -14,7 +14,6 @@ import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.varargs.VarArgMatcher
 import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
@@ -81,9 +80,6 @@ private class TemplatingScopeImpl(
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
         if (isReleased) return autofillValue(argType)
-        if (matcher is VarArgMatcher) {
-            varargGenericMatcherFlag = true
-        }
         currentMatchers.add(matcher.unsafeCast())
         return autofillValue(argType)
     }
@@ -99,12 +95,6 @@ private class TemplatingScopeImpl(
         }
         val size = args.size
         val elementMatchersSize = currentMatchers.subListAfter(data.varargsMatchersCount).size
-        if (varargGenericMatcherFlag) {
-            varargGenericMatcherFlag = false
-            if (elementMatchersSize != size + 1) throw VarargsAmbiguityDetectedException()
-            data.varargsMatchersCount++
-            return arg
-        }
         if (elementMatchersSize != 0 && elementMatchersSize < size) throw VarargsAmbiguityDetectedException()
         args.forEachIndexed { index, vararg ->
             val matcher = currentMatchers.getOrNull(data.varargsMatchersCount + index)
@@ -143,7 +133,6 @@ private class TemplatingScopeImpl(
     private fun clearCurrent() {
         tokenToData.clear()
         tokenToObj.clear()
-        varargGenericMatcherFlag = false
         currentMatchers.clear()
     }
 

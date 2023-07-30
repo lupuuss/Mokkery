@@ -4,6 +4,7 @@
 package dev.mokkery.matcher.varargs
 
 import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.internal.unsafeCast
 
 /**
  * Matches a sequence of varargs with all elements satisfying the given [predicate].
@@ -12,7 +13,7 @@ public inline fun <reified T> ArgMatchersScope.varargsAll(
     noinline predicate: (T) -> Boolean
 ): Array<T> {
     varargsAllInline<T, Array<T>>(predicate)
-    return arrayOf()
+    return arrayOf(null.unsafeCast())
 }
 
 /**
@@ -107,7 +108,7 @@ public inline fun <reified T> ArgMatchersScope.varargsAny(
     noinline predicate: (T) -> Boolean
 ): Array<T> {
     varargsAnyInline<T, Array<T>>(predicate)
-    return arrayOf()
+    return arrayOf(null.unsafeCast())
 }
 
 /**
@@ -200,7 +201,7 @@ public inline fun ArgMatchersScope.varargsFloatAny(
  */
 public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> {
     anyVarargsInline<T, Array<T>>()
-    return arrayOf()
+    return arrayOf(null.unsafeCast())
 }
 
 /**

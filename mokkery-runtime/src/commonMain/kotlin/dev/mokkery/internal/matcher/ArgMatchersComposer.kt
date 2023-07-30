@@ -6,7 +6,6 @@ import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.varargs.VarArgMatcher
 
 internal interface ArgMatchersComposer {
 
@@ -42,11 +41,10 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
     }
 
     private fun composeVarargs(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
-        val wildcards = matchers.count { it is VarArgMatcher }
         val matcher = compose(arg.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
         require(matcher is CompositeVarArgMatcher)
         val matchersSize = matcher.matchers.size
-        val expectedMatchersSize = (arg.value.toListOrNull()?.size ?: 0) + wildcards
+        val expectedMatchersSize = (arg.value.toListOrNull()?.size ?: 0)
         if (matchersSize != expectedMatchersSize) throw VarargsAmbiguityDetectedException()
         return matcher
     }

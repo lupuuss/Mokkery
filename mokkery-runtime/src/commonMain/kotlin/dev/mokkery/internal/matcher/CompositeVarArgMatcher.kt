@@ -2,8 +2,6 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.toListOrNull
-import dev.mokkery.internal.capitalize
-import dev.mokkery.internal.varargNameByElementType
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.varargs.VarArgMatcher
