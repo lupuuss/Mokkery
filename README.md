@@ -332,7 +332,7 @@ verifySuspend(atMost(1)) {
 repository.findById("1")
 repository.findById("2")
 repository.findAll()
-verifySuspend(atMost(1)) { 
+verifySuspend(exhaustive) { 
     // Verification fails - `findAll` not verified
     repository.findById(any())
 }
@@ -349,7 +349,7 @@ repository.findAll()
 
 verifySuspend(order) { 
     // Verification passes - only `findById("1")` and `findAll()` is marked as verified
-    respository.findById(any())
+    repository.findById(any())
     repository.findAll()
 }
 
@@ -377,9 +377,9 @@ repository.findById("2")
 repository.findAll()
 verifySuspend(exhaustiveOrder) {
     // Verification passes - each call matches
-    respository.findById(any())
-    respository.findById(any())
-    respository.findAll()
+    repository.findById(any())
+    repository.findById(any())
+    repository.findAll()
 }
 ```
 
@@ -419,7 +419,7 @@ Full list of logical matchers is available [here](https://www.mokkery.dev/mokker
 To match a method with varargs you can use regular matchers:
 
 ```kotlin
-everySuspend { respository.findAllById("1", any(), "3") } returns emptyList()
+everySuspend { repository.findAllById("1", any(), "3") } returns emptyList()
 ```
 
 The problem with regular matchers here is that the number of varargs is always fixed. Answer definition above works only
@@ -428,7 +428,7 @@ for calls with "1" at index 0, any arg at index 1 and "3" at index 2.
 To solve this problem you can use wildcard matchers:
 
 ```kotlin
-everySuspend { respository.findAllById("1", *anyVarargs(), "3") } returns emptyList()
+everySuspend { repository.findAllById("1", *anyVarargs(), "3") } returns emptyList()
 ```
 
 Now all `findAllById` calls with "1" as the first argument and "3" as the last argument return an empty list.
@@ -436,7 +436,7 @@ Now all `findAllById` calls with "1" as the first argument and "3" as the last a
 You can apply restrictions with wildcard matchers using `varargsAny` and `varargsAll`:
 
 ```kotlin
-everySuspend { respository.findAllById("1", *varargsAll { it != "2" }, "3") } returns emptyList()
+everySuspend { repository.findAllById("1", *varargsAll { it != "2" }, "3") } returns emptyList()
 
 repository.findAllById("1", "3", "3", "3") // returns empty list
 repository.findAllById("1", "2", "3", "3") // fails - method not mocked
@@ -447,14 +447,14 @@ repository.findAllById("1", "2", "3", "3") // fails - method not mocked
 If you pass varargs as array, it might sometimes lead to ambiguity. Calls presented below are prohibited:
 
 ```kotlin
-everySuspend { respository.findAllById(ids = arrayOf("1", *anyVarargs(), "3")) } returns emptyList()
-everySuspend { respository.findAllById(ids = arrayOf("1", any())) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf("1", *anyVarargs(), "3")) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf("1", any())) } returns emptyList()
 ```
 If you have to pass varargs as arrays make sure that you don't mix matchers with literals. Calls presented below are allowed:
 
 ```kotlin
-everySuspend { respository.findAllById(ids = arrayOf(eq("1"), *anyVarargs(), eq("3"))) } returns emptyList()
-everySuspend { respository.findAllById(ids = arrayOf(eq("1"), any())) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf(eq("1"), *anyVarargs(), eq("3"))) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf(eq("1"), any())) } returns emptyList()
 ```
 
 ### Custom matchers
@@ -487,9 +487,9 @@ Arguments capturing allows accessing arguments passed to mocks:
 
 ```kotlin
 val slot = Capture.slot<String>() // stores only the latest value
-everySuspend { respoitory.findById(capture(slot)) } returns stubBook()
+everySuspend { repository.findById(capture(slot)) } returns stubBook()
 
-respoitory.findById("1")
+repository.findById("1")
 
 println(slot.get()) // prints "1"
 ```
@@ -498,13 +498,13 @@ By default `capture` matches any argument. You can change it by providing a diff
 
 ```kotlin
 val slot = Capture.slot<String>()
-everySuspend { respoitory.findById(capture(slot, neq("1"))) } returns stubBook()
+everySuspend { repository.findById(capture(slot, neq("1"))) } returns stubBook()
 
-respoitory.findById("2")
+repository.findById("2")
 
 println(slot.get()) // prints "2"
 
-respoitory.findById("1") // fails - no answer provided for arg "1"
+repository.findById("1") // fails - no answer provided for arg "1"
 ```
 
 Argument capture occurs only if given definition is actually used to provide an answer for a call:
@@ -513,13 +513,13 @@ Argument capture occurs only if given definition is actually used to provide an 
 
 val container = Capture.container<String>() // stores multiple values
 
-everySuspend { respoitory.findByName(query = any(), limit = any()) } returns listOf(stubBook())
-everySuspend { respoitory.findByName(query = capture(container), limit = eq(10)) } returns listOf(stubBook())
-everySuspend { respoitory.findByName(query = eq("Book 3"), limit = any()) } returns listOf(stubBook())
+everySuspend { repository.findByName(query = any(), limit = any()) } returns listOf(stubBook())
+everySuspend { repository.findByName(query = capture(container), limit = eq(10)) } returns listOf(stubBook())
+everySuspend { repository.findByName(query = eq("Book 3"), limit = any()) } returns listOf(stubBook())
 
-respoitory.findByName(query = "Book 1", limit = 10) // `query` arg is captured
-respoitory.findByName(query = "Book 2", limit = 20) // `limit` parameter does not match - argument is not captured
-respoitory.findByName(query = "Book 3", limit = 10) // answer defined later is selected here - argument is not captured
+repository.findByName(query = "Book 1", limit = 10) // `query` arg is captured
+repository.findByName(query = "Book 2", limit = 20) // `limit` parameter does not match - argument is not captured
+repository.findByName(query = "Book 3", limit = 10) // answer defined later is selected here - argument is not captured
 
 println(container.values) // prints ["Book 1"]
 ```
