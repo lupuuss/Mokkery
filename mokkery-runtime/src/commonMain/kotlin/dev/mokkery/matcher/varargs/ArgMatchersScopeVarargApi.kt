@@ -4,17 +4,14 @@
 package dev.mokkery.matcher.varargs
 
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.matcher.matches
 
 /**
  * Matches a sequence of varargs with all elements satisfying the given [predicate].
  */
 public inline fun <reified T> ArgMatchersScope.varargsAll(
     noinline predicate: (T) -> Boolean
-): Array<T> {
-    varargsAllInline<T, Array<T>>(predicate)
-    return arrayOf(null.unsafeCast())
-}
+): Array<T> = varargsAllInline<T, Array<T>>(predicate)
 
 /**
  * [varargsAll] variant for [LongArray].
@@ -106,10 +103,7 @@ public inline fun ArgMatchersScope.varargsFloatAll(
  */
 public inline fun <reified T> ArgMatchersScope.varargsAny(
     noinline predicate: (T) -> Boolean
-): Array<T> {
-    varargsAnyInline<T, Array<T>>(predicate)
-    return arrayOf(null.unsafeCast())
-}
+): Array<T> = varargsAnyInline<T, Array<T>>(predicate)
 
 /**
  * [varargsAny] variant for [LongArray].
@@ -199,10 +193,7 @@ public inline fun ArgMatchersScope.varargsFloatAny(
 /**
  * Matches any sequence of varargs.
  */
-public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> {
-    anyVarargsInline<T, Array<T>>()
-    return arrayOf(null.unsafeCast())
-}
+public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> = anyVarargsInline<T, Array<T>>()
 
 /**
  * [anyVarargs] variant for [LongArray].
@@ -267,14 +258,14 @@ public inline fun ArgMatchersScope.anyVarargsFloat(): FloatArray = anyVarargsInl
 @PublishedApi
 internal inline fun <reified T, reified TArray> ArgMatchersScope.varargsAllInline(
     noinline predicate: (T) -> Boolean
-): TArray = matches(TArray::class, VarArgMatcher.AllThat(T::class, predicate))
+): TArray = matches(VarArgMatcher.AllThat(T::class, predicate))
 
 @PublishedApi
 internal inline fun <reified T, reified TArray> ArgMatchersScope.varargsAnyInline(
     noinline predicate: (T) -> Boolean
-): TArray = matches(TArray::class, VarArgMatcher.AnyThat(T::class, predicate))
+): TArray = matches(VarArgMatcher.AnyThat(T::class, predicate))
 
 @PublishedApi
 internal inline fun <reified T, reified TArray> ArgMatchersScope.anyVarargsInline(): TArray {
-    return matches(TArray::class, VarArgMatcher.AnyOf(T::class))
+    return matches(VarArgMatcher.AnyOf(T::class))
 }

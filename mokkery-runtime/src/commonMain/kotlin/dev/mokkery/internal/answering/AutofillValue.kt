@@ -1,6 +1,8 @@
 package dev.mokkery.internal.answering
 
 import dev.mokkery.internal.DefaultNothingException
+import dev.mokkery.internal.platformArrayOf
+import dev.mokkery.internal.isArray
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
@@ -9,10 +11,10 @@ internal expect fun autofillAny(kClass: KClass<*>): Any?
 internal fun <T> autofillValue(returnType: KClass<*>): T {
     // don't change this to returnType == Nothing::class
     // it fails when returnType is non-primitive type on jsBrowser (probably a K/JS bug)
-    return if (Nothing::class == returnType) {
-        throw DefaultNothingException()
-    } else {
-        (autofillMapping[returnType] ?: autofillAny(returnType)).unsafeCast()
+    return when {
+        Nothing::class == returnType -> throw DefaultNothingException()
+        returnType.isArray() -> platformArrayOf(returnType, listOf(null)).unsafeCast()
+        else -> (autofillMapping[returnType] ?: autofillAny(returnType)).unsafeCast()
     }
 }
 

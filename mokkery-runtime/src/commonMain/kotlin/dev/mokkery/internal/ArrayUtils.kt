@@ -4,8 +4,11 @@ package dev.mokkery.internal
 
 import kotlin.reflect.KClass
 
+@PublishedApi
+internal fun KClass<*>.isArray(): Boolean = this == Array::class || bestName().startsWith("kotlin.Array")
+
 internal fun Any?.toListOrNull(): List<Any?>? {
-    return  when (this) {
+    return when (this) {
         is List<*> -> toList()
         is Array<*> -> toList()
         is IntArray -> toList()
@@ -24,7 +27,7 @@ internal fun Any?.toListOrNull(): List<Any?>? {
     }
 }
 
-internal fun Any?.arrayElementType(): KClass<*>  = when (this) {
+internal fun Any?.arrayElementType(): KClass<*> = when (this) {
     is Array<*> -> Any::class
     is IntArray -> Int::class
     is ByteArray -> Byte::class
@@ -57,3 +60,5 @@ internal fun varargNameByElementType(cls: KClass<*>): String = when (cls) {
     Any::class -> "varargs"
     else -> "varargs<${cls.simpleName}>"
 }
+
+internal expect fun platformArrayOf(kClass: KClass<*>, elements: List<Any?>): Array<*>
