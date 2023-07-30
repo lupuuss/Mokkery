@@ -6,6 +6,8 @@ import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.varargs.VarargMatcherMarker
+import dev.mokkery.matcher.varargs.VarArgMatcher
 
 internal interface ArgMatchersComposer {
 
@@ -32,7 +34,12 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
             }
             var composite: ArgMatcher.Composite<Any?> = it
             while (stack.isNotEmpty() && !composite.isFilled()) {
-                composite = composite.compose(stack.removeLast())
+                val matcher = stack.removeLast()
+                val composeResult =  composite.compose(matcher)
+                composite = when {
+                    composite !is CompositeVarArgMatcher && matcher is VarArgMatcher -> VarargMatcherMarker(composeResult)
+                    else -> composeResult
+                }
             }
             composite.assertFilled()
             stack += composite

@@ -2,6 +2,7 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.toListOrNull
+import dev.mokkery.internal.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.varargs.VarArgMatcher
@@ -57,6 +58,8 @@ internal data class CompositeVarArgMatcher(
         after.zip(afterPart).forEach { (matcher, arg) ->
             matcher.propagateCapture(arg)
         }
+        val rest = arrayAsList.subList(before.size, arrayAsList.size - after.size)
+        wildCard?.propagateCapture(rest.toPlatformArrayOf(value))
     }
 
     override fun toString(): String = "[${matchers.joinToString()}]"
