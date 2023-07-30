@@ -4,6 +4,10 @@ import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
+import dev.mokkery.matcher.capture.Capture
+import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.capture.getIfPresent
+import dev.mokkery.matcher.capture.onArg
 import dev.mokkery.matcher.collections.contentDeepEq
 import dev.mokkery.matcher.collections.contentEq
 import dev.mokkery.matcher.collections.isIn
@@ -23,15 +27,11 @@ import dev.mokkery.matcher.ofType
 import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.matcher.varargs.varargsAll
 import dev.mokkery.matcher.varargs.varargsAny
-import dev.mokkery.matcher.capture.Capture
-import dev.mokkery.matcher.capture.capture
-import dev.mokkery.matcher.capture.getIfPresent
-import dev.mokkery.matcher.capture.onArg
+import dev.mokkery.debug.printMokkeryDebug
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 class ArgMatchersTest {
@@ -202,6 +202,49 @@ class ArgMatchersTest {
     }
 
     @Test
+    fun testVarargsWildcardsWithCapture() {
+        val container = Capture.container<Array<String>>()
+        every { mock.callWithVararg(any(), eq("1"), *capture(container, anyVarargs()), eq("3")) } returns 1.0
+        mock.callWithVararg(1, "1", "2", "3")
+        mock.callWithVararg(1, "1", "2", "3", "3")
+        mock.callWithVararg(1, "1", "2", "3", "4", "3")
+        val expected = listOf(arrayOf("2"), arrayOf("2", "3"), arrayOf("2", "3", "4"))
+        expected.zip(container.values).forEach { (a, b) ->
+            assertContentEquals(a, b)
+        }
+    }
+
+    @Test
+    fun testVarargsWithCapture() {
+        val container = Capture.container<String>()
+        every { mock.callWithVararg(any(), any(), capture(container)) } returns 1.0
+        mock.callWithVararg(1, "1", "1")
+        mock.callWithVararg(1, "1", "2")
+        mock.callWithVararg(1, "1", "3")
+        assertEquals(listOf("1", "2", "3"), container.values)
+    }
+
+    @Test
+    fun testVarargsWildcardsWithCompositeMatchers() {
+        every { mock.callWithVararg(any(), eq("1"), *anyVarargs(), eq("3")) } returns 1.0
+        every { mock.callWithVararg(any(), eq("1"), *not(varargsAny { it == "1" }), eq("3")) } returns 2.0
+        assertEquals(1.0, mock.callWithVararg(0, "1", "1", "2", "3"))
+        assertEquals(1.0, mock.callWithVararg(0, "1", "1", "1", "3"))
+        assertEquals(2.0, mock.callWithVararg(0, "1", "2", "2", "3"))
+    }
+
+    @Test
+    fun testMixingVarargsCompositesWithLiterals() {
+        every { mock.callWithVararg(any(), "1", *anyVarargs(), "3") } returns 1.0
+        every { mock.callWithVararg(any(), "1", *not(varargsAny { it == "1" }), "3") } returns 2.0
+        every { mock.callWithVararg(any(), neq("1"), *anyVarargs(), "3") } returns 3.0
+        assertEquals(1.0, mock.callWithVararg(0, "1", "1", "2", "3"))
+        assertEquals(2.0, mock.callWithVararg(0, "1", "2", "2", "3"))
+        assertEquals(3.0, mock.callWithVararg(0, "2", "2", "3"))
+        printMokkeryDebug(mock)
+    }
+
+    @Test
     fun testContentDeepEqForArray() {
         every { mock.callWithArray(contentDeepEq(arrayOf(arrayOf("1"), arrayOf("2")))) } returns arrayOf("1", "2")
         assertContentEquals(arrayOf("1", "2"), mock.callWithArray(arrayOf(arrayOf("1"), arrayOf("2"))))
@@ -249,8 +292,8 @@ class ArgMatchersTest {
         assertEquals(2, mock.callGeneric(0))
         assertEquals(2, mock.callGeneric(1))
         assertFailsWith<MokkeryRuntimeException> { mock.callGeneric(2) }
-        assertEquals(1,  mock.callGeneric(3))
-        assertEquals(2,  mock.callGeneric(4))
+        assertEquals(1, mock.callGeneric(3))
+        assertEquals(2, mock.callGeneric(4))
     }
 
     @Test
@@ -283,7 +326,7 @@ class ArgMatchersTest {
         assertEquals(2, slot1.getIfPresent())
         assertEquals(null, slot2.getIfPresent())
     }
-    
+
     @Test
     fun testCaptureCallbackIsCalled() {
         val called = mutableListOf<Int>()
