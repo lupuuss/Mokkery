@@ -2,6 +2,8 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.capture.CaptureMatcher
+import dev.mokkery.matcher.capture.asCapture
 import dev.mokkery.matcher.varargs.VarArgMatcher
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -159,5 +161,23 @@ class CompositeVarargMatcherTest {
             .compose(ArgMatcher.Equals(2))
             .compose(ArgMatcher.Equals(1))
         assertEquals("[1, 2, anyVarargsInt(), 3, 4]", matcher.toString())
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun testPropagatesCapture() {
+        val list1 = mutableListOf<Int>()
+        val list2 = mutableListOf<Int>()
+        val matcher1 = CaptureMatcher(list1.asCapture(), ArgMatcher.Any)
+        val matcher2 = CaptureMatcher(list2.asCapture(), ArgMatcher.Any)
+        matcher
+            .compose(matcher2 as ArgMatcher<Any?>)
+            .compose(matcher1 as ArgMatcher<Any?>)
+            .apply {
+                capture(intArrayOf(1, 3))
+                capture(intArrayOf(2, 4))
+            }
+        assertEquals(listOf(1, 2), list1)
+        assertEquals(listOf(3, 4), list2)
     }
 }

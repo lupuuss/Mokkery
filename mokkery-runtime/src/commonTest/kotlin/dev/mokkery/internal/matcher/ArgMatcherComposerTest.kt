@@ -4,6 +4,7 @@ import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.varargs.VarArgMatcher
+import dev.mokkery.matcher.varargs.VarargMatcherMarker
 import dev.mokkery.test.TestCompositeMatcher
 import dev.mokkery.test.fakeCallArg
 import kotlin.test.Test
@@ -54,7 +55,6 @@ class ArgMatcherComposerTest {
         val matchers = listOf<ArgMatcher<Any?>>(
             ArgMatcher.Equals(1),
             VarArgMatcher.AnyOf(Int::class),
-            ArgMatcher.Equals(2),
             TestCompositeMatcher(2)
         )
         assertFailsWith<VarargsAmbiguityDetectedException> {
@@ -109,8 +109,9 @@ class ArgMatcherComposerTest {
 
     @Test
     fun testReturnsCompositeVarArgMatcherForVararg() {
-        val matchers = listOf<ArgMatcher<Any?>>(ArgMatcher.Equals(1), VarArgMatcher.AnyOf(Int::class), ArgMatcher.Equals(2))
-        val result = composer.compose(fakeCallArg(intArrayOf(0, 0), isVararg = true), matchers)
+        val matchers =
+            listOf<ArgMatcher<Any?>>(ArgMatcher.Equals(1), VarArgMatcher.AnyOf(Int::class), ArgMatcher.Equals(2))
+        val result = composer.compose(fakeCallArg(intArrayOf(0, 0, 0), isVararg = true), matchers)
         assertEquals(CompositeVarArgMatcher(Int::class, matchers), result)
     }
 
@@ -125,11 +126,30 @@ class ArgMatcherComposerTest {
             ArgMatcher.Equals(4),
             TestCompositeMatcher(2)
         )
-        val result = composer.compose(fakeCallArg(intArrayOf(0, 0), isVararg = true), matchers)
+        val result = composer.compose(fakeCallArg(intArrayOf(0, 0, 0), isVararg = true), matchers)
         val expectedMatchers = listOf<ArgMatcher<Any?>>(
-            TestCompositeMatcher(2, listOf(ArgMatcher.Equals(1),ArgMatcher.Equals(2))),
+            TestCompositeMatcher(2, listOf(ArgMatcher.Equals(1), ArgMatcher.Equals(2))),
             VarArgMatcher.AnyOf(Int::class),
             TestCompositeMatcher(2, listOf(ArgMatcher.Equals(3), ArgMatcher.Equals(4)))
+        )
+        assertEquals(CompositeVarArgMatcher(Int::class, expectedMatchers), result)
+    }
+
+    @Test
+    fun testProperlyMergesWildcardVarargMatchers() {
+        val matchers = listOf<ArgMatcher<Any?>>(
+            ArgMatcher.Equals(1),
+            TestCompositeMatcher(1),
+            VarArgMatcher.AnyOf(Int::class),
+            TestCompositeMatcher(1),
+            ArgMatcher.Equals(3),
+            TestCompositeMatcher(1)
+        )
+        val result = composer.compose(fakeCallArg(intArrayOf(0, 0, 0), isVararg = true), matchers)
+        val expectedMatchers = listOf<ArgMatcher<Any?>>(
+            TestCompositeMatcher(1, listOf(ArgMatcher.Equals(1))),
+            VarargMatcherMarker(TestCompositeMatcher(1, listOf(VarArgMatcher.AnyOf(Int::class)))),
+            TestCompositeMatcher(1, listOf(ArgMatcher.Equals(3)))
         )
         assertEquals(CompositeVarArgMatcher(Int::class, expectedMatchers), result)
     }

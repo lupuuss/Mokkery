@@ -36,4 +36,17 @@ class CaptureMatcherTest {
         matcher.capture(3)
         assertEquals(listOf(1, 2, 3), container.values)
     }
+
+    @Test
+    fun testPropagatesCapture() {
+        val list = mutableListOf<Int>()
+        val matcher = CaptureMatcher(list.asCapture(), ArgMatcher.Any)
+        this.matcher
+            .compose(matcher)
+            .apply {
+                capture(1)
+                capture(2)
+            }
+        assertEquals(listOf(1, 2), list)
+    }
 }
