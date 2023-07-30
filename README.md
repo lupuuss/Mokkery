@@ -114,7 +114,7 @@ You can refer to [this file](build-mokkery/src/main/kotlin/mokkery-multiplatform
 ### <a id="mock-and-spy" /> Mock & Spy
 
 Mokkery supports the creation of mocks and spies, although not for every type. At the moment, it is possible
-to mock/spy interfaces and all fully overridable classes with no-args constructors. 
+to mock/spy interfaces, functional types and all fully overridable classes with no-args constructors. 
 
 Mocking final classes is partially supported with [all-open plugin](#mocking-final-classes).
 
@@ -409,10 +409,10 @@ everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
 
 Currently logical matchers does not work with wildcard vararg matchers.
 
+Full list of logical matchers is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
+
 > **Warning**
 >You must not use literals with logical matchers. Only matchers allowed!
-
-Full list of logical matchers is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
 
 ### Vararg matchers
 
@@ -524,4 +524,5 @@ repository.findByName(query = "Book 3", limit = 10) // answer defined later is s
 println(container.values) // prints ["Book 1"]
 ```
 
-Currently, arguments capturing works only for regular arguments. Support for varargs will be implemented in next releases.
+Currently, arguments capturing works only for regular arguments. Support for mixing with composite matchers 
+(like logical matchers) and varargs will be implemented in next releases.
