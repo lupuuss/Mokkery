@@ -18,7 +18,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
     /**
      * Base class for any [VarArgMatcher]. Returns false if arg is not an array or list.
      */
-    public abstract class Base<T> : VarArgMatcher {
+    public abstract class Base<in T> : VarArgMatcher {
 
         final override fun matches(arg: Any?): Boolean {
             val varargs = arg.toListOrNull() ?: return false
@@ -49,7 +49,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.any(predicate)
 
-        override fun toString(): String = "${varargNameByElementType(type).capitalize()}Any { ... }"
+        override fun toString(): String = "${varargNameByElementType(type)}Any { ... }"
 
     }
 
