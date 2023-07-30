@@ -46,7 +46,6 @@ private class TemplatingScopeImpl(
 
     private var isReleased = false
     private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
-    private var varargGenericMatcherFlag: Boolean = false
 
     private val tokenToObj = mutableMapOf<Int, Any?>()
     private val tokenToData = mutableMapOf<Int, TemplateData>()
@@ -100,7 +99,7 @@ private class TemplatingScopeImpl(
             val matcher = currentMatchers.getOrNull(data.varargsMatchersCount + index)
             if (matcher == null) currentMatchers.add(ArgMatcher.Equals(vararg))
         }
-        data.varargsMatchersCount += size
+        data.varargsMatchersCount += elementMatchersSize
         return arg
     }
 
