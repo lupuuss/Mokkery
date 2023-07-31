@@ -1,5 +1,6 @@
 [versions]
 kotlin = "1.9.0"
+kotlinx-coroutines = "1.7.3"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.21.0"
@@ -10,10 +11,16 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
 buildconfig-plugin = { module = "com.github.gmazzo.buildconfig:plugin", version.ref = "buildconfig" }
 dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
+
 google-autoservice = { module = "com.google.auto.service:auto-service", version.ref = "google-autoservice"}
 google-autoservice-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "google-autoservice"}
+
 gradle-plugin-kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
