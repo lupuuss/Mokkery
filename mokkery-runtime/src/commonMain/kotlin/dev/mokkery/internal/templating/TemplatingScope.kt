@@ -5,7 +5,6 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.answering.autofillValue
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
@@ -35,37 +34,34 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(
     signatureGenerator: SignatureGenerator = SignatureGenerator(),
     composer: ArgMatchersComposer = ArgMatchersComposer(),
-    scopeLookup: MokkeryScopeLookup = MokkeryScopeLookup.current,
-): TemplatingScope = TemplatingScopeImpl(signatureGenerator, composer, scopeLookup)
+    binder: TemplatingScopeDataBinder= TemplatingScopeDataBinder(),
+): TemplatingScope = TemplatingScopeImpl(
+    signatureGenerator = signatureGenerator,
+    composer = composer,
+    binder = binder
+)
 
 private class TemplatingScopeImpl(
     private val signatureGenerator: SignatureGenerator,
     private val composer: ArgMatchersComposer,
-    private val scopeLookup: MokkeryScopeLookup,
+    private val binder: TemplatingScopeDataBinder
 ) : TemplatingScope {
-
     private var isReleased = false
-    private val currentMatchers = mutableListOf<ArgMatcher<Any?>>()
+    private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    private val tokenToObj = mutableMapOf<Int, Any?>()
-    private val tokenToData = mutableMapOf<Int, TemplateData>()
     override val spies = mutableSetOf<MokkerySpyScope>()
     override val templates = mutableListOf<CallTemplate>()
 
     override fun ensureBinding(token: Int, obj: Any?) {
         if (isReleased) return
-        tokenToObj[token] = obj
-        val scope = scopeLookup.resolve(obj)
-        if (scope is MokkerySpyScope) {
-            val templating = scope.interceptor.templating
-            tokenToData.getOrPut(token) { TemplateData() }
-            when {
-                templating.isEnabledWith(this) -> return
-                templating.isEnabled -> throw ConcurrentTemplatingException()
-                else -> {
-                    spies.add(scope)
-                    templating.start(this)
-                }
+        val scope = binder.bind(token, obj) ?: return
+        val templating = scope.interceptor.templating
+        when {
+            templating.isEnabledWith(this) -> return
+            templating.isEnabled -> throw ConcurrentTemplatingException()
+            else -> {
+                spies.add(scope)
+                templating.start(this)
             }
         }
     }
@@ -79,36 +75,33 @@ private class TemplatingScopeImpl(
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
         if (isReleased) return autofillValue(argType)
-        currentMatchers.add(matcher.unsafeCast())
+        currentArgMatchers.add(matcher.unsafeCast())
         return autofillValue(argType)
     }
 
     override fun interceptVarargElement(token: Int, arg: Any?, isSpread: Boolean): Any? {
         if (isReleased) return arg
-        if (isTokenDefinitelyNotMocked(token)) return arg
-        val data = this.tokenToData.getOrPut(token) { TemplateData() }
-        val args = if (isSpread) {
-            arg.toListOrNull() ?: error("Expected array for spread operator, but $arg encountered!")
-        } else {
-            listOf(arg)
+        val data = binder.getDataFor(token) ?: return arg
+        val args = when {
+            isSpread -> arg.toListOrNull() ?: error("Expected array, but $arg encountered!")
+            else -> listOf(arg)
         }
         val size = args.size
-        val elementMatchersSize = currentMatchers.subListAfter(data.varargsMatchersCount).size
+        val elementMatchersSize = currentArgMatchers.subListAfter(data.varargMatchersCount).size
         if (elementMatchersSize != 0 && elementMatchersSize < size) throw VarargsAmbiguityDetectedException()
         args.forEachIndexed { index, vararg ->
-            val matcher = currentMatchers.getOrNull(data.varargsMatchersCount + index)
-            if (matcher == null) currentMatchers.add(ArgMatcher.Equals(vararg))
+            currentArgMatchers.getOrNull(data.varargMatchersCount + index)
+                ?: currentArgMatchers.add(ArgMatcher.Equals(vararg))
         }
-        data.varargsMatchersCount += elementMatchersSize
+        data.varargMatchersCount += elementMatchersSize
         return arg
     }
 
     override fun interceptArg(token: Int, name: String, arg: Any?): Any? {
         if (isReleased) return arg
-        if (isTokenDefinitelyNotMocked(token)) return arg
-        val data = getDataFor(token)
-        data.matchers[name] = currentMatchers.toMutableList()
-        currentMatchers.clear()
+        val data = binder.getDataFor(token) ?: return arg
+        data.matchers[name] = currentArgMatchers.toMutableList()
+        currentArgMatchers.clear()
         return arg
     }
 
@@ -119,31 +112,14 @@ private class TemplatingScopeImpl(
     }
 
     private fun flush(args: List<CallArg>): List<Pair<String, ArgMatcher<Any?>>> {
-        val token = tokenToObj.filterValues { scopeLookup.resolve(it) != null }.keys.first()
-        val registeredMatchers = getDataFor(token).matchers
-        val matchersSnapshot = registeredMatchers.toMutableMap()
-        clearCurrent()
+        val namedMatchers = binder.firstProperlyBoundedData()
+            .matchers
+            .toMutableMap()
+        currentArgMatchers.clear()
+        binder.reset()
         return args.map {
-            val matchers = matchersSnapshot[it.name].orEmpty()
+            val matchers = namedMatchers[it.name].orEmpty()
             it.name to composer.compose(it, matchers)
         }
     }
-
-    private fun clearCurrent() {
-        tokenToData.clear()
-        tokenToObj.clear()
-        currentMatchers.clear()
-    }
-
-    private fun getDataFor(token: Int): TemplateData = tokenToData.getOrPut(token) { TemplateData() }
-
-    private fun isTokenDefinitelyNotMocked(token: Int): Boolean {
-        val obj = tokenToObj[token]
-        return obj != null && scopeLookup.resolve(obj) == null
-    }
 }
-
-private class TemplateData(
-    val matchers: MutableMap<String, List<ArgMatcher<Any?>>> = mutableMapOf(),
-    var varargsMatchersCount: Int = 0,
-)
