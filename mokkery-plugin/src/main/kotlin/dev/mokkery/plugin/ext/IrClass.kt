@@ -156,10 +156,4 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridableProperty() }
 
-fun IrClass.createUniqueMockName(type: String) = name
-    .asString()
-    .plus(UUID.randomUUID().toString().replace("-", ""))
-    .plus(type)
-    .let(Name::identifier)
-
 val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()

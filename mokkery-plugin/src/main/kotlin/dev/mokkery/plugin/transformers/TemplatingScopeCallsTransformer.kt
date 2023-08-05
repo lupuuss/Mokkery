@@ -1,9 +1,10 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.ext.getClass
-import dev.mokkery.plugin.mokkeryError
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.core.mokkeryErrorAt
+import dev.mokkery.plugin.core.CompilerPluginScope
+import dev.mokkery.plugin.core.CoreTransformer
+import dev.mokkery.plugin.core.getClass
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
@@ -17,7 +18,6 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -27,24 +27,21 @@ import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.putElement
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
-class CallTrackingNestedTransformer(
-    private val pluginContext: IrPluginContext,
-    private val irFile: IrFile,
-    private val scopeVar: IrVariable,
-) : IrElementTransformerVoid() {
+class TemplatingScopeCallsTransformer(
+    compilerPluginScope: CompilerPluginScope,
+    private val templatingScope: IrVariable,
+) : CoreTransformer(compilerPluginScope) {
 
     private var token = 0
     private val localDeclarations = mutableListOf<IrDeclaration>()
-    private val argMatchersScopeClass = pluginContext.getClass(Mokkery.ClassId.ArgMatchersScope)
-    private val templatingContextClass = pluginContext.getClass(Mokkery.ClassId.TemplatingScope)
+    private val argMatchersScopeClass = getClass(Mokkery.Class.ArgMatchersScope)
+    private val templatingContextClass = getClass(Mokkery.Class.TemplatingScope)
 
     override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
         localDeclarations.add(declaration)
@@ -64,7 +61,7 @@ class CallTrackingNestedTransformer(
             irBlock {
                 val tmp = createTmpVariable(dispatchReceiver)
                 +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!).apply {
-                    this.dispatchReceiver = irGet(scopeVar)
+                    this.dispatchReceiver = irGet(templatingScope)
                     putValueArgument(0, irInt(token))
                     putValueArgument(1, irGet(tmp))
                 }
@@ -95,15 +92,15 @@ class CallTrackingNestedTransformer(
         val initializer = variable.initializer
         if (initializer !is IrCall) return
         val types = listOfNotNull(initializer.dispatchReceiver?.type, initializer.extensionReceiver?.type)
-        if (types.any { it == argMatchersScopeClass.defaultType }) initializer.mokkeryError(irFile) {
-            "Assigning matchers to variables is prohibited!"
+        if (types.any { it == argMatchersScopeClass.defaultType }) {
+            mokkeryErrorAt(initializer) { "Assigning matchers to variables is prohibited!" }
         }
     }
 
     private fun interceptArg(symbol: IrSymbol, param: IrValueParameter, arg: IrExpression): IrExpression {
         return DeclarationIrBuilder(pluginContext, symbol).run {
             irCall(templatingContextClass.getSimpleFunction("interceptArg")!!).apply {
-                this.dispatchReceiver = irGet(scopeVar)
+                this.dispatchReceiver = irGet(templatingScope)
                 putValueArgument(0, irInt(token))
                 putValueArgument(1, irString(param.name.asString()))
                 putValueArgument(2, interceptArgVarargs(arg))
@@ -139,7 +136,7 @@ class CallTrackingNestedTransformer(
 
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
-            this.dispatchReceiver = irGet(scopeVar)
+            this.dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, expression)
             putValueArgument(2, irBoolean(isSpread))

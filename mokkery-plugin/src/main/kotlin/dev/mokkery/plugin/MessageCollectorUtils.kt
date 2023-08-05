@@ -18,10 +18,3 @@ internal inline fun MessageCollector.logAt(expression: IrExpression, file: IrFil
         message = "${MokkeryConfig.PLUGIN_ID}: ${message()} Expression at: ${expression.locationInFile(file)}"
     )
 }
-
-internal inline fun MessageCollector.warningAt(expression: IrExpression, file: IrFile, message: () -> String) {
-    report(
-        severity = CompilerMessageSeverity.WARNING,
-        message = "${MokkeryConfig.PLUGIN_ID}: ${message()} Expression at: ${expression.locationInFile(file)}"
-    )
-}

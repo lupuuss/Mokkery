@@ -45,16 +45,3 @@ fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach {
     if (consumedParams.any { it in typeParameters }) return@forEach
     param.type = param.type.eraseTypeParameters()
 }
-
-fun IrType.extractAllConsumedTypeParameters(): List<IrTypeParameter> {
-    val param = asTypeParamOrNull()
-    return when {
-        param != null -> listOf(param)
-        this is IrSimpleType -> arguments.flatMap { if (it is IrType) it.extractAllConsumedTypeParameters() else emptyList() }
-        else -> emptyList()
-    }
-}
-
-fun IrType.asTypeParamOrNull() = classifierOrNull
-    .let { it as? IrTypeParameterSymbol }
-    ?.owner

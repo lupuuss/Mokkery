@@ -1,8 +1,12 @@
-package dev.mokkery.plugin
+package dev.mokkery.plugin.core
 
 import dev.mokkery.plugin.ext.fqName
-import dev.mokkery.plugin.ext.function
-import dev.mokkery.plugin.ext.klass
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
+import kotlin.properties.PropertyDelegateProvider
+import kotlin.properties.ReadOnlyProperty
 
 object Mokkery {
 
@@ -13,18 +17,11 @@ object Mokkery {
     val dev_mokkery_internal_tracing by fqName
     val dev_mokkery_internal_dynamic by fqName
 
-    object Function {
-        val mock by dev_mokkery.fqName
-        val spy by dev_mokkery.fqName
-        val every by dev_mokkery.fqName
-        val everySuspend by dev_mokkery.fqName
-        val verify by dev_mokkery.fqName
-        val verifySuspend by dev_mokkery.fqName
-    }
-
-    object ClassId {
+    object Class {
 
         val MockMode by dev_mokkery.klass
+        val VerifyMode by dev_mokkery.klass
+        val SoftVerifyMode by dev_mokkery.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
 
         val MokkeryInterceptor by dev_mokkery_internal.klass
@@ -43,7 +40,8 @@ object Mokkery {
         val TemplatingScope by dev_mokkery_internal_templating.klass
         val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
     }
-    object FunctionId {
+
+    object Function {
         val MokkeryMock by dev_mokkery_internal.function
         val MokkerySpy by dev_mokkery_internal.function
 
@@ -57,5 +55,25 @@ object Mokkery {
         val MokkerySpyScope by dev_mokkery_internal.function
         val generateMockId by dev_mokkery_internal.function
     }
+
+    object Name {
+        val mock by dev_mokkery.fqName
+        val spy by dev_mokkery.fqName
+        val every by dev_mokkery.fqName
+        val everySuspend by dev_mokkery.fqName
+        val verify by dev_mokkery.fqName
+        val verifySuspend by dev_mokkery.fqName
+    }
 }
 
+val FqName.klass: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassResolver>>
+    get() = PropertyDelegateProvider { _: Any?, property ->
+        val resolver = ClassById(ClassId(this, Name.identifier(property.name)))
+        ReadOnlyProperty { _, _ -> resolver }
+    }
+
+val FqName.function: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, FunctionResolver>>
+    get() = PropertyDelegateProvider { _: Any?, property ->
+        val resolver = FunctionById(CallableId(this, Name.identifier(property.name)))
+        ReadOnlyProperty { _, _ -> resolver }
+    }
