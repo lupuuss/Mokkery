@@ -7,6 +7,7 @@ import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
+import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
@@ -24,13 +25,18 @@ internal interface AnsweringInterceptor : MokkeryInterceptor {
     fun reset()
 }
 
-internal fun AnsweringInterceptor(mockMode: MockMode, callMatcher: CallMatcher = CallMatcher()): AnsweringInterceptor {
-    return AnsweringInterceptorImpl(mockMode, callMatcher)
+internal fun AnsweringInterceptor(
+    mockMode: MockMode,
+    callMatcher: CallMatcher = CallMatcher(),
+    lookup: MokkeryScopeLookup = MokkeryScopeLookup.current
+): AnsweringInterceptor {
+    return AnsweringInterceptorImpl(mockMode, callMatcher, lookup)
 }
 
 private class AnsweringInterceptorImpl(
     private val mockMode: MockMode,
     private val callMatcher: CallMatcher,
+    private val lookup: MokkeryScopeLookup,
 ) : AnsweringInterceptor {
 
     private var isSetup by atomic(false)
@@ -75,7 +81,11 @@ private class AnsweringInterceptorImpl(
         else -> throw CallNotMockedException(trace.toString())
     }
 
-    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value), scope)
+    private fun CallContext.toFunctionScope() = FunctionScope(
+        returnType = returnType,
+        args = args.map(CallArg::value),
+        self = lookup.reverseResolve(scope)
+    )
 
     @Suppress("UNCHECKED_CAST")
     private fun CallTemplate.applyCapture(trace: CallTrace) {

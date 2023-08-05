@@ -7,6 +7,8 @@ internal interface MokkeryScopeLookup {
 
     fun resolve(obj: Any?): MokkeryInterceptorScope?
 
+    fun reverseResolve(obj: MokkeryInterceptorScope): Any?
+
     companion object {
 
         val current = MokkeryScopeLookup()

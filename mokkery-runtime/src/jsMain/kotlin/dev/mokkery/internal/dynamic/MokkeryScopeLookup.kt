@@ -7,12 +7,16 @@ internal actual fun MokkeryScopeLookup(): MokkeryScopeLookup = JsMokkeryScopeLoo
 
 internal object JsMokkeryScopeLookup : MokkeryScopeLookup {
 
-    private val map = WeakMap<Any, MokkeryInterceptorScope>()
+    private val mapping = WeakMap<Any, MokkeryInterceptorScope>()
+    private val reverseMapping = WeakMap<MokkeryInterceptorScope, Any>()
     override fun register(obj: Any?, scope: MokkeryInterceptorScope) {
-        map[obj ?: return] = scope
+        mapping[obj ?: return] = scope
+        reverseMapping[scope] = obj
     }
     override fun resolve(obj: Any?): MokkeryInterceptorScope? {
         if (obj is MokkeryInterceptorScope) return obj
-        return map[obj ?: return null]
+        return mapping[obj ?: return null]
     }
+
+    override fun reverseResolve(obj: MokkeryInterceptorScope): Any? = reverseMapping[obj]
 }

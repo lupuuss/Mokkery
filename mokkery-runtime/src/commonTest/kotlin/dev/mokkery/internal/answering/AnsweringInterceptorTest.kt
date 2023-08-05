@@ -6,9 +6,12 @@ import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.internal.CallNotMockedException
+import dev.mokkery.internal.MokkeryInterceptorScope
+import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
+import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTemplate
@@ -22,7 +25,8 @@ import kotlin.test.assertNotNull
 class AnsweringInterceptorTest {
 
     private val callMatcher = TestCallMatcher()
-    private val answering = AnsweringInterceptor(strict, callMatcher)
+    private val lookUp = TestMokkeryScopeLookup()
+    private val answering = AnsweringInterceptor(strict, callMatcher, lookUp)
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoAnswersAndStrictMode() {

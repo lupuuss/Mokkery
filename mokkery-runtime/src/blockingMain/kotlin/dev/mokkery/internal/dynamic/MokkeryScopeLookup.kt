@@ -9,5 +9,6 @@ internal object EmptyMokkeryScopeLookup : MokkeryScopeLookup {
         error("Registering MokkeryInterceptorScope on non-JS platforms is not supported!")
     }
     override fun resolve(obj: Any?): MokkeryInterceptorScope? = obj as? MokkeryInterceptorScope
+    override fun reverseResolve(obj: MokkeryInterceptorScope): Any = obj
 
 }
