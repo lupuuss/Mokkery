@@ -178,7 +178,7 @@ class AnsweringInterceptorTest {
         answering.interceptCall(context)
         assertNotNull(capturedFunctionScope)
         assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
-        assertEquals(context.self, capturedFunctionScope!!.self)
+        assertEquals(context.scope, capturedFunctionScope!!.self)
         assertEquals(context.returnType, capturedFunctionScope!!.returnType)
     }
 
@@ -191,7 +191,7 @@ class AnsweringInterceptorTest {
         answering.interceptSuspendCall(context)
         assertNotNull(capturedFunctionScope)
         assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
-        assertEquals(context.self, capturedFunctionScope!!.self)
+        assertEquals(context.scope, capturedFunctionScope!!.self)
         assertEquals(context.returnType, capturedFunctionScope!!.returnType)
     }
 }

@@ -4,11 +4,11 @@ import dev.mokkery.internal.tracing.CallArg
 import kotlin.reflect.KClass
 
 internal data class CallContext(
-    val self: MokkeryInterceptorScope,
+    val scope: MokkeryInterceptorScope,
     val name: String,
     val returnType: KClass<*>,
     val args: List<CallArg>
 ) {
 
-    override fun toString() = callToString(self.id, name, args)
+    override fun toString() = callToString(scope.id, name, args)
 }

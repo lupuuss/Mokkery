@@ -58,7 +58,7 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun findAnswerFor(context: CallContext): Answer<*> {
-        val trace = CallTrace(receiver = context.self.id, name = context.name, args = context.args, orderStamp = 0)
+        val trace = CallTrace(receiver = context.scope.id, name = context.name, args = context.args, orderStamp = 0)
         val answers = this._answers
         return answers
             .keys
@@ -75,7 +75,7 @@ private class AnsweringInterceptorImpl(
         else -> throw CallNotMockedException(trace.toString())
     }
 
-    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value), self)
+    private fun CallContext.toFunctionScope() = FunctionScope(returnType, args.map(CallArg::value), scope)
 
     @Suppress("UNCHECKED_CAST")
     private fun CallTemplate.applyCapture(trace: CallTrace) {

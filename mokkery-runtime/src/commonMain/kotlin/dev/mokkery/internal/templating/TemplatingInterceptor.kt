@@ -42,7 +42,7 @@ private class TemplatingMokkeryInterceptorImpl : TemplatingInterceptor {
         if (!_isEnabled) {
             return MokkeryToken.CALL_NEXT
         }
-        templatingScope?.saveTemplate(context.self.id, context.name, context.args)
+        templatingScope?.saveTemplate(context.scope.id, context.name, context.args)
             ?: throw ConcurrentTemplatingException()
         return MokkeryToken.RETURN_DEFAULT
     }
