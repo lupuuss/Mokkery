@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.Cache
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getIrClassOf
@@ -13,11 +14,11 @@ import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
 import dev.mokkery.plugin.core.verifyMode
 import dev.mokkery.plugin.ext.irCallConstructor
+import dev.mokkery.plugin.ext.irCall
 import dev.mokkery.plugin.ext.irGetEnumEntry
 import dev.mokkery.plugin.ext.isAnyFunction
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
-import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
@@ -97,14 +98,14 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             return createMockJsFunction(call, klass)
         }
         val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass) }
-        return DeclarationIrBuilder(pluginContext, call.symbol).run {
-            irCallConstructor(mockedClass.primaryConstructor!!).also {
+        return declarationIrBuilder(call) {
+            irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments
                     .getOrNull(0)
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
                 val block = call.valueArguments.getOrNull(1)
-                it.putValueArgument(0, modeArg)
-                it.putValueArgument(1, block ?: irNull())
+                putValueArgument(0, modeArg)
+                putValueArgument(1, block ?: irNull())
             }
         }
     }
@@ -115,9 +116,9 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             return createSpyJsFunction(call, klass)
         }
         val spiedClass = spyCache.getOrPut(klass) { createSpyClass(klass) }
-        return DeclarationIrBuilder(pluginContext, call.symbol).run {
-            irCallConstructor(spiedClass.primaryConstructor!!).also {
-                it.putValueArgument(0, call.valueArguments[0])
+        return declarationIrBuilder(call) {
+            irCallConstructor(spiedClass.primaryConstructor!!) {
+                putValueArgument(0, call.valueArguments[0])
             }
         }
     }
@@ -125,7 +126,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private fun replaceWithInternalEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
         val block = expression.getValueArgument(0)!!
         block.assertFunctionExpressionThatOriginatesLambda()
-        return DeclarationIrBuilder(pluginContext, expression.symbol).run {
+        return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
                 val transformer = TemplatingScopeCallsTransformer(
@@ -133,7 +134,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     templatingScope = variable
                 )
                 block.transformChildren(transformer, null)
-                +irCall(function).apply {
+                +irCall(function) {
                     putValueArgument(0, irGet(variable))
                     putValueArgument(1, block)
                 }
@@ -145,7 +146,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val mode = expression.getValueArgument(0)
         val block = expression.getValueArgument(1)!!
         block.assertFunctionExpressionThatOriginatesLambda()
-        return DeclarationIrBuilder(pluginContext, expression.symbol).run {
+        return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
                 val transformer = TemplatingScopeCallsTransformer(
@@ -153,7 +154,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     templatingScope = variable
                 )
                 block.transformChildren(transformer, null)
-                +irCall(function).apply {
+                +irCall(function) {
                     putValueArgument(0, irGet(variable))
                     putValueArgument(1, mode ?: irGetVerifyMode(verifyMode))
                     putValueArgument(2, block)
@@ -165,7 +166,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private fun IrBuilderWithScope.irGetVerifyMode(verifyMode: VerifyMode): IrExpression {
         val expression = when (verifyMode) {
             is SoftVerifyMode -> {
-                irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!).apply {
+                irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!) {
                     putValueArgument(0, irInt(verifyMode.atLeast))
                     putValueArgument(1, irInt(verifyMode.atMost))
                 }

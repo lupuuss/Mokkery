@@ -1,9 +1,13 @@
 package dev.mokkery.plugin.core
 
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.name.ClassId
 import kotlin.reflect.KClass
 
@@ -21,3 +25,15 @@ fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction =
 fun TransformerScope.getIrClassOf(cls: KClass<*>) = pluginContext
     .referenceClass(ClassId.fromString(cls.qualifiedName!!))!!
     .owner
+
+inline fun <T> TransformerScope.declarationIrBuilder(
+    symbol: IrSymbol,
+    context: IrGeneratorContext = pluginContext,
+    block: DeclarationIrBuilder.() -> T
+) = DeclarationIrBuilder(context, symbol).run(block)
+
+inline fun <T> TransformerScope.declarationIrBuilder(
+    expression: IrCall,
+    context: IrGeneratorContext = pluginContext,
+    block: DeclarationIrBuilder.() -> T
+) = DeclarationIrBuilder(context, expression.symbol).run(block)

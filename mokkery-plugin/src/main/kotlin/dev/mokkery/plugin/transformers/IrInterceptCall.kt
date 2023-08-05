@@ -4,6 +4,8 @@ import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.ext.irCall
+import dev.mokkery.plugin.ext.irCallConstructor
 import dev.mokkery.plugin.ext.kClassReferenceUnified
 import dev.mokkery.plugin.ext.nonGenericReturnTypeOrAny
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
@@ -38,29 +40,28 @@ fun IrBlockBodyBuilder.irInterceptCall(
     mokkeryScope: IrExpression,
     function: IrSimpleFunction
 ): IrCall {
-    val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor)
+    val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor).symbol
     val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInterceptorScope)
     val callContextClass = transformer.getClass(Mokkery.Class.CallContext)
     val pluginContext = transformer.pluginContext
-    val mokkeryCall = if (function.isSuspend) {
-        irCall(interceptorClass.symbol.functionByName("interceptSuspendCall"))
+    val interceptFun = if (function.isSuspend) {
+        interceptorClass.functionByName("interceptSuspendCall")
     } else {
-        irCall(interceptorClass.symbol.functionByName("interceptCall"))
+        interceptorClass.functionByName("interceptCall")
     }
-    mokkeryCall.dispatchReceiver = interceptorScopeClass
-        .getPropertyGetter("interceptor")!!
-        .let(::irCall)
-        .apply {
-            dispatchReceiver = mokkeryScope
+    return irCall(interceptFun) {
+        dispatchReceiver = interceptorScopeClass
+            .getPropertyGetter("interceptor")!!
+            .let(::irCall)
+            .apply { dispatchReceiver = mokkeryScope }
+        val contextCreationCall = irCallConstructor(callContextClass.primaryConstructor!!) {
+            putValueArgument(0, mokkeryScope)
+            putValueArgument(1, irString(function.name.asString()))
+            putValueArgument(2, kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext)))
+            putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
         }
-    val contextCreationCall = irCall(callContextClass.primaryConstructor!!).apply {
-        putValueArgument(0, mokkeryScope)
-        putValueArgument(1, irString(function.name.asString()))
-        putValueArgument(2, kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext)))
-        putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
+        putValueArgument(0, contextCreationCall)
     }
-    mokkeryCall.putValueArgument(0, contextCreationCall)
-    return mokkeryCall
 }
 
 private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameters: List<IrValueParameter>): IrCall {
@@ -70,7 +71,7 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
         elementType = callArgClass.defaultType,
         values = parameters
             .map {
-                irCall(callArgClass.primaryConstructor!!).apply {
+                irCallConstructor(callArgClass.primaryConstructor!!) {
                     putValueArgument(0, irString(it.name.asString()))
                     putValueArgument(
                         1,
@@ -84,7 +85,7 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
     val listOf = pluginContext.referenceFunctions(Kotlin.FunctionId.listOf).first {
         it.owner.valueParameters.firstOrNull()?.isVararg == true
     }
-    return irCall(listOf).apply {
+    return irCall(listOf) {
         putValueArgument(0, args)
     }
 }

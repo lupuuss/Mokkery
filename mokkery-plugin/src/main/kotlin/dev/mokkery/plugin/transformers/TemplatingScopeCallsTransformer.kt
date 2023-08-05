@@ -4,14 +4,15 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
+import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.ext.irCall
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
-import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
@@ -49,19 +50,19 @@ class TemplatingScopeCallsTransformer(
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val dispatchReceiver = expression.dispatchReceiver ?: return super.visitCall(expression)
-        val cls = dispatchReceiver.type.getClass() ?: return super.visitCall(expression)
+        val receiver = expression.dispatchReceiver ?: return super.visitCall(expression)
+        val cls = receiver.type.getClass() ?: return super.visitCall(expression)
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
         // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
         if (!expression.symbol.owner.returnType.isPrimitiveType(nullable = false)) {
             expression.type = pluginContext.irBuiltIns.anyNType
         }
-        expression.dispatchReceiver = DeclarationIrBuilder(pluginContext, expression.symbol).run {
+        expression.dispatchReceiver = declarationIrBuilder(expression) {
             irBlock {
-                val tmp = createTmpVariable(dispatchReceiver)
-                +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!).apply {
-                    this.dispatchReceiver = irGet(templatingScope)
+                val tmp = createTmpVariable(receiver)
+                +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!) {
+                    dispatchReceiver = irGet(templatingScope)
                     putValueArgument(0, irInt(token))
                     putValueArgument(1, irGet(tmp))
                 }
@@ -97,14 +98,16 @@ class TemplatingScopeCallsTransformer(
         }
     }
 
-    private fun interceptArg(symbol: IrSymbol, param: IrValueParameter, arg: IrExpression): IrExpression {
-        return DeclarationIrBuilder(pluginContext, symbol).run {
-            irCall(templatingContextClass.getSimpleFunction("interceptArg")!!).apply {
-                this.dispatchReceiver = irGet(templatingScope)
-                putValueArgument(0, irInt(token))
-                putValueArgument(1, irString(param.name.asString()))
-                putValueArgument(2, interceptArgVarargs(arg))
-            }
+    private fun interceptArg(
+        symbol: IrSymbol,
+        param: IrValueParameter,
+        arg: IrExpression
+    ): IrExpression = declarationIrBuilder(symbol) {
+        irCall(templatingContextClass.getSimpleFunction("interceptArg")!!) {
+            this.dispatchReceiver = irGet(templatingScope)
+            putValueArgument(0, irInt(token))
+            putValueArgument(1, irString(param.name.asString()))
+            putValueArgument(2, interceptArgVarargs(arg))
         }
     }
 
@@ -135,8 +138,8 @@ class TemplatingScopeCallsTransformer(
     }
 
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
-        return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!).apply {
-            this.dispatchReceiver = irGet(templatingScope)
+        return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!) {
+            dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, expression)
             putValueArgument(2, irBoolean(isSpread))

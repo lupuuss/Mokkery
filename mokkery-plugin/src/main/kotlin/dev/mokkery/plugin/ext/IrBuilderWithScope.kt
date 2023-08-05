@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -37,6 +38,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.getClass
@@ -89,6 +91,7 @@ fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrIfT
         thenPart = then
     )
 }
+
 fun IrBuilderWithScope.irLambda(
     returnType: IrType,
     lambdaType: IrType,
@@ -121,16 +124,25 @@ fun IrBuilderWithScope.irLambda(
     )
 }
 
-fun IrBuilderWithScope.irInvokeIfNotNull(function: IrExpression, isSuspend: Boolean, vararg args: IrExpression): IrIfThenElseImpl {
+fun IrBuilderWithScope.irInvokeIfNotNull(
+    function: IrExpression,
+    isSuspend: Boolean,
+    vararg args: IrExpression
+): IrIfThenElseImpl {
     return irIfNotNull(
         function,
         irInvoke(function, isSuspend, *args)
     )
 }
 
-fun IrBuilderWithScope.irInvoke(function: IrExpression, isSuspend: Boolean, vararg args: IrExpression): IrFunctionAccessExpression {
-    val functionClass = context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
-    return irCall(functionClass.invokeFun!!).apply {
+fun IrBuilderWithScope.irInvoke(
+    function: IrExpression,
+    isSuspend: Boolean,
+    vararg args: IrExpression
+): IrFunctionAccessExpression {
+    val functionClass =
+        context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
+    return irCall(functionClass.invokeFun!!) {
         dispatchReceiver = function
         args.forEachIndexed { index, arg ->
             putValueArgument(index, arg)
@@ -138,3 +150,21 @@ fun IrBuilderWithScope.irInvoke(function: IrExpression, isSuspend: Boolean, vara
     }
 }
 
+inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit): IrCall {
+    return irCall(symbol).apply(block)
+}
+
+inline fun IrBuilderWithScope.irCall(
+    func: IrSimpleFunction,
+    block: IrFunctionAccessExpression.() -> Unit
+): IrFunctionAccessExpression {
+    return irCall(func).apply(block)
+}
+
+
+inline fun IrBuilderWithScope.irCallConstructor(
+    constructor: IrConstructor,
+    block: IrFunctionAccessExpression.() -> Unit
+): IrFunctionAccessExpression {
+    return irCallConstructor(constructor).apply(block)
+}
