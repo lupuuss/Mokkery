@@ -1,16 +1,11 @@
-package dev.mokkery.plugin.ext
+package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
 import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols

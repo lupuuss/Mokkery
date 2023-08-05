@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ext
+package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun

@@ -13,10 +13,10 @@ import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
 import dev.mokkery.plugin.core.verifyMode
-import dev.mokkery.plugin.ext.irCallConstructor
-import dev.mokkery.plugin.ext.irCall
-import dev.mokkery.plugin.ext.irGetEnumEntry
-import dev.mokkery.plugin.ext.isAnyFunction
+import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irGetEnumEntry
+import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.descriptors.Modality

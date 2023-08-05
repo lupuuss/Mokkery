@@ -6,7 +6,7 @@ import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
-import dev.mokkery.plugin.ext.irCall
+import dev.mokkery.plugin.ir.irCall
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments

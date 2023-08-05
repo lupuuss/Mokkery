@@ -1,11 +1,8 @@
 package dev.mokkery.plugin.core
 
 import dev.mokkery.MokkeryConfig
-import dev.mokkery.plugin.core.TransformerScope
-import dev.mokkery.plugin.core.messageCollector
-import dev.mokkery.plugin.ext.locationInFile
+import dev.mokkery.plugin.ir.locationInFile
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
 internal inline fun TransformerScope.mokkeryErrorAt(call: IrExpression, message: () -> String): Nothing {

@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ext
+package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
@@ -23,12 +23,8 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
-import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.name.Name
-import java.util.UUID
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 fun IrClass.getProperty(name: String): IrProperty {
     val nameId = Name.identifier(name)

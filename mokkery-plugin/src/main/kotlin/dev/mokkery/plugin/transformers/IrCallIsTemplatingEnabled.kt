@@ -3,7 +3,7 @@ package dev.mokkery.plugin.transformers
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
-import dev.mokkery.plugin.ext.irCall
+import dev.mokkery.plugin.ir.irCall
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrCall

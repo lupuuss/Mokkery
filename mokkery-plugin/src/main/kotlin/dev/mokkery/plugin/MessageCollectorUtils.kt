@@ -1,7 +1,7 @@
 package dev.mokkery.plugin
 
 import dev.mokkery.MokkeryConfig
-import dev.mokkery.plugin.ext.locationInFile
+import dev.mokkery.plugin.ir.locationInFile
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrFile

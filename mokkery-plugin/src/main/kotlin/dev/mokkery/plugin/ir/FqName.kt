@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ext
+package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.FqName

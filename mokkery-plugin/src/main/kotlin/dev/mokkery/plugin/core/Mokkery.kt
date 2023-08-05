@@ -1,6 +1,6 @@
 package dev.mokkery.plugin.core
 
-import dev.mokkery.plugin.ext.fqName
+import dev.mokkery.plugin.ir.fqName
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName

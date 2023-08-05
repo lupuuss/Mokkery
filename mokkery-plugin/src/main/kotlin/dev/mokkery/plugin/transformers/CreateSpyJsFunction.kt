@@ -4,11 +4,11 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getFunction
-import dev.mokkery.plugin.ext.defaultTypeErased
-import dev.mokkery.plugin.ext.irCall
-import dev.mokkery.plugin.ext.irInvoke
-import dev.mokkery.plugin.ext.irLambda
-import dev.mokkery.plugin.ext.irTryCatchAny
+import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irInvoke
+import dev.mokkery.plugin.ir.irLambda
+import dev.mokkery.plugin.ir.irTryCatchAny
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
