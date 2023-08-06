@@ -1,5 +1,8 @@
 package dev.mokkery.answering
 
+import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.internal.MissingArgsForSuperMethodException
+import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
@@ -7,9 +10,24 @@ import kotlin.reflect.KClass
  * Provides function call arguments. If function has any extension receiver, it is provided at the beginning of the [args] list.
  */
 public class FunctionScope(
+    /**
+     * Return type of mocked method.
+     */
     public val returnType: KClass<*>,
+    /**
+     * Args passed to mocked method.
+     */
     public val args: List<Any?>,
+    /**
+     * Reference to this mock.
+     */
     public val self: Any?,
+    /**
+     * Contains super methods for given super types.
+     * Use [callSuper] for convenience.
+     */
+    @DelicateMokkeryApi
+    public val supers: Map<KClass<*>, (args: List<Any?>) -> Any?>
 ) {
     public operator fun <T> component1(): T = args[0].unsafeCast()
     public operator fun <T> component2(): T = args[1].unsafeCast()
@@ -19,7 +37,30 @@ public class FunctionScope(
     public operator fun <T> component6(): T = args[5].unsafeCast()
     public operator fun <T> component7(): T = args[6].unsafeCast()
 
+    /**
+     * Returns [self] as [T].
+     */
     public inline fun <reified T> self(): T = self as T
+
+    /**
+     * Calls method from super type [T] with given [args]. This method expects that super method returns [R].
+     */
+    public inline fun <reified T, reified R> callSuper(vararg args: Any?): R = callSuper(T::class, args.toList()) as R
+
+    /**
+     * Calls method from super type [T] with [FunctionScope.args]. This method expects that super method returns [R].
+     */
+    public inline fun <reified T, reified R> callSuperWithPassedArgs(): R = callSuper(T::class, args) as R
+
+    @PublishedApi
+    internal fun callSuper(superType: KClass<*>, args: List<Any?>): Any? {
+        if (this.args.size != args.size) {
+            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+        }
+        return supers[superType]
+            .let { it ?: throw MissingSuperMethodException(superType) }
+            .invoke(args)
+    }
 
     override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args)"
 
@@ -31,13 +72,17 @@ public class FunctionScope(
 
         if (returnType != other.returnType) return false
         if (args != other.args) return false
-        return self == other.self
+        if (self != other.self) return false
+        if (supers != other.supers) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
         var result = returnType.hashCode()
         result = 31 * result + args.hashCode()
         result = 31 * result + (self?.hashCode() ?: 0)
+        result = 31 * result + supers.hashCode()
         return result
     }
 }

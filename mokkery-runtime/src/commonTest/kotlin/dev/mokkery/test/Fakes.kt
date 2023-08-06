@@ -11,11 +11,13 @@ import kotlin.reflect.KClass
 fun fakeFunctionScope(
     returnType: KClass<*> = Unit::class,
     self: Any? = Unit,
+    supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
     vararg args: Any?
 ) = FunctionScope(
     returnType = returnType,
     args = args.toList(),
     self = self,
+    supers = supers
 )
 
 internal fun fakeCallTemplate(
@@ -39,12 +41,14 @@ internal inline fun <reified T> fakeCallArg(
 internal inline fun <reified T> fakeCallContext(
     selfId: String = "mock@1",
     name: String = "call",
-    args: List<CallArg> = emptyList()
+    args: List<CallArg> = emptyList(),
+    supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
 ) = CallContext(
     scope = TestMokkeryInterceptorScope(selfId),
     name = name,
     returnType = T::class,
-    args = args
+    args = args,
+    supers = supers
 )
 
 internal fun fakeCallTrace(

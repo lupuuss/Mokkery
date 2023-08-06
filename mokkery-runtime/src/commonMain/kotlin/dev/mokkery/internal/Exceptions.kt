@@ -2,6 +2,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.matcher.ArgMatcher
+import kotlin.reflect.KClass
 
 internal class CallNotMockedException(name: String) : MokkeryRuntimeException(message = "Call $name not mocked!")
 
@@ -46,4 +47,13 @@ internal class MissingMatchersForComposite(
     matchers: List<ArgMatcher<*>>
 ) : MokkeryRuntimeException(
     "`$compositeName` expects $expected matchers, but received ${matchers.size}! You probably used literal in composite matcher, which is illegal! Received matchers: $matchers"
+)
+
+internal class MissingSuperMethodException(type: KClass<*>) : MokkeryRuntimeException(
+    "Super call for ${type.simpleName} could not be found!"
+)
+
+
+internal class MissingArgsForSuperMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
+    "Super call requires $expectedCount arguments but $actualCount provided!"
 )

@@ -84,7 +84,8 @@ private class AnsweringInterceptorImpl(
     private fun CallContext.toFunctionScope() = FunctionScope(
         returnType = returnType,
         args = args.map(CallArg::value),
-        self = lookup.reverseResolve(scope)
+        self = lookup.reverseResolve(scope),
+        supers = supers
     )
 
     @Suppress("UNCHECKED_CAST")

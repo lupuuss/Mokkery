@@ -17,6 +17,7 @@ import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlinx.coroutines.test.runTest
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -178,12 +179,16 @@ class AnsweringInterceptorTest {
         callMatcher.returns(true)
         var capturedFunctionScope: FunctionScope? = null
         answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = it })
-        val context = fakeCallContext<Int>()
+        val context = fakeCallContext<Int>(
+            args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
+            supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
+        )
         answering.interceptCall(context)
         assertNotNull(capturedFunctionScope)
         assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
         assertEquals(context.scope, capturedFunctionScope!!.self)
         assertEquals(context.returnType, capturedFunctionScope!!.returnType)
+        assertEquals(context.supers, capturedFunctionScope!!.supers)
     }
 
     @Test
@@ -191,11 +196,15 @@ class AnsweringInterceptorTest {
         callMatcher.returns(true)
         var capturedFunctionScope: FunctionScope? = null
         answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = it })
-        val context = fakeCallContext<Int>()
+        val context = fakeCallContext<Int>(
+            args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
+            supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
+        )
         answering.interceptSuspendCall(context)
         assertNotNull(capturedFunctionScope)
         assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
         assertEquals(context.scope, capturedFunctionScope!!.self)
         assertEquals(context.returnType, capturedFunctionScope!!.returnType)
+        assertEquals(context.supers, capturedFunctionScope!!.supers)
     }
 }
