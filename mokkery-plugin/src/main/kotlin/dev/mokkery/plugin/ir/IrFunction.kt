@@ -2,23 +2,12 @@ package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
-import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
 import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.util.isTypeParameter
-
-fun IrFunction.nonGenericReturnTypeOrAny(
-    context: IrGeneratorContext
-) = if (!returnType.isTypeParameter()) returnType else context.irBuiltIns.anyNType
-
-fun IrValueParameter.nonGenericReturnTypeOrAny(
-    context: IrGeneratorContext
-) = if (!type.isTypeParameter()) type else context.irBuiltIns.anyNType
-
 
 fun IrSimpleFunction.copyAnnotationsFrom(function: IrSimpleFunction) {
     annotations = function.annotations.map { it.deepCopyWithSymbols(this) }

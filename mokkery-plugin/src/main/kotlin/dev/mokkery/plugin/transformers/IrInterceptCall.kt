@@ -10,9 +10,9 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.kClassReferenceUnified
-import dev.mokkery.plugin.ir.nonGenericReturnTypeOrAny
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.functionByName
+import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -67,10 +67,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
         val contextCreationCall = irCallConstructor(callContextClass.primaryConstructor!!) {
             putValueArgument(0, mokkeryScope)
             putValueArgument(1, irString(function.name.asString()))
-            putValueArgument(
-                2,
-                kClassReferenceUnified(pluginContext, function.nonGenericReturnTypeOrAny(pluginContext))
-            )
+            putValueArgument(2, kClassReferenceUnified(pluginContext, function.returnType.eraseTypeParameters()))
             putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
             putValueArgument(4, irCallSupersMap(transformer, function))
         }
@@ -87,10 +84,7 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
             .map {
                 irCallConstructor(callArgClass.primaryConstructor!!) {
                     putValueArgument(0, irString(it.name.asString()))
-                    putValueArgument(
-                        1,
-                        kClassReferenceUnified(pluginContext, it.nonGenericReturnTypeOrAny(pluginContext))
-                    )
+                    putValueArgument(1, kClassReferenceUnified(pluginContext, it.type.eraseTypeParameters()))
                     putValueArgument(2, irGet(it))
                     putValueArgument(3, irBoolean(it.isVararg))
                 }
