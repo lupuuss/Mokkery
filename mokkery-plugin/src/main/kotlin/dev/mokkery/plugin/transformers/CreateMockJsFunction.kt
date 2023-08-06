@@ -11,6 +11,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
+import dev.mokkery.plugin.ir.kClassReferenceUnified
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -38,6 +39,7 @@ fun TransformerScope.createMockJsFunction(expression: IrCall, classToMock: IrCla
             val mokkeryScopeCall = irCall(mokkeryMockScopeFun) {
                 putValueArgument(0, modeArg)
                 putValueArgument(1, irString(typeToMock.classFqName!!.asString()))
+                putValueArgument(2, kClassReferenceUnified(pluginContext, classToMock.defaultTypeErased))
             }
             val scopeVar = createTmpVariable(mokkeryScopeCall)
             val lambda = irLambda(returnType, typeToMock, currentFile) {

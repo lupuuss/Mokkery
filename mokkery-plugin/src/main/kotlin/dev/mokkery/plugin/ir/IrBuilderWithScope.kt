@@ -17,14 +17,18 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
+import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irNull
+import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irTry
 import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
@@ -32,12 +36,14 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
+import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
@@ -150,13 +156,13 @@ fun IrBuilderWithScope.irInvoke(
     }
 }
 
-inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit): IrCall {
+inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
     return irCall(symbol).apply(block)
 }
 
 inline fun IrBuilderWithScope.irCall(
     func: IrSimpleFunction,
-    block: IrCall.() -> Unit
+    block: IrCall.() -> Unit = { }
 ): IrCall {
     return irCall(func.symbol).apply(block)
 }
@@ -167,4 +173,12 @@ inline fun IrBuilderWithScope.irCallConstructor(
     block: IrFunctionAccessExpression.() -> Unit
 ): IrFunctionAccessExpression {
     return irCallConstructor(constructor).apply(block)
+}
+
+fun IrBuilderWithScope.irSetPropertyField(
+    thisParam: IrValueParameter,
+    property: IrProperty,
+    value: IrExpression
+): IrSetField {
+    return irSetField(irGet(thisParam), property.backingField!!, value)
 }
