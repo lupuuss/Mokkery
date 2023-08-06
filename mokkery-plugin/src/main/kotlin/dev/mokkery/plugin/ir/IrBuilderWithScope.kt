@@ -156,9 +156,9 @@ inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCa
 
 inline fun IrBuilderWithScope.irCall(
     func: IrSimpleFunction,
-    block: IrFunctionAccessExpression.() -> Unit
-): IrFunctionAccessExpression {
-    return irCall(func).apply(block)
+    block: IrCall.() -> Unit
+): IrCall {
+    return irCall(func.symbol).apply(block)
 }
 
 
