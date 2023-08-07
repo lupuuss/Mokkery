@@ -71,7 +71,7 @@ public class FunctionScope internal constructor(
     public fun <R> callOriginalWith(vararg args: Any?): R = callOriginal(MokkeryScopeLookup.current, args.toList())
         .unsafeCast()
 
-    override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args)"
+    override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args, supers=$supers)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
