@@ -24,7 +24,7 @@ public class FunctionScope(
     public val self: Any?,
     /**
      * Contains super methods for given super types.
-     * Use [callSuper] for convenience.
+     * Use [callSuper] and [callSuperWith] for convenience.
      */
     @DelicateMokkeryApi
     public val supers: Map<KClass<*>, (args: List<Any?>) -> Any?>
@@ -45,22 +45,12 @@ public class FunctionScope(
     /**
      * Calls method from super type [T] with given [args]. This method expects that super method returns [R].
      */
-    public inline fun <reified T, reified R> callSuper(vararg args: Any?): R = callSuper(T::class, args.toList()) as R
+    public inline fun <reified T, reified R> callSuperWith(vararg args: Any?): R = callSuper(T::class, args.toList()) as R
 
     /**
      * Calls method from super type [T] with [FunctionScope.args]. This method expects that super method returns [R].
      */
-    public inline fun <reified T, reified R> callSuperWithPassedArgs(): R = callSuper(T::class, args) as R
-
-    @PublishedApi
-    internal fun callSuper(superType: KClass<*>, args: List<Any?>): Any? {
-        if (this.args.size != args.size) {
-            throw MissingArgsForSuperMethodException(this.args.size, args.size)
-        }
-        return supers[superType]
-            .let { it ?: throw MissingSuperMethodException(superType) }
-            .invoke(args)
-    }
+    public inline fun <reified T, reified R> callSuper(): R = callSuper(T::class, args) as R
 
     override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args)"
 
@@ -84,5 +74,15 @@ public class FunctionScope(
         result = 31 * result + (self?.hashCode() ?: 0)
         result = 31 * result + supers.hashCode()
         return result
+    }
+
+    @PublishedApi
+    internal fun callSuper(superType: KClass<*>, args: List<Any?>): Any? {
+        if (this.args.size != args.size) {
+            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+        }
+        return supers[superType]
+            .let { it ?: throw MissingSuperMethodException(superType) }
+            .invoke(args)
     }
 }

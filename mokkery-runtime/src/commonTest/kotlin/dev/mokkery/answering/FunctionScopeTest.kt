@@ -53,7 +53,7 @@ class FunctionScopeTest {
                 }
             )
         )
-        assertEquals(4, scope.callSuper<Unit, Int>(1, 2, 3))
+        assertEquals(4, scope.callSuperWith<Unit, Int>(1, 2, 3))
         assertEquals(listOf(1, 2, 3), args)
     }
     @Test
@@ -70,7 +70,7 @@ class FunctionScopeTest {
                 }
             )
         )
-        assertEquals(4, scope.callSuperWithPassedArgs<Unit, Int>())
+        assertEquals(4, scope.callSuper<Unit, Int>())
         assertEquals(scope.args, args)
     }
 
