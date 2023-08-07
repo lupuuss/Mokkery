@@ -3,6 +3,8 @@ package dev.mokkery.answering
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
+import dev.mokkery.internal.ObjectNotMockedException
+import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
@@ -52,6 +54,17 @@ public class FunctionScope(
      */
     public inline fun <reified T, reified R> callSuper(): R = callSuper(T::class, args) as R
 
+    /**
+     * Calls original method of mocked type. Shorthand for `callSuper<MockedType, _>()`.
+     */
+    public fun <R> callOriginal(): R = callOriginal(MokkeryScopeLookup.current, args).unsafeCast()
+
+    /**
+     * Calls original method of mocked type with given [args]. Shorthand for `callOriginalWith<MockedType, _>()`.
+     */
+    public fun <R> callOriginalWith(vararg args: Any?): R = callOriginal(MokkeryScopeLookup.current, args.toList())
+        .unsafeCast()
+
     override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args)"
 
     override fun equals(other: Any?): Boolean {
@@ -81,6 +94,16 @@ public class FunctionScope(
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
+        return supers[superType]
+            .let { it ?: throw MissingSuperMethodException(superType) }
+            .invoke(args)
+    }
+
+    internal fun callOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
+        if (this.args.size != args.size) {
+            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+        }
+        val superType = lookup.resolve(self)?.interceptedType ?: throw ObjectNotMockedException(self)
         return supers[superType]
             .let { it ?: throw MissingSuperMethodException(superType) }
             .invoke(args)
