@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 /**
  * Provides function call arguments. If function has any extension receiver, it is provided at the beginning of the [args] list.
  */
-public class FunctionScope(
+public class FunctionScope internal constructor(
     /**
      * Return type of mocked method.
      */
@@ -25,19 +25,25 @@ public class FunctionScope(
      */
     public val self: Any?,
     /**
-     * Contains super methods for given super types.
+     * Contains super method for given super type.
      * Use [callSuper] and [callSuperWith] for convenience.
      */
     @DelicateMokkeryApi
     public val supers: Map<KClass<*>, (args: List<Any?>) -> Any?>
 ) {
-    public operator fun <T> component1(): T = args[0].unsafeCast()
-    public operator fun <T> component2(): T = args[1].unsafeCast()
-    public operator fun <T> component3(): T = args[2].unsafeCast()
-    public operator fun <T> component4(): T = args[3].unsafeCast()
-    public operator fun <T> component5(): T = args[4].unsafeCast()
-    public operator fun <T> component6(): T = args[5].unsafeCast()
-    public operator fun <T> component7(): T = args[6].unsafeCast()
+
+    public inline operator fun <reified T> component1(): T = arg(0)
+    public inline operator fun <reified T> component2(): T = arg(1)
+    public inline operator fun <reified T> component3(): T = arg(2)
+    public inline operator fun <reified T> component4(): T = arg(3)
+    public inline operator fun <reified T> component5(): T = arg(4)
+    public inline operator fun <reified T> component6(): T = arg(5)
+    public inline operator fun <reified T> component7(): T = arg(6)
+
+    /**
+     * Returns argument with [index] from [args] and expects that it is an instance of type [T].
+     */
+    public inline fun <reified T> arg(index: Int): T = args[index] as T
 
     /**
      * Returns [self] as [T].
