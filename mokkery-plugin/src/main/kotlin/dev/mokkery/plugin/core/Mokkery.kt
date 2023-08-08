@@ -20,14 +20,11 @@ object Mokkery {
     object Class {
 
         val MockMode by dev_mokkery.klass
-        val VerifyMode by dev_mokkery.klass
-        val SoftVerifyMode by dev_mokkery.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
 
         val MokkeryInterceptor by dev_mokkery_internal.klass
         val MokkeryInterceptorScope by dev_mokkery_internal.klass
 
-        val MokkeryMock by dev_mokkery_internal.klass
         val MokkeryMockScope by dev_mokkery_internal.klass
 
         val MokkerySpy by dev_mokkery_internal.klass
