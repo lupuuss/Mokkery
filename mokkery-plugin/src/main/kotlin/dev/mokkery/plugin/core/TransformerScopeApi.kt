@@ -8,8 +8,6 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.name.ClassId
-import kotlin.reflect.KClass
 
 val TransformerScope.messageCollector get() = compilerConfig
     .get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
@@ -21,10 +19,6 @@ fun TransformerScope.getClass(resolver: ClassResolver): IrClass = classes.getOrP
 fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction = functions.getOrPut(resolver) {
     resolver.resolve(pluginContext)
 }
-
-fun TransformerScope.getIrClassOf(cls: KClass<*>) = pluginContext
-    .referenceClass(ClassId.fromString(cls.qualifiedName!!))!!
-    .owner
 
 inline fun <T> TransformerScope.declarationIrBuilder(
     symbol: IrSymbol,

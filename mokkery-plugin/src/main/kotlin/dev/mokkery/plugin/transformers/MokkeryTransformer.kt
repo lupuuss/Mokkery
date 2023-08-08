@@ -7,14 +7,13 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
-import dev.mokkery.plugin.core.getIrClassOf
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
 import dev.mokkery.plugin.core.verifyMode
-import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.verify.SoftVerifyMode
@@ -26,7 +25,6 @@ import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
-import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
@@ -49,9 +47,11 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
+import kotlin.reflect.KClass
 import kotlin.time.TimeSource
 
 class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransformer(compilerPluginScope) {
@@ -175,6 +175,11 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         }
         return expression
     }
+
+    // probably works only for top level classes
+    private fun getIrClassOf(cls: KClass<*>) = pluginContext
+        .referenceClass(ClassId.fromString(cls.qualifiedName!!.replace(".", "/")))!!
+        .owner
 
     private fun IrExpression.assertFunctionExpressionThatOriginatesLambda() {
         if (this !is IrFunctionExpression) mokkeryErrorAt(this) { "Block of 'verify' and 'every' must be a lambda! " }
