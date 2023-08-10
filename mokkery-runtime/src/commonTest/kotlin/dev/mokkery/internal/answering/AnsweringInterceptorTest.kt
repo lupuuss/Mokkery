@@ -6,8 +6,6 @@ import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.internal.CallNotMockedException
-import dev.mokkery.internal.MokkeryInterceptorScope
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
@@ -178,7 +176,7 @@ class AnsweringInterceptorTest {
     fun testPassesCorrectParamsToAnswerOnInterceptCall() {
         callMatcher.returns(true)
         var capturedFunctionScope: FunctionScope? = null
-        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = it })
+        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = this })
         val context = fakeCallContext<Int>(
             args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
@@ -195,7 +193,7 @@ class AnsweringInterceptorTest {
     fun testPassesCorrectParamsToAnswerOnInterceptSuspendCall() = runTest {
         callMatcher.returns(true)
         var capturedFunctionScope: FunctionScope? = null
-        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = it })
+        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = this })
         val context = fakeCallContext<Int>(
             args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })

@@ -14,14 +14,6 @@ class FunctionScopeTest {
     )
 
     @Test
-    fun testComponentsReturnsArgs() {
-        val (i: Int, s: String, d: Double) = scope
-        assertEquals(1, i)
-        assertEquals("2", s)
-        assertEquals(2.0, d)
-    }
-
-    @Test
     fun testCallSuperCallsSuperMethod() {
         var args: List<Any?> = emptyList()
         val scope = FunctionScope(

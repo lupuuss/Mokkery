@@ -12,10 +12,10 @@ fun fakeFunctionScope(
     returnType: KClass<*> = Unit::class,
     self: Any? = Unit,
     supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
-    vararg args: Any?
+    args: List<Any?> = emptyList()
 ) = FunctionScope(
     returnType = returnType,
-    args = args.toList(),
+    args = args,
     self = self,
     supers = supers
 )

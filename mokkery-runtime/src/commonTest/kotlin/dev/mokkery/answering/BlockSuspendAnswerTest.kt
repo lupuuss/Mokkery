@@ -6,10 +6,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class BlockSuspendAnswerTest {
-    private var capturedArg: FunctionScope? = null
+    private var capturedScope: FunctionScope? = null
+    private var capturedArgs: CallArgs? = null
     private var answerResult: String = "1"
     private val answer = Answer.BlockSuspend {
-        capturedArg = it
+        capturedScope = this
+        capturedArgs = it
         answerResult
     }
 
@@ -22,10 +24,14 @@ class BlockSuspendAnswerTest {
 
     @Test
     fun testBlockReceivesFunctionScopeOnCallSuspend() = runTest {
-        answer.callSuspend(fakeFunctionScope(Int::class, 1))
-        assertEquals(fakeFunctionScope(Int::class, 1), capturedArg)
-        answer.callSuspend(fakeFunctionScope(String::class, "1"))
-        assertEquals(fakeFunctionScope(String::class, "1"), capturedArg)
+        answer.callSuspend(fakeFunctionScope(Int::class, args = listOf(1, 2, 3)))
+        assertEquals(fakeFunctionScope(Int::class, args = listOf(1, 2, 3)), capturedScope)
+    }
+
+    @Test
+    fun testBlockReceivesCallArgsOnCallSuspend() = runTest {
+        answer.callSuspend(fakeFunctionScope(Int::class, args = listOf(1, 2, 3)))
+        assertEquals(CallArgs(listOf(1, 2, 3)), capturedArgs)
     }
 
 }

@@ -44,8 +44,8 @@ public interface Answer<out T> {
     /**
      * Calls [block] on [call] and [callSuspend].
      */
-    public data class Block<T>(val block: (FunctionScope) -> T) : Answer<T> {
-        override fun call(scope: FunctionScope): T = block(scope)
+    public data class Block<T>(val block: FunctionScope.(CallArgs) -> T) : Answer<T> {
+        override fun call(scope: FunctionScope): T = block(scope, CallArgs(scope.args))
     }
 
     /**
@@ -58,10 +58,10 @@ public interface Answer<out T> {
     /**
      * Just like [Block] but for suspending functions.
      */
-    public data class BlockSuspend<T>(val block: suspend (FunctionScope) -> T) : Suspending<T> {
+    public data class BlockSuspend<T>(val block: suspend FunctionScope.(CallArgs) -> T) : Suspending<T> {
 
         override suspend fun callSuspend(scope: FunctionScope): T {
-            return block(scope)
+            return block(scope, CallArgs(scope.args))
         }
     }
 

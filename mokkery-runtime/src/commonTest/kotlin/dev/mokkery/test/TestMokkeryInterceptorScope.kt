@@ -1,6 +1,5 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.MokkeryInterceptor
 import dev.mokkery.internal.MokkeryInterceptorScope
 import kotlin.reflect.KClass
 
