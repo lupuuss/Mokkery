@@ -20,9 +20,9 @@ public interface CallDefinitionScope<out R> {
 }
 
 /**
- * Returns [CallDefinitionScope.self] as [R].
+ * Returns [CallDefinitionScope.self] as [T].
  */
-public inline fun <reified R> CallDefinitionScope<R>.self(): R = self as R
+public inline fun <reified T> CallDefinitionScope<*>.self(): T = self as T
 
 /**
  * Provides a set of operation for [BlockingAnsweringScope.calls].
