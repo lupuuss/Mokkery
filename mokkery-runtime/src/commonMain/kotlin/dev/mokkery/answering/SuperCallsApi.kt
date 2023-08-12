@@ -57,7 +57,7 @@ public sealed interface SuperCall {
          *
          * It is shorthand for `superWith<MockedType>(...)`.
          */
-        public inline fun <reified T> originalWith(vararg args: Any?): SuperCall = Original(args.toList())
+        public inline fun originalWith(vararg args: Any?): SuperCall = Original(args.toList())
     }
 }
 
