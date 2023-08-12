@@ -27,7 +27,6 @@ import dev.mokkery.matcher.ofType
 import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.matcher.varargs.varargsAll
 import dev.mokkery.matcher.varargs.varargsAny
-import dev.mokkery.debug.printMokkeryDebug
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -241,7 +240,6 @@ class ArgMatchersTest {
         assertEquals(1.0, mock.callWithVararg(0, "1", "1", "2", "3"))
         assertEquals(2.0, mock.callWithVararg(0, "1", "2", "2", "3"))
         assertEquals(3.0, mock.callWithVararg(0, "2", "2", "3"))
-        printMokkeryDebug(mock)
     }
 
     @Test
