@@ -8,6 +8,7 @@ import dev.mokkery.answering.SuperCall.Companion.superWith
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.self
 import dev.mokkery.answering.sequentially
 import dev.mokkery.answering.sequentiallyReturns
 import dev.mokkery.answering.sequentiallyThrows
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 
 class AnswersTest {
 
@@ -254,5 +256,20 @@ class AnswersTest {
     fun testCallsSuperWithArgsSuspend() = runTest {
         everySuspend { mock.fetchWithDefault(any()) } calls superWith<BaseInterface>(2)
         assertEquals(3, mock.fetchWithDefault(1))
+    }
+
+    @Test
+    fun testSelfHasCorrectType() {
+        every { mock.callUnit() } calls {
+            assertIs<TestInterface>(self<TestInterface>())
+        }
+    }
+
+    @Test
+    fun testSelfHasCorrectTypeForFunctionalType() {
+        val funMock = mock<(Any) -> Unit>()
+        every { funMock(any()) } calls {
+            assertIs<(Any) -> Unit>(self<(Any) -> Unit>())
+        }
     }
 }
