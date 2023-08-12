@@ -18,5 +18,7 @@ internal object JsMokkeryScopeLookup : MokkeryScopeLookup {
         return mapping[obj ?: return null]
     }
 
-    override fun reverseResolve(obj: MokkeryInterceptorScope): Any? = reverseMapping[obj]
+    override fun reverseResolve(obj: MokkeryInterceptorScope): Any {
+        return reverseMapping[obj] ?: obj
+    }
 }
