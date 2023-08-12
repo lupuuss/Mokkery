@@ -3,6 +3,8 @@ package dev.mokkery.answering
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
+import dev.mokkery.internal.answering.BlockingCallDefinitionScope
+import dev.mokkery.internal.answering.SuspendCallDefinitionScope
 import dev.mokkery.internal.answering.autofillValue
 
 /**
@@ -44,8 +46,8 @@ public interface Answer<out T> {
     /**
      * Calls [block] on [call] and [callSuspend].
      */
-    public data class Block<T>(val block: FunctionScope.(CallArgs) -> T) : Answer<T> {
-        override fun call(scope: FunctionScope): T = block(scope, CallArgs(scope.args))
+    public data class Block<T>(val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Answer<T> {
+        override fun call(scope: FunctionScope): T = block(BlockingCallDefinitionScope(scope), CallArgs(scope.args))
     }
 
     /**
@@ -58,10 +60,10 @@ public interface Answer<out T> {
     /**
      * Just like [Block] but for suspending functions.
      */
-    public data class BlockSuspend<T>(val block: suspend FunctionScope.(CallArgs) -> T) : Suspending<T> {
+    public data class BlockSuspend<T>(val block: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T) : Suspending<T> {
 
         override suspend fun callSuspend(scope: FunctionScope): T {
-            return block(scope, CallArgs(scope.args))
+            return block(SuspendCallDefinitionScope(scope), CallArgs(scope.args))
         }
     }
 

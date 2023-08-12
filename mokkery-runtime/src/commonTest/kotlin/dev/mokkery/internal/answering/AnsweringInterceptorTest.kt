@@ -8,6 +8,7 @@ import dev.mokkery.answering.FunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.test.ScopeCapturingAnswer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
@@ -175,34 +176,34 @@ class AnsweringInterceptorTest {
     @Test
     fun testPassesCorrectParamsToAnswerOnInterceptCall() {
         callMatcher.returns(true)
-        var capturedFunctionScope: FunctionScope? = null
-        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = this })
+        val answer = ScopeCapturingAnswer()
+        answering.setup(fakeCallTemplate(), answer)
         val context = fakeCallContext<Int>(
             args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
         )
         answering.interceptCall(context)
-        assertNotNull(capturedFunctionScope)
-        assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
-        assertEquals(context.scope, capturedFunctionScope!!.self)
-        assertEquals(context.returnType, capturedFunctionScope!!.returnType)
-        assertEquals(context.supers, capturedFunctionScope!!.supers)
+        assertNotNull(answer.capturedScope)
+        assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
+        assertEquals(context.scope, answer.capturedScope!!.self)
+        assertEquals(context.returnType, answer.capturedScope!!.returnType)
+        assertEquals(context.supers, answer.capturedScope!!.supers)
     }
 
     @Test
     fun testPassesCorrectParamsToAnswerOnInterceptSuspendCall() = runTest {
         callMatcher.returns(true)
-        var capturedFunctionScope: FunctionScope? = null
-        answering.setup(fakeCallTemplate(), Answer.Block { capturedFunctionScope = this })
+        val answer = ScopeCapturingAnswer()
+        answering.setup(fakeCallTemplate(), answer)
         val context = fakeCallContext<Int>(
             args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
         )
         answering.interceptSuspendCall(context)
-        assertNotNull(capturedFunctionScope)
-        assertEquals(context.args.map(CallArg::value), capturedFunctionScope!!.args)
-        assertEquals(context.scope, capturedFunctionScope!!.self)
-        assertEquals(context.returnType, capturedFunctionScope!!.returnType)
-        assertEquals(context.supers, capturedFunctionScope!!.supers)
+        assertNotNull(answer.capturedScope)
+        assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
+        assertEquals(context.scope, answer.capturedScope!!.self)
+        assertEquals(context.returnType, answer.capturedScope!!.returnType)
+        assertEquals(context.supers, answer.capturedScope!!.supers)
     }
 }

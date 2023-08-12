@@ -1,6 +1,10 @@
 package dev.mokkery.test
 
 import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.answering.SuperCall.Companion.original
+import dev.mokkery.answering.SuperCall.Companion.originalWith
+import dev.mokkery.answering.SuperCall.Companion.superOf
+import dev.mokkery.answering.SuperCall.Companion.superWith
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
@@ -136,5 +140,54 @@ class AnswersTest {
         assertFailsWith<IndexOutOfBoundsException> { mock.callGeneric(0) }
         assertFailsWith<IllegalStateException> { mock.callGeneric(0) }
         assertFailsWith<MokkeryRuntimeException> { mock.callGeneric(0) }
+    }
+
+    @Test
+    fun testCallsOriginal() {
+        every { mock.callWithDefault(any()) } calls original
+        assertEquals(3, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalSuspend() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls { callSuspendOriginal() }
+        assertEquals(3, mock.fetchWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalWithArgs() {
+        every { mock.callWithDefault(any()) } calls originalWith(2)
+        assertEquals(4, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalWithArgsSuspend() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls originalWith(2)
+        assertEquals(4, mock.fetchWithDefault(1))
+    }
+
+
+    @Test
+    fun testCallsSuper() {
+        every { mock.callWithDefault(any()) } calls superOf<BaseInterface>()
+        assertEquals(2, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperSuspend() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls superOf<BaseInterface>()
+        assertEquals(2, mock.fetchWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperWithArgs() {
+        every { mock.callWithDefault(any()) } calls superWith<BaseInterface>(2)
+        assertEquals(3, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperWithArgsSuspend() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls superWith<BaseInterface>(2)
+        assertEquals(3, mock.fetchWithDefault(1))
     }
 }

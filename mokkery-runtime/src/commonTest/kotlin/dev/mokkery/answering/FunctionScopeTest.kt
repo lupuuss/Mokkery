@@ -1,5 +1,9 @@
 package dev.mokkery.answering
 
+import dev.mokkery.internal.unsafeCast
+import dev.mokkery.test.TestMokkeryInterceptorScope
+import dev.mokkery.test.TestMokkeryScopeLookup
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -8,62 +12,39 @@ class FunctionScopeTest {
 
     private val scope = FunctionScope(
         returnType = Int::class,
-        args = listOf(1, "2", 2.0),
+        args = listOf(1),
         self = Unit,
-        supers = emptyMap()
+        supers = mapOf(
+            Unit::class to { it[0] as Int + 1 },
+            Int::class to suspending { it[0] as Int + 2 }
+        )
     )
 
     @Test
-    fun testCallSuperCallsSuperMethod() {
-        var args: List<Any?> = emptyList()
-        val scope = FunctionScope(
-            returnType = Int::class,
-            args = listOf(1, "2", 2.0),
-            self = Unit,
-            supers = mapOf(
-                Unit::class to {
-                    args = it
-                    4
-                }
-            )
-        )
-        assertEquals(4, scope.callSuper(Unit::class, listOf(1, 2, 3)))
-        assertEquals(listOf(1, 2, 3), args)
+    fun testCallSuper() {
+        assertEquals(2, scope.callSuper(Unit::class, listOf(1)))
     }
 
     @Test
-    fun testCallSuperReifiedCallsSuperMethod() {
-        var args: List<Any?> = emptyList()
-        val scope = FunctionScope(
-            returnType = Int::class,
-            args = listOf(1, "2", 2.0),
-            self = Unit,
-            supers = mapOf(
-                Unit::class to {
-                    args = it
-                    4
-                }
-            )
-        )
-        assertEquals(4, scope.callSuperWith<Unit, Int>(1, 2, 3))
-        assertEquals(listOf(1, 2, 3), args)
+    fun testCallSuspendSuper() = runTest {
+        assertEquals(3, scope.callSuspendSuper(Int::class, listOf(1)))
     }
+
+
     @Test
-    fun testCallSuperWithPassedArgsCallsSuperMethodWithFunctionScopeArgs() {
-        var args: List<Any?> = emptyList()
-        val scope = FunctionScope(
-            returnType = Int::class,
-            args = listOf(1, "2", 2.0),
-            self = Unit,
-            supers = mapOf(
-                Unit::class to {
-                    args = it
-                    4
-                }
-            )
-        )
-        assertEquals(4, scope.callSuper<Unit, Int>())
-        assertEquals(scope.args, args)
+    fun testCallOriginal() {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedType = Unit::class)
+        }
+        assertEquals(2, scope.callOriginal(lookup, listOf(1)))
+    }
+
+    @Test
+    fun testCallSuspendOriginal() = runTest {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedType = Int::class)
+        }
+        assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
     }
 
 
@@ -90,4 +71,6 @@ class FunctionScopeTest {
             FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap())
         )
     }
+
+    private fun <T> suspending(block: suspend (List<Any?>) -> Any): T = block as T
 }

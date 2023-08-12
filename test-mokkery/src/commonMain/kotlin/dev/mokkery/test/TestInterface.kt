@@ -25,4 +25,8 @@ interface TestInterface : BaseInterface {
     fun <T> callWithArray(array: Array<T>): T
 
     fun callWithIntArray(array: IntArray): String
+
+    override fun callWithDefault(value: Int): Int = value + 2
+
+    override suspend fun fetchWithDefault(value: Int): Int = value + 2
 }
