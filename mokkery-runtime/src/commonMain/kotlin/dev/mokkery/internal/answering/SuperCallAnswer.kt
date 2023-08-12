@@ -3,6 +3,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuperCall
+import dev.mokkery.internal.description
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.unsafeCast
 
@@ -21,4 +22,18 @@ internal class SuperCallAnswer<T>(
         is SuperCall.OfType -> scope.callSuspendSuper(call.type, call.args ?: scope.args)
         is SuperCall.Original -> scope.callSuspendOriginal(lookup, call.args ?: scope.args)
     }.unsafeCast()
+
+    override fun toString(): String {
+        val callDescription = when (call) {
+            is SuperCall.OfType -> when (call.args) {
+                null -> "superOf<${call.type.simpleName}>()"
+                else -> "superWith<${call.type.simpleName}>(${call.args.joinToString { it.description() }})"
+            }
+            is SuperCall.Original -> when (call.args) {
+                null -> "original"
+                else -> "originalWith(${call.args.joinToString { it.description() }})"
+            }
+        }
+        return "calls $callDescription"
+    }
 }
