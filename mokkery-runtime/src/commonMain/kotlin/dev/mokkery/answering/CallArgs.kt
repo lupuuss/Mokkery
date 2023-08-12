@@ -1,5 +1,14 @@
 package dev.mokkery.answering
 
+/**
+ * Contains arguments passed to mocked method. If method has extension receiver it is passed at the start of this list.
+ *
+ * It is possible to apply destructuring declaration with convenient cast using generic [component1], [component2] etc.
+ *
+ * ```kotlin
+ * ever { dependency.foo(1) } calls { (i: Int) ->  }
+ * ```
+ */
 public class CallArgs(public val args: List<Any?>) {
 
     /**

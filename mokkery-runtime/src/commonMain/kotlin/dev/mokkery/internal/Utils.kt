@@ -7,6 +7,10 @@ import kotlin.reflect.KClass
 @PublishedApi
 internal inline fun <T> Any?.unsafeCast(): T = this as T
 
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+@PublishedApi
+internal inline fun <T> Any?.unsafeCastOrNull(): T? = this as? T
+
 internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
 internal fun callToString(

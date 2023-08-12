@@ -7,12 +7,21 @@ import kotlin.reflect.KClass
  */
 public interface CallDefinitionScope<out R> {
 
+    /**
+     * Mocked method return type [KClass].
+     */
     public val returnType: KClass<*>
 
 
+    /**
+     * It serves as a `this` and returns mock object.
+     */
     public val self: Any?
 }
 
+/**
+ * Returns [CallDefinitionScope.self] as [R].
+ */
 public inline fun <reified R> CallDefinitionScope<R>.self(): R = self as R
 
 /**

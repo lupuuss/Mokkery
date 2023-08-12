@@ -6,13 +6,13 @@ import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.unsafeCast
+import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass
 
 
 /**
- * Provides function call arguments. If function has any extension receiver, it is provided at the beginning of the [args] list.
+ * Provides a set of mocked function related operations that might be required for implementing [Answer].
  */
-@Suppress("UNCHECKED_CAST")
 @DelicateMokkeryApi
 public class FunctionScope internal constructor(
     /**
@@ -20,7 +20,7 @@ public class FunctionScope internal constructor(
      */
     public val returnType: KClass<*>,
     /**
-     * Args passed to mocked method.
+     * Args passed to mocked method. If method has extension receiver it is passed at the start of this list.
      */
     public val args: List<Any?>,
     /**
@@ -30,10 +30,16 @@ public class FunctionScope internal constructor(
     /**
      * Contains super method for given super type.
      * This map might contain suspend functions that require cast.
-     * Use [callSuper], [callSuspendSuper], [callOriginal], [callSuspendOriginal]
+     *
+     * Use [callSuper], [callSuspendSuper], [callOriginal], [callSuspendOriginal] for convenience.
      */
     public val supers: Map<KClass<*>, (args: List<Any?>) -> Any?>
 ) {
+
+    /**
+     * Returns argument with [index] from [args] and expects that it is an instance of type [T].
+     */
+    public inline fun <reified T> arg(index: Int): T = args[index] as T
 
     override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args, supers=$supers)"
 
@@ -78,7 +84,8 @@ public class FunctionScope internal constructor(
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
-        return (supers[superType] as? suspend (List<Any?>) -> Any?)
+        return supers[superType]
+            .unsafeCastOrNull<suspend (List<Any?>) -> Any?>()
             .let { it ?: throw MissingSuperMethodException(superType) }
             .invoke(args)
     }
@@ -103,13 +110,13 @@ public class FunctionScope internal constructor(
             .invoke(args)
     }
 
-    @Suppress("UNCHECKED_CAST")
     internal suspend fun callSuspendOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
         val superType = lookup.resolve(self)?.interceptedType ?: throw ObjectNotMockedException(self)
-        return (supers[superType] as? suspend (List<Any?>) -> Any?)
+        return supers[superType]
+            .unsafeCastOrNull<suspend (List<Any?>) -> Any?>()
             .let { it ?: throw MissingSuperMethodException(superType) }
             .invoke(args)
     }
