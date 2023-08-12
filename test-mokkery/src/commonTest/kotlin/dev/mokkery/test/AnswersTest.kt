@@ -263,6 +263,7 @@ class AnswersTest {
         every { mock.callUnit() } calls {
             assertIs<TestInterface>(self<TestInterface>())
         }
+        mock.callUnit()
     }
 
     @Test
@@ -271,5 +272,6 @@ class AnswersTest {
         every { funMock(any()) } calls {
             assertIs<(Any) -> Unit>(self<(Any) -> Unit>())
         }
+        funMock(Unit)
     }
 }
