@@ -52,8 +52,10 @@ import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import kotlin.reflect.KClass
+import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
+@OptIn(ExperimentalTime::class)
 class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransformer(compilerPluginScope) {
 
     private val mockCache = Cache<IrClass, IrClass>()

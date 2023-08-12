@@ -39,11 +39,8 @@ import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTry
-import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
+import org.jetbrains.kotlin.ir.expressions.impl.*
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
@@ -167,6 +164,22 @@ inline fun IrBuilderWithScope.irCall(
     return irCall(func.symbol).apply(block)
 }
 
+fun IrBuilderWithScope.irCall(
+    symbol: IrSimpleFunctionSymbol,
+    type: IrType = symbol.owner.returnType,
+    valueArgumentsCount: Int = symbol.owner.valueParameters.size,
+    typeArgumentsCount: Int = symbol.owner.typeParameters.size,
+    origin: IrStatementOrigin? = null,
+    superQualifierSymbol: IrClassSymbol? = null,
+    block: IrCall.() -> Unit = { }
+): IrCall =
+    IrCallImpl(
+        startOffset, endOffset, type, symbol,
+        typeArgumentsCount = typeArgumentsCount,
+        valueArgumentsCount = valueArgumentsCount,
+        origin = origin,
+        superQualifierSymbol = superQualifierSymbol
+    ).apply(block)
 
 inline fun IrBuilderWithScope.irCallConstructor(
     constructor: IrConstructor,

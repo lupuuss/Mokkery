@@ -152,9 +152,8 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
-        val superCall = irCall(superFunction) {
+        val superCall = irCall(symbol = superFunction.symbol, superQualifierSymbol = superFunction.parentAsClass.symbol) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
-            superQualifierSymbol = superFunction.parentAsClass.symbol
             repeat(superFunction.valueParameters.size) { index ->
                 putValueArgument(
                     index = index,
