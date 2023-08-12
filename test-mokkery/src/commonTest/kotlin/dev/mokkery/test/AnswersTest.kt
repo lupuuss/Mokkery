@@ -143,6 +143,71 @@ class AnswersTest {
     }
 
     @Test
+    fun testCallsOriginalFromScope() {
+        every { mock.callWithDefault(any()) } calls {
+            callOriginal()
+        }
+        assertEquals(3, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalSuspendFromScope() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls {
+            callOriginal()
+        }
+        assertEquals(3, mock.fetchWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalWithArgsFromScope() {
+        every { mock.callWithDefault(any()) } calls {
+            callOriginalWith(2)
+        }
+        assertEquals(4, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsOriginalWithArgsSuspendFromScope() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls {
+            callOriginalWith(2)
+        }
+        assertEquals(4, mock.fetchWithDefault(1))
+    }
+
+
+    @Test
+    fun testCallsSuperFromScope() {
+        every { mock.callWithDefault(any()) } calls {
+            callSuper(BaseInterface::class)
+        }
+        assertEquals(2, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperSuspendFromScope() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls {
+            callSuper(BaseInterface::class)
+        }
+        assertEquals(2, mock.fetchWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperWithArgsFromScope() {
+        every { mock.callWithDefault(any()) } calls {
+            callSuperWith(BaseInterface::class, 2)
+        }
+        assertEquals(3, mock.callWithDefault(1))
+    }
+
+    @Test
+    fun testCallsSuperWithArgsSuspendFromScope() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } calls {
+            callSuperWith(BaseInterface::class, 2)
+        }
+        assertEquals(3, mock.fetchWithDefault(1))
+    }
+
+    @Test
     fun testCallsOriginal() {
         every { mock.callWithDefault(any()) } calls original
         assertEquals(3, mock.callWithDefault(1))
@@ -150,7 +215,7 @@ class AnswersTest {
 
     @Test
     fun testCallsOriginalSuspend() = runTest {
-        everySuspend { mock.fetchWithDefault(any()) } calls { callSuspendOriginal() }
+        everySuspend { mock.fetchWithDefault(any()) } calls original
         assertEquals(3, mock.fetchWithDefault(1))
     }
 
