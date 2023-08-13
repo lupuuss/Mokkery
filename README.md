@@ -32,13 +32,14 @@ If you have any experience with MockK, it should be easy to start with Mokkery!
 3. [Targets](#targets)
 4. [Mock & Spy](#mock-and-spy)
 5. [Mocking](#mocking)
-6. [Verifying](#verifying)
-7. [Mocking and verifying limitations](#mocking-and-verifying-limitations)
-8. [Regular matchers](#regular-matchers)
-9. [Logical matchers](#logical-matchers)
-10. [Vararg matchers](#vararg-matchers)
-11. [Custom matchers](#custom-matchers)
-12. [Arguments capturing](#arguments-capturing)
+6. [Calling original implementations](#calling-original-implementations)
+7. [Verifying](#verifying)
+8. [Mocking and verifying limitations](#mocking-and-verifying-limitations)
+9. [Regular matchers](#regular-matchers)
+10. [Logical matchers](#logical-matchers)
+11. [Vararg matchers](#vararg-matchers)
+12. [Custom matchers](#custom-matchers)
+13. [Arguments capturing](#arguments-capturing)
 ### Setup
 
 Apply Gradle plugin to your kotlin project:
@@ -46,7 +47,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.2.0"
+    id("dev.mokkery") version "1.9.0-1.3.0"
 }
 ```
 
@@ -57,7 +58,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.2.0"
+    id("dev.mokkery") version "1.9.0-1.3.0"
 }
 
 mokkery {
@@ -92,6 +93,10 @@ Kotlin version is always prioritized.
 
 | Plugin version                  	 | Kotlin version                              	 |
 |-----------------------------------|-----------------------------------------------|
+| 1.9.0-1.3.0 	                     | 1.9.0 	                                       |
+| 1.8.22-1.3.0 	                    | 1.8.22 	                                      |
+| 1.8.21-1.3.0 	                    | 1.8.21   	                                    |
+| 1.8.20-1.3.0 	                    | 1.8.20        	                               |
 | 1.9.0-1.2.0 	                     | 1.9.0 	                                       |
 | 1.8.22-1.2.0 	                    | 1.8.22 	                                      |
 | 1.8.21-1.2.0 	                    | 1.8.21   	                                    |
@@ -285,7 +290,53 @@ everySuspend { repository.countAllBooks() } answers RandomIntAnswer
 
 > **Warning**
 >When multiple answers match a call, the last one takes precedence.
+### Calling original implementations
 
+The most straightforward way to call original method is to use `calls` overload:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls original
+
+respository.findById("2") // this calls original method implementation with "2"
+```
+
+You can pass different arguments to original call:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls originalWith("3")
+
+respository.findById("2") // this calls original method implementation with "3"
+```
+
+> **Warning**
+> If mocked type is an interface, the default implementation is called.
+
+Under the hood, original calls super method of mocked type. In kotlin it is also possible to call super method
+from other supertypes (not only from direct supertype):
+
+```kotlin
+everySuspend { repository.findById(any()) } calls superOf<BaseRepository>()
+
+respository.findById("2") // this calls super method implementation from BaseRepository with "2"
+```
+
+You can pass different arguments to super call:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls superWith<BaseRepository>("3")
+
+respository.findById("2") // this calls super method implementation from BaseRepository with "3"
+```
+
+All of those features are accessible from `calls` scope:
+```kotlin
+everySuspend { repository.findById(any()) } calls {
+    callOriginal()
+    callOriginalWith("3")
+    callSuper(BaseRepository::class)
+    callSuperWith(BaseRepository::class, "3")
+}
+```
 ### Verifying
 
 To verify method call use `verify` or `verifySuspend`. Verification result depends on the `VerifyMode`.
@@ -407,8 +458,6 @@ Logical matchers allows combining regular matchers into logical expressions.
 everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
 ```
 
-Currently logical matchers does not work with wildcard vararg matchers.
-
 Full list of logical matchers is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
 
 > **Warning**
@@ -440,6 +489,16 @@ everySuspend { repository.findAllById("1", *varargsAll { it != "2" }, "3") } ret
 
 repository.findAllById("1", "3", "3", "3") // returns empty list
 repository.findAllById("1", "2", "3", "3") // fails - method not mocked
+```
+
+Since `1.3.0` wildcard vararg matchers can be used with composite matchers (e.g. [logical matchers](#logical-matchers)):
+
+```
+everySuspend { repository.findAllById(*anyVarargs()) } returns listOf(stubBook("1"))
+everySuspend { repository.findAllById(*not(varargsAll { it == "2" })) } returns listOf(stubBook("2"))
+
+resporitory.findAllById("2", "2", "2") // returns listOf(stubBook("1"))
+resporitory.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
 ```
 
 #### Varargs ambiguity
@@ -524,5 +583,15 @@ repository.findByName(query = "Book 3", limit = 10) // answer defined later is s
 println(container.values) // prints ["Book 1"]
 ```
 
-Currently, arguments capturing works only for regular arguments. Support for mixing with composite matchers 
-(like logical matchers) and varargs will be implemented in next releases.
+Since `1.3.0` argument capturing works with vararg matchers (including wildcard matchers):
+
+```
+val slot = Capture.slot<Array<String>>()
+
+everySuspend { repository.findAllById(*capture(slot, anyVarargs())) } returns listOf(stubBook("1"))
+
+resporitory.findAllById("1", "2", "3")
+// slot contains arrayOf("1", "2", "3")
+```
+
+For positional vararg matchers syntax is exactly the same as for regular matchers.
