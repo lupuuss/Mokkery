@@ -1,7 +1,7 @@
 # Mokkery
 
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery)](https://plugins.gradle.org/plugin/dev.mokkery)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.9.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
 [![API reference](https://img.shields.io/static/v1?label=api&message=reference&labelColor=gray&color=blueviolet&logo=gitbook&logoColor=white)](https://mokkery.dev)
 
@@ -46,8 +46,8 @@ Apply Gradle plugin to your kotlin project:
 
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.3.0"
+    kotlin("multiplatform") version "1.9.10"
+    id("dev.mokkery") version "1.9.10-1.3.0"
 }
 ```
 
@@ -57,8 +57,8 @@ Refer to the [compatibility](#compatibility) section to find the supported versi
 The plugin will be applied to all Kotlin source sets in the project that contain the "test" phrase. To change this behavior, you can provide a different rule in your Gradle file:
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.0"
-    id("dev.mokkery") version "1.9.0-1.3.0"
+    kotlin("multiplatform") version "1.9.10"
+    id("dev.mokkery") version "1.9.10-1.3.0"
 }
 
 mokkery {
@@ -93,6 +93,7 @@ Kotlin version is always prioritized.
 
 | Plugin version                  	 | Kotlin version                              	 |
 |-----------------------------------|-----------------------------------------------|
+| 1.9.10-1.3.0 	                    | 1.9.10 	                                      |
 | 1.9.0-1.3.0 	                     | 1.9.0 	                                       |
 | 1.8.22-1.3.0 	                    | 1.8.22 	                                      |
 | 1.8.21-1.3.0 	                    | 1.8.21   	                                    |
