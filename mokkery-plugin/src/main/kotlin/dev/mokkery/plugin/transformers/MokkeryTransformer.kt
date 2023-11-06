@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
@@ -212,6 +213,6 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         if (!classToMock.isInterface && classToMock.defaultConstructor == null)mokkeryErrorAt(this) {
             "${name.capitalizeAsciiOnly()} type must have no-arg constructor!"
         }
-        mokkeryLogAt(this) { "Recognized $name call with type ${typeToMock.asString()}!" }
+        mokkeryLogAt(this) { "Recognized $name call with type ${typeToMock.render()}!" }
     }
 }
