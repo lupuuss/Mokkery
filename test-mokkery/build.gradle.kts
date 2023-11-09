@@ -10,25 +10,40 @@ allOpen {
 
 kotlin {
 
+    applyDefaultHierarchyTemplate()
+
     jvm()
     js(IR) {
         browser()
         nodejs()
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
-    tvos()
+    tvosX64()
+    tvosArm64()
     tvosSimulatorArm64()
 
-    watchos()
+    watchosX64()
+    watchosArm64()
+    watchosSimulatorArm64()
+    watchosDeviceArm64()
 
     macosArm64()
     macosX64()
 
     mingwX64()
+
     linuxX64()
+    linuxArm64()
+
+    androidNativeArm32()
+    androidNativeArm64()
+
+    androidNativeX86()
+    androidNativeX64()
 
     sourceSets {
 
