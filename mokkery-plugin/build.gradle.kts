@@ -28,6 +28,8 @@ kotlin.sourceSets.all {
     languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
 }
 
+tasks.named("dokkaGfm") { mustRunAfter("kaptKotlin") }
+
 dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)

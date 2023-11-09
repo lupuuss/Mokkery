@@ -22,7 +22,7 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     dependsOn(signingTasks)
 }
 
-val dokkaJar by tasks.registering( Jar::class) {
+val dokkaJar by tasks.registering(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
     from(tasks.getByName("dokkaGfm"))
