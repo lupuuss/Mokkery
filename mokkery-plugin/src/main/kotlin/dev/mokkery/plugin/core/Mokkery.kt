@@ -61,7 +61,56 @@ object Mokkery {
         val verify by dev_mokkery.fqName
         val verifySuspend by dev_mokkery.fqName
     }
+
+    object Callable {
+        val mock by dev_mokkery.callableId
+        val spy by dev_mokkery.callableId
+        val verify by dev_mokkery.callableId
+        val verifySuspend by dev_mokkery.callableId
+        val every by dev_mokkery.callableId
+        val everySuspend by dev_mokkery.callableId
+    }
+
+    object Errors {
+        fun indirectCall(
+            typeArgument: String,
+            functionName: String
+        ) = "''$typeArgument'' is a type parameter! Specific type expected for a ''$functionName'' call!"
+
+        fun notLambdaExpression(
+            functionName: String,
+            param: String,
+        ) = "Argument passed to ''$functionName'' for param ''$param'' must be a lambda expression!"
+
+        fun sealedTypeCannotBeIntercepted(
+            typeName: String,
+            functionName: String
+        ) = "Type ''$typeName'' is sealed and cannot be used with ''$functionName''!"
+
+        fun finalTypeCannotBeIntercepted(
+            typeName: String,
+            functionName: String
+        ) = "Type ''$typeName'' is final and cannot be used with ''$functionName''!"
+
+        fun finalMembersTypeCannotBeIntercepted(
+            typeName: String,
+            functionName: String,
+            nonAbstractMembers: String,
+        ) = "Type ''$typeName'' has final members and cannot be used with ''$functionName''! Final members: $nonAbstractMembers"
+
+        fun noDefaultConstructorTypeCannotBeIntercepted(
+            typeName: String,
+            functionName: String
+        ) = "Class ''$typeName'' has no default constructor and cannot be used with ''$functionName''!"
+    }
 }
+
+val FqName.callableId: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, CallableId>>
+    get() = PropertyDelegateProvider { _: Any?, property ->
+        ReadOnlyProperty { _, _ ->
+            CallableId(this, Name.identifier(property.name))
+        }
+    }
 
 val FqName.klass: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassResolver>>
     get() = PropertyDelegateProvider { _: Any?, property ->
