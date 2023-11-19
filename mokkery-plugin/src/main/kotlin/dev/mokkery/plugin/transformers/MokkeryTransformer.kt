@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.Cache
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.core.Mokkery.Errors
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
@@ -12,14 +13,15 @@ import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
 import dev.mokkery.plugin.core.verifyMode
+import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
+import dev.mokkery.plugin.ir.renderSymbol
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.ir.backend.js.utils.asString
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -32,6 +34,8 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -51,12 +55,9 @@ import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import kotlin.reflect.KClass
-import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
-@OptIn(ExperimentalTime::class)
 class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransformer(compilerPluginScope) {
 
     private val mockCache = Cache<IrClass, IrClass>()
@@ -96,7 +97,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun replaceWithMock(call: IrCall): IrExpression {
-        val klass = call.getTypeToMock()
+        val klass = call.getTypeToMock() ?: return call
         if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
             return createMockJsFunction(call, klass)
         }
@@ -114,7 +115,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
-        val klass = call.getTypeToMock()
+        val klass = call.getTypeToMock() ?: return call
         if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
             return createSpyJsFunction(call, klass)
         }
@@ -128,7 +129,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithInternalEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
         val block = expression.getValueArgument(0)!!
-        block.assertFunctionExpressionThatOriginatesLambda()
+        if (!block.assertFunctionExpressionThatOriginatesLambda(expression.symbol)) return expression
         return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
@@ -148,7 +149,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private fun replaceWithInternalVerify(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
         val mode = expression.getValueArgument(0)
         val block = expression.getValueArgument(1)!!
-        block.assertFunctionExpressionThatOriginatesLambda()
+        if (!block.assertFunctionExpressionThatOriginatesLambda(expression.symbol)) return expression
         return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
@@ -184,35 +185,71 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         .referenceClass(ClassId.fromString(cls.qualifiedName!!.replace(".", "/")))!!
         .owner
 
-    private fun IrExpression.assertFunctionExpressionThatOriginatesLambda() {
-        if (this !is IrFunctionExpression) mokkeryErrorAt(this) { "Block of 'verify' and 'every' must be a lambda! " }
+    private fun IrExpression.assertFunctionExpressionThatOriginatesLambda(function: IrSimpleFunctionSymbol): Boolean {
+        if (this !is IrFunctionExpression) {
+            mokkeryErrorAt(this) {
+                Errors.notLambdaExpression(
+                    functionName = function.owner.name.asString(),
+                    param = function.owner.valueParameters.last().renderSymbol(),
+                )
+            }
+            return false
+        }
+        return true
     }
 
-    private fun IrCall.getTypeToMock(): IrClass {
-        checkInterceptionPossibilities()
-        return this.type.getClass()!!
+    private fun IrCall.getTypeToMock(): IrClass? {
+        if (!checkInterceptionPossibilities()) return null
+        return this.type.getClass()
     }
 
-    private fun IrCall.checkInterceptionPossibilities() {
+    private fun IrCall.checkInterceptionPossibilities(): Boolean {
         val name = symbol.owner.name.asString()
-        val typeToMock = typeArguments.firstOrNull()
+        val typeArg = typeArguments.firstOrNull()
+        val typeToMock = typeArg
             ?.takeIf { !it.isTypeParameter() }
-            ?: mokkeryErrorAt(this) { "${name.capitalizeAsciiOnly()} call must be direct! It can't be a type parameter!" }
+            ?: run {
+                mokkeryErrorAt(this) { Errors.indirectCall(typeArg?.render().orEmpty(), name) }
+                return false
+            }
         val classToMock = typeToMock.getClass()!!
-        if (classToMock.modality == Modality.FINAL) mokkeryErrorAt(this) {
-            "${name.capitalizeAsciiOnly()} type cannot be final!"
-        }
-        val allFunctionsOverridable = classToMock.functions.all { it.isOverridable }
-        val allPropertiesOverridable = classToMock.properties.all { it.isOverridableProperty() }
-        if (!allFunctionsOverridable || !allPropertiesOverridable) mokkeryErrorAt(this) {
-            "${name.capitalizeAsciiOnly()} type must have all methods and properties overridable!"
-        }
         if (classToMock.modality == Modality.SEALED) {
-            mokkeryErrorAt(this) { "Intercepting sealed types is not supported!" }
+            mokkeryErrorAt(this) {
+                Errors.sealedTypeCannotBeIntercepted(typeName = classToMock.kotlinFqName.asString(), functionName = name)
+            }
+            return false
         }
-        if (!classToMock.isInterface && classToMock.defaultConstructor == null)mokkeryErrorAt(this) {
-            "${name.capitalizeAsciiOnly()} type must have no-arg constructor!"
+        if (classToMock.modality == Modality.FINAL) {
+            mokkeryErrorAt(this) {
+                Errors.finalTypeCannotBeIntercepted(typeName = classToMock.kotlinFqName.asString(), functionName = name)
+            }
+            return false
+        }
+        if (!classToMock.isInterface && classToMock.defaultConstructor == null) {
+            mokkeryErrorAt(this) {
+                Errors.noDefaultConstructorTypeCannotBeIntercepted(
+                    typeName = classToMock.kotlinFqName.asString(),
+                    functionName = name
+                )
+            }
+            return false
+        }
+        val nonOverridableFunctions = classToMock.functions.filterNot { it.isOverridable }
+        val nonOverridableProperties = classToMock.properties.filterNot { it.isOverridableProperty() }
+        if (nonOverridableProperties.any() || nonOverridableFunctions.any()) {
+            mokkeryErrorAt(this) {
+                val names = nonOverridableFunctions
+                    .map(IrSimpleFunction::renderSymbol)
+                    .plus(nonOverridableProperties.map(IrProperty::renderSymbol))
+                Errors.finalMembersTypeCannotBeIntercepted(
+                    typeName = classToMock.kotlinFqName.asString(),
+                    functionName = name,
+                    nonAbstractMembers = names.joinToString()
+                )
+            }
+            return false
         }
         mokkeryLogAt(this) { "Recognized $name call with type ${typeToMock.render()}!" }
+        return true
     }
 }

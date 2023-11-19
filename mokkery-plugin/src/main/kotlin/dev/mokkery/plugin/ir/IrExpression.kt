@@ -1,13 +1,14 @@
 package dev.mokkery.plugin.ir
 
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.path
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.util.render
 
-fun IrExpression.locationInFile(file: IrFile) = buildString {
-    append(file.path)
-    append(":")
-    append(file.fileEntry.getLineNumber(startOffset) + 1)
-    append(":")
-    append(file.fileEntry.getColumnNumber(startOffset) + 1)
-}
+fun IrElement.locationInFile(file: IrFile) = CompilerMessageLocation.create(
+    path = file.path,
+    line = file.fileEntry.getLineNumber(startOffset) + 1,
+    column = file.fileEntry.getColumnNumber(startOffset) + 1,
+    lineContent = this.render()
+)

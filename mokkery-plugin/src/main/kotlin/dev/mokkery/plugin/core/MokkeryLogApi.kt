@@ -3,16 +3,22 @@ package dev.mokkery.plugin.core
 import dev.mokkery.MokkeryConfig
 import dev.mokkery.plugin.ir.locationInFile
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.IrElement
 
-internal inline fun TransformerScope.mokkeryErrorAt(call: IrExpression, message: () -> String): Nothing {
-    error("${MokkeryConfig.PLUGIN_ID}: ${message()} Failed at: ${call.locationInFile(currentFile)}")
+
+internal inline fun TransformerScope.mokkeryErrorAt(element: IrElement, message: () -> String) {
+    messageCollector.report(
+        severity = CompilerMessageSeverity.ERROR,
+        message = message(),
+        location = element.locationInFile(currentFile)
+    )
 }
 
-internal inline fun TransformerScope.mokkeryLogAt(expression: IrExpression, message: () -> String) {
+internal inline fun TransformerScope.mokkeryLogAt(element: IrElement, message: () -> String) {
     messageCollector.report(
         severity = CompilerMessageSeverity.LOGGING,
-        message = "${MokkeryConfig.PLUGIN_ID}: ${message()} Expression at: ${expression.locationInFile(currentFile)}"
+        message = "${MokkeryConfig.PLUGIN_ID}: ${message()}",
+        location = element.locationInFile(currentFile)
     )
 }
 
