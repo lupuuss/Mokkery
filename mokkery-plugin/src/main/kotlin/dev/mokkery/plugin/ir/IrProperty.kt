@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
+import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.name.Name
 
 inline fun IrProperty.addSetter(
@@ -17,4 +19,8 @@ inline fun IrProperty.addSetter(
     setter.correspondingPropertySymbol = this@addSetter.symbol
     setter.parent = this@addSetter.parent
     return setter
+}
+
+val IrProperty.isOverridable: Boolean get() {
+    return isOverridableProperty() && (getter?.isOverridable ?: true) && (setter?.isOverridable ?: true)
 }

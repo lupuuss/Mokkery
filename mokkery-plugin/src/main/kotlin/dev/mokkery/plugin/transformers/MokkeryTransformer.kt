@@ -18,6 +18,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
+import dev.mokkery.plugin.ir.isOverridable
 import dev.mokkery.plugin.ir.renderSymbol
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
@@ -47,6 +48,7 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isOverridable
+import org.jetbrains.kotlin.ir.util.isSimpleProperty
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -234,8 +236,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             }
             return false
         }
-        val nonOverridableFunctions = classToMock.functions.filterNot { it.isOverridable }
-        val nonOverridableProperties = classToMock.properties.filterNot { it.isOverridableProperty() }
+        val nonOverridableFunctions = classToMock
+            .functions
+            .filterNot(IrSimpleFunction::isOverridable)
+        val nonOverridableProperties = classToMock
+            .properties
+            .filterNot(IrProperty::isOverridable)
         if (nonOverridableProperties.any() || nonOverridableFunctions.any()) {
             mokkeryErrorAt(this) {
                 val names = nonOverridableFunctions
