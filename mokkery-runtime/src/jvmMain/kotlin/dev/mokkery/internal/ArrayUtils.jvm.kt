@@ -1,4 +1,3 @@
-@file:JvmName("ArrayUtilsJvm")
 package dev.mokkery.internal
 
 import kotlin.reflect.KClass
