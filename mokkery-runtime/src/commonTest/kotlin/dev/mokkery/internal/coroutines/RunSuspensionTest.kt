@@ -3,6 +3,7 @@ package dev.mokkery.internal.coroutines
 import kotlinx.coroutines.delay
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class RunSuspensionTest {
 
@@ -28,5 +29,15 @@ class RunSuspensionTest {
             checkpoints.add(3)
         }
         assertEquals(listOf(1, 2, 3), checkpoints)
+    }
+
+    @Test
+    fun testThrowsException() {
+        assertFailsWith<IllegalArgumentException> {
+            runSuspension {
+                delay(2)
+                throw IllegalArgumentException()
+            }
+        }
     }
 }
