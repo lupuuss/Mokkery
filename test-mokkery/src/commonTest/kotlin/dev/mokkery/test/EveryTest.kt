@@ -53,13 +53,13 @@ class EveryTest {
     }
 
     @Test
-    fun testMocksBaseInterfaceMethod() = runTest {
+    fun testMocksBaseInterfaceMethod() {
         every { dependencyMock.baseInterfaceMethod() } returns Unit
         dependencyMock.baseInterfaceMethod()
     }
 
     @Test
-    fun testMocksBaseInterfaceProperty() = runTest {
+    fun testMocksBaseInterfaceProperty() {
         every { dependencyMock.baseInterfaceProperty } returns "123"
         assertEquals("123", dependencyMock.baseInterfaceProperty)
     }
