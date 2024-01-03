@@ -46,8 +46,8 @@ Apply Gradle plugin to your kotlin project:
 
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.20"
-    id("dev.mokkery") version "1.9.20-1.3.0"
+    kotlin("multiplatform") version "1.9.22"
+    id("dev.mokkery") version "1.9.22-1.3.1"
 }
 ```
 
@@ -57,8 +57,8 @@ Refer to the [compatibility](#compatibility) section to find the supported versi
 The plugin will be applied to all Kotlin source sets in the project that contain the "test" phrase. To change this behavior, you can provide a different rule in your Gradle file:
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.20"
-    id("dev.mokkery") version "1.9.20-1.3.0"
+    kotlin("multiplatform") version "1.9.22"
+    id("dev.mokkery") version "1.9.21-1.3.1"
 }
 
 mokkery {
@@ -93,6 +93,9 @@ Kotlin version is always prioritized.
 
 | Plugin version                  	 | Kotlin version                              	 |
 |-----------------------------------|-----------------------------------------------|
+| 1.9.22-1.3.1 	                    | 1.9.22 	                                      |
+| 1.9.21-1.3.1 	                    | 1.9.21 	                                      |
+| 1.9.20-1.3.1 	                    | 1.9.20 	                                      |
 | 1.9.20-1.3.0 	                    | 1.9.20 	                                      |
 | 1.9.10-1.3.0 	                    | 1.9.10 	                                      |
 | 1.9.0-1.3.0 	                     | 1.9.0 	                                       |
