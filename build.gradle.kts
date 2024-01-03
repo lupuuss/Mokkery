@@ -22,7 +22,7 @@ buildscript {
 
 val kotlinVersion = libs.versions.kotlin.get()
 rootProject.ext["kotlinVersion"] = kotlinVersion
-rootProject.version = "${kotlinVersion}-1.3.0"
+rootProject.version = "${kotlinVersion}-1.3.1"
 rootProject.group = "dev.mokkery"
 
 rootProject.ext["pluginId"] = "dev.mokkery"
