@@ -58,7 +58,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.22"
-    id("dev.mokkery") version "1.9.21-1.3.1"
+    id("dev.mokkery") version "1.9.22-1.3.1"
 }
 
 mokkery {
