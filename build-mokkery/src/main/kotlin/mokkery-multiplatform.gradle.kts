@@ -1,5 +1,8 @@
 @file:Suppress("UNUSED_VARIABLE")
 
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
+
 plugins {
     id("mokkery-publish")
     kotlin("multiplatform")
@@ -7,13 +10,19 @@ plugins {
 
 kotlin {
     explicitApi()
+    applyDefaultHierarchyTemplate()
+
     jvm()
+
     js(IR) {
         browser()
         nodejs()
     }
-
-    applyDefaultHierarchyTemplate()
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
 
     iosX64()
     iosArm64()
