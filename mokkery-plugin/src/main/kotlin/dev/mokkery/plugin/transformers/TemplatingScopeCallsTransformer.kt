@@ -1,11 +1,11 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.core.Mokkery
-import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
+import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
@@ -104,6 +104,8 @@ class TemplatingScopeCallsTransformer(
         arg: IrExpression
     ): IrExpression = declarationIrBuilder(symbol) {
         irCall(templatingContextClass.getSimpleFunction("interceptArg")!!) {
+            this.type = arg.type
+            putTypeArgument(0, arg.type)
             this.dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, irString(param.name.asString()))
@@ -139,6 +141,7 @@ class TemplatingScopeCallsTransformer(
 
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!) {
+            putTypeArgument(0, expression.type)
             dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, expression)

@@ -20,9 +20,9 @@ internal class TestTemplatingScope(
 
     override fun ensureBinding(token: Int, obj: Any?) = pluginMethodError()
 
-    override fun interceptArg(token: Int, name: String, arg: Any?): Any =  pluginMethodError()
+    override fun <T> interceptArg(token: Int, name: String, arg: T): T =  pluginMethodError()
 
-    override fun interceptVarargElement(token: Int, arg: Any?, isSpread: Boolean): Any = pluginMethodError()
+    override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T = pluginMethodError()
 
     override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
         _recordedSaveCalls.add(TemplateParams(receiver, name, args))

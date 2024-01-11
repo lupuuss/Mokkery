@@ -22,9 +22,9 @@ internal interface TemplatingScope : ArgMatchersScope {
 
     fun ensureBinding(token: Int, obj: Any?)
 
-    fun interceptArg(token: Int, name: String, arg: Any?): Any?
+    fun <T> interceptArg(token: Int, name: String, arg: T): T
 
-    fun interceptVarargElement(token: Int, arg: Any?, isSpread: Boolean): Any?
+    fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T
 
     fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
 
@@ -79,7 +79,7 @@ private class TemplatingScopeImpl(
         return autofillValue(argType)
     }
 
-    override fun interceptVarargElement(token: Int, arg: Any?, isSpread: Boolean): Any? {
+    override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T {
         if (isReleased) return arg
         val data = binder.getDataFor(token) ?: return arg
         val args = when {
@@ -97,7 +97,7 @@ private class TemplatingScopeImpl(
         return arg
     }
 
-    override fun interceptArg(token: Int, name: String, arg: Any?): Any? {
+    override fun <T> interceptArg(token: Int, name: String, arg: T): T {
         if (isReleased) return arg
         val data = binder.getDataFor(token) ?: return arg
         data.matchers[name] = currentArgMatchers.toMutableList()
