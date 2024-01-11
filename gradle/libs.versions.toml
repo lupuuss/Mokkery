@@ -1,9 +1,9 @@
 [versions]
 kotlin = "1.9.22"
-kotlinx-coroutines = "1.7.3"
+kotlinx-coroutines = "1.8.0-RC2"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
-atomicfu = "0.21.0"
+atomicfu = "0.23.1"
 dokka = "1.9.10"
 
 [plugins]
