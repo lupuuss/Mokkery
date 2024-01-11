@@ -46,6 +46,14 @@ class MockTest {
         assertEquals("321", mocked.call("123"))
     }
 
+    @Test
+    fun testReturnsMockableKotlinCollection() {
+        val mocked = mock<List<String>> {
+            every { get(0) } returns "foo"
+        }
+        assertEquals("foo", mocked.get(0))
+    }
+
 
     @Test
     fun testAutofillAlwaysReturnsSuccessfullyOnNonSuspendingMethods() {

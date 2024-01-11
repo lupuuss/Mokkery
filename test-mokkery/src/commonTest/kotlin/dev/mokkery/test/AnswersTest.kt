@@ -216,6 +216,12 @@ class AnswersTest {
     }
 
     @Test
+    fun testCallsOriginalWithoutDirectOverride() {
+        every { mock.callWithDefaultNoOverride() } calls original
+        assertEquals(10, mock.callWithDefaultNoOverride())
+    }
+
+    @Test
     fun testCallsOriginalSuspend() = runTest {
         everySuspend { mock.fetchWithDefault(any()) } calls original
         assertEquals(3, mock.fetchWithDefault(1))

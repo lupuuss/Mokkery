@@ -6,5 +6,8 @@ interface BaseInterface {
     fun baseInterfaceMethod()
 
     fun callWithDefault(value: Int): Int = value + 1
+
+    fun callWithDefaultNoOverride(): Int = 10
+
     suspend fun fetchWithDefault(value: Int): Int = value + 1
 }

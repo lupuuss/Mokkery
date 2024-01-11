@@ -9,11 +9,12 @@ import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambda
+import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReferenceUnified
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
-import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBoolean
@@ -100,8 +101,9 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {
     val pluginContext = transformer.pluginContext
+    val defaultMode = transformer.pluginContext.languageVersionSettings.getFlag(JvmAnalysisFlags.jvmDefaultMode)
     val supers = function.overriddenSymbols
-        .filter { it.owner.modality == Modality.OPEN }
+        .filter { it.owner.isJvmBinarySafeSuperCall(function, defaultMode) }
         .takeIf { it.isNotEmpty() }
         ?.map { it.owner }
         ?: return null
