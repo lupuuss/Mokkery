@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.overrides.isOverridableProperty
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
@@ -150,6 +149,6 @@ val IrClass.overridableFunctions
     get() = functions.filter { it.isOverridable && !it.isMethodOfAny() }
 
 val IrClass.overridableProperties
-    get() = properties.filter { it.isOverridableProperty() }
+    get() = properties.filter { it.isOverridable }
 
 val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
