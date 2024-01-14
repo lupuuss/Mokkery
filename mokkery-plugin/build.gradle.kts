@@ -20,7 +20,6 @@ signing {
 kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
-        optIn("kotlin.io.path.ExperimentalPathApi")
     }
 }
 
