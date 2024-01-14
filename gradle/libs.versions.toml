@@ -4,7 +4,7 @@ kotlinx-coroutines = "1.7.3"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.21.0"
-dokka = "1.8.20"
+dokka = "1.9.10"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
