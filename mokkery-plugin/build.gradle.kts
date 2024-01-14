@@ -20,11 +20,8 @@ signing {
 kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
+        optIn("dev.mokkery.annotations.InternalMokkeryApi")
     }
-}
-
-kotlin.sourceSets.all {
-    languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
 }
 
 tasks.named("dokkaGfm") { mustRunAfter("kaptKotlin") }
@@ -42,7 +39,7 @@ java {
     withSourcesJar()
 }
 
-val dokkaJar by tasks.registering( Jar::class) {
+val dokkaJar by tasks.registering(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
     from(tasks.getByName("dokkaGfm"))
