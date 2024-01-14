@@ -11,18 +11,21 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
+import org.jetbrains.kotlin.fir.declarations.utils.isInterface
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
+import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
-import org.jetbrains.kotlin.fir.symbols.SymbolInternals
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
@@ -30,6 +33,8 @@ import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
 import org.jetbrains.kotlin.fir.types.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.type
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.platform.isWasm
 
 class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChecker() {
     private val mock = Callable.mock
@@ -64,12 +69,18 @@ private class MokkeryScopedCallsChecker(
     private val funSymbol: FirNamedFunctionSymbol,
 ) {
 
+    private val isWasm = session.moduleData.platform.isWasm()
+    private val wasmHashCode = Name.identifier("_hashCode")
+    private val wasmTypeInfo = Name.identifier("typeInfo")
+    private val wasmSpecialPropertyNames = listOf(wasmHashCode, wasmTypeInfo)
+
     fun checkInterception() {
         val typeArg = expression.typeArguments.first()
         val type = typeArg.toConeTypeProjection().type ?: return
         checkInterceptionTypeParameter(type, typeArg)
         val classSymbol = type.toRegularClassSymbol(session) ?: return
         checkInterceptionModality(classSymbol, typeArg)
+        if (classSymbol.isInterface) return
         checkInterceptionDefaultConstructor(classSymbol, typeArg)
         checkInterceptionFinalMembers(classSymbol, typeArg)
     }
@@ -132,6 +143,7 @@ private class MokkeryScopedCallsChecker(
             .asSequence()
             .plus(inheritedSymbols)
         val finalDeclarations = allDeclarationSymbols
+            .filterOutWasmSpecialProperties() // TODO Remove when not detectable by FIR
             .filter { it is FirCallableSymbol<*> && it !is FirConstructorSymbol && it.visibility != Visibilities.Private && it.isFinal }
             .toList()
         if (finalDeclarations.isNotEmpty()) {
@@ -144,6 +156,11 @@ private class MokkeryScopedCallsChecker(
                 context = context
             )
         }
+    }
+
+    private fun Sequence<FirBasedSymbol<*>>.filterOutWasmSpecialProperties(): Sequence<FirBasedSymbol<*>> {
+        if (!isWasm) return this
+        return filterNot { it is FirPropertySymbol && it.name in wasmSpecialPropertyNames }
     }
 
     // checkTemplating
