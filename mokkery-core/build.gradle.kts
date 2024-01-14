@@ -1,7 +1,6 @@
 plugins {
     id("mokkery-multiplatform")
     id("com.github.gmazzo.buildconfig")
-    id("org.jetbrains.dokka")
 }
 
 buildConfig {
