@@ -5,10 +5,15 @@ import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
+import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
+import org.jetbrains.kotlin.ir.types.isString
 import org.jetbrains.kotlin.ir.util.isFunction
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
 
 fun IrType.isAnyFunction() = isFunction() || isSuspendFunction()
+
+fun IrType.isPlatformDependent() = isPrimitiveType() || isArray() || isString()
 
 fun IrType.extractAllConsumedTypeParameters(): List<IrTypeParameter> {
     val param = asTypeParamOrNull()

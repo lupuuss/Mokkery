@@ -19,7 +19,12 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     jvm()
+
     js(IR) {
+        browser()
+        nodejs()
+    }
+    wasmJs {
         browser()
         nodejs()
     }

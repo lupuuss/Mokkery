@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.putElement
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -55,7 +56,7 @@ class TemplatingScopeCallsTransformer(
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
         // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
-        if (!expression.symbol.owner.returnType.isPrimitiveType(nullable = false)) {
+        if (expression.symbol.owner.returnType.run { !isPrimitiveType(nullable = false) && !isNothing() }) {
             expression.type = pluginContext.irBuiltIns.anyNType
         }
         expression.dispatchReceiver = declarationIrBuilder(expression) {
@@ -105,7 +106,6 @@ class TemplatingScopeCallsTransformer(
     ): IrExpression = declarationIrBuilder(symbol) {
         irCall(templatingContextClass.getSimpleFunction("interceptArg")!!) {
             this.type = arg.type
-            putTypeArgument(0, arg.type)
             this.dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, irString(param.name.asString()))
@@ -141,7 +141,7 @@ class TemplatingScopeCallsTransformer(
 
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!) {
-            putTypeArgument(0, expression.type)
+            this.type = expression.type
             dispatchReceiver = irGet(templatingScope)
             putValueArgument(0, irInt(token))
             putValueArgument(1, expression)
