@@ -2,6 +2,7 @@ import MokkeryUrls.GitConnection
 import MokkeryUrls.GitDevConnection
 import MokkeryUrls.GitHttp
 import MokkeryUrls.Website
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 plugins {
     id("org.jetbrains.dokka")
@@ -25,6 +26,9 @@ kotlin.sourceSets.all {
 }
 
 tasks.named("dokkaGfm") { mustRunAfter("kaptKotlin") }
+tasks.withType(DokkaTaskPartial::class) {
+    enabled = false
+}
 
 dependencies {
     kapt(libs.google.autoservice)
