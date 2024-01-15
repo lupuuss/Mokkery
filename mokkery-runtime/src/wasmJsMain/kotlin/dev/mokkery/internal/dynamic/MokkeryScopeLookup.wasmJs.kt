@@ -6,6 +6,7 @@ internal actual fun MokkeryScopeLookup(): MokkeryScopeLookup = WasmJsMokkeryScop
 
 internal object WasmJsMokkeryScopeLookup : MokkeryScopeLookup {
 
+    // TODO use weak references when available for WASM
     private val mapping = mutableMapOf<Any?, MokkeryInterceptorScope>()
     private val reverseMapping = mutableMapOf<MokkeryInterceptorScope, Any?>()
     override fun register(obj: Any?, scope: MokkeryInterceptorScope) {
