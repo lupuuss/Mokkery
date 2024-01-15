@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
     kotlin("multiplatform")
     id("dev.mokkery")
@@ -24,6 +26,8 @@ kotlin {
         browser()
         nodejs()
     }
+
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
@@ -65,4 +69,14 @@ kotlin {
             }
         }
     }
+}
+
+// temporary fix until node version with latest wasm support is merged
+extensions.configure(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension::class) {
+    nodeVersion = "21.0.0-v8-canary202309167e82ab1fa2"
+    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask::class) {
+    args.add("--ignore-engines")
 }
