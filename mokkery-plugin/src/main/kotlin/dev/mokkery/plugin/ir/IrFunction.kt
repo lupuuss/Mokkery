@@ -39,12 +39,14 @@ fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach {
 
 fun IrSimpleFunction.isJvmBinarySafeSuperCall(
     originalFunction: IrFunction,
-    jvmDefaultMode: JvmDefaultMode
+    jvmDefaultMode: JvmDefaultMode,
+    allowIndirectSuperCalls: Boolean
 ): Boolean {
     if (modality != Modality.OPEN) return false
     val parent = parentClassOrNull ?: return false
     val originalFunctionParentSupertypes = originalFunction.parentClassOrNull?.superTypes.orEmpty()
     if (parent.defaultType in originalFunctionParentSupertypes) return true
+    if (!allowIndirectSuperCalls) return false
     if (isFakeOverride) return false
     if (isFromJava()) return false
     if (parent.isInterface && !isFakeOverride && isCompiledToJvmDefault(jvmDefaultMode)) return false

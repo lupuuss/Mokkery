@@ -8,6 +8,12 @@ allOpen {
     annotation("dev.mokkery.test.OpenForMokkery")
 }
 
+val mokkeryAllowIndirectSuperCalls: String by project
+
+mokkery {
+    allowIndirectSuperCalls.set(mokkeryAllowIndirectSuperCalls.toBoolean())
+}
+
 kotlin {
 
     applyDefaultHierarchyTemplate()

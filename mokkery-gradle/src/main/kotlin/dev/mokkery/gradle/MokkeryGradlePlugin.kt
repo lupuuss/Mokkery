@@ -28,6 +28,7 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.defaultMockMode.convention(MokkeryCompilerDefaults.mockMode)
         mokkery.defaultVerifyMode.convention(MokkeryCompilerDefaults.verifyMode)
         mokkery.rule.convention(ApplicationRule.AllTests)
+        mokkery.allowIndirectSuperCalls.convention(false)
         target.configureDependencies()
         super.apply(target)
     }
@@ -42,6 +43,10 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 SubpluginOption(
                     key = "verifyMode",
                     value = VerifyModeSerializer.serialize(project.mokkery.defaultVerifyMode.get())
+                ),
+                SubpluginOption(
+                    key = "allowIndirectSuperCalls",
+                    value = project.mokkery.allowIndirectSuperCalls.get().toString()
                 )
             )
         }

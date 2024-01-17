@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
 val MOCK_MODE_KEY = CompilerConfigurationKey<List<MockMode>>("mockMode")
 val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
+val ALLOW_INDIRECT_SUPER_CALLS = CompilerConfigurationKey<List<Boolean>>("allowIndirectSuperCalls")
 
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {
@@ -33,6 +34,13 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             description = "Default VerifyMode for every verify block.",
             required = true,
             allowMultipleOccurrences = false
+        ),
+        CliOption(
+            optionName = ALLOW_INDIRECT_SUPER_CALLS.toString(),
+            valueDescription = "Boolean",
+            description = "Dictates if super calls to indirect types should be allowed whenever possible.",
+            required = true,
+            allowMultipleOccurrences = false
         )
     )
 
@@ -40,6 +48,7 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
         return when (option.optionName) {
             MOCK_MODE_KEY.toString() -> configuration.add(MOCK_MODE_KEY, MockMode.valueOf(value))
             VERIFY_MODE_KEY.toString() -> configuration.add(VERIFY_MODE_KEY, VerifyModeSerializer.deserialize(value))
+            ALLOW_INDIRECT_SUPER_CALLS.toString() -> configuration.add(ALLOW_INDIRECT_SUPER_CALLS, value.toBoolean())
             else -> error("Unknown config option: $option")
         }
     }

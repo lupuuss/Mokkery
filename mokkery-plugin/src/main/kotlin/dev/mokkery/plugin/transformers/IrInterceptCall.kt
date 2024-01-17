@@ -3,6 +3,7 @@ package dev.mokkery.plugin.transformers
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
+import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
@@ -101,9 +102,10 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {
     val pluginContext = transformer.pluginContext
+    val allowIndirectSuperCalls = transformer.allowIndirectSuperCalls
     val defaultMode = transformer.pluginContext.languageVersionSettings.getFlag(JvmAnalysisFlags.jvmDefaultMode)
     val supers = function.overriddenSymbols
-        .filter { it.owner.isJvmBinarySafeSuperCall(function, defaultMode) }
+        .filter { it.owner.isJvmBinarySafeSuperCall(function, defaultMode, allowIndirectSuperCalls) }
         .takeIf { it.isNotEmpty() }
         ?.map { it.owner }
         ?: return null

@@ -50,7 +50,18 @@ internal class MissingMatchersForComposite(
 )
 
 internal class MissingSuperMethodException(type: KClass<*>) : MokkeryRuntimeException(
-    "Super call for ${type.simpleName} could not be found!"
+    """
+        Super call for ${type.simpleName} could not be performed! Make sure that: 
+            1. In case of direct super calls (call to original/default implementation of mocked method), there is any existing implementation of this method provided in inheritance hierarchy.
+            2. In case of indirect super calls, you have them enabled in your Gradle files:
+               ```
+               mokkery {
+                   allowIndirectSuperCalls.set(true)
+               }
+               ```
+            3. It is not super method that is compiled as Java default. Call to Java default method is checked at bytecode level and results in runtime errors, so it is not supported.
+            4. It is not a call to indirect supertype that originates from Java (like kotlin.collections.List).
+    """.trimIndent()
 )
 
 
