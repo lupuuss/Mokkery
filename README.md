@@ -316,8 +316,20 @@ respository.findById("2") // this calls original method implementation with "3"
 > **Warning**
 > If mocked type is an interface, the default implementation is called.
 
-Under the hood, original calls super method of mocked type. In kotlin it is also possible to call super method
-from other supertypes (not only from direct supertype):
+Under the hood, `original` performs call to super method from mocked type. In Kotlin source code, it is not allowed to call super method
+of indirect supertype. However, this kind of call is possible to be generated on the compiler plugin level.
+It's important to note that indirect super calls for Java types (including kotlin.collections.List) and for super
+methods from interfaces compiled to Java defaults are not allowed.
+This restriction exists because such calls are validated in the JVM bytecode and result in runtime errors.
+
+Indirect super calls feature has to be explicitly allowed in Gradle files:
+```kotlin
+mokkery {
+    allowIndirectSuperCalls.set(true)
+}
+```
+
+Calling super methods from indirect supertypes is similar to calling original methods:
 
 ```kotlin
 everySuspend { repository.findById(any()) } calls superOf<BaseRepository>()
