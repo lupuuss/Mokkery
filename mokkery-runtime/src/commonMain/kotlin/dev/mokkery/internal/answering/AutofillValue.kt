@@ -11,7 +11,7 @@ internal expect fun autofillAny(kClass: KClass<*>): Any?
 internal fun <T> autofillValue(returnType: KClass<*>): T = when {
     returnType == Nothing::class -> throw DefaultNothingException()
     returnType.isArray() -> platformArrayOf(returnType, listOf(null)).unsafeCast()
-    else -> (autofillMapping[returnType] ?: autofillAny(returnType)).unsafeCast()
+    else -> (autofillMapping[returnType] ?: autofillAny(returnType)) as T
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
