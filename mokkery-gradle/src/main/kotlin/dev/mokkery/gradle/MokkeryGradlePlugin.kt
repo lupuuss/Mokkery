@@ -2,7 +2,6 @@ package dev.mokkery.gradle
 
 import dev.mokkery.MokkeryCompilerDefaults
 import dev.mokkery.MokkeryConfig
-import dev.mokkery.MokkeryConfig.KOTLIN_VERSION
 import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
 import dev.mokkery.MokkeryConfig.VERSION
 import dev.mokkery.verify.VerifyModeSerializer
@@ -13,7 +12,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
-import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 
 /**
  * Configures Mokkery in source sets specified by [MokkeryGradleExtension.rule]. It includes:
@@ -21,8 +19,6 @@ import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
  * * Adding configured compiler plugin
  */
 public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
-
-    private lateinit var kotlinVersion: String
 
     override fun apply(target: Project) {
         target.checkKotlinSetup()
@@ -82,11 +78,6 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun Project.checkKotlinSetup() {
         if (extensions.findByName("kotlin") == null) error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
-        val kotlinVersion = kotlinToolingVersion.toString()
-        if (kotlinVersion != KOTLIN_VERSION) {
-            error("Current Kotlin version ($kotlinVersion) does not match Kotlin version for Mokkery ($KOTLIN_VERSION)!")
-        }
-        this@MokkeryGradlePlugin.kotlinVersion = kotlinVersion
     }
 
     private fun Project.configureDependencies() {
