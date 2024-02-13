@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
@@ -36,7 +37,7 @@ import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isWasm
 
-class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChecker() {
+class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChecker(MppCheckerKind.Common) {
     private val mock = Callable.mock
     val spy = Callable.spy
     val every = Callable.every
