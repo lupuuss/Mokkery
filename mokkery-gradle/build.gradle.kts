@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
     compileOnly(kotlin("gradle-plugin"))
-    implementation(project(":mokkery-core"))
+    api(project(":mokkery-core"))
 }
 
 kotlin.sourceSets.all {
