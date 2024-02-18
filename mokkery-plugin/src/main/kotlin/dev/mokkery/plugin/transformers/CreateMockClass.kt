@@ -28,6 +28,7 @@ fun TransformerScope.createMockClass(classToMock: IrClass): IrClass {
         getClass(Mokkery.Class.MokkeryMockScope).defaultType,
         if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
     )
+    mockedClass.origin = Mokkery.Origin.GeneratedClass
     currentFile.addChild(mockedClass)
     val mockInterceptorScopeClass = getClass(Mokkery.Class.MokkeryMockScope)
     val mockModeClass = getClass(Mokkery.Class.MockMode)

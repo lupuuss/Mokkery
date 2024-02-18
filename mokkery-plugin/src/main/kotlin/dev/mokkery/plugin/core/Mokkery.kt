@@ -1,6 +1,7 @@
 package dev.mokkery.plugin.core
 
 import dev.mokkery.plugin.ir.fqName
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOriginImpl
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -102,6 +103,11 @@ object Mokkery {
             typeName: String,
             functionName: String
         ) = "Class ''$typeName'' has no default constructor and cannot be used with ''$functionName''!"
+    }
+
+    object Origin {
+
+        object GeneratedClass : IrDeclarationOriginImpl("MOKKERY_GENERATED_CLASS")
     }
 }
 

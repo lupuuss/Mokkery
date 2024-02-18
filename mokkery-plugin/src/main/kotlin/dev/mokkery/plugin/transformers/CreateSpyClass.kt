@@ -36,6 +36,7 @@ fun TransformerScope.createSpyClass(classToSpy: IrClass): IrClass {
         mokkerySpyScopeClass.defaultType,
         if (classToSpy.isInterface) pluginContext.irBuiltIns.anyType else null
     )
+    spiedClass.origin = Mokkery.Origin.GeneratedClass
     currentFile.addChild(spiedClass)
     val delegateField = spiedClass.addField(fieldName = "delegate", typeToMockErased)
     spiedClass.inheritMokkeryInterceptor(
