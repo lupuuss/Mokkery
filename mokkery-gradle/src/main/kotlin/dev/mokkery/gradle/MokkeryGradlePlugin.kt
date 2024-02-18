@@ -11,8 +11,6 @@ import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.androidJvm
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
@@ -36,7 +34,6 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
-        kotlinCompilation.disableJvmParamAssertions()
         target.project.provider {
             listOf(
                 SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.get().toString()),
@@ -78,12 +75,6 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         this@MokkeryGradlePlugin.kotlinVersion = kotlinVersion
     }
 
-    private fun KotlinCompilation<*>.disableJvmParamAssertions() {
-        if (platformType in listOf(jvm, androidJvm)) {
-            project.mokkeryInfo("-Xno-param-assertions flag applied for source set => ${defaultSourceSet.name}!")
-            compilerOptions.options.freeCompilerArgs.add("-Xno-param-assertions")
-        }
-    }
     private fun Project.configureDependencies() {
         afterEvaluate {
             // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
