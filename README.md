@@ -93,6 +93,7 @@ Kotlin version is always prioritized.
 
 | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
 |------------------------------------|--------------------------------------------------------|--------------------------|
+| 2.0.0-Beta1 	                      | 2.0.0-Beta4+	                                          | `"2.0.0-Beta1"`          |
 | 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"1.4.0-$kotlinVersion"` |
 | 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"1.3.2-$kotlinVersion"` |
 | 1.3.1 	                            | 1.9.22, 1.9.21, 1.9.20                                 | `"1.3.1-$kotlinVersion"` |
@@ -100,6 +101,10 @@ Kotlin version is always prioritized.
 | 1.2.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.2.0-$kotlinVersion"` |
 | 1.1.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.1.0-$kotlinVersion"` |
 | 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.0.1-$kotlinVersion"` |
+
+> **Warning**
+> Mokkery 2.0.0 pre-releases are not locked to specific Kotlin pre-release and optimistically assumes that compiler 
+> API is not going to change. However, breaking changes might happen and result in runtime errors during compilation.
 
 ### Targets
 
