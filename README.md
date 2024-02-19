@@ -47,7 +47,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.22"
-    id("dev.mokkery") version "1.9.22-1.3.2"
+    id("dev.mokkery") version "1.9.22-1.4.0"
 }
 ```
 
@@ -58,7 +58,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.22"
-    id("dev.mokkery") version "1.9.22-1.3.2"
+    id("dev.mokkery") version "1.9.22-1.4.0"
 }
 
 mokkery {
@@ -91,36 +91,19 @@ The goal is to support 4 latest versions of Kotlin for each library release. How
 breaking changes, especially in the compiler API, it might result in dropped support for older versions. The latest 
 Kotlin version is always prioritized.
 
-| Plugin version                  	 | Kotlin version                              	 |
-|-----------------------------------|-----------------------------------------------|
-| 1.9.22-1.3.2 	                    | 1.9.22 	                                      |
-| 1.9.21-1.3.2 	                    | 1.9.21 	                                      |
-| 1.9.20-1.3.2 	                    | 1.9.20 	                                      |
-| 1.9.22-1.3.1 	                    | 1.9.22 	                                      |
-| 1.9.21-1.3.1 	                    | 1.9.21 	                                      |
-| 1.9.20-1.3.1 	                    | 1.9.20 	                                      |
-| 1.9.20-1.3.0 	                    | 1.9.20 	                                      |
-| 1.9.10-1.3.0 	                    | 1.9.10 	                                      |
-| 1.9.0-1.3.0 	                     | 1.9.0 	                                       |
-| 1.8.22-1.3.0 	                    | 1.8.22 	                                      |
-| 1.8.21-1.3.0 	                    | 1.8.21   	                                    |
-| 1.8.20-1.3.0 	                    | 1.8.20        	                               |
-| 1.9.0-1.2.0 	                     | 1.9.0 	                                       |
-| 1.8.22-1.2.0 	                    | 1.8.22 	                                      |
-| 1.8.21-1.2.0 	                    | 1.8.21   	                                    |
-| 1.8.20-1.2.0 	                    | 1.8.20        	                               |
-| 1.9.0-1.1.0 	                     | 1.9.0 	                                       |
-| 1.8.22-1.1.0 	                    | 1.8.22 	                                      |
-| 1.8.21-1.1.0 	                    | 1.8.21   	                                    |
-| 1.8.20-1.1.0 	                    | 1.8.20        	                               |
-| 1.9.0-1.0.1 	                     | 1.9.0 	                                       |
-| 1.8.22-1.0.1 	                    | 1.8.22 	                                      |
-| 1.8.21-1.0.1 	                    | 1.8.21   	                                    |
-| 1.8.20-1.0.1 	                    | 1.8.20        	                               |
+| Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
+|------------------------------------|--------------------------------------------------------|--------------------------|
+| 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"1.4.0-$kotlinVersion"` |
+| 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"1.3.2-$kotlinVersion"` |
+| 1.3.1 	                            | 1.9.22, 1.9.21, 1.9.20                                 | `"1.3.1-$kotlinVersion"` |
+| 1.3.0 	                            | 1.9.20, 1.9.10, 1.9.0, 1.8.22, 1.8.21, 1.8.20        	 | `"1.3.0-$kotlinVersion"` |
+| 1.2.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.2.0-$kotlinVersion"` |
+| 1.1.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.1.0-$kotlinVersion"` |
+| 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.0.1-$kotlinVersion"` |
 
 ### Targets
 
-Mokkery currently supports JVM, JS,
+Mokkery currently supports JVM, JS, Wasm-JS, 
 and [all 3 tiers of Kotlin Native targets](https://kotlinlang.org/docs/native-target-support.html).
 You can refer to [this file](build-mokkery/src/main/kotlin/mokkery-multiplatform.gradle.kts) for more details.
 
