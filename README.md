@@ -103,7 +103,7 @@ Kotlin version is always prioritized.
 | 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"1.0.1-$kotlinVersion"` |
 
 > **Warning**
-> Mokkery 2.0.0 pre-releases are not locked to specific Kotlin pre-release and optimistically assumes that compiler 
+> Mokkery 2.0.0 pre-releases are not locked to specific Kotlin pre-release and optimistically assume that compiler 
 > API is not going to change. However, breaking changes might happen and result in runtime errors during compilation.
 
 ### Targets
