@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isInterface
 
@@ -37,7 +36,6 @@ fun TransformerScope.createSpyClass(classToSpy: IrClass): IrClass {
         if (classToSpy.isInterface) pluginContext.irBuiltIns.anyType else null
     )
     spiedClass.origin = Mokkery.Origin
-    currentFile.addChild(spiedClass)
     val delegateField = spiedClass.addField(fieldName = "delegate", typeToMockErased)
     spiedClass.inheritMokkeryInterceptor(
         transformer = this,

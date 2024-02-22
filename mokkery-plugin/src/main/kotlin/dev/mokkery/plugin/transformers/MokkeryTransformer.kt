@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNullable
+import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
@@ -103,7 +104,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         if (pluginContext.platform.isJsOrWasm() && klass.defaultType.isAnyFunction()) {
             return createMockJsFunction(call, klass)
         }
-        val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass) }
+        val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments
@@ -121,7 +122,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         if (pluginContext.platform.isJsOrWasm() && klass.defaultType.isAnyFunction()) {
             return createSpyJsFunction(call, klass)
         }
-        val spiedClass = spyCache.getOrPut(klass) { createSpyClass(klass) }
+        val spiedClass = spyCache.getOrPut(klass) { createSpyClass(klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(spiedClass.primaryConstructor!!) {
                 putValueArgument(0, call.valueArguments[0])
@@ -140,7 +141,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 +irCall(function) {
                     block as IrFunctionExpression
                     if (block.function.returnType.isPlatformDependent()) {
-                        putTypeArgument(0,  getTypeArgument(0)?.makeNullable())
+                        putTypeArgument(0, getTypeArgument(0)?.makeNullable())
                         block.function.returnType = block.function.returnType.makeNullable()
                     }
                     putValueArgument(0, irGet(variable))
@@ -221,7 +222,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val classToMock = typeToMock.getClass()!!
         if (classToMock.modality == Modality.SEALED) {
             mokkeryErrorAt(this) {
-                Errors.sealedTypeCannotBeIntercepted(typeName = classToMock.kotlinFqName.asString(), functionName = name)
+                Errors.sealedTypeCannotBeIntercepted(
+                    typeName = classToMock.kotlinFqName.asString(),
+                    functionName = name
+                )
             }
             return false
         }
