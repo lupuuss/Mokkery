@@ -187,7 +187,7 @@ To define an answer for a method call, you have to use `every` or `everySuspend`
 // Inside mock block
 val repository = mock<BookRepository> {
     // Notice that everySuspend does not require suspension!
-    everySuspend { repository.getById(id = "1") } returns stubBook()
+    everySuspend { getById(id = "1") } returns stubBook()
 }
 
 @Test
