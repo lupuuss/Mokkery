@@ -84,9 +84,11 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 it.isTransitive = true
             }
             val rule = mokkery.rule.get()
-            kotlinExtension
+            val applicableSourceSets = kotlinExtension
                 .sourceSets
                 .filter { rule.isApplicable(it) }
+            applicableSourceSets
+                .filter { sourceSet -> sourceSet.dependsOn.none { it in applicableSourceSets  } }
                 .forEach {
                     mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
                     it.dependencies {
