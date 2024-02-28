@@ -55,7 +55,7 @@ class TemplatingScopeCallsTransformer(
         val cls = receiver.type.getClass() ?: return super.visitCall(expression)
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
-        // make return type nullable to avoid runtime checks on non-primitive types (e.g. suspend fun on K/N)
+        // make return type Any? to avoid runtime checks on non-primitive types (required by Wasm-JS and K/N to work)
         if (expression.symbol.owner.returnType.run { !isPrimitiveType(nullable = false) && !isNothing() }) {
             expression.type = pluginContext.irBuiltIns.anyNType
         }

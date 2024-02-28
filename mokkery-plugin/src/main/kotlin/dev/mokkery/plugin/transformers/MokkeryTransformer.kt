@@ -57,7 +57,6 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
-import kotlin.contracts.ExperimentalContracts
 import kotlin.reflect.KClass
 import kotlin.time.TimeSource
 
@@ -140,6 +139,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 block.transformChildren(transformer, null)
                 +irCall(function) {
                     block as IrFunctionExpression
+                    // make return type nullable to avoid runtime checks for primitive types (required by Wasm-JS)
                     if (block.function.returnType.isPlatformDependent()) {
                         putTypeArgument(0, getTypeArgument(0)?.makeNullable())
                         block.function.returnType = block.function.returnType.makeNullable()
@@ -190,7 +190,6 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         .referenceClass(ClassId.fromString(cls.qualifiedName!!.replace(".", "/")))!!
         .owner
 
-    @OptIn(ExperimentalContracts::class)
     private fun IrExpression.assertFunctionExpressionThatOriginatesLambda(function: IrSimpleFunctionSymbol): Boolean {
         if (this !is IrFunctionExpression) {
             mokkeryErrorAt(this) {
