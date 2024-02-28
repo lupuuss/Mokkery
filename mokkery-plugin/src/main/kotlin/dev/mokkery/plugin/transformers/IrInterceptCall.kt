@@ -11,7 +11,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
-import dev.mokkery.plugin.ir.kClassReferenceUnified
+import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
@@ -55,7 +55,6 @@ fun IrBlockBodyBuilder.irInterceptCall(
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor).symbol
     val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInterceptorScope)
     val callContextClass = transformer.getClass(Mokkery.Class.CallContext)
-    val pluginContext = transformer.pluginContext
     val interceptFun = if (function.isSuspend) {
         interceptorClass.functionByName("interceptSuspendCall")
     } else {
@@ -69,7 +68,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
         val contextCreationCall = irCallConstructor(callContextClass.primaryConstructor!!) {
             putValueArgument(0, mokkeryScope)
             putValueArgument(1, irString(function.name.asString()))
-            putValueArgument(2, kClassReferenceUnified(pluginContext, function.returnType.eraseTypeParameters()))
+            putValueArgument(2, kClassReference(function.returnType.eraseTypeParameters()))
             putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
             putValueArgument(4, irCallSupersMap(transformer, function))
         }
@@ -86,7 +85,7 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
             .map {
                 irCallConstructor(callArgClass.primaryConstructor!!) {
                     putValueArgument(0, irString(it.name.asString()))
-                    putValueArgument(1, kClassReferenceUnified(pluginContext, it.type.eraseTypeParameters()))
+                    putValueArgument(1, kClassReference(it.type.eraseTypeParameters()))
                     putValueArgument(2, irGet(it))
                     putValueArgument(3, irBoolean(it.isVararg))
                 }
@@ -115,7 +114,7 @@ private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, fu
     val superLambdas = supers.map { superFunction ->
         irCreatePair(
             transformer = transformer,
-            first = kClassReferenceUnified(pluginContext, superFunction.parentAsClass.defaultType),
+            first = kClassReference(superFunction.parentAsClass.defaultType),
             second = createSuperCallLambda(transformer, function, superFunction)
         )
     }

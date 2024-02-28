@@ -9,7 +9,7 @@ import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irDelegatingDefaultConstructorOrAny
 import dev.mokkery.plugin.ir.irSetPropertyField
-import dev.mokkery.plugin.ir.kClassReferenceUnified
+import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
-import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -47,7 +46,7 @@ fun IrClass.inheritMokkeryInterceptor(
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = typeProperty,
-                value = kClassReferenceUnified(context, classToIntercept.defaultTypeErased)
+                value = kClassReference(classToIntercept.defaultTypeErased)
             )
             +irSetPropertyField(thisReceiver!!, interceptor, initializerCall)
             +irSetPropertyField(thisReceiver!!, idProperty, identifierCall)

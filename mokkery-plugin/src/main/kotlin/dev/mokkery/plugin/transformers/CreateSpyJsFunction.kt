@@ -9,7 +9,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.irTryCatchAny
-import dev.mokkery.plugin.ir.kClassReferenceUnified
+import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -33,7 +33,7 @@ fun TransformerScope.createSpyJsFunction(expression: IrCall, classToSpy: IrClass
             val spiedObj = expression.valueArguments[0]!!
             val mokkeryScopeCall = irCall(getFunction(Mokkery.Function.MokkerySpyScope)) {
                 putValueArgument(0, irString(typeToSpy.classFqName!!.asString()))
-                putValueArgument(1, kClassReferenceUnified(pluginContext, classToSpy.defaultTypeErased))
+                putValueArgument(1, kClassReference(classToSpy.defaultTypeErased))
             }
             val scopeVar = createTmpVariable(mokkeryScopeCall)
             val lambda = irLambda(returnType, typeToSpy, currentFile) { lambdaFun ->
