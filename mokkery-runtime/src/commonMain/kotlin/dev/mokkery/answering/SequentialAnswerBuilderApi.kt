@@ -1,7 +1,7 @@
 package dev.mokkery.answering
 
-import dev.mokkery.internal.answering.unifiedSequentially
 import dev.mokkery.internal.answering.unifiedRepeat
+import dev.mokkery.internal.answering.unifiedSequentially
 
 /**
  * Function call will answer sequentially with answers defined in [block].
@@ -107,4 +107,22 @@ public infix fun <T> AnsweringScope<T>.sequentiallyThrows(errors: Iterable<Throw
     unifiedSequentially {
         errors.forEach { throws(it) }
     }
+}
+
+/**
+ * Simplification for [BlockingAnsweringScope.sequentially] with [repeat] [block].
+ */
+public infix fun <T> BlockingAnsweringScope<T>.sequentiallyRepeat(
+    block: BlockingSequentialAnswerBuilder<T>.() -> Unit
+) {
+    sequentially { repeat { block() } }
+}
+
+/**
+ * Simplification for [SuspendSequentialAnswerBuilder.sequentially] with [repeat] [block].
+ */
+public infix fun <T> SuspendSequentialAnswerBuilder<T>.sequentiallyRepeat(
+    block: SuspendSequentialAnswerBuilder<T>.() -> Unit
+) {
+    sequentially { repeat { block() } }
 }
