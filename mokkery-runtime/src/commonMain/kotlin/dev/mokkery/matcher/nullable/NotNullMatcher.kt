@@ -37,4 +37,7 @@ public data class NotNullMatcher<T>(val matcher: ArgMatcher<T & Any>? = null) : 
             listOfNotNull(matcher).propagateCapture(value)
         }
     }
+
+    override fun toString(): String = "notNull($matcher)"
+
 }
