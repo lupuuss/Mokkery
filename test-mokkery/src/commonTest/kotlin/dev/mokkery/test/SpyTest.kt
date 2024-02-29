@@ -92,6 +92,7 @@ class SpyTest {
 private object TestInterfaceImpl : TestInterface {
 
     override var property: String = "1"
+    override fun callWithString(value: String?): Int = 0
 
     override fun callWithPrimitives(i: Int, j: Int): Double = i.toDouble()
 

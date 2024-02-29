@@ -4,6 +4,8 @@ interface TestInterface : BaseInterface {
 
     var property: String
 
+    fun callWithString(value: String?): Int
+
     fun callWithPrimitives(i: Int, j: Int = 1): Double
 
     fun callWithComplex(list: List<String>): List<Int>

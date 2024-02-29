@@ -24,9 +24,11 @@ import dev.mokkery.matcher.lte
 import dev.mokkery.matcher.neq
 import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.ofType
+import dev.mokkery.matcher.matchingBy
 import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.matcher.varargs.varargsAll
 import dev.mokkery.matcher.varargs.varargsAny
+import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -346,6 +348,16 @@ class ArgMatchersTest {
         mock.callWithPrimitives(1)
         mock.callWithPrimitives(3)
         assertEquals(listOf(1, 3), called)
+    }
+
+    @Test
+    fun testNotNullMatcherAllowsUsingNotNullableMatchers() {
+        every { mock.callWithString(any()) } returns 1
+        every { mock.callWithString(notNull()) } returns 2
+        every { mock.callWithString(notNull(matchingBy(CharSequence::isNotEmpty))) } returns 3
+        assertEquals(1, mock.callWithString(null))
+        assertEquals(2, mock.callWithString(""))
+        assertEquals(3, mock.callWithString("Aaaaaaa"))
     }
 }
 
