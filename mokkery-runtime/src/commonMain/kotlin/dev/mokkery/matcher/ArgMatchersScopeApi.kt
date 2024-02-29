@@ -5,6 +5,7 @@ import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gte
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lte
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction1
 
 /**
  * Matches any argument.
@@ -38,6 +39,13 @@ public inline fun <reified T> ArgMatchersScope.matching(
     noinline toString: () -> String = { "matching(...)" },
     noinline predicate: (T) -> Boolean,
 ): T = matching(T::class, predicate, toString)
+
+/**
+ * Matches an argument by calling given [function]. Also, it returns function name on [Any.toString].
+ */
+public inline fun <reified T> ArgMatchersScope.matchingBy(
+    function: KFunction1<T, Boolean>
+): T = matchingBy(T::class, function)
 
 /**
  * Matches argument that is less than [value].
@@ -80,3 +88,9 @@ internal fun <T> ArgMatchersScope.matching(
     predicate: (T) -> Boolean,
     toString: () -> String,
 ): T = matches(argType, ArgMatcher.Matching(predicate, toString))
+
+@PublishedApi
+internal fun <T> ArgMatchersScope.matchingBy(
+    argType: KClass<*>,
+    function: KFunction1<T, Boolean>
+): T = matches(argType, ArgMatcher.Matching(function) { "${function.name}()" })
