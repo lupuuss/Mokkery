@@ -72,5 +72,5 @@ class FunctionScopeTest {
         )
     }
 
-    private fun <T> suspending(block: suspend (List<Any?>) -> Any): T = block as T
+    private fun <T> suspending(block: suspend (List<Any?>) -> Any): T = block.unsafeCast()
 }
