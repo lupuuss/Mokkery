@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.logical
 
+import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
@@ -12,6 +13,7 @@ public object LogicalMatchers {
     /**
      * Matches argument that satisfies all the [matchers]. It must be merged with [expectedMatchers] number of [ArgMatcher]s.
      */
+    @DelicateMokkeryApi
     public data class And<T>(
         val expectedMatchers: Int,
         val matchers: List<ArgMatcher<T>> = emptyList()
@@ -41,6 +43,7 @@ public object LogicalMatchers {
      * Matches argument that satisfies any matcher from [matchers].
      * It must be merged with [expectedMatchers] number of ArgMatchers.
      */
+    @DelicateMokkeryApi
     public data class Or<T>(
         val expectedMatchers: Int,
         val matchers: List<ArgMatcher<T>> = emptyList()
@@ -69,6 +72,7 @@ public object LogicalMatchers {
     /**
      * Matches argument that does not satisfy [matcher].
      */
+    @DelicateMokkeryApi
     public data class Not<T>(val matcher: ArgMatcher<T>? = null) : ArgMatcher.Composite<T> {
         override fun matches(arg: T): Boolean = matcher!!.matches(arg).not()
 
