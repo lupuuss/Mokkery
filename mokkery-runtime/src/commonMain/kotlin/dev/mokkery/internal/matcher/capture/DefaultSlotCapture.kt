@@ -3,20 +3,19 @@ package dev.mokkery.internal.matcher.capture
 import dev.mokkery.matcher.capture.SlotCapture
 import dev.mokkery.matcher.capture.getIfPresent
 import dev.mokkery.matcher.capture.isAbsent
+import kotlinx.atomicfu.atomic
 
 internal class DefaultSlotCapture<T> : SlotCapture<T> {
 
-    override val values = arrayListOf<T>()
+    private var _values by atomic(listOf<T>())
+    override val values: List<T> get() = _values
 
-    override val value get() = if (values.isEmpty()) {
-        SlotCapture.Value.Absent
-    } else {
-        SlotCapture.Value.Present(values.first())
-    }
+    override val value get() = _values.firstOrNull()
+        ?.let { SlotCapture.Value.Present(it) }
+        ?: SlotCapture.Value.Absent
 
     override fun capture(value: T) {
-        values.removeLastOrNull()
-        values.add(value)
+        _values = listOf(value)
     }
 
     override fun equals(other: Any?): Boolean {
