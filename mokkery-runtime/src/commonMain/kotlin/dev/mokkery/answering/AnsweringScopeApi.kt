@@ -15,6 +15,16 @@ public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
 }
 
 /**
+ * Function call always throws an [IllegalStateException] with given [message].
+ *
+ * This is equivalent of [kotlin.error].
+ */
+public infix fun <T> AnsweringScope<T>.throwsErrorWith(message: Any) {
+    answers(Answer.Throws(IllegalStateException(message.toString())))
+}
+
+
+/**
  * Function call executes [block].
  */
 public infix fun <T> BlockingAnsweringScope<T>.calls(block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) {
