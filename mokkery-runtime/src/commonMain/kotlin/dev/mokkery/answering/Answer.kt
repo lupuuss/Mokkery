@@ -1,11 +1,15 @@
 package dev.mokkery.answering
 
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.Answer.Suspending
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import dev.mokkery.internal.answering.BlockingCallDefinitionScope
 import dev.mokkery.internal.answering.SuspendCallDefinitionScope
 import dev.mokkery.internal.answering.autofillValue
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 
 /**
  * An answer for a function call. For blocking answers only [call] implementation is required. For suspending answers
@@ -91,31 +95,25 @@ public interface Answer<out T> {
      */
     public data class SequentialByIterator<T>(val iterator: Iterator<Answer<T>>) : Sequential<T> {
 
-        private var nestedSequential: Sequential<T>? = null
+        private val lock = reentrantLock()
+        private var nestedSequential: Sequential<T>? by atomic(null)
 
-        override fun hasNext(): Boolean = iterator.hasNext() || nestedSequential?.hasNext() ?: false
+        override fun hasNext(): Boolean = lock.withLock { iterator.hasNext() || (nestedSequential?.hasNext() ?: false) }
 
         override fun call(scope: FunctionScope): T = getCurrent().call(scope)
 
         override suspend fun callSuspend(scope: FunctionScope): T = getCurrent().callSuspend(scope)
 
-        private fun getCurrent(): Answer<T> {
+        private fun getCurrent(): Answer<T> = lock.withLock {
             val nested = nestedSequential
             if (nested != null) {
                 if (nested.hasNext()) return nested
                 nestedSequential = null
             }
-            return switchToNext()
-        }
-
-        private fun switchToNext(): Answer<T> {
             if (!iterator.hasNext()) throw NoMoreSequentialAnswersException()
             val next = iterator.next()
-            if (next is Sequential<T>) {
-                nestedSequential = next
-            }
+            if (next is Sequential<T>) nestedSequential = next
             return next
         }
     }
-
 }
