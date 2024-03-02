@@ -1,5 +1,6 @@
 @file:Suppress("UNUSED_VARIABLE")
 
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 
@@ -10,7 +11,14 @@ plugins {
 
 kotlin {
     explicitApi()
-    applyDefaultHierarchyTemplate()
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        group("blocking") {
+            withJvm()
+            withNative()
+        }
+    }
 
     jvm()
 
@@ -56,12 +64,5 @@ kotlin {
             languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")
             languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
         }
-
-        val blockingMain by creating {
-            dependsOn(commonMain.get())
-        }
-
-        jvmMain { dependsOn(blockingMain) }
-        nativeMain { dependsOn(blockingMain) }
     }
 }
