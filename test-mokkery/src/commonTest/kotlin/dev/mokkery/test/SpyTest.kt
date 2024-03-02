@@ -15,15 +15,19 @@ class SpyTest {
     private val spied = spy<TestInterface>(TestInterfaceImpl)
 
     @Test
-    fun testEveryMethodReturnsFromRealImpl() = runTest {
+    fun testEveryMethodReturnsFromRealImpl() {
         assertEquals("1", spied.property)
         assertEquals(1.0, spied.callWithPrimitives(1))
         assertEquals(listOf(1), spied.callWithComplex(listOf("1")))
         assertEquals("1", spied.run { 1.callWithExtensionReceiver() })
         assertEquals(1.0, spied.callWithVararg(1, "2"))
-        assertEquals(listOf("1"), spied.callWithSuspension(1))
         assertEquals(Unit, spied.callWithSelf(spied))
         assertFailsWith<IllegalArgumentException> { spied.callNothing() }
+    }
+
+    @Test
+    fun testEverySuspendableMethodReturnsFromRealImpl() = runTest {
+        assertEquals(listOf("1"), spied.callWithSuspension(1))
     }
 
     @Test

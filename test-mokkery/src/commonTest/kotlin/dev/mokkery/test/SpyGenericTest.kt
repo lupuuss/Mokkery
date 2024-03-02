@@ -11,17 +11,21 @@ class SpyGenericTest {
     private val spied = spy<TestGenericInterface<String>>(TestInterfaceGenericImpl)
 
     @Test
-    fun testEveryMethodReturnsFromRealImpl() = runTest {
+    fun testEveryMethodReturnsFromRealImpl() {
         assertEquals("1", spied.value)
         assertEquals(true, spied.call("123"))
         assertEquals(2, spied.callBoundedGeneric(2))
-        assertEquals(2.0, spied.callSuspendBoundedGeneric(2.0))
         spied.run {
             assertEquals("[1]", listOf(1).genericExtension())
             assertEquals("[1, 2]", listOf("1", "2").extension())
             assertEquals(1, listOf(1).genericListSize)
             assertEquals(2, listOf("1", "2").listSize)
         }
+    }
+
+    @Test
+    fun testEverySuspendableMethodReturnsFromRealImpl() = runTest {
+        assertEquals(2.0, spied.callSuspendBoundedGeneric(2.0))
     }
 
     @Test

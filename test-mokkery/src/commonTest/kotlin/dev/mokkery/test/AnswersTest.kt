@@ -123,7 +123,7 @@ class AnswersTest {
     }
 
     @Test
-    fun testSequentiallyReturns() = runTest {
+    fun testSequentiallyReturns() {
         every { mock.callGeneric(any<Int>()) } sequentiallyReturns listOf(1, 2, 3)
         assertEquals(1, mock.callGeneric(0))
         assertEquals(2, mock.callGeneric(0))
@@ -132,7 +132,7 @@ class AnswersTest {
     }
 
     @Test
-    fun testSequentiallyThrows() = runTest {
+    fun testSequentiallyThrows() {
         every { mock.callGeneric(any<Int>()) } sequentiallyThrows listOf(
             IllegalArgumentException(),
             IndexOutOfBoundsException(),

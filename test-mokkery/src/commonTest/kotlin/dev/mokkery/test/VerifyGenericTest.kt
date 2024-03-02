@@ -48,7 +48,7 @@ class VerifyGenericTest {
     @Test
     fun testVerifiesExtensionMethodCalls() {
         assertVerified {
-            verifySuspend {
+            verify {
                 dependencyMock.run {
                     listOf("").extension()
                 }
@@ -59,7 +59,7 @@ class VerifyGenericTest {
     @Test
     fun testVerifiesGenericExtensionMethodCalls() {
         assertVerified {
-            verifySuspend {
+            verify {
                 dependencyMock.run {
                     listOf("").genericExtension()
                 }
@@ -70,7 +70,7 @@ class VerifyGenericTest {
     @Test
     fun testVerifiesExtensionPropertyCalls() {
         assertVerified {
-            verifySuspend {
+            verify {
                 dependencyMock.run {
                     listOf("").listSize
                 }
@@ -81,7 +81,7 @@ class VerifyGenericTest {
     @Test
     fun testVerifiesGenericExtensionPropertyCalls() {
         assertVerified {
-            verifySuspend {
+            verify {
                 dependencyMock.run {
                     listOf("").genericListSize
                 }

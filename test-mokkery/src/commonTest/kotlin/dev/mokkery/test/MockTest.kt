@@ -64,28 +64,38 @@ class MockTest {
     }
 
     @Test
-    fun testAutoUnitReturnsSuccessfullyFromUnitMethods() = runTest {
+    fun testAutoUnitReturnsSuccessfullyFromUnitMethods() {
         val mock = mock<TestInterface>(autoUnit)
         mock.callUnit()
     }
 
     @Test
-    fun testAutoUnitFailsOnNonUnitMethods() = runTest {
+    fun testAutoUnitFailsOnNonUnitMethods() {
         val mock = mock<TestInterface>(autoUnit)
         assertFails { mock.callWithPrimitives(1) }
+    }
+
+    @Test
+    fun testAutoUnitFailsOnNonUnitMethodsSuspend() = runTest {
+        val mock = mock<TestInterface>(autoUnit)
         assertFails { mock.callWithSuspension(1) }
     }
 
     @Test
-    fun testStrictAlwaysFails() = runTest {
+    fun testStrictAlwaysFails() {
         val mock = mock<TestInterface>(strict)
         assertFails { mock.callWithPrimitives(1) }
-        assertFails { mock.callWithSuspension(1) }
         assertFails { mock.callUnit() }
     }
 
     @Test
-    fun testMocksWithAllOpenPlugin() = runTest {
+    fun testStrictAlwaysFailsSuspend() = runTest {
+        val mock = mock<TestInterface>(strict)
+        assertFails { mock.callWithSuspension(1) }
+    }
+
+    @Test
+    fun testMocksWithAllOpenPlugin() {
         val mock = mock<FinalClass> {
             every { finalMethod() } returns "123"
         }
