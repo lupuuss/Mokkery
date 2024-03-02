@@ -20,7 +20,7 @@ class BlockAnswerTest {
 
     @Test
     fun testCallSuspendReturnsBlockResult() = runTest {
-        assertEquals("2", answer.callSuspend(fakeFunctionScope()))
+        assertEquals("1", answer.callSuspend(fakeFunctionScope()))
         answerResult = "2"
         assertEquals("2", answer.callSuspend(fakeFunctionScope()))
     }
