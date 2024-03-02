@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -18,7 +19,19 @@ mokkery {
 
 kotlin {
 
-    applyDefaultHierarchyTemplate()
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("coroutines") {
+                group("blocking") {
+                    withJvm()
+                    withNative()
+                }
+                withJs()
+                withCompilations { it.target.name == "wasmJs" }
+            }
+        }
+    }
 
     jvm()
 
@@ -30,6 +43,10 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi {
         nodejs()
     }
 
@@ -59,16 +76,11 @@ kotlin {
 
     androidNativeX86()
     androidNativeX64()
+}
 
-    sourceSets {
-
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
-            }
-        }
-    }
+dependencies {
+    commonTestImplementation(kotlin("test"))
+    "coroutinesTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }
 
 // temporary fix until node version with latest wasm support is merged
