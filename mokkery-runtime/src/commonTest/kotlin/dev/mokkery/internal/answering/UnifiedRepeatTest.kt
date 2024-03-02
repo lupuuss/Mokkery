@@ -3,7 +3,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.Answer.Const
 import dev.mokkery.test.fakeFunctionScope
-import kotlinx.coroutines.test.runTest
+import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails

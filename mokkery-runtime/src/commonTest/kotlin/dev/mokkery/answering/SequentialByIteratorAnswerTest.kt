@@ -2,7 +2,7 @@ package dev.mokkery.answering
 
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.test.fakeFunctionScope
-import kotlinx.coroutines.test.runTest
+import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

@@ -3,7 +3,7 @@ package dev.mokkery.answering
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.test.TestMokkeryInterceptorScope
 import dev.mokkery.test.TestMokkeryScopeLookup
-import kotlinx.coroutines.test.runTest
+import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals

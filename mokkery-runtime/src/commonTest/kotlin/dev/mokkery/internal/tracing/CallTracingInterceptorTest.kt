@@ -4,7 +4,7 @@ import dev.mokkery.internal.Counter
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTrace
-import kotlinx.coroutines.test.runTest
+import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

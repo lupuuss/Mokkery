@@ -3,11 +3,10 @@ package dev.mokkery.answering
 import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.answering.autofillMapping
 import dev.mokkery.test.fakeFunctionScope
-import kotlinx.coroutines.test.runTest
+import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
 
 class AutofillAnswerTest {
 
