@@ -74,6 +74,11 @@ kotlin {
     androidNativeX86()
     androidNativeX64()
 
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     sourceSets {
         all {
             languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")

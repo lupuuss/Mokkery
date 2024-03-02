@@ -76,6 +76,11 @@ kotlin {
 
     androidNativeX86()
     androidNativeX64()
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 }
 
 dependencies {
