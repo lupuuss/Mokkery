@@ -1,11 +1,8 @@
 package dev.mokkery.test
 
-import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.spy
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

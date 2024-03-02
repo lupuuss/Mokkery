@@ -1,6 +1,5 @@
 package dev.mokkery.test
 
-import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
@@ -8,9 +7,7 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.varargs.anyVarargs
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

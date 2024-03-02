@@ -37,6 +37,7 @@ class VerifyGenericTest {
     }
 
     @Test
+    @IgnoreOnWasmWasi
     fun testVerifiesBoundedGenericSuspendMethodCalls() {
         assertVerified {
             verifySuspend {
