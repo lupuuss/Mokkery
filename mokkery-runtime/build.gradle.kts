@@ -5,9 +5,10 @@ plugins {
 
 dependencies {
     commonMainApi(project(":mokkery-core"))
-    commonMainImplementation(libs.kotlinx.coroutines.core)
     commonTestImplementation(kotlin("test"))
-    commonTestImplementation(libs.kotlinx.coroutines.test)
+
+    coroutinesMainCompileOnly(libs.kotlinx.coroutines.core)
+    coroutinesTestImplementation(libs.kotlinx.coroutines.test)
 }
 
 rootProject.extensions.configure(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension::class) {

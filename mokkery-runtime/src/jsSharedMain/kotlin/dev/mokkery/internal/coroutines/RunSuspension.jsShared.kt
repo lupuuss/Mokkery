@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 
+internal actual fun runSuspension(block: suspend () -> Unit) = runSkippingSuspension(block)
+
 internal fun runSkippingSuspension(block: suspend () -> Unit) {
     var exception: Throwable? = null
     SkippingSuspensionScope.launch(start = CoroutineStart.UNDISPATCHED) {

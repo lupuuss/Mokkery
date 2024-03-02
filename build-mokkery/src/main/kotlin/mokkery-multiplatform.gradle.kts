@@ -15,9 +15,18 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
-            group("blocking") {
-                withJvm()
-                withNative()
+            group("coroutines") {
+                group("blocking") {
+                    withJvm()
+                    withNative()
+                }
+                group("jsShared") {
+                    withJs()
+                    withCompilations { it.target.name == "wasmJs" }
+                }
+            }
+            group("wasm") {
+                withWasm()
             }
         }
     }
@@ -31,6 +40,10 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi() {
         nodejs()
     }
 
