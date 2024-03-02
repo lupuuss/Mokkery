@@ -14,9 +14,11 @@ kotlin {
 
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
-        group("blocking") {
-            withJvm()
-            withNative()
+        common {
+            group("blocking") {
+                withJvm()
+                withNative()
+            }
         }
     }
 
