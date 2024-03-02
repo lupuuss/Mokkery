@@ -7,7 +7,7 @@ dependencies {
     commonMainApi(project(":mokkery-core"))
     commonTestImplementation(kotlin("test"))
 
-    coroutinesMainCompileOnly(libs.kotlinx.coroutines.core)
+    coroutinesMainImplementation(libs.kotlinx.coroutines.core)
     coroutinesTestImplementation(libs.kotlinx.coroutines.test)
 }
 
