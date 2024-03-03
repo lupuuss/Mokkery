@@ -1,7 +1,7 @@
 package dev.mokkery.matcher.varargs
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.toListOrNull
+import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.capitalize
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.varargNameByElementType
@@ -21,7 +21,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
     public abstract class Base<in T> : VarArgMatcher {
 
         final override fun matches(arg: Any?): Boolean {
-            val varargs = arg.toListOrNull() ?: return false
+            val varargs = arg.asListOrNull() ?: return false
             return matchesVarargs(varargs.unsafeCast())
         }
 

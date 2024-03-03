@@ -41,7 +41,7 @@ internal fun Any?.description(): String {
     if (this == null) return "null"
     if (this is String) return "\"$this\""
     if (this is Function<*>) return "{...}"
-    val values = toListOrNull()
+    val values = asListOrNull()
     if (values != null) return values.toString()
     return toString()
 }

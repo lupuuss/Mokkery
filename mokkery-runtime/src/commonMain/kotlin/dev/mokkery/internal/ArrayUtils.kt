@@ -7,22 +7,22 @@ import kotlin.reflect.KClass
 @PublishedApi
 internal fun KClass<*>.isArray(): Boolean = this == Array::class || bestName().startsWith("kotlin.Array")
 
-internal fun Any?.toListOrNull(): List<Any?>? {
+internal fun Any?.asListOrNull(): List<Any?>? {
     return when (this) {
-        is List<*> -> toList()
-        is Array<*> -> toList()
-        is IntArray -> toList()
-        is ByteArray -> toList()
-        is DoubleArray -> toList()
-        is CharArray -> toList()
-        is FloatArray -> toList()
-        is LongArray -> toList()
-        is BooleanArray -> toList()
-        is ShortArray -> toList()
-        is UIntArray -> toList()
-        is UByteArray -> toList()
-        is ULongArray -> toList()
-        is UShortArray -> toList()
+        is List<*> -> this
+        is Array<*> -> asList()
+        is IntArray -> asList()
+        is ByteArray -> asList()
+        is DoubleArray -> asList()
+        is CharArray -> asList()
+        is FloatArray -> asList()
+        is LongArray -> asList()
+        is BooleanArray -> asList()
+        is ShortArray -> asList()
+        is UIntArray -> asList()
+        is UByteArray -> asList()
+        is ULongArray -> asList()
+        is UShortArray -> asList()
         else -> null
     }
 }

@@ -1,7 +1,7 @@
 package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
-import dev.mokkery.internal.toListOrNull
+import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
@@ -26,13 +26,13 @@ internal data class CompositeVarArgMatcher(
     }
 
     override fun matches(arg: Any?): Boolean {
-        val arrayAsList = arg.toListOrNull() ?: return false
-        if (before.size + after.size > arrayAsList.size) return false
-        val beforePart = arrayAsList.subList(0, before.size)
+        val elements = arg.asListOrNull() ?: return false
+        if (before.size + after.size > elements.size) return false
+        val beforePart = elements.subList(0, before.size)
         if (before.zip(beforePart).any { (matcher, arg) -> !matcher.matches(arg) }) return false
-        val afterPart = arrayAsList.subList(arrayAsList.size - after.size, arrayAsList.size)
+        val afterPart = elements.subList(elements.size - after.size, elements.size)
         if (after.zip(afterPart).any { (matcher, arg) -> !matcher.matches(arg) }) return false
-        val rest = arrayAsList.subList(before.size, arrayAsList.size - after.size)
+        val rest = elements.subList(before.size, elements.size - after.size)
         return wildCard?.matches(rest) ?: rest.isEmpty()
     }
 
@@ -48,17 +48,17 @@ internal data class CompositeVarArgMatcher(
     override fun assertFilled() = Unit
 
     override fun capture(value: Any?) {
-        val arrayAsList = value.toListOrNull() ?: return
-        if (before.size + after.size > arrayAsList.size) return
-        val beforePart = arrayAsList.subList(0, before.size)
+        val elements = value.asListOrNull() ?: return
+        if (before.size + after.size > elements.size) return
+        val beforePart = elements.subList(0, before.size)
         before.zip(beforePart).forEach { (matcher, arg) ->
             matcher.propagateCapture(arg)
         }
-        val afterPart = arrayAsList.subList(arrayAsList.size - after.size, arrayAsList.size)
+        val afterPart = elements.subList(elements.size - after.size, elements.size)
         after.zip(afterPart).forEach { (matcher, arg) ->
             matcher.propagateCapture(arg)
         }
-        val rest = arrayAsList.subList(before.size, arrayAsList.size - after.size)
+        val rest = elements.subList(before.size, elements.size - after.size)
         wildCard?.propagateCapture(rest.toPlatformArrayOf(value))
     }
 

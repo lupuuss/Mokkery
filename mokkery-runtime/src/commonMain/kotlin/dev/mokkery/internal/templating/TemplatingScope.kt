@@ -5,10 +5,10 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.answering.autofillValue
+import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
-import dev.mokkery.internal.toListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
@@ -83,7 +83,7 @@ private class TemplatingScopeImpl(
         if (isReleased) return arg
         val data = binder.getDataFor(token) ?: return arg
         val args = when {
-            isSpread -> arg.toListOrNull() ?: error("Expected array, but $arg encountered!")
+            isSpread -> arg.asListOrNull() ?: error("Expected array, but $arg encountered!")
             else -> listOf(arg)
         }
         val size = args.size

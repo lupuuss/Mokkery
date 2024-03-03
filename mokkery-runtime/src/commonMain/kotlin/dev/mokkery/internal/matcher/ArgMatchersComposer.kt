@@ -3,11 +3,11 @@ package dev.mokkery.internal.matcher
 import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.arrayElementType
-import dev.mokkery.internal.toListOrNull
+import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.varargs.VarargMatcherMarker
 import dev.mokkery.matcher.varargs.VarArgMatcher
+import dev.mokkery.matcher.varargs.VarargMatcherMarker
 
 internal interface ArgMatchersComposer {
 
@@ -51,7 +51,7 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
         val matcher = compose(arg.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
         require(matcher is CompositeVarArgMatcher)
         val matchersSize = matcher.matchers.size
-        val expectedMatchersSize = (arg.value.toListOrNull()?.size ?: 0)
+        val expectedMatchersSize = (arg.value.asListOrNull()?.size ?: 0)
         if (matchersSize != expectedMatchersSize) throw VarargsAmbiguityDetectedException()
         return matcher
     }

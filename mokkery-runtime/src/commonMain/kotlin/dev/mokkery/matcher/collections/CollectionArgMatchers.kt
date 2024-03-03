@@ -1,7 +1,7 @@
 package dev.mokkery.matcher.collections
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.toListOrNull
+import dev.mokkery.internal.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
 
 /**
@@ -28,16 +28,16 @@ public object CollectionArgMatchers {
     @DelicateMokkeryApi
     public class ContentEquals(private val array: Any): ArgMatcher<Any> {
 
-        private val arrayAsList = requireNotNull(array.toListOrNull()) {
+        private val elements = requireNotNull(array.asListOrNull()) {
             "ContentEquals expects array but received $array!"
         }
 
         override fun matches(arg: Any): Boolean {
-            val actual = arg.toListOrNull() ?: return false
-            return actual == arrayAsList
+            val actual = arg.asListOrNull() ?: return false
+            return actual == elements
         }
 
-        override fun toString(): String = "contentEq(${array.toListOrNull().orEmpty().joinToString()})"
+        override fun toString(): String = "contentEq(${array.asListOrNull().orEmpty().joinToString()})"
     }
 
     /**
@@ -57,7 +57,7 @@ public object CollectionArgMatchers {
 
         override fun hashCode(): Int = array.contentHashCode()
 
-        override fun toString(): String = "contentDeepEq(${array.toListOrNull().orEmpty().joinToString()})"
+        override fun toString(): String = "contentDeepEq(${array.asListOrNull().orEmpty().joinToString()})"
 
     }
 }
