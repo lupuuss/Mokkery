@@ -27,7 +27,7 @@ internal fun Any?.asListOrNull(): List<Any?>? {
     }
 }
 
-@Suppress("OPT_IN_USAGE", "UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
 internal fun List<*>.toPlatformArrayOf(value: Any?): Any? {
     return when (value) {
         is Array<*> -> platformArrayOf(value::class, this)
