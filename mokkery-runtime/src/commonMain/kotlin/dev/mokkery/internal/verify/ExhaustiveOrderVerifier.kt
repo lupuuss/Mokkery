@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isNotMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -11,7 +12,7 @@ internal class ExhaustiveOrderVerifier(private val callMatcher: CallMatcher = Ca
             failAssertion(callTraces, callTemplates) { "Expected strict order of calls, but not satisfied!" }
         }
         callTraces.zip(callTemplates).forEach { (trace, template) ->
-            if (!callMatcher.matches(trace, template)) {
+            if (callMatcher.match(trace, template).isNotMatching) {
                 failAssertion(callTraces, callTemplates) { "Expected strict order of calls, but not satisfied!" }
             }
         }

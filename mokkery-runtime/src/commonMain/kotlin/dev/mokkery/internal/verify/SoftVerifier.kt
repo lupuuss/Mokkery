@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -12,7 +13,7 @@ internal class SoftVerifier(
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
         val verified = callTemplates.flatMap { template ->
-            val matching = callTraces.filter { callMatcher.matches(it, template) }
+            val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
             if (matching.size < atLeast || matching.size > atMost) {
                 failAssertion(callTraces, callTemplates) {
                     "Expected calls count to be in range $atLeast..${atMost.toReadableString()}, but is ${matching.size} for $template!"

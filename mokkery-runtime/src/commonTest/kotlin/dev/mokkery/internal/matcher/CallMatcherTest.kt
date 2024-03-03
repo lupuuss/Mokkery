@@ -6,8 +6,7 @@ import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 class CallMatcherTest {
 
@@ -19,7 +18,7 @@ class CallMatcherTest {
     }
 
     @Test
-    fun testReturnsTrueForFullyMatchingCall() {
+    fun testReturnsMatchingForFullyMatchingCall() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
@@ -33,11 +32,11 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertTrue(matcher.matches(call, template))
+        assertEquals(CallMatchResult.Matching, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotMatchingNames() {
+    fun testReturnsNotMatchingForNotMatchingMethodNames() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
@@ -46,22 +45,24 @@ class CallMatcherTest {
                 "i" to ArgMatcher.Equals(1)
             )
         )
+        generator.returns("calle(i: kotlin.Int)")
         val call = fakeCallTrace(
             receiver = "mock@1",
             name = "calle",
-            args = listOf(fakeCallArg(name = "j", value = 1))
+            args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.SameReceiver, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotMatchingSignature() {
+    fun testReturnsSameReceiverMethodOverloadForNotMatchingSignature() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
             signature = "call(i: kotlin.Int, j: kotlin.Int)",
             matchers = mapOf(
-                "i" to ArgMatcher.Equals(1)
+                "i" to ArgMatcher.Equals(1),
+                "j" to ArgMatcher.Equals(1),
             )
         )
         val call = fakeCallTrace(
@@ -69,11 +70,11 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.SameReceiverMethodOverload, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotMatchingArgsToSignature() {
+    fun testReturnsSameReceiverMethodSignatureForNotMatchingArgsToSignature() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
@@ -87,11 +88,11 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = ""))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.SameReceiverMethodSignature, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotMatchingReceivers() {
+    fun testReturnsNotMatchingForNotMatchingReceivers() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
@@ -105,11 +106,11 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.NotMatching, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotSatisfiedMatcher() {
+    fun testReturnsSameReceiverMethodSignatureForNotSatisfiedMatcher() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
@@ -123,24 +124,26 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.SameReceiverMethodSignature, matcher.match(call, template))
     }
 
     @Test
-    fun testReturnsFalseForNotMatchingArgNames() {
+    fun testReturnsSameReceiverMethodOverloadForNotMatchingArgNames() {
         val template = fakeCallTemplate(
             receiver = "mock@1",
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
-                "i" to ArgMatcher.Equals(2)
+                "i" to ArgMatcher.Equals(1),
+                "j" to ArgMatcher.Equals(1),
             )
         )
+        generator.returns("call(j: kotlin.Int)")
         val call = fakeCallTrace(
             receiver = "mock@1",
             name = "call",
-            args = listOf(fakeCallArg(name = "j", value = 1))
+            args = listOf(fakeCallArg(name = "i", value = 1))
         )
-        assertFalse(matcher.matches(call, template))
+        assertEquals(CallMatchResult.SameReceiverMethodOverload, matcher.match(call, template))
     }
 }

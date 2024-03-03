@@ -9,6 +9,7 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
@@ -69,7 +70,7 @@ private class AnsweringInterceptorImpl(
         return answers
             .keys
             .reversed()
-            .find { callMatcher.matches(trace, it) }
+            .find { callMatcher.match(trace, it).isMatching }
             ?.also { it.applyCapture(trace) }
             ?.let { answers.getValue(it) }
             ?: handleMissingAnswer(trace, context.returnType)

@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -11,7 +12,7 @@ internal class OrderVerifier(private val callMatcher: CallMatcher = CallMatcher(
         var previousTemplate: CallTemplate? = null
         val verifiedTraces = mutableListOf<CallTrace>()
         callTemplates.forEach { template ->
-            val index = currentTraces.indexOfFirst { callMatcher.matches(it, template) }
+            val index = currentTraces.indexOfFirst { callMatcher.match(it, template).isMatching }
             if (index == -1) {
                 failAssertion(callTraces, callTemplates) {
                     if (previousTemplate == null) {
