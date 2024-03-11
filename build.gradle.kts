@@ -43,6 +43,7 @@ val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
     moduleVersion.set(mokkeryVersion)
 }
 val syncDocs by tasks.registering(Sync::class) {
+    group = "documentation"
     from(dokkaHtmlMultiModule.outputDirectory)
     into(rootProject.layout.projectDirectory.dir("docs"))
 }
