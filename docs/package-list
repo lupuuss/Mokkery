@@ -13,4 +13,5 @@ dev.mokkery.matcher
 dev.mokkery.matcher.capture
 dev.mokkery.matcher.collections
 dev.mokkery.matcher.logical
+dev.mokkery.matcher.nullable
 dev.mokkery.matcher.varargs
