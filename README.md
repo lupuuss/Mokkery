@@ -1,7 +1,7 @@
 # Mokkery
 
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery)](https://plugins.gradle.org/plugin/dev.mokkery)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.22-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
 [![API reference](https://img.shields.io/static/v1?label=api&message=reference&labelColor=gray&color=blueviolet&logo=gitbook&logoColor=white)](https://mokkery.dev)
 
@@ -46,8 +46,8 @@ Apply Gradle plugin to your kotlin project:
 
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.22"
-    id("dev.mokkery") version "1.9.22-1.4.0"
+    kotlin("multiplatform") version "1.9.23"
+    id("dev.mokkery") version "1.9.23-1.5.0"
 }
 ```
 
@@ -57,8 +57,8 @@ Refer to the [compatibility](#compatibility) section to find the supported versi
 The plugin will be applied to all Kotlin source sets in the project that contain the "test" phrase. To change this behavior, you can provide a different rule in your Gradle file:
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "1.9.22"
-    id("dev.mokkery") version "1.9.22-1.4.0"
+    kotlin("multiplatform") version "1.9.23"
+    id("dev.mokkery") version "1.9.23-1.5.0"
 }
 
 mokkery {
@@ -94,6 +94,7 @@ Kotlin version is always prioritized.
 | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
 |------------------------------------|--------------------------------------------------------|--------------------------|
 | 2.0.0-Beta1 	                      | 2.0.0-Beta4+	                                          | `"2.0.0-Beta1"`          |
+| 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
 | 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"$kotlinVersion-1.4.0"` |
 | 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"$kotlinVersion-1.3.2"` |
 | 1.3.1 	                            | 1.9.22, 1.9.21, 1.9.20                                 | `"$kotlinVersion-1.3.1"` |
