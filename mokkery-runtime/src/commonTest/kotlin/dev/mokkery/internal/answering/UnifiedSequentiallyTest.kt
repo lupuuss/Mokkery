@@ -71,10 +71,10 @@ class UnifiedSequentiallyTest {
     }
 
     @Test
-    fun testRegistersAnswersEvenIfEndOfKeepBlockExceptionOccurred() {
+    fun testRegistersAnswersEvenIfEndOfRepeatBlockExceptionOccurred() {
         scope.unifiedSequentially {
             answers(Answer.Const(1))
-            throw EndOfKeepBlockException()
+            throw EndOfRepeatBlockException()
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)

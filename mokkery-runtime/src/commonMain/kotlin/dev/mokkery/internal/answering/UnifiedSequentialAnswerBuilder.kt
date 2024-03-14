@@ -19,18 +19,18 @@ internal class UnifiedSequentialAnswerBuilder<T>
     }
 }
 
-internal class EndOfKeepBlockException : Exception()
+internal class EndOfRepeatBlockException : Exception()
 
 @Suppress("UNCHECKED_CAST")
 internal fun <R, T: SequentialAnswerBuilder<R>> T.unifiedRepeat(block: T.() -> Unit): Nothing {
     val scope = UnifiedSequentialAnswerBuilder<R>()
     try {
         block(scope as T)
-    } catch (_: EndOfKeepBlockException) {
+    } catch (_: EndOfRepeatBlockException) {
 
     }
     answers(Answer.SequentialByIterator(scope.answers.iterator().cycle()))
-    throw EndOfKeepBlockException()
+    throw EndOfRepeatBlockException()
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -38,7 +38,7 @@ internal fun <R, T : SequentialAnswerBuilder<R>> AnsweringScope<R>.unifiedSequen
     val scope = UnifiedSequentialAnswerBuilder<R>()
     try {
         block(scope as T)
-    } catch (_: EndOfKeepBlockException) {
+    } catch (_: EndOfRepeatBlockException) {
 
     }
     answers(Answer.SequentialByIterator(scope.answers.iterator()))

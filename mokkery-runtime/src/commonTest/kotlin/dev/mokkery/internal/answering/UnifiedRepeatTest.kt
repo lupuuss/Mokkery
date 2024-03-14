@@ -48,8 +48,8 @@ class UnifiedRepeatTest {
     }
 
     @Test
-    fun testThrowsEndOfKeepBlockException() {
-        assertFailsWith<EndOfKeepBlockException> {
+    fun testThrowsEndOfRepeatBlockException() {
+        assertFailsWith<EndOfRepeatBlockException> {
             builder.unifiedRepeat {  }
         }
     }
