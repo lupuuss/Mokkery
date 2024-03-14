@@ -1,0 +1,114 @@
+---
+description: Learn the essential Mokkery concepts quickly with this example-based introduction!
+---
+# Quick start
+
+Let's assume we have given interface:
+
+```kotlin
+interface BooksRepository {
+    
+    suspend fun findById(id: String): Book
+    
+    suspend fun countAll(): Int
+    
+    fun findAll(): Flow<Book>
+}
+```
+
+> :warning: **Please read [limitations](../docs/Limitations) section!**
+
+
+### Mocking
+
+To create a mock of `BooksRepository` use `mock` function:
+
+```kotlin
+val repository = mock<BooksRepository>()
+```
+If you call a method that has no defined behaviour, it will result in runtime error by default. To learn how to change this locally or globally read [mock mode](../docs/Guides/Mocking#mock_mode) section.
+
+To define an answer for regular function use `every`:
+```kotlin
+every { repository.findAll() } returns flowOf(Book(...))
+```
+
+For suspending function use `everySuspend`:
+```kotlin
+everySuspend { repository.countAll() } returns 1
+```
+> :warning: **Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!**
+
+It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
+
+You can move your behaviour config to `mock` block:
+
+```kotlin
+val repository = mock<BookRepository>(autoUnit) {
+    every { findAll() } returns flowOf(Book(...))
+    everySuspend { countAll() } returns 1
+}
+```
+
+`returns` is quite simple and returns always the same value. If you want to discover other behaviours check [answers](../docs/Guides/Answers) guide!
+
+If a method accepts parameters, you can define an answer only for specific parameters:
+```kotlin
+everySuspend { repository.findById("1") } returns Book(id = "1", ...)
+everySuspend { repository.findById("2") } returns Book(id = "1", ...)
+
+repository.findById("1") // returns Book(id = "1", ...)
+repository.findById("2") // returns Book(id = "2", ...)
+repository.findById("3") // error - answer not defined
+```
+
+To accept more broad range of parameter values use [matchers](../docs/Guides/Matchers):
+```kotlin
+everySuspend { repository.findById(any()) } returns Book(id = "1", ...)
+
+repository.findById("1") // returns Book(id = "1", ...)
+repository.findById("2") // returns Book(id = "1", ...)
+repository.findById("3") // returns Book(id = "1", ...)
+```
+> :warning: **When multiple answers match a call, the one defined later takes precedence.**
+
+### Verifying
+
+To verify that some calls occured use `verify`:
+```kotlin
+verify {
+    repository.findAll()
+}
+```
+
+If you want to verify suspending functions use `verifySuspend`:
+```kotlin
+verifySuspend {
+    repository.countAll()
+}
+```
+
+By default, `verify` works in [soft](../docs/Guides/Verifying#Soft_modes_family) mode. It checks if each call pattern occured at least once.
+
+In this mode, each verification is performed independently so in example below, both verifications have the same result:
+
+```kotlin
+repository.findAll()
+repository.findAll()
+
+// verification passes, because findAll was called at least once
+verify {
+    repository.findAll()
+}
+
+// verification passes, because findAll was called at least once
+// the only difference is that `findAll` check is duplicated
+verify {
+    repository.findAll()
+    repository.findAll()
+}
+```
+
+In conclusion, there is no point of putting duplicated patterns in `verify` with [soft](../docs/Guides/Verifying#Soft_modes_family) mode.
+
+Read [verifying](../docs/Guides/Verifying) section to learn about more strict verification modes and how to configure them locally and globally!

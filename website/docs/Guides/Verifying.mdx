@@ -1,0 +1,155 @@
+---
+description: Efficiently verify method calls on mocks and spies using different verification modes!
+---
+
+To verify method call use `verify` or `verifySuspend`. Verification result depends on the `VerifyMode`.
+It determines the behavior and criteria for verification.
+
+You can change the default `VerifyMode` in the `build.gradle` file:
+
+```kotlin
+import dev.mokkery.verify.VerifyMode.exhaustiveOrder
+
+mokkery {
+    defaultVerifyMode.set(exhaustiveOrder)
+}
+```
+
+### Soft modes family
+
+By default `verify` uses `VerifyMode.soft`. It checks only if calls from the verification block happened and marks all
+matching calls as verified.
+
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+verifySuspend { 
+    // Verification passes and marks `findById("1")` and `findById("2")` as verified.
+    repository.findById(any())
+}
+```
+
+You can restrict number of calls with `atLeast`, `atMost`, `exactly` and `inRange`:
+
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+verifySuspend(atMost(1)) { 
+    // Verification fails - 2 matching calls, but expected 1 at most
+    repository.findById(any())
+}
+```
+
+With any soft mode, each verification is performed independently so in example below, both verifications have the same result:
+
+```kotlin
+repository.findAll()
+repository.findAll()
+
+// verification passes, because findAll was called at least once
+verify {
+    repository.findAll()
+}
+
+// verification passes, because findAll was called at least once
+// the only difference is that `findAll` check is duplicated
+verify {
+    repository.findAll()
+    repository.findAll()
+}
+```
+
+In conclusion, there is no point of putting duplicated patterns in `verify` with [soft](../docs/Guides/Verifying#Soft_modes_family) mode.
+
+### Exhaustive
+
+`VerifyMode.exhaustive` acts the same way as soft, but also checks if all calls have been verified.
+
+**Exhaustiveness is only checked for mocks that are called in verification block!**
+
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+verifySuspend(exhaustive) { 
+    // Verification fails - `findAll` not verified
+    repository.findById(any())
+}
+```
+
+### Order
+
+`VerifyMode.order` verifies that each call from the verification block happened once in the specified order:
+
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+
+verifySuspend(order) { 
+    // Verification passes - only `findById("1")` and `findAll()` is marked as verified
+    repository.findById(any())
+    repository.findAll()
+}
+
+```
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+
+verifySuspend(order) {
+    // Verification fails - findById(any()) does not occur after `findAll()`
+    repository.findAll()
+    repository.findById(any())
+}
+```
+
+### Exhaustive order
+
+`VerifyMode.exhaustiveOrder` verifies that all calls occurred in the exact same way. No extra calls are allowed beyond
+what is specified for verification.
+
+**Exhaustiveness is only checked for mocks that are called in verification block!**
+
+```kotlin
+repository.findById("1")
+repository.findById("2")
+repository.findAll()
+verifySuspend(exhaustiveOrder) {
+    // Verification passes - each call matches
+    repository.findById(any())
+    repository.findById(any())
+    repository.findAll()
+}
+```
+
+### Check exhaustiveness manually
+
+You can check if all calls are verified for given mock with `verifyNoMoreCalls`:
+
+```kotlin
+repository.findById("1")
+repository.findAll()
+verify(soft) {
+    // Verification passes
+    repository.findById("1")
+}
+verifyNoMoreCalls(repository) // fails, because `findAll` was not verified!
+```
+
+### Resetting registered calls
+
+You can remove all registered calls with `resetCalls`:
+
+```kotlin
+repository.findById("1")
+
+resetCalls(repository)
+
+verify(soft) {
+    repository.findById("1") // fails, because all registered calls were removed with `resetCalls`
+}
+```

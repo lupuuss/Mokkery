@@ -1,0 +1,19 @@
+---
+description: Easily create a spy from a real object!
+---
+
+# Spying
+
+Similarly to `mock`, `spy` tracks method calls. However, it is not possible to change spy behavior. It always calls spied object
+method.
+
+> :warning: **Please read [limitations](../docs/Limitations) section!**
+
+```kotlin
+val repository = BookRepositoryImpl()
+val spiedRepository = spy<BookRepository>(repository)
+```
+Ensure that you specify a type for the `spy`. In previous example inferred type would be `BookRepositoryImpl`,
+which is very likely to be a final class, and it is not supported to spy them!
+
+Read [verifying](../Guides/Verifying) section to learn how to verify calls on spy!

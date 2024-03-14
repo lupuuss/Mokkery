@@ -1,0 +1,108 @@
+---
+description: Get to know Mokkery's limitations for smoother development!
+---
+# Limitations
+
+### Supported types
+
+✅ In general, Mokkery is able to mock a type that is fully overridable. That includes:
+* 🧩 Interfaces 
+* ➡️ Functional types 
+* 🏗️ Abstract/open classes with no-args constructor and all overridable public members
+* 🏛️ Final classes with [all-open plugin](./Guides/Mocking#final-classes)
+
+❌ Things that Mokkery is **unable** to mock:
+* ➡️ Functions (extensions included)
+* 🏛️ Final classes that are already compiled (it's not possible to apply all-open plugin)
+* 🔢 Primitives
+* 🔐 Sealed types
+* 🗽 Objects
+
+### Calling `mock` & `spy`
+
+Type passed to `spy` and `mock` must be directly specified. Following code is illegal:
+
+```kotlin
+inline fun <reified T : Any> myMock() = mock<T>()
+```
+ However, it is not completely forbidden to use generic parameters. Following code is allowed:
+ 
+```kotlin
+fun <T : Any> myListMock() = mock<List<T>>()
+```
+
+### Calling `every` & `verify`
+
+To ensure that `every` and `verify` work as expected, compiler plugin transforms the code inside their blocks. This 
+transformation currently restricts those blocks from extracting their parts into separate functions. It also dictates that block 
+parameter must always be a lambda expression (not function reference nor lambda assigned to a variable). Following code is illegal:
+
+```kotlin
+@Test
+fun test() {
+    // ...
+    verify {
+       foo()
+    }
+}
+
+private fun ArgMatchersScope.foo() {
+   repository.findAll()
+}
+```
+
+However, it is perfectly fine to extract whole `verify` or `every` call to separate function:
+
+```kotlin
+@Test
+fun test() {
+    // ...
+    foo()
+}
+private fun foo() {
+   verify {
+       repository.findAll()
+   }
+}
+```
+
+### Using matchers
+
+#### All matchers
+
+The biggest limitation is that you **must not** assign matchers to variables. Following code is illegal:
+
+```kotlin
+everySuspend {
+    val matcher = any<Int>()
+    reporitory.findById(matcher)
+} returns Book(...)
+```
+
+#### Composite matchers
+
+When using composite matchers (whenever matcher accepts other matcher like logical matchers), you cannot use literals. Code below is illegal:
+
+```kotlin
+everySuspend { repository.findById(or("1", "2")) } returns Book(...)
+```
+You must use `eq` matcher explicitly:
+```kotlin
+everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns Book(...)
+```
+
+#### Varargs matchers
+
+If you pass varargs as array, it might sometimes lead to ambiguity. Calls presented below are prohibited:
+
+```kotlin
+everySuspend { repository.findAllById(ids = arrayOf("1", *anyVarargs(), "3")) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf("1", any())) } returns emptyList()
+```
+
+While passing varargs as arrays make sure that you don't mix matchers with literals. Calls presented below are allowed:
+
+```kotlin
+everySuspend { repository.findAllById(ids = arrayOf(eq("1"), *anyVarargs(), eq("3"))) } returns emptyList()
+everySuspend { repository.findAllById(ids = arrayOf(eq("1"), any())) } returns emptyList()
+```

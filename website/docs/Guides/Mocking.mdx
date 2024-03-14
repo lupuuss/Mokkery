@@ -1,0 +1,161 @@
+---
+description: Learn how to create a mock object and define its behavior effortlessly!
+---
+# Mocking
+
+Let's assume we have given interface:
+
+```kotlin
+interface BooksRepository {
+
+    suspend fun findById(id: String): Book
+
+    suspend fun countAll(): Int
+
+    fun findAll(): Flow<Book>
+}
+```
+> :warning: **Please read [limitations](../docs/Limitations) section!**
+
+Mock tracks all method calls and allows [defining their answers](#defining-answers).
+
+To create a mock of `BooksRepository` use `mock` function:
+
+```kotlin
+val repository = mock<BooksRepository>()
+```
+If you call a method that has no defined behaviour, runtime exception is thrown. It's dictated by `MockMode.strict`.
+    
+### Mock modes
+
+Mokkery provides 3 modes for missing answers:
+
+
+```kotlin
+import dev.mokkery.MockMode.strict
+import dev.mokkery.MockMode.autofill
+import dev.mokkery.MockMode.autoUnit
+
+// default - fails on missing answers
+val repository = mock<BookRepository>(strict)
+
+// autofill - returns empty values e.g. 0 for numbers, "" for string and null for complex types.
+val repository = mock<BookRepository>(autofill)
+
+// autoUnit - does not fail on Unit returning methods. 
+val repository = mock<BookRepository>(autoUnit)
+```
+
+It is possible to change the default `MockMode` on the Gradle plugin level like this:
+
+```kotlin
+import dev.mokkery.MockMode
+
+mokkery {
+    defaultMockMode.set(MockMode.autoUnit)
+}
+```
+
+### Defining answers
+
+To define an answer for regular function use `every`:
+```kotlin
+every { repository.findAll() } returns flowOf(Book(...))
+```
+For suspending function use `everySuspend`:
+```kotlin
+everySuspend { repository.countAll() } returns 1
+```
+ > :warning: **Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!**
+
+It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
+
+You can move your behaviour config to `mock` block:
+
+```kotlin
+val repository = mock<BookRepository>(autoUnit) {
+    every { findAll() } returns flowOf(Book(...))
+    everySuspend { countAll() } returns 1
+}
+```
+`returns` is quite simple and returns always the same value. If you want to discover other behaviours check [answers](../docs/Guides/Answers) guide!
+
+If a method accepts parameters, you can define an answer only for specific parameters:
+```kotlin
+everySuspend { repository.findById("1") } returns Book(id = "1", ...)
+everySuspend { repository.findById("2") } returns Book(id = "1", ...)
+
+repository.findById("1") // returns Book(id = "1", ...)
+repository.findById("2") // returns Book(id = "2", ...)
+repository.findById("3") // error - answer not defined
+```
+
+To accept more broad range of parameter values use [matchers](../docs/Guides/Matchers):
+```kotlin
+everySuspend { repository.findById(any()) } returns Book(id = "1", ...)
+
+repository.findById("1") // returns Book(id = "1", ...)
+repository.findById("2") // returns Book(id = "1", ...)
+repository.findById("3") // returns Book(id = "1", ...)
+```
+
+In case of a call that matches more than one answer, the later defined takes precedence:
+
+```kotlin
+// this answer is unreachable as the later defined matches all possible calls
+everySuspend { repository.findById("1") } returns Book(id = "1", ...) 
+everySuspend { repository.findById(any()) } returns Book(id = "2", ...)
+
+repository.findById("1") // returns Book(id = "2", ...)
+```
+
+### Removing answers
+
+To remove all defined answers use `resetAnswers`:
+
+```kotlin
+everySuspend { repository.findById("1") } returns Book(id = "1", ...)
+
+resetAnswers(repository)
+
+repository.findById("1") // error - answer not defined
+```
+
+### Final classes
+
+Mocking final classes that are already compiled is currently not possible. This includes any class defined in main
+source set, therefore this feature is not supported. However, you can "open" your final classes from 
+main source set with [all-open plugin](https://kotlinlang.org/docs/all-open-plugin.html#gradle).
+
+You have to define an annotation:
+
+```kotlin
+package your.package
+
+annotation class OpenForMokkery()
+```
+
+Apply all-open plugin and configure it:
+
+```kotlin
+plugins {
+    id("org.jetbrains.kotlin.plugin.allopen")
+}
+
+allOpen {
+    annotation("your.package.OpenForMokkery")
+}
+```
+
+Add `OpenForMokkery` to final class:
+
+```
+@OpenForMokkery
+class Foo {
+
+    fun foo() = Unit
+}
+```
+
+Be aware that this plugin makes your types open in a production code. It might be problematic in case your artifiacts being consumed by other libararies.
+However, it should be fine for any type of applications.

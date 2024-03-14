@@ -1,0 +1,210 @@
+---
+description: Explore different answer types with clear examples!
+---
+# Answers
+
+### Essentials
+
+To define a const answer use `returns`:
+
+```kotlin
+everySuspend { repository.findById(id = any()) } returns stubBook()
+```
+
+To throw an exception use `throws`:
+
+```kotlin
+everySuspend { repository.findById(id = any()) } throws IllegalArgumentException()
+```
+
+To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)) use `throwsErrorWith`:
+```kotlin
+everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
+
+```
+
+To provide more complex answer use `calls`:
+
+```kotlin
+everySuspend { repository.findById(id = any()) } calls { (id: String) ->
+    delay(1_000) // suspension is allowed here!
+    stubBook()
+}
+```
+
+### Sequentially
+
+You can define a sequence of answers using `sequentially`:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    calls { stubBook("2") }
+    throws(IllegalStateException())
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+runCatching { repository.getById("3") } // throws IllegalStateException
+repository.getById("4") // fails - no more answers
+```
+
+At the end of `sequentially` block you can repeat a sequence of answers with `repeat`:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    repeat { returns(stubBook("2")) }
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // returns stubBook("2")
+repository.getById("4") // returns stubBook("2")
+```
+
+You can use `sequentiallyRepeat` as a shorthand if you want to define repeating sequence:
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentiallyRepeat {
+    returns(stubBook("1"))
+    returns(stubBook("2"))
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // returns stubBook("1")
+repository.getById("4") // returns stubBook("2")
+```
+
+You can use `sequentiallyReturns` and `sequentiallyThrows` as a shorthand:
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // no more answers
+```
+
+You can nest `sequentially` calls:
+
+```kotlin
+everySuspend { repository.getById(id = any()) } sequentially {
+    returns(stubBook("1"))
+    sequentially {
+        returns(stubBook("2"))
+        returns(stubBook("3"))
+    }
+    returns(stubBook("4"))
+}
+repository.getById("1") // returns stubBook("1")
+repository.getById("2") // returns stubBook("2")
+repository.getById("3") // returns stubBook("3")
+repository.getById("4") // returns stubBook("4")
+repository.getById("5") // fails - no more answers
+```
+### Calling original implementation
+
+The most straightforward way to call original method is to use `calls` overload:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls original
+
+respository.findById("2") // this calls original method implementation with "2"
+```
+
+You can pass different arguments to original call:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls originalWith("3")
+
+respository.findById("2") // this calls original method implementation with "3"
+```
+
+> **Warning**
+> If mocked type is an interface, the default implementation is called.
+
+Under the hood, `original` performs call to super method from mocked type. In Kotlin source code, it is not allowed to call super method
+of indirect supertype. However, this kind of call is possible to be generated on the compiler plugin level.
+It's important to note that indirect super calls for Java types (including kotlin.collections.List) and for super
+methods from interfaces compiled to Java defaults are not allowed.
+This restriction exists because such calls are validated in the JVM bytecode and result in runtime errors.
+
+Indirect super calls feature has to be explicitly allowed in Gradle files:
+```kotlin
+mokkery {
+    allowIndirectSuperCalls.set(true)
+}
+```
+
+Calling super methods from indirect supertypes is similar to calling original methods:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls superOf<BaseRepository>()
+
+respository.findById("2") // this calls super method implementation from BaseRepository with "2"
+```
+
+You can pass different arguments to super call:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls superWith<BaseRepository>("3")
+
+respository.findById("2") // this calls super method implementation from BaseRepository with "3"
+```
+
+All of those features are accessible from `calls` scope:
+```kotlin
+everySuspend { repository.findById(any()) } calls {
+    callOriginal()
+    callOriginalWith("3")
+    callSuper(BaseRepository::class)
+    callSuperWith(BaseRepository::class, "3")
+}
+```
+
+### Custom answer
+
+To provide custom answer implement [Answer](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
+
+```kotlin
+object RandomIntAnswer : Answer<Int> {
+
+    override fun call(scope: FunctionScope) = Random.nextInt()
+}
+```
+
+Answer that implements only `call` works for both regular functions and suspending functions.
+
+```kotlin
+everySuspend { repository.countAllBooks() } answers RandomIntAnswer
+```
+
+You can provide convinient extension for your custom answer:
+
+```kotlin
+fun AnsweringScope<Int>.returnsRandomInt() = answers(RandomIntAnswer)
+    
+// ...
+
+everySuspend { repository.countAllBooks() }.returnsRandomInt()
+```
+
+If your answer needs suspension, it is recommended to implement [Answer.Suspending](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
+
+```kotlin
+data class DelayedConstAnswer<T>(
+    val value: T, 
+) : Answer.Suspending<T> {
+    
+    override suspend fun callSuspend(scope: FunctionScope): T {
+        delay(1_000)
+        return value
+    }
+}
+```
+
+For suspending answers it's highly recommended to introduce convinience extension. It's able to indicate that given answer only supports suspending functions:
+
+```kotlin
+infix fun <T> SuspendAnsweringScope<T>.returnsAfterDelay(value: T) = answers(DelayedConstAnswer(value))
+// ...
+everySuspend { repository.countAllBooks() } returnsAfterDelay 1
+```
+
+If you want to restrict answer only for regular functions, use `BlockingAnsweringScope<T>`.
