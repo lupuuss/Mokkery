@@ -22,11 +22,12 @@ kotlin {
                 }
                 group("jsShared") {
                     withJs()
-                    withCompilations { it.target.name == "wasmJs" }
+                    withWasmJs()
                 }
             }
             group("wasm") {
-                withWasm()
+                withWasmJs()
+                withWasmWasi()
             }
         }
     }
