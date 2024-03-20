@@ -28,7 +28,7 @@ kotlin {
                     withNative()
                 }
                 withJs()
-                withCompilations { it.target.name == "wasmJs" }
+                withWasmJs()
             }
         }
     }
