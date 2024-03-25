@@ -1,18 +1,18 @@
-package dev.mokkery.internal.verify.render
+package dev.mokkery.internal.render
 
 import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 
-class CallTraceListRendererTest {
-    private val renderer = CallTraceListRenderer(
+class PointListRendererTest {
+    private val renderer = PointListRenderer(
         point = "-",
-        traceRenderer = StubRenderer()
+        itemRenderer = StubRenderer()
     )
 
     @Test
-    fun testRendersCallTraceList() {
+    fun testRendersPointList() {
         renderer.assert(listOf(fakeCallTrace(), fakeCallTrace())) {
             """
                 - RENDERER_STUB
