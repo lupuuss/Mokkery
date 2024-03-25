@@ -1,24 +1,40 @@
 package dev.mokkery.internal.verify
 
+import dev.mokkery.internal.failAssertion
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
+import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.verify.render.TemplateMatchingResults
+import dev.mokkery.internal.verify.render.TemplateMatchingResultsRenderer
+import dev.mokkery.internal.verify.render.UnverifiedCallsRenderer
 
-internal class ExhaustiveSoftVerifier(private val callMatcher: CallMatcher = CallMatcher()) : Verifier {
+internal class ExhaustiveSoftVerifier(
+    private val callMatcher: CallMatcher = CallMatcher(),
+    private val matchingResultsRenderer: Renderer<TemplateMatchingResults> = TemplateMatchingResultsRenderer(),
+    private val unverifiedCallsRenderer: Renderer<List<CallTrace>> = UnverifiedCallsRenderer()
+) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
-        val unverifiedTracks = callTraces.toMutableList()
+        val unverifiedCalls = callTraces.toMutableList()
         callTemplates.forEach { template ->
-            val matchingCalls = callTraces.filter { callMatcher.match(it, template).isMatching }
-            if (matchingCalls.isEmpty()) {
-                failAssertion(callTraces, callTemplates) { "No matching call for $template!" }
+            val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
+            if (matching.isEmpty()) {
+                failAssertion {
+                    appendLine("No matching call for $template!")
+                    val results = TemplateMatchingResults(
+                        template = template,
+                        calls = callTraces.groupBy { callMatcher.match(it, template) }
+                    )
+                    append(matchingResultsRenderer.render(results))
+                }
             }
-            unverifiedTracks.removeAll(matchingCalls.toSet())
+            unverifiedCalls.removeAll(matching.toSet())
         }
-        if (unverifiedTracks.isNotEmpty()) {
-            failAssertion(callTraces, callTemplates) {
-                "Not all calls verified! Unverified calls: $unverifiedTracks"
+        if (unverifiedCalls.isNotEmpty()) {
+            failAssertion {
+                append(unverifiedCallsRenderer.render(unverifiedCalls))
             }
         }
         return callTraces

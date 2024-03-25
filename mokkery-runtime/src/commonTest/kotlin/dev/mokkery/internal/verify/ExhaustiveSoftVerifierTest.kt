@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -23,7 +24,11 @@ class ExhaustiveSoftVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val verifier = ExhaustiveSoftVerifier(callMatcher)
+    private val verifier = ExhaustiveSoftVerifier(
+        callMatcher = callMatcher,
+        matchingResultsRenderer = StubRenderer("RESULTS"),
+        unverifiedCallsRenderer = StubRenderer("UNVERIFIED")
+    )
 
     @Test
     fun testSuccessWhenAllCallsMatch() {
@@ -66,5 +71,25 @@ class ExhaustiveSoftVerifierTest {
         val traces = listOf(trace2, trace1)
         val verified = verifier.verify(traces, listOf(template1, template2,))
         assertEquals(traces, verified)
+    }
+
+    @Test
+    fun testFailsWithCorrectMessageWhenMissingResults() {
+        val error = assertFailsWith<AssertionError> {
+            verifier.verify(listOf(trace1), listOf(template1, template2))
+        }
+        val expectedError = """
+            No matching call for mock@1.call2()!
+            RENDERER_RESULTS
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
+    }
+
+    @Test
+    fun testFailsWithCorrectMessageWhenUnverifiedCalls() {
+        val error = assertFailsWith<AssertionError> {
+            verifier.verify(listOf(trace1, trace2), listOf(template1))
+        }
+        assertEquals("RENDERER_UNVERIFIED", error.message)
     }
 }
