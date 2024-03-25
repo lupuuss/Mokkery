@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -23,7 +24,12 @@ class SoftVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val verifier = SoftVerifier(1, 2, callMatcher)
+    private val verifier = SoftVerifier(
+        atLeast = 1,
+        atMost = 2,
+        callMatcher = callMatcher,
+        matchingResultsRenderer = StubRenderer
+    )
 
     @Test
     fun testSuccessWhenCallsStrictlySatisfiesAtLeast() {
@@ -108,5 +114,66 @@ class SoftVerifierTest {
         )
         val verified = verifier.verify(traces, listOf(template1, template2))
         assertEquals(listOf(trace1, trace1, trace2, trace2), verified)
+    }
+
+    @Test
+    fun testFailsWithCorrectErrorMessageWhenSpecificRangeExpected() {
+        val error = assertFailsWith<AssertionError> {
+            SoftVerifier(3, 5, callMatcher, StubRenderer).verify(listOf(trace1), listOf(template1))
+        }
+        val expectedError = """
+            Expected calls count to be in range 3..5, but 1 occurred for $template1!
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
+    }
+
+    @Test
+    fun testFailsWithCorrectErrorMessageWhenAtLeastExpected() {
+        val error = assertFailsWith<AssertionError> {
+            SoftVerifier(2, Int.MAX_VALUE, callMatcher, StubRenderer).verify(listOf(trace1), listOf(template1))
+        }
+        val expectedError = """
+            Expected at least 2 calls, but 1 occurred for $template1!
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
+    }
+
+    @Test
+    fun testFailsWithCorrectErrorMessageWhenAtMostExpected() {
+        val error = assertFailsWith<AssertionError> {
+            SoftVerifier(1, 2, callMatcher, StubRenderer).verify(listOf(trace1, trace1, trace1), listOf(template1))
+        }
+        val expectedError = """
+            Expected at most 2 calls, but 3 occurred for $template1!
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
+    }
+
+
+    @Test
+    fun testFailsWithCorrectErrorMessageWhenExactNumberOfCallsExpected() {
+        val error = assertFailsWith<AssertionError> {
+            SoftVerifier(2, 2, callMatcher, StubRenderer).verify(listOf(trace1), listOf(template1))
+        }
+        val expectedError = """
+            Expected exactly 2 calls, but 1 occurred for $template1!
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
+    }
+
+    @Test
+    fun testFailsWithCorrectErrorMessageWhenAnyCallExpected() {
+        val error = assertFailsWith<AssertionError> {
+            SoftVerifier(1, Int.MAX_VALUE, callMatcher, StubRenderer).verify(listOf(), listOf(template1))
+        }
+        val expectedError = """
+            Expected any call, but no matching calls for $template1!
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedError, error.message)
     }
 }
