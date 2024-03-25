@@ -1,10 +1,12 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class NotVerifierTest {
@@ -23,7 +25,7 @@ class NotVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val verifier = NotVerifier(callMatcher)
+    private val verifier = NotVerifier(callMatcher, StubRenderer())
 
     @Test
     fun testFailsWhenAnyCallsMatches() {
@@ -33,6 +35,18 @@ class NotVerifierTest {
         assertFailsWith<AssertionError> {
             verifier.verify(listOf(fakeCallTrace("call3"), trace2), listOf(template1, template2))
         }
+    }
+
+    @Test
+    fun testFailsWithCorrectMessage() {
+        val error = assertFailsWith<AssertionError> {
+            verifier.verify(listOf(trace1), listOf(template1))
+        }
+        val expectedMessage = """
+            Calls to mock@1.call1() were not expected, but occurred:
+            RENDERER_STUB
+        """.trimIndent()
+        assertEquals(expectedMessage, error.message)
     }
 
     @Test
