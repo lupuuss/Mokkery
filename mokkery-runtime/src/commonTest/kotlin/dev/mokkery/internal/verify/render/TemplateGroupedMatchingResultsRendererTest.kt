@@ -3,15 +3,16 @@ package dev.mokkery.internal.verify.render
 import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 
-class TemplateMatchingResultsRendererTest {
+class TemplateGroupedMatchingResultsRendererTest {
 
-    private val renderer = TemplateMatchingResultsRenderer(
+    private val renderer = TemplateGroupedMatchingResultsRenderer(
         indentation = 3,
         matchersFailuresRenderer = StubRenderer("MATCHERS", StubRenderer.Mode.RepeatWithBreak(2)),
         traceRenderer = StubRenderer("TRACE")
@@ -149,5 +150,5 @@ class TemplateMatchingResultsRendererTest {
     private fun fakeMatchingResults(
         template: CallTemplate,
         vararg groups: Pair<CallMatchResult, List<CallTrace>>,
-    ) = TemplateMatchingResults(template, groups.toMap())
+    ) = TemplateGroupedMatchingResults(template, groups.toMap())
 }

@@ -6,14 +6,14 @@ import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.verify.render.TemplateMatchingResults
-import dev.mokkery.internal.verify.render.TemplateMatchingResultsRenderer
+import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
+import dev.mokkery.internal.verify.render.TemplateGroupedMatchingResultsRenderer
 
 internal class SoftVerifier(
     private val atLeast: Int,
     private val atMost: Int,
     private val callMatcher: CallMatcher = CallMatcher(),
-    private val matchingResultsRenderer: Renderer<TemplateMatchingResults> = TemplateMatchingResultsRenderer()
+    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults> = TemplateGroupedMatchingResultsRenderer()
 ) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
@@ -22,7 +22,7 @@ internal class SoftVerifier(
             if (matching.size < atLeast || matching.size > atMost) {
                 failAssertion {
                     appendMainError(template, matching.size)
-                    val results = TemplateMatchingResults(
+                    val results = TemplateGroupedMatchingResults(
                         template = template,
                         calls = callTraces.groupBy { callMatcher.match(it, template) }
                     )

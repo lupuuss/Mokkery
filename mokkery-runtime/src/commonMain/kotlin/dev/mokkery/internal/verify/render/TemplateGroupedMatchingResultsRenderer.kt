@@ -7,21 +7,17 @@ import dev.mokkery.internal.render.indentationString
 import dev.mokkery.internal.render.withIndentation
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
-internal data class TemplateMatchingResults(
-    val template: CallTemplate,
-    val calls: Map<CallMatchResult, List<CallTrace>>
-)
-
-internal class TemplateMatchingResultsRenderer(
+internal class TemplateGroupedMatchingResultsRenderer(
     private val indentation: Int = 2,
     private val matchersFailuresRenderer: Renderer<Pair<CallTemplate, CallTrace>> = MatchersStatusRenderer(),
     private val traceRenderer: Renderer<CallTrace> = ToStringRenderer,
-) : Renderer<TemplateMatchingResults> {
+) : Renderer<TemplateGroupedMatchingResults> {
 
     private val traceIndentationString = indentationString(indentation)
 
-    override fun render(value: TemplateMatchingResults): String = buildString {
+    override fun render(value: TemplateGroupedMatchingResults): String = buildString {
         val (template, results) = value
         appendLine("Results for ${value.template.receiver}:")
         if (results.all { (_, value) -> value.isEmpty() }) {
