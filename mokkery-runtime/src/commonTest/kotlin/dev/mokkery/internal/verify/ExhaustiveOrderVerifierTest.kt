@@ -1,7 +1,10 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.verify.results.TemplateMatchingResult
 import dev.mokkery.test.TestCallMatcher
+import dev.mokkery.test.TestRenderer
+import dev.mokkery.test.TestTemplateMatchingResultComposer
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
@@ -21,7 +24,10 @@ class ExhaustiveOrderVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val verifier = ExhaustiveOrderVerifier(callMatcher)
+
+    private val resultsTestComposer = TestTemplateMatchingResultComposer()
+    private val testRenderer = TestRenderer<List<TemplateMatchingResult>> { "RENDERER_RESULTS" }
+    private val verifier = ExhaustiveOrderVerifier(callMatcher, resultsTestComposer, testRenderer)
 
     @Test
     fun testFailsWhenNumberOfTemplatesAndTracesDiffers() {
@@ -41,6 +47,29 @@ class ExhaustiveOrderVerifierTest {
         assertFailsWith<AssertionError> {
             verifier.verify(listOf(trace1, trace2), listOf(template1, fakeCallTemplate()))
         }
+    }
+
+    @Test
+    fun testFailsWithCorrectMessage() {
+        val error = assertFailsWith<AssertionError> {
+            verifier.verify(listOf(trace1, trace2), listOf(template1, fakeCallTemplate()))
+        }
+        val expectedMessage = """
+            Expected strict order of calls without unverified ones, but not satisfied!
+            RENDERER_RESULTS
+        """.trimIndent()
+        assertEquals(expectedMessage, error.message)
+    }
+
+    @Test
+    fun testUsesComposerResultsToRenderError() {
+        val traces = listOf(trace2, trace1, trace2)
+        val templates = listOf(template1, template2, template1)
+        val results = listOf(TemplateMatchingResult.UnverifiedCall(trace1))
+        resultsTestComposer.returns(results)
+        assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
+        assertEquals(traces to templates, resultsTestComposer.recordedCalls.single())
+        assertEquals(results, testRenderer.recordedCalls.single())
     }
 
     @Test
