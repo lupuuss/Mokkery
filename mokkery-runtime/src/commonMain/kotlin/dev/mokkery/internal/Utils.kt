@@ -30,8 +30,6 @@ internal fun callFunctionToString(name: String, args: List<CallArg>): String = b
     append(")")
 }
 
-internal fun generateMockId(typeName: String) = "$typeName(${Counter.mocks.next()})"
-
 internal fun <T> List<T>.subListAfter(index: Int): List<T> {
     if (index >= size) return emptyList()
     return subList(index, size)

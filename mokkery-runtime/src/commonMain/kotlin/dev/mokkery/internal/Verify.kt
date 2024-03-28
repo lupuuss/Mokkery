@@ -7,6 +7,7 @@ import dev.mokkery.internal.templating.TemplatingScope
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
+import dev.mokkery.internal.verify.MockReceiverShortener
 import dev.mokkery.internal.verify.NotVerifier
 import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.internal.verify.SoftVerifier
@@ -53,10 +54,13 @@ internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, bloc
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
+    val shortener = MockReceiverShortener()
+    shortener.prepare(calls, scope.templates)
     try {
-        verifier.verify(calls, scope.templates).forEach {
-            spyInterceptors.getValue(it.receiver).callTracing.markVerified(it)
-        }
+        verifier
+            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(scope.templates))
+            .map(shortener::getOriginalTrace)
+            .forEach { spyInterceptors.getValue(it.receiver).callTracing.markVerified(it) }
     } finally {
         scope.release()
     }
