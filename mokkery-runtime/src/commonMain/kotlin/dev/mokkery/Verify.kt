@@ -5,6 +5,10 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.ObjectNotSpiedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.failAssertion
+import dev.mokkery.internal.render.PointListRenderer
+import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.verify.MockReceiverShortener
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -38,7 +42,14 @@ public fun verifyNoMoreCalls(vararg mocks: Any) {
             ?.let { it as? MokkerySpy }
             ?.callTracing ?: throw ObjectNotSpiedException(mock)
         if (tracing.unverified.isNotEmpty()) {
-            throw AssertionError("Unverified calls for $mock: \n\t${tracing.unverified.joinToString("\n\t")}")
+            failAssertion {
+                val renderer = PointListRenderer<CallTrace>()
+                val shortener = MockReceiverShortener()
+                shortener.prepare(tracing.unverified, emptyList())
+                val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
+                appendLine("Unverified calls for $mock:")
+                append(renderer.render(unverifiedCalls))
+            }
         }
     }
 }
