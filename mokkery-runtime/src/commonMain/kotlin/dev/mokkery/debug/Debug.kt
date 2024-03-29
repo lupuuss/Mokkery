@@ -5,6 +5,7 @@ import dev.mokkery.internal.MokkeryMock
 import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.MokkerySpyScope
+import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.description
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 
@@ -70,5 +71,6 @@ private fun Answer<*>.debug(): String = when (this) {
     is Answer.Throws -> "throws $throwable"
     is Answer.Block, is Answer.BlockSuspend<*> -> "calls {...}"
     is Answer.Sequential -> "sequentially {...}"
+    is SuperCallAnswer<*> -> toString()
     else -> "answers $this"
 }
