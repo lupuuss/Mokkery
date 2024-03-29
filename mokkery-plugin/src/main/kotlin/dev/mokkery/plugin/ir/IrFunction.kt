@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
 import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -22,11 +21,10 @@ fun IrSimpleFunction.copyAnnotationsFrom(function: IrSimpleFunction) {
 
 fun IrSimpleFunction.copyParametersFrom(function: IrSimpleFunction) {
     typeParameters = function.typeParameters.map { it.deepCopyWithSymbols(this) }
-    val mapper = IrTypeParameterRemapper(function.typeParameters.zip(typeParameters).toMap())
-    fun IrValueParameter.deepCopyWithTypeParameters(): IrValueParameter =
-        deepCopyWithSymbols(this@copyParametersFrom) { symbolRemapper, _ ->
-            DeepCopyIrTreeWithSymbols(symbolRemapper, mapper)
-        }
+    fun IrValueParameter.deepCopyWithTypeParameters() = deepCopyWithSymbols(
+        initialParent = this@copyParametersFrom,
+        createTypeRemapper = { IrTypeParameterRemapper(function.typeParameters.zip(typeParameters).toMap()) }
+    )
     extensionReceiverParameter = function.extensionReceiverParameter?.deepCopyWithTypeParameters()
     valueParameters = function.valueParameters.map { it.deepCopyWithTypeParameters().apply { defaultValue = null } }
 }
