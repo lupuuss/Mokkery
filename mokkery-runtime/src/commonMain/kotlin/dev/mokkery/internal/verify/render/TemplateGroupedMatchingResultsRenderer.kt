@@ -48,7 +48,7 @@ internal class TemplateGroupedMatchingResultsRenderer(
         }
     }
 
-    private inline fun StringBuilder.appendRenderedTracesFrom(traces: List<CallTrace>) {
+    private fun StringBuilder.appendRenderedTracesFrom(traces: List<CallTrace>) {
         traces.forEach {
             append(traceIndentationString)
             appendLine(traceRenderer.render(it))
