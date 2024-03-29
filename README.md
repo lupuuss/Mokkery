@@ -109,7 +109,7 @@ Kotlin version is always prioritized.
 
 ### Targets
 
-Mokkery currently supports JVM, JS, Wasm-JS, 
+Mokkery currently supports JVM, JS, Wasm-JS, Wasm-WASI (without coroutines), 
 and [all 3 tiers of Kotlin Native targets](https://kotlinlang.org/docs/native-target-support.html).
 You can refer to [this file](build-mokkery/src/main/kotlin/mokkery-multiplatform.gradle.kts) for more details.
 
