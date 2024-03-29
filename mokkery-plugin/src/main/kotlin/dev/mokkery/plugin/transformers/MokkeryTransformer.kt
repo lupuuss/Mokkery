@@ -17,7 +17,6 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
-import dev.mokkery.plugin.ir.isJsOrWasm
 import dev.mokkery.plugin.ir.isOverridable
 import dev.mokkery.plugin.ir.isPlatformDependent
 import dev.mokkery.plugin.ir.renderSymbol
@@ -57,6 +56,7 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
+import org.jetbrains.kotlin.platform.isJs
 import kotlin.reflect.KClass
 import kotlin.time.TimeSource
 
@@ -100,7 +100,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithMock(call: IrCall): IrExpression {
         val klass = call.getTypeToMock() ?: return call
-        if (pluginContext.platform.isJsOrWasm() && klass.defaultType.isAnyFunction()) {
+        if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
             return createMockJsFunction(call, klass)
         }
         val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass).also(currentFile::addChild) }
@@ -118,7 +118,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
         val klass = call.getTypeToMock() ?: return call
-        if (pluginContext.platform.isJsOrWasm() && klass.defaultType.isAnyFunction()) {
+        if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
             return createSpyJsFunction(call, klass)
         }
         val spiedClass = spyCache.getOrPut(klass) { createSpyClass(klass).also(currentFile::addChild) }
