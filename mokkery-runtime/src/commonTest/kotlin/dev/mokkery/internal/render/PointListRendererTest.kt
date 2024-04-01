@@ -17,6 +17,7 @@ class PointListRendererTest {
             """
                 - RENDERER_STUB
                 - RENDERER_STUB
+                
             """.trimIndent()
         }
     }
