@@ -2,11 +2,12 @@ package dev.mokkery.answering
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.Answer.Suspending
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import dev.mokkery.internal.answering.BlockingCallDefinitionScope
 import dev.mokkery.internal.answering.SuspendCallDefinitionScope
-import dev.mokkery.internal.answering.autofillValue
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -72,10 +73,12 @@ public interface Answer<out T> {
     }
 
     /**
-     * Provides *empty* value for standard types (e.g. 0 for numbers, "" for string, null for complex type).
+     * Used whenever there is no defined answer for a call to mock that is in [dev.mokkery.MockMode.autofill].
+     * Refer to [AutofillProvider.Companion] to read more about returned values.
      */
     public object Autofill : Answer<Any?> {
-        override fun call(scope: FunctionScope): Any? = autofillValue(scope.returnType)
+
+        override fun call(scope: FunctionScope): Any? = AutofillProvider.provideValue(scope.returnType)
     }
 
     /**

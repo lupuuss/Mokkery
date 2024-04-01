@@ -1,10 +1,11 @@
 package dev.mokkery.internal.templating
 
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
-import dev.mokkery.internal.answering.autofillValue
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.signature.SignatureGenerator
@@ -34,17 +35,20 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(
     signatureGenerator: SignatureGenerator = SignatureGenerator(),
     composer: ArgMatchersComposer = ArgMatchersComposer(),
-    binder: TemplatingScopeDataBinder= TemplatingScopeDataBinder(),
+    binder: TemplatingScopeDataBinder = TemplatingScopeDataBinder(),
+    autofill: AutofillProvider<Any?> = AutofillProvider.builtIn
 ): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = signatureGenerator,
     composer = composer,
-    binder = binder
+    binder = binder,
+    autofill = autofill
 )
 
 private class TemplatingScopeImpl(
     private val signatureGenerator: SignatureGenerator,
     private val composer: ArgMatchersComposer,
-    private val binder: TemplatingScopeDataBinder
+    private val binder: TemplatingScopeDataBinder,
+    private val autofill: AutofillProvider<Any?>
 ) : TemplatingScope {
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
@@ -74,9 +78,9 @@ private class TemplatingScopeImpl(
 
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
-        if (isReleased) return autofillValue(argType)
+        if (isReleased) return autofill.provideValue(argType).unsafeCast()
         currentArgMatchers.add(matcher.unsafeCast())
-        return autofillValue(argType)
+        return autofill.provideValue(argType).unsafeCast()
     }
 
     override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T {

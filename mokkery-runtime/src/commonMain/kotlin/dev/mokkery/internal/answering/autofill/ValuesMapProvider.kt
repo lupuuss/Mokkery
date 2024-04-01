@@ -1,21 +1,16 @@
-package dev.mokkery.internal.answering
+package dev.mokkery.internal.answering.autofill
 
-import dev.mokkery.internal.DefaultNothingException
-import dev.mokkery.internal.isArray
-import dev.mokkery.internal.platformArrayOf
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.AutofillProvider.Value
 import kotlin.reflect.KClass
 
-internal expect fun autofillAny(kClass: KClass<*>): Any?
+internal class ValuesMapProvider(private val values: Map<KClass<*>, Any?>) : AutofillProvider<Any> {
 
-internal fun <T> autofillValue(returnType: KClass<*>): T = when {
-    returnType == Nothing::class -> throw DefaultNothingException()
-    returnType.isArray() -> platformArrayOf(returnType, listOf(null)).unsafeCast()
-    else -> (autofillMapping[returnType] ?: autofillAny(returnType)).unsafeCast()
+    override fun provide(type: KClass<*>): Value<Any> = Value.providedIfNotNull { values[type] }
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-internal val autofillMapping = mapOf(
+internal val buildInTypesMapping = mapOf(
     Byte::class to 0.toByte(),
     UByte::class to 0u.toUByte(),
     Char::class to '0',

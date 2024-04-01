@@ -1,8 +1,7 @@
 package dev.mokkery.internal
 
-import dev.mokkery.internal.answering.autofillValue
-import dev.mokkery.internal.tracing.CallArg
-import kotlin.reflect.KClass
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.provideValue
 
 
 internal interface MokkeryInterceptor {
@@ -21,27 +20,31 @@ internal fun combine(vararg interceptors: MokkeryInterceptor): MokkeryIntercepto
     return CombinedInterceptor(interceptors)
 }
 
-private class CombinedInterceptor(private val interceptors: Array<out MokkeryInterceptor>) : MokkeryInterceptor {
+private class CombinedInterceptor(
+    private val interceptors: Array<out MokkeryInterceptor>,
+    private val autofill: AutofillProvider<Any?> = AutofillProvider.builtIn,
+) : MokkeryInterceptor {
+
     override fun interceptCall(context: CallContext): Any? {
         interceptors.forEach {
             when (val result = it.interceptCall(context)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofillValue(context.returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofill.provideValue(context.returnType)
                 else -> return result
             }
         }
-        return autofillValue(context.returnType)
+        return autofill.provideValue(context.returnType)
     }
 
     override suspend fun interceptSuspendCall(context: CallContext): Any? {
         interceptors.forEach {
             when (val result = it.interceptSuspendCall(context)) {
                 MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofillValue(context.returnType)
+                MokkeryToken.RETURN_DEFAULT -> return autofill.provideValue(context.returnType)
                 else -> return result
             }
         }
-        return autofillValue(context.returnType)
+        return autofill.provideValue(context.returnType)
     }
 
 }
