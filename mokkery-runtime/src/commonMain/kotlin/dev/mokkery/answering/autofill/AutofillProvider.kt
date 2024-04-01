@@ -67,7 +67,7 @@ public fun interface AutofillProvider<out T> {
      * * For [Unit] - [Unit]
      * * For complex types:
      *    * JVM and Wasm - null
-     *    * JS - `object {}`
+     *    * JS - empty object `{}`
      *    * Native - reference to `object UnsafeValue`
      *  * For arrays - array with single element according to previous rules
      */
