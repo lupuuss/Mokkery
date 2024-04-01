@@ -60,7 +60,6 @@ public fun interface AutofillProvider<out T> {
     /**
      * Implementation of [AutofillProvider] that is used by [dev.mokkery.answering.Answer.Autofill].
      * By default, it provides:
-     * * For [Char] - '0'
      * * For any [Number] - 0
      * * For [Boolean] - false
      * * For [String] - ""

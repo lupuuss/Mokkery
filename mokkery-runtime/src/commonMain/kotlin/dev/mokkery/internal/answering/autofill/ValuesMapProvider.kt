@@ -13,7 +13,7 @@ internal class ValuesMapProvider(private val values: Map<KClass<*>, Any?>) : Aut
 internal val buildInTypesMapping = mapOf(
     Byte::class to 0.toByte(),
     UByte::class to 0u.toUByte(),
-    Char::class to '0',
+    Char::class to 0.toChar(),
     Short::class to 0.toShort(),
     UShort::class to 0.toUShort(),
     Int::class to 0,
