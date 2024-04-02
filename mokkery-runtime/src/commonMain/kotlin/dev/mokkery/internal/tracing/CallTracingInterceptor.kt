@@ -2,9 +2,8 @@ package dev.mokkery.internal.tracing
 
 import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.Counter
-import dev.mokkery.internal.MokkeryToken
 import dev.mokkery.internal.MokkeryInterceptor
-import kotlinx.atomicfu.atomic
+import dev.mokkery.internal.MokkeryToken
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 
@@ -27,17 +26,17 @@ private class CallTracingInterceptorImpl(
     private val counter: Counter,
 ) : CallTracingInterceptor {
 
-    private var verified by atomic(listOf<CallTrace>())
-    private var _all by atomic(listOf<CallTrace>())
+    private val verified = mutableListOf<CallTrace>()
+    private val _all = mutableListOf<CallTrace>()
 
     private val lock = reentrantLock()
 
     override val unverified: List<CallTrace> get() = lock.withLock { _all - verified.toSet() }
-    override val all: List<CallTrace> get() = _all
+    override val all: List<CallTrace> get() = lock.withLock { _all.toMutableList() }
 
     override fun reset() = lock.withLock {
-        verified = emptyList()
-        _all = emptyList()
+        verified.clear()
+        _all.clear()
     }
 
     override fun markVerified(trace: CallTrace) {
