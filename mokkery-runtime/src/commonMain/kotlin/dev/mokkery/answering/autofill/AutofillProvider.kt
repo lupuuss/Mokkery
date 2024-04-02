@@ -85,6 +85,11 @@ public fun interface AutofillProvider<out T> {
 }
 
 /**
+ * Calls [AutofillProvider.provide] and returns [AutofillProvider.Value.Provided.value] if present.
+ */
+public inline fun <T> AutofillProvider<T>.provideValue(type: KClass<*>): T? = provide(type).getIfProvided()
+
+/**
  * Returns value if [this] is an instance of [AutofillProvider.Value.Provided].
  */
 public fun <T> AutofillProvider.Value<T>.getIfProvided(): T? = (this as? AutofillProvider.Value.Provided<T>)?.value
@@ -93,8 +98,3 @@ public fun <T> AutofillProvider.Value<T>.getIfProvided(): T? = (this as? Autofil
  * Returns true if [this] is an instance of [AutofillProvider.Value.Provided]
  */
 public fun AutofillProvider.Value<*>.isProvided(): Boolean = this != AutofillProvider.Value.Absent
-
-/**
- * Calls [AutofillProvider.provide] and returns [AutofillProvider.Value.Provided.value] if present.
- */
-public inline fun <T> AutofillProvider<T>.provideValue(type: KClass<*>): T? = provide(type).getIfProvided()
