@@ -47,7 +47,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.23"
-    id("dev.mokkery") version "1.9.23-1.5.0"
+    id("dev.mokkery") version "1.9.23-1.6.0"
 }
 ```
 
@@ -58,7 +58,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.23"
-    id("dev.mokkery") version "1.9.23-1.5.0"
+    id("dev.mokkery") version "1.9.23-1.6.0"
 }
 
 mokkery {
@@ -93,7 +93,9 @@ Kotlin version is always prioritized.
 
 | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
 |------------------------------------|--------------------------------------------------------|--------------------------|
-| 2.0.0-Beta1 	                      | 2.0.0-Beta4+	                                          | `"2.0.0-Beta1"`          |
+| 2.0.0-Beta2 	                      | 2.0.0-Beta5+	                                          | `"2.0.0-Beta2"`          |
+| 2.0.0-Beta1 	                      | 2.0.0-Beta4	                                           | `"2.0.0-Beta1"`          |
+| 1.6.0 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.0"` |
 | 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
 | 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"$kotlinVersion-1.4.0"` |
 | 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"$kotlinVersion-1.3.2"` |
