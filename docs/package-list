@@ -8,6 +8,7 @@ dev.mokkery.verify
 module:mokkery-runtime
 dev.mokkery
 dev.mokkery.answering
+dev.mokkery.answering.autofill
 dev.mokkery.debug
 dev.mokkery.matcher
 dev.mokkery.matcher.capture
