@@ -1,3 +1,4 @@
+@file:Suppress("NOTHING_TO_INLINE")
 package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode
@@ -40,27 +41,29 @@ private class AnsweringInterceptorImpl(
     private val lookup: MokkeryScopeLookup,
 ) : AnsweringInterceptor {
 
-    private var isSetup by atomic(false)
-    private var _answers by atomic(linkedMapOf<CallTemplate, Answer<*>>())
-    override val answers: Map<CallTemplate, Answer<*>> get() = _answers
+    private val modifiers = atomic(0)
+    private val _answers = linkedMapOf<CallTemplate, Answer<*>>()
+    override val answers: Map<CallTemplate, Answer<*>> get() = _answers.toMutableMap()
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
-        isSetup = true
-        _answers += template to answer
-        isSetup = false
+        modify {
+            _answers += template to answer
+        }
     }
 
     override fun reset() {
-        _answers = linkedMapOf()
+        modify {
+            _answers.clear()
+        }
     }
 
     override fun interceptCall(context: CallContext): Any? {
-        if (isSetup) throw ConcurrentTemplatingException()
+        checkIfIsModified()
         return findAnswerFor(context).call(context.toFunctionScope())
     }
 
     override suspend fun interceptSuspendCall(context: CallContext): Any? {
-        if (isSetup) throw ConcurrentTemplatingException()
+        checkIfIsModified()
         return findAnswerFor(context).callSuspend(context.toFunctionScope())
     }
 
@@ -97,5 +100,15 @@ private class AnsweringInterceptorImpl(
             val argValue = trace.args.find { it.name == name }?.value
             capture.capture(argValue)
         }
+    }
+
+    private inline fun checkIfIsModified() {
+        if (modifiers.value > 0) throw ConcurrentTemplatingException()
+    }
+
+    private inline fun modify(block: () -> Unit) {
+        if (modifiers.getAndIncrement() > 0) throw ConcurrentTemplatingException()
+        block()
+        modifiers.decrementAndGet()
     }
 }
