@@ -1,11 +1,17 @@
 package dev.mokkery.answering.autofill
 
+import dev.mokkery.answering.autofill.AutofillProvider.Companion.register
+import dev.mokkery.answering.autofill.AutofillProvider.Companion.registerProvider
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider
 import dev.mokkery.internal.answering.autofill.NothingValueProvider
+import dev.mokkery.internal.answering.autofill.TypeToFunctionAutofillProvider
 import dev.mokkery.internal.answering.autofill.TypeToValueAutofillProvider
 import dev.mokkery.internal.answering.autofill.buildInTypesMapping
+import dev.mokkery.internal.synchronizedMapOf
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import kotlin.reflect.KClass
 
 /**
@@ -59,6 +65,13 @@ public fun interface AutofillProvider<out T> {
 
     /**
      * Implementation of [AutofillProvider] that is used by [dev.mokkery.answering.Answer.Autofill].
+     * It provides defaults and also allows registering custom providers.
+     *
+     * Lookup order:
+     * * Custom implementations of [AutofillProvider] registered with [registerProvider].
+     * * Simplified type-to-function providers registered with [register]
+     * * Defaults
+     *
      * By default, it provides:
      * * For any [Number] - 0
      * * For [Boolean] - false
@@ -80,8 +93,55 @@ public fun interface AutofillProvider<out T> {
             AnyValueProvider
         )
 
-        override fun provide(type: KClass<*>): Value<Any?> = builtIn.provide(type)
+        private val registeredTypes = synchronizedMapOf<KClass<*>, () -> Any>()
+        private val delegate = atomic(CombinedProviders(TypeToFunctionAutofillProvider(registeredTypes), builtIn))
+
+        override fun provide(type: KClass<*>): Value<Any?> = delegate.value.provide(type)
+
+        /**
+         * Registers [provider] to be used before previously registered providers (including initial defaults).
+         */
+        public fun registerProvider(provider: AutofillProvider<*>) {
+            delegate.update { it.withFirst(provider) }
+        }
+
+        /**
+         * Unregisters [provider] registered with [registerProvider] so it is no longer in use.
+         */
+        public fun unregisterProvider(provider: AutofillProvider<*>) {
+            delegate.update { it.without(provider) }
+        }
+
+        /**
+         * Registers a [provider] for [type].
+         * It overwrites any provider registered for the same [type] with this method.
+         * It's used after providers registered with [registerProvider].
+         */
+        public fun <T : Any> register(type: KClass<T>, provider: () -> T) {
+            registeredTypes[type] = provider
+        }
+
+        /**
+         * Unregisters provider registered with [register] for [type] so it is no longer in use.
+         */
+        public fun unregister(type: KClass<*>) {
+            registeredTypes.remove(type)
+        }
     }
+}
+
+/**
+ * Calls [AutofillProvider.register] with type [T].
+ */
+public inline fun <reified T : Any> AutofillProvider.Companion.register(noinline provider: () -> T) {
+    register(T::class, provider)
+}
+
+/**
+ * Calls [AutofillProvider.unregister] with type [T].
+ */
+public inline fun <reified T : Any> AutofillProvider.Companion.unregister() {
+    unregister(T::class)
 }
 
 /**
