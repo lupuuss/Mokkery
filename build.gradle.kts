@@ -21,7 +21,7 @@ buildscript {
 }
 
 val kotlinVersion = libs.versions.kotlin.get()
-val mokkeryVersion = "2.0.0-Beta1"
+val mokkeryVersion = "2.0.0-Beta2"
 rootProject.ext["kotlinVersion"] = kotlinVersion
 rootProject.version = mokkeryVersion
 rootProject.group = "dev.mokkery"
