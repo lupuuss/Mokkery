@@ -4,9 +4,9 @@ import dev.mokkery.answering.autofill.AutofillProvider.Value
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class ValuesMapProviderTest {
+class TypeToValueAutofillProviderTest {
 
-    private val provider = ValuesMapProvider(
+    private val provider = TypeToValueAutofillProvider(
         values = mapOf(
             Unit::class to Unit,
             Int::class to 0,

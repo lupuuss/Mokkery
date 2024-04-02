@@ -4,7 +4,7 @@ import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider
 import dev.mokkery.internal.answering.autofill.NothingValueProvider
-import dev.mokkery.internal.answering.autofill.ValuesMapProvider
+import dev.mokkery.internal.answering.autofill.TypeToValueAutofillProvider
 import dev.mokkery.internal.answering.autofill.buildInTypesMapping
 import kotlin.reflect.KClass
 
@@ -74,7 +74,7 @@ public fun interface AutofillProvider<out T> {
     public companion object : AutofillProvider<Any?> {
 
         internal val builtIn = CombinedProviders(
-            ValuesMapProvider(buildInTypesMapping),
+            TypeToValueAutofillProvider(buildInTypesMapping),
             NothingValueProvider,
             GenericArrayProvider,
             AnyValueProvider

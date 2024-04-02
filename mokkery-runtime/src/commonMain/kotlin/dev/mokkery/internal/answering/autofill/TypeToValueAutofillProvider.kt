@@ -4,7 +4,7 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.AutofillProvider.Value
 import kotlin.reflect.KClass
 
-internal class ValuesMapProvider(private val values: Map<KClass<*>, Any?>) : AutofillProvider<Any> {
+internal class TypeToValueAutofillProvider(private val values: Map<KClass<*>, Any?>) : AutofillProvider<Any> {
 
     override fun provide(type: KClass<*>): Value<Any> = Value.providedIfNotNull { values[type] }
 }
