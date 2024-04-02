@@ -1,6 +1,8 @@
 package dev.mokkery.internal.answering.autofill
 
+import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.AutofillProvider.Value
+import dev.mokkery.answering.autofill.provideValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,6 +12,17 @@ class CombinedProvidersTest {
         { Value.providedIfNotNull { if (it == Int::class) 0 else null } },
         { Value.providedIfNotNull { if (it == String::class) "" else null } },
     )
+
+    private val newProvider = AutofillProvider {
+        Value.providedIfNotNull {
+            when (it) {
+                Int::class -> 37
+                String::class -> "Hello!"
+                Byte::class -> 5.toByte()
+                else -> null
+            }
+        }
+    }
 
     @Test
     fun testReturnsFromFirstProviderWhenTypeIsHandledByThisProvider() {
@@ -24,5 +37,31 @@ class CombinedProvidersTest {
     @Test
     fun testReturnsAbsentWhenTypeIsNotHandledByAnyProvider() {
         assertEquals(Value.Absent, provider.provide(Any::class))
+    }
+
+    @Test
+    fun testWithFirstReturnsNewProvidedWithInjectedProviderAtFirstPosition() {
+        val resultProvider = provider.withFirst(newProvider)
+        assertEquals(37, resultProvider.provideValue(Int::class))
+        assertEquals("Hello!", resultProvider.provideValue(String::class))
+        assertEquals(5.toByte(), resultProvider.provideValue(Byte::class))
+    }
+
+    @Test
+    fun testWithLastReturnsNewProvidedWithInjectedProviderAtLastPosition() {
+        val resultProvider = provider.withLast(newProvider)
+        assertEquals(0, resultProvider.provideValue(Int::class))
+        assertEquals("", resultProvider.provideValue(String::class))
+        assertEquals(5.toByte(), resultProvider.provideValue(Byte::class))
+    }
+
+    @Test
+    fun testWithoutRemovesInjectedProvider() {
+        val resultProvider = provider
+            .withFirst(newProvider)
+            .without(newProvider)
+        assertEquals(0, resultProvider.provideValue(Int::class))
+        assertEquals("", resultProvider.provideValue(String::class))
+        assertEquals(Value.Absent, resultProvider.provide(Byte::class))
     }
 }
