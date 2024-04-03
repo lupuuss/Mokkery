@@ -201,6 +201,27 @@ fun test() = runTest {
 }
 ```
 
+To provide mocks with a dependency injection such as Koin:
+
+```kotlin
+//Define a module 
+val testModule = module {
+    single {
+        mock<PasswordResetRepository> {
+            everySuspend {  changePassword(newPassword = "") }
+        }
+    } bind PasswordResetRepository::class
+}
+
+//Start koin before each test to make sure your mock is present
+@BeforeTest
+    override fun setup() {
+        startKoin {
+            modules(testModule)
+        }
+    }
+```
+
 To throw an exception use `throws`:
 
 ```kotlin
