@@ -1,6 +1,7 @@
 # Mokkery
 
-[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery)](https://plugins.gradle.org/plugin/dev.mokkery)
+[![Gradle Plugin Portal Beta](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=2)](https://plugins.gradle.org/plugin/dev.mokkery/2.0.0-Beta2)
+[![Gradle Plugin Portal Stable](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=1)](https://plugins.gradle.org/plugin/dev.mokkery/1.9.23-1.6.0)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
 [![API reference](https://img.shields.io/static/v1?label=api&message=reference&labelColor=gray&color=blueviolet&logo=gitbook&logoColor=white)](https://mokkery.dev)
