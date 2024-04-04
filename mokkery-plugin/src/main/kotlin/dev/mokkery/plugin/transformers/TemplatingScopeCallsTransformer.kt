@@ -31,9 +31,11 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
+import org.jetbrains.kotlin.platform.konan.isNative
 
 class TemplatingScopeCallsTransformer(
     compilerPluginScope: CompilerPluginScope,
@@ -55,9 +57,13 @@ class TemplatingScopeCallsTransformer(
         val cls = receiver.type.getClass() ?: return super.visitCall(expression)
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
-        // make return type Any? to avoid runtime checks on non-primitive types (required by Wasm-JS and K/N to work)
-        if (expression.symbol.owner.returnType.run { !isPrimitiveType(nullable = false) && !isNothing() }) {
-            expression.type = pluginContext.irBuiltIns.anyNType
+        val returnType = expression.symbol.owner.returnType
+        if (returnType.run { !isPrimitiveType(nullable = false) && !isNothing() }) {
+            // make return type nullable to avoid runtime checks on non-primitive types (required by Wasm-JS and K/N to work)
+            expression.type = when {
+                pluginContext.platform.isNative() -> pluginContext.irBuiltIns.anyNType
+                else -> returnType.makeNullable()
+            }
         }
         expression.dispatchReceiver = declarationIrBuilder(expression) {
             irBlock {
@@ -105,8 +111,9 @@ class TemplatingScopeCallsTransformer(
         arg: IrExpression
     ): IrExpression = declarationIrBuilder(symbol) {
         irCall(templatingContextClass.getSimpleFunction("interceptArg")!!) {
-            this.type = arg.type
+            this.type = arg.type.makeNullable()
             this.dispatchReceiver = irGet(templatingScope)
+            putTypeArgument(0, arg.type.makeNullable())
             putValueArgument(0, irInt(token))
             putValueArgument(1, irString(param.name.asString()))
             putValueArgument(2, interceptArgVarargs(arg))
