@@ -3,6 +3,7 @@ package dev.mokkery.internal.answering.autofill
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.AutofillProvider.Value
 import kotlin.reflect.KClass
+import kotlin.time.Duration
 
 internal class TypeToValueAutofillProvider(private val values: Map<KClass<*>, Any?>) : AutofillProvider<Any> {
 
@@ -26,6 +27,8 @@ internal val buildInTypesMapping = mapOf(
     Unit::class to Unit,
     KClass::class to Any::class,
     String::class to "",
+    Result::class to Result.failure<Any?>(IllegalStateException("Mokkery placeholder!")),
+    Duration::class to Duration.ZERO,
     IntArray::class to intArrayOf(0),
     ByteArray::class to byteArrayOf(0),
     DoubleArray::class to doubleArrayOf(0.0),
