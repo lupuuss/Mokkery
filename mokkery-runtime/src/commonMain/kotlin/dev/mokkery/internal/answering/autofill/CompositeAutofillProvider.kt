@@ -12,7 +12,7 @@ private class CompositeAutofillProviderImpl<T>(vararg initial: AutofillProvider<
 
     override val types = threadSafeTypeRegistryAutofillProvider<T & Any>()
 
-    override val delegates = threadSafeDelegateAutofillProvider<T>(initial = initial).apply { register(types) }
+    override val delegates = threadSafeDelegateAutofillProvider(initial = initial).apply { register(types) }
 
     override fun provide(type: KClass<*>): AutofillProvider.Value<T> = delegates.provide(type)
 
