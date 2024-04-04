@@ -22,7 +22,11 @@ interface TestInterface : BaseInterface {
 
     fun callNothing(): Nothing
 
-    fun callWithStringValueClass(value: ValueClass<String>): ValueClass<String>
+    fun callWithPrimitiveResult(value: Result<Int>): Result<Int>
+
+    fun callWithComplexResult(value: Result<List<Int>>): Result<List<Int>>
+
+    fun callWithPrimitiveValueClass(value: PrimitiveValueClass): PrimitiveValueClass
 
     fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>>
 

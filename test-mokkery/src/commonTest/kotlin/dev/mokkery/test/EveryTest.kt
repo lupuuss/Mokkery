@@ -1,5 +1,7 @@
 package dev.mokkery.test
 
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.register
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
@@ -15,6 +17,11 @@ import kotlin.test.assertFailsWith
 class EveryTest {
 
     private val dependencyMock = mock<TestInterface>()
+
+    init {
+        AutofillProvider.forInternals.types.register { PrimitiveValueClass(0) }
+        AutofillProvider.forInternals.types.register { ValueClass(null) }
+    }
 
     @Test
     fun testMocksRegularMethodCallWithPrimitiveTypes() {
@@ -102,8 +109,8 @@ class EveryTest {
 
     @Test
     fun testMocksMethodsWithStringValueClassReturnType() {
-        every { dependencyMock.callWithStringValueClass(any()) } returns ValueClass("Hello")
-        assertEquals(ValueClass("Hello"), dependencyMock.callWithStringValueClass(ValueClass("")))
+        every { dependencyMock.callWithPrimitiveValueClass(any()) } returns PrimitiveValueClass(1)
+        assertEquals(PrimitiveValueClass(1), dependencyMock.callWithPrimitiveValueClass(PrimitiveValueClass(1)))
     }
 
     @Test
@@ -111,4 +118,18 @@ class EveryTest {
         every { dependencyMock.callWithComplexValueClass(any()) } returns ValueClass(listOf("Hello"))
         assertEquals(ValueClass(listOf("Hello")), dependencyMock.callWithComplexValueClass(ValueClass(listOf("Hello"))))
     }
+
+
+    @Test
+    fun testMocksMethodsWithPrimitiveResultReturnType() {
+        every { dependencyMock.callWithPrimitiveResult(any()) } returns Result.success(1)
+        assertEquals(Result.success(1), dependencyMock.callWithPrimitiveResult(Result.success(0)))
+    }
+
+    @Test
+    fun testMocksMethodsWithComplexResultReturnType() {
+        every { dependencyMock.callWithComplexResult(any()) } returns Result.success(listOf(1))
+        assertEquals(Result.success(listOf(1)), dependencyMock.callWithComplexResult(Result.success(emptyList())))
+    }
+
 }

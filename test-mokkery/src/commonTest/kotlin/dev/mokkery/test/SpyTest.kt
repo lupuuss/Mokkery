@@ -1,8 +1,13 @@
 package dev.mokkery.test
 
+import dev.mokkery.answering.autofill.AutofillProvider
+import dev.mokkery.answering.autofill.register
+import dev.mokkery.matcher.any
 import dev.mokkery.spy
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -10,6 +15,11 @@ import kotlin.test.assertFailsWith
 class SpyTest {
 
     private val spied = spy<TestInterface>(TestInterfaceImpl)
+
+    init {
+        AutofillProvider.forInternals.types.register { PrimitiveValueClass(0) }
+        AutofillProvider.forInternals.types.register { ValueClass(null) }
+    }
 
     @Test
     fun testEveryMethodReturnsFromRealImpl() {
@@ -81,8 +91,12 @@ class SpyTest {
     fun testRegistersMethodCalls() = runTest {
         spied.callWithPrimitives(1)
         spied.callWithSuspension(1)
+        spied.callWithComplexResult(Result.success(listOf(1)))
+        spied.callWithPrimitiveValueClass(PrimitiveValueClass(1))
         runCatching { spied.callNothing() }
         verifySuspend {
+            spied.callWithComplexResult(any())
+            spied.callWithPrimitiveValueClass(any())
             spied.callWithPrimitives(1)
             spied.callWithSuspension(1)
             spied.callNothing()
@@ -111,7 +125,11 @@ private object TestInterfaceImpl : TestInterface {
 
     override fun callNothing(): Nothing = throw IllegalArgumentException()
 
-    override fun callWithStringValueClass(value: ValueClass<String>): ValueClass<String> = value
+    override fun callWithPrimitiveResult(value: Result<Int>): Result<Int> = value
+
+    override fun callWithComplexResult(value: Result<List<Int>>): Result<List<Int>> = value
+
+    override fun callWithPrimitiveValueClass(value: PrimitiveValueClass): PrimitiveValueClass = value
 
     override fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>> = value
 
