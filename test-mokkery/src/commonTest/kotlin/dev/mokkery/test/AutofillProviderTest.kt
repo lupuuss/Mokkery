@@ -3,8 +3,9 @@ package dev.mokkery.test
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.mock
 import dev.mokkery.answering.autofill.AutofillProvider
-import dev.mokkery.answering.autofill.register
-import dev.mokkery.answering.autofill.unregister
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -13,33 +14,61 @@ import kotlin.test.assertEquals
 class AutofillProviderTest {
 
     private val mock = mock<TestInterface>(autofill)
-    private val customProvider = AutofillProvider {
-        AutofillProvider.Value.providedIfNotNull { if (it == String::class) "Hello!" else null }
+    private val forMockMode = AutofillProvider {
+        AutofillProvider.Value.providedIfNotNull {
+            when (it) {
+                String::class -> "Hello!"
+                Int::class -> 2
+                else -> null
+            }
+        }
+    }
+    private val forInternals = AutofillProvider {
+        AutofillProvider.Value.providedIfNotNull {
+            when (it) {
+                Int::class -> 1
+                Double::class -> 1.0
+                else -> null
+            }
+        }
     }
 
     @BeforeTest
     fun before() {
-        AutofillProvider.registerProvider(customProvider)
-        AutofillProvider.register<Int> { 7312 }
+        AutofillProvider.forMockMode.delegates.register(forMockMode)
+        AutofillProvider.forInternals.delegates.register(forInternals)
     }
 
     @AfterTest
     fun after() {
-        AutofillProvider.unregisterProvider(customProvider)
-        AutofillProvider.unregister<Int>()
+        AutofillProvider.forMockMode.delegates.unregister(forMockMode)
+        AutofillProvider.forInternals.delegates.unregister(forInternals)
     }
 
     @Test
-    fun testProvidesAutofillValuesFromProvider() {
-        assertEquals(7312, mock.callWithDefault(0))
+    fun testProvidesAutofillValuesForMockModeFromBothProvidersPrioritizingForMock() {
+        assertEquals(2, mock.callWithDefault(0))
+        assertEquals(1.0, mock.callWithPrimitives(0))
         assertEquals("Hello!", mock.callWithIntArray(intArrayOf()))
     }
 
     @Test
-    fun testProperlyUnregistersProvider() {
-        AutofillProvider.unregisterProvider(customProvider)
-        AutofillProvider.unregister<Int>()
+    fun testProvidesAutofillValuesForInternalsOnlyFromDedicatedProvider() {
+        var internalsValueInt: Int? = null
+        var internalsValueDouble: Double? = null
+        every { mock.callWithDefault(any()).also { internalsValueInt = it } } returns 33
+        every { mock.callWithPrimitives(any()).also { internalsValueDouble = it } } returns 33.0
+        assertEquals(1, internalsValueInt)
+        assertEquals(1.0, internalsValueDouble)
+    }
+
+    @Test
+    fun testProperlyUnregistersProviders() {
+        AutofillProvider.forMockMode.delegates.unregister(forMockMode)
+        AutofillProvider.forInternals.delegates.unregister(forInternals)
         assertEquals(0, mock.callWithDefault(0))
+        assertEquals(0.0, mock.callWithPrimitives(0))
         assertEquals("", mock.callWithIntArray(intArrayOf()))
     }
+
 }

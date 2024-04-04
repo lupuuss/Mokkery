@@ -74,11 +74,11 @@ public interface Answer<out T> {
 
     /**
      * Used whenever there is no defined answer for a call to mock that is in [dev.mokkery.MockMode.autofill].
-     * Refer to [AutofillProvider.Companion] to read more about returned values.
+     * Refer to [AutofillProvider.forMockMode] to read more about returned values.
      */
     public object Autofill : Answer<Any?> {
 
-        override fun call(scope: FunctionScope): Any? = AutofillProvider.provideValue(scope.returnType)
+        override fun call(scope: FunctionScope): Any? = AutofillProvider.forMockMode.provideValue(scope.returnType)
     }
 
     /**

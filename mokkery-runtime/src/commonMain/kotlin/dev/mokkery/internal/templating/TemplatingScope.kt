@@ -36,7 +36,7 @@ internal fun TemplatingScope(
     signatureGenerator: SignatureGenerator = SignatureGenerator(),
     composer: ArgMatchersComposer = ArgMatchersComposer(),
     binder: TemplatingScopeDataBinder = TemplatingScopeDataBinder(),
-    autofill: AutofillProvider<Any?> = AutofillProvider.builtIn
+    autofill: AutofillProvider<Any?> = AutofillProvider.forInternals
 ): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = signatureGenerator,
     composer = composer,

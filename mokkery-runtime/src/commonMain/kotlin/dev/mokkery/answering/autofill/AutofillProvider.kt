@@ -1,22 +1,24 @@
 @file:Suppress("NOTHING_TO_INLINE")
+
 package dev.mokkery.answering.autofill
 
-import dev.mokkery.answering.autofill.AutofillProvider.Companion.register
-import dev.mokkery.answering.autofill.AutofillProvider.Companion.registerProvider
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider
 import dev.mokkery.internal.answering.autofill.NothingValueProvider
-import dev.mokkery.internal.answering.autofill.TypeToFunctionAutofillProvider
 import dev.mokkery.internal.answering.autofill.TypeToValueAutofillProvider
 import dev.mokkery.internal.answering.autofill.buildInTypesMapping
-import dev.mokkery.internal.synchronizedMapOf
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
+import dev.mokkery.internal.answering.autofill.compositeAutofillProvider
 import kotlin.reflect.KClass
 
 /**
- * Provides a value whenever there is a call to not mocked function in [dev.mokkery.MockMode.autofill].
+ * Provides a value whenever there is a need to return a *placeholder* of certain type.
+ *
+ * The most important [AutofillProvider] objects are:
+ * * [forInternals] - used in internal machinery.
+ * * [forMockMode] - used in mock mode. Initially it only fallbacks to [forInternals]
+ *
+ * Both allows registering custom providers.
  */
 public fun interface AutofillProvider<out T> {
 
@@ -58,91 +60,48 @@ public fun interface AutofillProvider<out T> {
             /**
              * Returns an instance of [Provided] if [value] is not null. Otherwise, it returns [Absent].
              */
-            public inline fun <T : Any> providedIfNotNull(value: () -> T?) : Value<T> = value()
+            public inline fun <T : Any> providedIfNotNull(value: () -> T?): Value<T> = value()
                 ?.let(::Provided)
                 ?: Absent
         }
     }
 
-    /**
-     * Implementation of [AutofillProvider] that is used by [dev.mokkery.answering.Answer.Autofill].
-     * It provides defaults and also allows registering custom providers.
-     *
-     * Lookup order:
-     * * Custom implementations of [AutofillProvider] registered with [registerProvider].
-     * * Simplified type-to-function providers registered with [register]
-     * * Defaults
-     *
-     * By default, it provides:
-     * * For any [Number] - 0
-     * * For [Boolean] - false
-     * * For [String] - ""
-     * * For [KClass] - Any::class
-     * * For [Unit] - [Unit]
-     * * For complex types:
-     *    * JVM and Wasm - null
-     *    * JS - empty object `{}`
-     *    * Native - reference to `object UnsafeValue`
-     *  * For arrays - array with single element according to previous rules
-     */
-    public companion object : AutofillProvider<Any?> {
+    public companion object {
 
-        internal val builtIn = CombinedProviders(
+        private val builtIn = CombinedProviders(
             TypeToValueAutofillProvider(buildInTypesMapping),
             NothingValueProvider,
             GenericArrayProvider,
             AnyValueProvider
         )
 
-        private val registeredTypes = synchronizedMapOf<KClass<*>, () -> Any>()
-        private val delegate = atomic(CombinedProviders(TypeToFunctionAutofillProvider(registeredTypes), builtIn))
-
-        override fun provide(type: KClass<*>): Value<Any?> = delegate.value.provide(type)
+        /**
+         * Provides default values for internal components.
+         *
+         * Refer to [CompositeAutofillProvider] to read about customization possibilities.
+         *
+         * By default, it provides:
+         * * For any [Number] - 0
+         * * For [Boolean] - false
+         * * For [String] - ""
+         * * For [KClass] - Any::class
+         * * For [Unit] - [Unit]
+         * * For complex types:
+         *    * JVM and Wasm - null
+         *    * JS - empty object `{}`
+         *    * Native - reference to `object UnsafeValue`
+         *  * For arrays - array with single element according to previous rules
+         */
+        public val forInternals: CompositeAutofillProvider<Any?> = compositeAutofillProvider(builtIn)
 
         /**
-         * Registers [provider] to be used before previously registered providers (including initial defaults).
+         * It is used in [dev.mokkery.MockMode.autofill] mode
+         * (more specifically in [dev.mokkery.answering.Answer.Autofill]).
+         * Initially it only fallbacks to [forInternals] so it provides values from it.
+         * Refer to [CompositeAutofillProvider] to read about customization possibilities.
          */
-        public fun registerProvider(provider: AutofillProvider<*>) {
-            delegate.update { it.withFirst(provider) }
-        }
-
-        /**
-         * Unregisters [provider] registered with [registerProvider] so it is no longer in use.
-         */
-        public fun unregisterProvider(provider: AutofillProvider<*>) {
-            delegate.update { it.without(provider) }
-        }
-
-        /**
-         * Registers a [provider] for [type].
-         * It overwrites any provider registered for the same [type] with this method.
-         * It's used after providers registered with [registerProvider].
-         */
-        public fun <T : Any> register(type: KClass<T>, provider: () -> T) {
-            registeredTypes[type] = provider
-        }
-
-        /**
-         * Unregisters provider registered with [register] for [type] so it is no longer in use.
-         */
-        public fun unregister(type: KClass<*>) {
-            registeredTypes.remove(type)
-        }
+        public val forMockMode: CompositeAutofillProvider<Any?> = compositeAutofillProvider(forInternals)
     }
-}
-
-/**
- * Calls [AutofillProvider.register] with type [T].
- */
-public inline fun <reified T : Any> AutofillProvider.Companion.register(noinline provider: () -> T) {
-    register(T::class, provider)
-}
-
-/**
- * Calls [AutofillProvider.unregister] with type [T].
- */
-public inline fun <reified T : Any> AutofillProvider.Companion.unregister() {
-    unregister(T::class)
 }
 
 /**

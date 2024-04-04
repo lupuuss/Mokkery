@@ -22,7 +22,7 @@ internal fun combine(vararg interceptors: MokkeryInterceptor): MokkeryIntercepto
 
 private class CombinedInterceptor(
     private val interceptors: Array<out MokkeryInterceptor>,
-    private val autofill: AutofillProvider<Any?> = AutofillProvider.builtIn,
+    private val autofill: AutofillProvider<Any?> = AutofillProvider.forInternals,
 ) : MokkeryInterceptor {
 
     override fun interceptCall(context: CallContext): Any? {
