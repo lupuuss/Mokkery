@@ -99,4 +99,16 @@ class EveryTest {
         every { dependencyMock.callWithSelf(dependencyMock) } returns Unit
         dependencyMock.callWithSelf(dependencyMock)
     }
+
+    @Test
+    fun testMocksMethodsWithStringValueClassReturnType() {
+        every { dependencyMock.callWithStringValueClass(any()) } returns ValueClass("Hello")
+        assertEquals(ValueClass("Hello"), dependencyMock.callWithStringValueClass(ValueClass("")))
+    }
+
+    @Test
+    fun testMocksMethodsWithComplexValueClassReturnType() {
+        every { dependencyMock.callWithComplexValueClass(any()) } returns ValueClass(listOf("Hello"))
+        assertEquals(ValueClass(listOf("Hello")), dependencyMock.callWithComplexValueClass(ValueClass(listOf("Hello"))))
+    }
 }

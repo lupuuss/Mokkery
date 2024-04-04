@@ -111,6 +111,10 @@ private object TestInterfaceImpl : TestInterface {
 
     override fun callNothing(): Nothing = throw IllegalArgumentException()
 
+    override fun callWithStringValueClass(value: ValueClass<String>): ValueClass<String> = value
+
+    override fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>> = value
+
     override fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number = value
 
     override val baseInterfaceProperty = "123"

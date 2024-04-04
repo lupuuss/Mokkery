@@ -22,6 +22,10 @@ interface TestInterface : BaseInterface {
 
     fun callNothing(): Nothing
 
+    fun callWithStringValueClass(value: ValueClass<String>): ValueClass<String>
+
+    fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>>
+
     fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number
 
     fun <T> callWithArray(array: Array<T>): T
