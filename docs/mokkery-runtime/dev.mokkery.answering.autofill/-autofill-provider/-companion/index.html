@@ -41,7 +41,7 @@
 <a class="library-name--link" href="../../../../index.html">
                             Mokkery
                     </a>            </div>
-            <div class="library-version">1.6.0
+            <div class="library-version">1.6.1
             </div>
         </div>
         <div class="filter-section" id="filter-section">
@@ -62,129 +62,58 @@
   <div class="breadcrumbs"><a href="../../../index.html">mokkery-runtime</a><span class="delimiter">/</span><a href="../../index.html">dev.mokkery.answering.autofill</a><span class="delimiter">/</span><a href="../index.html">AutofillProvider</a><span class="delimiter">/</span><span class="current">Companion</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Companion</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">Companion</a> : <a href="../index.html">AutofillProvider</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt; </span></div><p class="paragraph">Implementation of <a href="../index.html">AutofillProvider</a> that is used by <a href="../../../dev.mokkery.answering/-answer/-autofill/index.html">dev.mokkery.answering.Answer.Autofill</a>. It provides defaults and also allows registering custom providers.</p><p class="paragraph">Lookup order:</p><ul><li><p class="paragraph">Custom implementations of <a href="../index.html">AutofillProvider</a> registered with <a href="register-provider.html">registerProvider</a>.</p></li><li><p class="paragraph">Simplified type-to-function providers registered with <a href="register.html">register</a></p></li><li><p class="paragraph">Defaults</p></li></ul><p class="paragraph">By default, it provides:</p><ul><li><p class="paragraph">For any <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-number/index.html">Number</a> - 0</p></li><li><p class="paragraph">For <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a> - false</p></li><li><p class="paragraph">For <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a> - ""</p></li><li><p class="paragraph">For <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a> - Any::class</p></li><li><p class="paragraph">For <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a> - <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></p></li><li><p class="paragraph">For complex types:</p></li><ul><li><p class="paragraph">JVM and Wasm - null</p></li><li><p class="paragraph">JS - empty object <code class="lang-kotlin">{}</code></p></li><li><p class="paragraph">Native - reference to <code class="lang-kotlin">object UnsafeValue</code></p></li></ul><li><p class="paragraph">For arrays - array with single element according to previous rules</p></li></ul></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">Companion</a></div></div></div>
   </div>
   <div class="tabbedcontent">
-    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1938147592%2FProperties%2F-1732877104" anchor-label="forInternals" id="-1938147592%2FProperties%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="for-internals.html"><span>for</span><wbr><span><span>Internals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1938147592%2FProperties%2F-1732877104"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="for-internals.html">forInternals</a><span class="token operator">: </span><a href="../../-composite-autofill-provider/index.html">CompositeAutofillProvider</a></div><div class="brief "><p class="paragraph">Provides default values for internal components.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-83723233%2FProperties%2F-1732877104" anchor-label="forMockMode" id="-83723233%2FProperties%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="for-mock-mode.html"><span>for</span><wbr><span>Mock</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-83723233%2FProperties%2F-1732877104"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="for-mock-mode.html">forMockMode</a><span class="token operator">: </span><a href="../../-composite-autofill-provider/index.html">CompositeAutofillProvider</a></div><div class="brief "><p class="paragraph">It is used in <a href="../../../../mokkery-core/dev.mokkery/-mock-mode/autofill/index.html">dev.mokkery.MockMode.autofill</a> mode (more specifically in <a href="../../../dev.mokkery.answering/-answer/-autofill/index.html">dev.mokkery.answering.Answer.Autofill</a>). Initially it only fallbacks to <a href="for-internals.html">forInternals</a> so it provides values from it. Refer to <a href="../../-composite-autofill-provider/index.html">CompositeAutofillProvider</a> to read about customization possibilities.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-1471274159%2FFunctions%2F-1732877104" anchor-label="provide" id="-1471274159%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
+        <div class="table"><a data-name="2002748520%2FFunctions%2F-1732877104" anchor-label="ofNotNull" id="2002748520%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
           <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="provide.html"><span><span>provide</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1471274159%2FFunctions%2F-1732877104"></span>
+                  <div><a href="of-not-null.html"><span>of</span><wbr><span>Not</span><wbr><span><span>Null</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2002748520%2FFunctions%2F-1732877104"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="provide.html"><span class="token function">provide</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-value/index.html">AutofillProvider.Value</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns an instance of <a href="../-value/-provided/index.html">Value.Provided</a>, whenever value of <a href="provide.html">type</a> can be provided. Otherwise, it returns <a href="../-value/-absent/index.html">Value.Absent</a></p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="966568685%2FFunctions%2F-1732877104" anchor-label="provideValue" id="966568685%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="../../provide-value.html"><span>provide</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="966568685%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../provide-value.html">T</a><span class="token operator">&gt; </span><a href="../index.html">AutofillProvider</a><span class="token operator">&lt;</span><a href="../../provide-value.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../../provide-value.html"><span class="token function">provideValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../provide-value.html">T</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Calls <a href="../provide.html">AutofillProvider.provide</a> and returns <a href="../-value/-provided/value.html">AutofillProvider.Value.Provided.value</a> if present.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="305407071%2FFunctions%2F-1732877104" anchor-label="register" id="305407071%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="register.html"><span><span>register</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="305407071%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="register.html">T</a><span class="token operator"> : </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt; </span><a href="register.html"><span class="token function">register</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><a href="register.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">provider<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="register.html">T</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Registers a <a href="register.html">provider</a> for <a href="register.html">type</a>. It overwrites any provider registered for the same <a href="register.html">type</a> with this method. It's used after providers registered with <a href="register-provider.html">registerProvider</a>.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1534426153%2FFunctions%2F-1732877104" anchor-label="register" id="-1534426153%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="../../register.html"><span><span>register</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1534426153%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../register.html">T</a><span class="token operator"> : </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt; </span><a href="index.html">AutofillProvider.Companion</a><span class="token punctuation">.</span><a href="../../register.html"><span class="token function">register</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">noinline </span>provider<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../register.html">T</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="register.html">AutofillProvider.register</a> with type <a href="../../register.html">T</a>.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1601858341%2FFunctions%2F-1732877104" anchor-label="registerProvider" id="-1601858341%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="register-provider.html"><span>register</span><wbr><span><span>Provider</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1601858341%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="register-provider.html"><span class="token function">registerProvider</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">provider<span class="token operator">: </span><a href="../index.html">AutofillProvider</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Registers <a href="register-provider.html">provider</a> to be used before previously registered providers (including initial defaults).</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1999181722%2FFunctions%2F-1732877104" anchor-label="unregister" id="-1999181722%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="unregister.html"><span><span>unregister</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1999181722%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="unregister.html"><span class="token function">unregister</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Unregisters provider registered with <a href="register.html">register</a> for <a href="unregister.html">type</a> so it is no longer in use.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1661270346%2FFunctions%2F-1732877104" anchor-label="unregister" id="1661270346%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="../../unregister.html"><span><span>unregister</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1661270346%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../unregister.html">T</a><span class="token operator"> : </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt; </span><a href="index.html">AutofillProvider.Companion</a><span class="token punctuation">.</span><a href="../../unregister.html"><span class="token function">unregister</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="unregister.html">AutofillProvider.unregister</a> with type <a href="../../unregister.html">T</a>.</p></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1544572066%2FFunctions%2F-1732877104" anchor-label="unregisterProvider" id="1544572066%2FFunctions%2F-1732877104" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain"></a>
-          <div class="table-row" data-filterable-current=":mokkery-runtime:dokkaHtmlPartial/commonMain" data-filterable-set=":mokkery-runtime:dokkaHtmlPartial/commonMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="unregister-provider.html"><span>unregister</span><wbr><span><span>Provider</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1544572066%2FFunctions%2F-1732877104"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="unregister-provider.html"><span class="token function">unregisterProvider</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">provider<span class="token operator">: </span><a href="../index.html">AutofillProvider</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Unregisters <a href="unregister-provider.html">provider</a> registered with <a href="register-provider.html">registerProvider</a> so it is no longer in use.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":mokkery-runtime:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="of-not-null.html">T</a><span class="token operator">&gt; </span><a href="of-not-null.html"><span class="token function">ofNotNull</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">crossinline </span>block<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="of-not-null.html">T</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../index.html">AutofillProvider</a><span class="token operator">&lt;</span><a href="of-not-null.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Creates <a href="../index.html">AutofillProvider</a> that returns result of <a href="of-not-null.html">block</a> as <a href="../-value/-provided/index.html">Value.Provided</a> if it is not null. Otherwise, returns <a href="../-value/-absent/index.html">Value.Absent</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
