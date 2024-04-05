@@ -3,21 +3,20 @@ package dev.mokkery.internal.answering.autofill
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.TypeRegistryAutofillProvider
 import dev.mokkery.internal.synchronizedMapOf
-import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
 
-internal fun <T : Any> threadSafeTypeRegistryAutofillProvider(): TypeRegistryAutofillProvider<T> {
+internal fun threadSafeTypeRegistryAutofillProvider(): TypeRegistryAutofillProvider {
     return ThreadSafeTypeRegistryAutofillProvider()
 }
 
-private class ThreadSafeTypeRegistryAutofillProvider<T : Any> : TypeRegistryAutofillProvider<T> {
+private class ThreadSafeTypeRegistryAutofillProvider : TypeRegistryAutofillProvider {
 
-    private val registeredTypes = synchronizedMapOf<KClass<*>, () -> Any>()
+    private val registeredTypes = synchronizedMapOf<KClass<*>, () -> Any?>()
     private val internal = TypeToFunctionAutofillProvider(registeredTypes)
 
-    override fun provide(type: KClass<*>): AutofillProvider.Value<T> = internal.provide(type).unsafeCast()
+    override fun provide(type: KClass<*>): AutofillProvider.Value<Any?> = internal.provide(type)
 
-    override fun <R : T> register(type: KClass<R>, provider: () -> R) {
+    override fun <T> register(type: KClass<T & Any>, provider: () -> T?) {
         registeredTypes[type] = provider
     }
 

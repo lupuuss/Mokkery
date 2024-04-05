@@ -2,6 +2,8 @@
 
 package dev.mokkery.answering.autofill
 
+import dev.mokkery.answering.autofill.AutofillProvider.Companion.forInternals
+import dev.mokkery.answering.autofill.AutofillProvider.Companion.forMockMode
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider
@@ -92,7 +94,7 @@ public fun interface AutofillProvider<out T> {
          *    * Native - reference to `object UnsafeValue`
          *  * For arrays - array with single element according to previous rules
          */
-        public val forInternals: CompositeAutofillProvider<Any?> = compositeAutofillProvider(builtIn)
+        public val forInternals: CompositeAutofillProvider = compositeAutofillProvider(builtIn)
 
         /**
          * It is used in [dev.mokkery.MockMode.autofill] mode
@@ -100,7 +102,7 @@ public fun interface AutofillProvider<out T> {
          * Initially it only fallbacks to [forInternals] so it provides values from it.
          * Refer to [CompositeAutofillProvider] to read about customization possibilities.
          */
-        public val forMockMode: CompositeAutofillProvider<Any?> = compositeAutofillProvider(forInternals)
+        public val forMockMode: CompositeAutofillProvider = compositeAutofillProvider(forInternals)
     }
 }
 

@@ -6,15 +6,15 @@ package dev.mokkery.answering.autofill
  * * [delegates]
  * * [types]
  */
-public interface CompositeAutofillProvider<T> : AutofillProvider<T> {
+public interface CompositeAutofillProvider : AutofillProvider<Any?> {
 
     /**
      * Allows injecting implementations of [AutofillProvider]. This provider is used first.
      */
-    public val delegates: DelegateAutofillProvider<T>
+    public val delegates: DelegateAutofillProvider<Any?>
 
     /**
      * Allows providing simple type-to-function mapping. This provider is used second.
      */
-    public val types: TypeRegistryAutofillProvider<T & Any>
+    public val types: TypeRegistryAutofillProvider
 }

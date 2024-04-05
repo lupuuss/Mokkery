@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class ThreadSafeTypeRegistryAutofillProviderTest {
 
-    private val provider = threadSafeTypeRegistryAutofillProvider<Any>()
+    private val provider = threadSafeTypeRegistryAutofillProvider()
 
     init {
         provider.register(Int::class) { 37 }

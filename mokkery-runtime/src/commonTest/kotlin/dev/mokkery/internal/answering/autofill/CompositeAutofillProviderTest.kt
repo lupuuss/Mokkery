@@ -17,7 +17,7 @@ class CompositeAutofillProviderTest {
             else -> Value.Absent
         }
     }
-    private val provider = compositeAutofillProvider<Any?>(initial)
+    private val provider = compositeAutofillProvider(initial)
 
     init {
         val newProvider = AutofillProvider { if (it == Int::class) Value.Provided(37) else Value.Absent }
