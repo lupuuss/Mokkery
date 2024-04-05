@@ -1,7 +1,7 @@
 # Mokkery
 
-[![Gradle Plugin Portal Beta](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=2)](https://plugins.gradle.org/plugin/dev.mokkery/2.0.0-Beta2)
-[![Gradle Plugin Portal Stable](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=1)](https://plugins.gradle.org/plugin/dev.mokkery/1.9.23-1.6.0)
+[![Gradle Plugin Portal Beta](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=2)](https://plugins.gradle.org/plugin/dev.mokkery/2.0.0-Beta3)
+[![Gradle Plugin Portal Stable](https://img.shields.io/gradle-plugin-portal/v/dev.mokkery?versionPrefix=1)](https://plugins.gradle.org/plugin/dev.mokkery/1.9.23-1.6.1)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GitHub](https://img.shields.io/github/license/lupuuss/Mokkery)](https://github.com/lupuuss/Mokkery/blob/main/LICENSE)
 [![API reference](https://img.shields.io/static/v1?label=api&message=reference&labelColor=gray&color=blueviolet&logo=gitbook&logoColor=white)](https://mokkery.dev)
@@ -48,7 +48,7 @@ Apply Gradle plugin to your kotlin project:
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.23"
-    id("dev.mokkery") version "1.9.23-1.6.0"
+    id("dev.mokkery") version "1.9.23-1.6.1"
 }
 ```
 
@@ -59,7 +59,7 @@ The plugin will be applied to all Kotlin source sets in the project that contain
 ```kotlin
 plugins {
     kotlin("multiplatform") version "1.9.23"
-    id("dev.mokkery") version "1.9.23-1.6.0"
+    id("dev.mokkery") version "1.9.23-1.6.1"
 }
 
 mokkery {
@@ -94,8 +94,10 @@ Kotlin version is always prioritized.
 
 | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
 |------------------------------------|--------------------------------------------------------|--------------------------|
+| 2.0.0-Beta3 	                      | 2.0.0-Beta5+	                                          | `"2.0.0-Beta3"`          |
 | 2.0.0-Beta2 	                      | 2.0.0-Beta5+	                                          | `"2.0.0-Beta2"`          |
 | 2.0.0-Beta1 	                      | 2.0.0-Beta4	                                           | `"2.0.0-Beta1"`          |
+| 1.6.1 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.1"` |
 | 1.6.0 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.0"` |
 | 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
 | 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"$kotlinVersion-1.4.0"` |
