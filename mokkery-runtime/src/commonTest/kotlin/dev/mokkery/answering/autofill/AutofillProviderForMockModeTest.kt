@@ -1,6 +1,5 @@
 package dev.mokkery.answering.autofill
 
-import dev.mokkery.answering.autofill.AutofillProvider.Value
 import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
@@ -15,8 +14,8 @@ class AutofillProviderForMockModeTest {
 
     private val providerForMock = AutofillProvider.forMockMode
     private val providerForInternals = AutofillProvider.forInternals
-    private val newMockProvider = AutofillProvider { if (it == Int::class) Value.Provided(1) else Value.Absent }
-    private val newInternalProvider = AutofillProvider { if (it == Int::class) Value.Provided(3) else Value.Absent }
+    private val newMockProvider = AutofillProvider.ofNotNull {  if (it == Int::class) 1 else null }
+    private val newInternalProvider = AutofillProvider.ofNotNull { if (it == Int::class) 3 else null }
 
     @BeforeTest
     fun before() {

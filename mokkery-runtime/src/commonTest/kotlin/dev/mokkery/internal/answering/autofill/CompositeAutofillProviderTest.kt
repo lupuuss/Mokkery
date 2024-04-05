@@ -9,12 +9,12 @@ import kotlin.test.assertEquals
 
 class CompositeAutofillProviderTest {
 
-    private val initial = AutofillProvider {
+    private val initial = AutofillProvider.ofNotNull {
         when (it) {
-            Int::class -> Value.Provided(0)
-            String::class -> Value.Provided("")
-            Byte::class -> Value.Provided<Byte>(0)
-            else -> Value.Absent
+            Int::class -> 0
+            String::class -> ""
+            Byte::class -> 0.toByte()
+            else -> null
         }
     }
     private val provider = compositeAutofillProvider(initial)

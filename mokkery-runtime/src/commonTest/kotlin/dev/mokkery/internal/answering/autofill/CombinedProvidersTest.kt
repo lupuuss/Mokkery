@@ -9,18 +9,16 @@ import kotlin.test.assertEquals
 class CombinedProvidersTest {
 
     private val provider = CombinedProviders<Any?>(
-        { Value.providedIfNotNull { if (it == Int::class) 0 else null } },
-        { Value.providedIfNotNull { if (it == String::class) "" else null } },
+        AutofillProvider.ofNotNull{ if (it == Int::class) 0 else null },
+        AutofillProvider.ofNotNull{ if (it == String::class) "" else null },
     )
 
-    private val newProvider = AutofillProvider {
-        Value.providedIfNotNull {
-            when (it) {
-                Int::class -> 37
-                String::class -> "Hello!"
-                Byte::class -> 5.toByte()
-                else -> null
-            }
+    private val newProvider = AutofillProvider.ofNotNull {
+        when (it) {
+            Int::class -> 37
+            String::class -> "Hello!"
+            Byte::class -> 5.toByte()
+            else -> null
         }
     }
 

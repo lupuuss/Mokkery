@@ -103,6 +103,14 @@ public fun interface AutofillProvider<out T> {
          * Refer to [CompositeAutofillProvider] to read about customization possibilities.
          */
         public val forMockMode: CompositeAutofillProvider = compositeAutofillProvider(forInternals)
+
+        /**
+         * Creates [AutofillProvider] that returns result of [block] as [Value.Provided] if it is not null.
+         * Otherwise, returns [Value.Absent].
+         */
+        public inline fun <T> ofNotNull(crossinline block: (KClass<*>) -> T?): AutofillProvider<T> = AutofillProvider {
+            Value.providedIfNotNull { block(it) }
+        }
     }
 }
 

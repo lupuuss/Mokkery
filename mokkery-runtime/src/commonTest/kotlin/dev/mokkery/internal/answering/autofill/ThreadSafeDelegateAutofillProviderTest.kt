@@ -8,16 +8,16 @@ import kotlin.test.assertEquals
 
 class ThreadSafeDelegateAutofillProviderTest {
 
-    private val initial = AutofillProvider {
+    private val initial = AutofillProvider.ofNotNull {
         when (it) {
-            Int::class -> Value.Provided(0)
-            String::class -> Value.Provided("")
-            Byte::class -> Value.Provided<Byte>(0)
-            else -> Value.Absent
+            Int::class -> 0
+            String::class -> ""
+            Byte::class -> 0.toByte()
+            else -> null
         }
     }
-    private val newProvider1 = AutofillProvider { if (it == Int::class) Value.Provided(37) else Value.Absent }
-    private val newProvider2 = AutofillProvider { if (it == Double::class) Value.Provided(37.21) else Value.Absent }
+    private val newProvider1 = AutofillProvider.ofNotNull { if (it == Int::class) 37 else null }
+    private val newProvider2 = AutofillProvider.ofNotNull { if (it == Double::class) 37.21 else null }
     private val provider = threadSafeDelegateAutofillProvider(initial)
 
     init {
@@ -45,12 +45,12 @@ class ThreadSafeDelegateAutofillProviderTest {
     @Test
     fun testReturnsFromInitialWhenLaterRegisteredProviderUnregistered() {
         provider.unregister(newProvider1)
-        assertEquals(0 , provider.provideValue(Int::class))
+        assertEquals(0, provider.provideValue(Int::class))
     }
 
     @Test
     fun testReturnsAbsentWhenTheOnlyProviderUnregistered() {
         provider.unregister(newProvider2)
-        assertEquals(Value.Absent , provider.provide(Double::class))
+        assertEquals(Value.Absent, provider.provide(Double::class))
     }
 }

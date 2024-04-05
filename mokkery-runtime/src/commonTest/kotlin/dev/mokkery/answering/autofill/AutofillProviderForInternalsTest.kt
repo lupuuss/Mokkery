@@ -1,6 +1,5 @@
 package dev.mokkery.answering.autofill
 
-import dev.mokkery.answering.autofill.AutofillProvider.Value
 import dev.mokkery.internal.DefaultNothingException
 import dev.mokkery.internal.unsafeCast
 import kotlin.reflect.KClass
@@ -14,7 +13,7 @@ import kotlin.test.assertFailsWith
 class AutofillProviderForInternalsTest {
 
     private val provider = AutofillProvider.forInternals
-    private val newProvider = AutofillProvider { if (it == Int::class) Value.Provided(37) else Value.Absent }
+    private val newProvider = AutofillProvider.ofNotNull { if (it == Int::class) 37 else null }
 
     @BeforeTest
     fun before() {

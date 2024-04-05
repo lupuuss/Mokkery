@@ -14,22 +14,18 @@ import kotlin.test.assertEquals
 class AutofillProviderTest {
 
     private val mock = mock<TestInterface>(autofill)
-    private val forMockMode = AutofillProvider {
-        AutofillProvider.Value.providedIfNotNull {
-            when (it) {
-                String::class -> "Hello!"
-                Int::class -> 2
-                else -> null
-            }
+    private val forMockMode = AutofillProvider.ofNotNull {
+        when (it) {
+            String::class -> "Hello!"
+            Int::class -> 2
+            else -> null
         }
     }
-    private val forInternals = AutofillProvider {
-        AutofillProvider.Value.providedIfNotNull {
-            when (it) {
-                Int::class -> 1
-                Double::class -> 1.0
-                else -> null
-            }
+    private val forInternals = AutofillProvider.ofNotNull {
+        when (it) {
+            Int::class -> 1
+            Double::class -> 1.0
+            else -> null
         }
     }
 
