@@ -88,15 +88,9 @@ pluginManagement {
 
 ### Compatibility
 
-The goal is to support 4 latest versions of Kotlin for each library release. However, if a new Kotlin release introduces 
-breaking changes, especially in the compiler API, it might result in dropped support for older versions. The latest 
-Kotlin version is always prioritized.
-
 | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
 |------------------------------------|--------------------------------------------------------|--------------------------|
 | 2.0.0-Beta3 	                      | 2.0.0-Beta5+	                                          | `"2.0.0-Beta3"`          |
-| 2.0.0-Beta2 	                      | 2.0.0-Beta5+	                                          | `"2.0.0-Beta2"`          |
-| 2.0.0-Beta1 	                      | 2.0.0-Beta4	                                           | `"2.0.0-Beta1"`          |
 | 1.6.1 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.1"` |
 | 1.6.0 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.0"` |
 | 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
