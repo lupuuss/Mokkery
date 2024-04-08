@@ -10,7 +10,7 @@ description: Explore a comprehensive range of matchers through practical example
 Matchers are quite straightforward to use. Instead of literal argument, you have to pass a matcher. You can use named
 parameters and change their order. Mixing matchers and literal arguments is also allowed. 
 
-Full list of matchers with documentation is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/-arg-matchers-scope/index.html).
+Full list of matchers with documentation is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/-arg-matchers-scope/index.html).
 
 ### Logical matchers
 
@@ -20,7 +20,7 @@ Logical matchers allows combining regular matchers into logical expressions.
 everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
 ```
 
-Full list of logical matchers is available [here](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
+Full list of logical matchers is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
 
 ### Vararg matchers
 
@@ -81,8 +81,8 @@ inline fun <reified T> ArgMatchersScope.eqAnyOf(
 
 It is possible to use `matching` as anonymous matcher directly.
 
-You can also implement [ArgMatcher](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/-arg-matcher/index.html) 
-and pass its instance as an argument to [ArgMatchersScope.matches](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
+You can also implement [ArgMatcher](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/-arg-matcher/index.html)
+and pass its instance as an argument to [ArgMatchersScope.matches](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
 
 ### Arguments capturing
 
