@@ -36,7 +36,7 @@ const config = {
     projectName: 'Mokkery',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
-    customFields: { description: tagLine },
+    customFields: {description: tagLine},
     i18n: {
         defaultLocale: 'en',
         locales: ['en'],
@@ -73,6 +73,11 @@ const config = {
                         sidebarId: 'docs',
                         position: 'left',
                         label: 'Docs',
+                    },
+                    {
+                        to: 'pathname:///api_reference',
+                        position: 'left',
+                        label: 'API'
                     },
                     {
                         href: 'https://github.com/lupuuss/Mokkery',
