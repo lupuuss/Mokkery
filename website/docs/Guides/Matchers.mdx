@@ -31,7 +31,7 @@ everySuspend { repository.findAllById("1", any(), "3") } returns emptyList()
 ```
 
 The problem with regular matchers here is that the number of varargs is always fixed. Answer definition above works only
-for calls with "1" at index 0, any arg at index 1 and "3" at index 2.
+for calls with `"1"` at index 0, any arg at index 1 and `"3"` at index 2.
 
 To solve this problem you can use wildcard matchers:
 
@@ -39,7 +39,7 @@ To solve this problem you can use wildcard matchers:
 everySuspend { repository.findAllById("1", *anyVarargs(), "3") } returns emptyList()
 ```
 
-Now all `findAllById` calls with "1" as the first argument and "3" as the last argument return an empty list.
+Now all `findAllById` calls with `"1"` as the first argument and `"3"` as the last argument return an empty list.
 
 You can apply restrictions with wildcard matchers using `varargsAny` and `varargsAll`:
 

@@ -4,6 +4,9 @@ html * {
   font-family: 'Space Grotesk';
 }
 
+code {
+  font-family: monospace;
+}
 code * {
   font-family: monospace;
 }
