@@ -26,7 +26,7 @@ To create a mock of `BooksRepository` use `mock` function:
 ```kotlin
 val repository = mock<BooksRepository>()
 ```
-If you call a method that has no defined behaviour, it will result in runtime error by default. To learn how to change this locally or globally read [mock mode](../docs/Guides/Mocking#mock_mode) section.
+If you call a method that has no defined behaviour, it will result in runtime error by default. To learn how to change this locally or globally read [mock mode](../docs/Guides/Mocking#mock-modes) section.
 
 To define an answer for regular function use `every`:
 ```kotlin
@@ -88,7 +88,7 @@ verifySuspend {
 }
 ```
 
-By default, `verify` works in [soft](../docs/Guides/Verifying#Soft_modes_family) mode. It checks if each call pattern occured at least once.
+By default, `verify` works in [soft](../docs/Guides/Verifying#soft-modes-family) mode. It checks if each call pattern occured at least once.
 
 In this mode, each verification is performed independently so in example below, both verifications have the same result:
 
@@ -109,6 +109,6 @@ verify {
 }
 ```
 
-In conclusion, there is no point of putting duplicated patterns in `verify` with [soft](../docs/Guides/Verifying#Soft_modes_family) mode.
+In conclusion, there is no point of putting duplicated patterns in `verify` with [soft](../docs/Guides/Verifying#soft-modes-family) mode.
 
 Read [verifying](../docs/Guides/Verifying) section to learn about more strict verification modes and how to configure them locally and globally!

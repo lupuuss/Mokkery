@@ -96,7 +96,7 @@ function HomepageHeader() {
                 }}>
                     <Link
                         className="button button--secondary button--lg"
-                        to="/docs/setup">
+                        to="../docs/Setup">
                         Get started!
                     </Link>
                     <iframe

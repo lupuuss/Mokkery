@@ -6,7 +6,7 @@ const sidebars = {
   docs: [
    'Setup',
    'Quick_start',
-   `Limitations`,
+   'Limitations',
    {
     type: 'category',
     label: 'Guides',

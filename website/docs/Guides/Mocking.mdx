@@ -15,7 +15,7 @@ interface BooksRepository {
     fun findAll(): Flow<Book>
 }
 ```
-> :warning: **Please read [limitations](../docs/Limitations) section!**
+> :warning: **Please read [limitations](../Limitations) section!**
 
 Mock tracks all method calls and allows [defining their answers](#defining-answers).
 
@@ -78,7 +78,7 @@ val repository = mock<BookRepository>(autoUnit) {
     everySuspend { countAll() } returns 1
 }
 ```
-`returns` is quite simple and returns always the same value. If you want to discover other behaviours check [answers](../docs/Guides/Answers) guide!
+`returns` is quite simple and returns always the same value. If you want to discover other behaviours check [answers](../Guides/Answers) guide!
 
 If a method accepts parameters, you can define an answer only for specific parameters:
 ```kotlin
@@ -90,7 +90,7 @@ repository.findById("2") // returns Book(id = "2", ...)
 repository.findById("3") // error - answer not defined
 ```
 
-To accept more broad range of parameter values use [matchers](../docs/Guides/Matchers):
+To accept more broad range of parameter values use [matchers](../Guides/Matchers):
 ```kotlin
 everySuspend { repository.findById(any()) } returns Book(id = "1", ...)
 
