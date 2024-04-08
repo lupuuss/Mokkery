@@ -60,6 +60,9 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
             image: 'img/logo-social.jpg',
+            colorMode: {
+                defaultMode: 'dark'
+            },
             navbar: {
                 title: 'Mokkery',
                 logo: {
