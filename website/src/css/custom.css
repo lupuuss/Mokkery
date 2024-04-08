@@ -73,10 +73,6 @@ code * {
   background-color: var(--ifm-navbar-link-hover-color);
 }
 
-[data-theme='light'] .logoTheme * {
-  fill: #000000;
-}
-
-[data-theme='dark'] .logoTheme * {
-  fill:  #FFFFFF;
+.logoTheme * {
+  fill: var(--ifm-color-content);
 }
