@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-          cache-dependency-patch: ./website/package-lock.json
+          cache-dependency-path: ./website/package-lock.json
       - uses: gradle/gradle-build-action@v2
       - name: Install dependencies
         run: npm --prefix website ci
