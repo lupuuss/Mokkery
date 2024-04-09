@@ -54,9 +54,7 @@ const config = {
                 },
             }),
         ],
-    ],
-
-    themeConfig:
+    ],    themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
             image: 'img/logo-social.jpg',
@@ -92,6 +90,11 @@ const config = {
             prism: {
                 theme: prismThemes.oneLight,
                 darkTheme: prismThemes.oneDark,
+            },
+            algolia: {
+                appId: 'N0WOZ1O51K',
+                apiKey: '525b09570268641d25a23039249ed998',
+                indexName: 'mokkery',
             },
         }),
 };
