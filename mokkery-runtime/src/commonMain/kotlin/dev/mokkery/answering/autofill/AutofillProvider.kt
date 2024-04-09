@@ -88,11 +88,16 @@ public fun interface AutofillProvider<out T> {
          * * For [String] - ""
          * * For [KClass] - Any::class
          * * For [Unit] - [Unit]
+         * * For [Result] - [Result.failure] with [IllegalStateException]
+         * * For [kotlin.time.Duration] - [kotlin.time.Duration.ZERO]
+         * * For arrays - array with single element according to previous rules
          * * For complex types:
-         *    * JVM and Wasm - null
+         *    * Wasm - null
          *    * JS - empty object `{}`
          *    * Native - reference to `object UnsafeValue`
-         *  * For arrays - array with single element according to previous rules
+         *    * JVM:
+         *       * value classes - instance created with reflection
+         *       * other types - null
          */
         public val forInternals: CompositeAutofillProvider = compositeAutofillProvider(builtIn)
 
