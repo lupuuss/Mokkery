@@ -93,7 +93,7 @@ const config = {
             },
             algolia: {
                 appId: 'N0WOZ1O51K',
-                apiKey: '525b09570268641d25a23039249ed998',
+                apiKey: '7f1f027d4ff4397b01a917d0867d2013',
                 indexName: 'mokkery',
             },
         }),
