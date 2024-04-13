@@ -95,6 +95,7 @@ const config = {
                 appId: 'N0WOZ1O51K',
                 apiKey: '7f1f027d4ff4397b01a917d0867d2013',
                 indexName: 'mokkery',
+                contextualSearch: false
             },
         }),
 };
