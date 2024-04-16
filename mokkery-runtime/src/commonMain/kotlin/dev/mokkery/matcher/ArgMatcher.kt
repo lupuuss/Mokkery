@@ -26,66 +26,132 @@ public fun interface ArgMatcher<in T> {
     /**
      * Matches an argument that is equal to [value].
      */
-    public data class Equals<T>(val value: T) : ArgMatcher<T> {
+    public class Equals<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
         override fun toString(): String = value.description()
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Equals<*>
+            return value == other.value
+        }
+
+        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      * Matches an argument that is not equal to [value].
      */
-    public data class NotEqual<T>(val value: T) : ArgMatcher<T> {
+    public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
         override fun toString(): String = "neq(${value.description()})"
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Equals<*>
+            return value == other.value
+        }
+
+        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      * Matches an argument whose reference is equal to [value]'s reference.
      */
-    public data class EqualsRef<T>(val value: T) : ArgMatcher<T> {
+    public class EqualsRef<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg === value
 
         override fun toString(): String = "eqRef(${value.description()})"
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Equals<*>
+            return value == other.value
+        }
+
+        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      * Matches an argument whose reference is not equal to [value]'s reference.
      */
-    public data class NotEqualRef<T>(val value: T) : ArgMatcher<T> {
+    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg !== value
 
         override fun toString(): String = "neqRef(${value.description()})"
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Equals<*>
+            return value == other.value
+        }
+
+        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      *  Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toStringFun].
      */
-    public data class Matching<T>(
-        val predicate: (T) -> Boolean,
-        val toStringFun: (() -> String)
+    public class Matching<T>(
+        public val predicate: (T) -> Boolean,
+        public val toStringFun: (() -> String)
     ) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = predicate(arg)
 
         override fun toString(): String = toStringFun()
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Matching<*>
+            if (predicate != other.predicate) return false
+            if (toStringFun != other.toStringFun) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = predicate.hashCode()
+            result = 31 * result + toStringFun.hashCode()
+            return result
+        }
     }
 
     /**
      * Matches any [Comparable] [value] depending on [type] parameter.
      */
-    public data class Comparing<T>(
-        val value: T,
-        val type: Type,
+    public class Comparing<T>(
+        public val value: T,
+        public val type: Type,
     ) : ArgMatcher<T> where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
         override fun toString(): String = "${type.toString().lowercase()}(${value.description()})"
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Comparing<*>
+            if (value != other.value) return false
+            if (type != other.type) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = value.hashCode()
+            result = 31 * result + type.hashCode()
+            return result
+        }
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -95,10 +161,20 @@ public fun interface ArgMatcher<in T> {
     /**
      * Matches an argument that is instance of [type].
      */
-    public data class OfType<T>(val type: KClass<*>) : ArgMatcher<T> {
+    public class OfType<T>(public val type: KClass<*>) : ArgMatcher<T> {
+
         override fun matches(arg: T): Boolean = type.isInstance(arg)
 
         override fun toString(): String = "ofType<${type.bestName()}>()"
+
+        override fun equals(other: kotlin.Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as OfType<*>
+            return type == other.type
+        }
+
+        override fun hashCode(): Int = type.hashCode()
     }
 
     /**

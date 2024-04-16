@@ -27,17 +27,11 @@ public class CallArgs(public val args: List<Any?>) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
-
         other as CallArgs
-
         return args == other.args
     }
 
-    override fun hashCode(): Int {
-        return args.hashCode()
-    }
+    override fun hashCode(): Int = args.hashCode()
 
-    override fun toString(): String {
-        return "CallArgs(args=$args)"
-    }
+    override fun toString(): String = "CallArgs(args=$args)"
 }

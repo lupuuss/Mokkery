@@ -14,14 +14,14 @@ public object LogicalMatchers {
      * Matches argument that satisfies all the [matchers]. It must be merged with [expectedMatchers] number of [ArgMatcher]s.
      */
     @DelicateMokkeryApi
-    public data class And<T>(
-        val expectedMatchers: Int,
-        val matchers: List<ArgMatcher<T>> = emptyList()
+    public class And<T>(
+        public val expectedMatchers: Int,
+        public val matchers: List<ArgMatcher<T>> = emptyList()
     ): ArgMatcher.Composite<T> {
         override fun matches(arg: T): Boolean = matchers.all { it.matches(arg) }
 
         override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> {
-            return copy(matchers = listOf(matcher) + matchers)
+            return And(expectedMatchers = expectedMatchers, matchers = listOf(matcher) + matchers)
         }
 
         override fun isFilled(): Boolean = matchers.size == expectedMatchers
@@ -44,14 +44,14 @@ public object LogicalMatchers {
      * It must be merged with [expectedMatchers] number of ArgMatchers.
      */
     @DelicateMokkeryApi
-    public data class Or<T>(
-        val expectedMatchers: Int,
-        val matchers: List<ArgMatcher<T>> = emptyList()
+    public class Or<T>(
+        public val expectedMatchers: Int,
+        public val matchers: List<ArgMatcher<T>> = emptyList()
     ): ArgMatcher.Composite<T> {
         override fun matches(arg: T): Boolean = matchers.any { it.matches(arg) }
 
         override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> {
-            return copy(matchers = listOf(matcher) + matchers)
+            return Or(expectedMatchers = expectedMatchers, matchers = listOf(matcher) + matchers)
         }
 
         override fun isFilled(): Boolean = matchers.size == expectedMatchers
@@ -67,16 +67,32 @@ public object LogicalMatchers {
         override fun capture(value: T) {
             matchers.propagateCapture(value)
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Or<*>
+            if (expectedMatchers != other.expectedMatchers) return false
+            if (matchers != other.matchers) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = expectedMatchers
+            result = 31 * result + matchers.hashCode()
+            return result
+        }
     }
 
     /**
      * Matches argument that does not satisfy [matcher].
      */
     @DelicateMokkeryApi
-    public data class Not<T>(val matcher: ArgMatcher<T>? = null) : ArgMatcher.Composite<T> {
+    public class Not<T>(public val matcher: ArgMatcher<T>? = null) : ArgMatcher.Composite<T> {
+
         override fun matches(arg: T): Boolean = matcher!!.matches(arg).not()
 
-        override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = copy(matcher = matcher)
+        override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = Not(matcher = matcher)
 
         override fun isFilled(): Boolean = matcher != null
 
@@ -91,5 +107,14 @@ public object LogicalMatchers {
         override fun capture(value: T) {
             listOfNotNull(matcher).propagateCapture(value)
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Not<*>
+            return matcher == other.matcher
+        }
+
+        override fun hashCode(): Int = matcher?.hashCode() ?: 0
     }
 }

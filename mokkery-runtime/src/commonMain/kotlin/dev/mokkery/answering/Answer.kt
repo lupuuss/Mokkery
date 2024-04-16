@@ -44,32 +44,79 @@ public interface Answer<out T> {
     /**
      * Returns [value] on [call] and [callSuspend].
      */
-    public data class Const<T>(val value: T) : Answer<T> {
+    public class Const<T>(public val value: T) : Answer<T> {
+
         override fun call(scope: FunctionScope): T = value
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Const<*>
+            return value == other.value
+        }
+
+        override fun hashCode(): Int = value?.hashCode() ?: 0
+
+        override fun toString(): String = "Const(value=$value)"
     }
 
     /**
      * Calls [block] on [call] and [callSuspend].
      */
-    public data class Block<T>(val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Answer<T> {
+    public class Block<T>(public val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Answer<T> {
+
         override fun call(scope: FunctionScope): T = block(BlockingCallDefinitionScope(scope), CallArgs(scope.args))
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Block<*>
+            return block == other.block
+        }
+
+        override fun hashCode(): Int = block.hashCode()
+
+        override fun toString(): String = "Block(block=$block)"
     }
 
     /**
      * Throws [throwable] on [call] and [callSuspend]
      */
-    public data class Throws(val throwable: Throwable) : Answer<Nothing> {
+    public class Throws(public val throwable: Throwable) : Answer<Nothing> {
+
         override fun call(scope: FunctionScope): Nothing = throw throwable
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as Throws
+            return throwable == other.throwable
+        }
+
+        override fun hashCode(): Int = throwable.hashCode()
+
+        override fun toString(): String = "Throws(throwable=$throwable)"
     }
 
     /**
      * Just like [Block] but for suspending functions.
      */
-    public data class BlockSuspend<T>(val block: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T) : Suspending<T> {
+    public class BlockSuspend<T>(public val block: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T) : Suspending<T> {
 
         override suspend fun callSuspend(scope: FunctionScope): T {
             return block(SuspendCallDefinitionScope(scope), CallArgs(scope.args))
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as BlockSuspend<*>
+            return block == other.block
+        }
+
+        override fun hashCode(): Int = block.hashCode()
+
+        override fun toString(): String = "BlockSuspend(block=$block)"
     }
 
     /**
@@ -96,7 +143,7 @@ public interface Answer<out T> {
      * Returns results of answers from [iterator] until empty. It supports nested [Sequential] answers and calls
      * them until they are empty.
      */
-    public data class SequentialByIterator<T>(val iterator: Iterator<Answer<T>>) : Sequential<T> {
+    public class SequentialByIterator<T>(public val iterator: Iterator<Answer<T>>) : Sequential<T> {
 
         private val lock = reentrantLock()
         private var nestedSequential: Sequential<T>? by atomic(null)
@@ -118,5 +165,16 @@ public interface Answer<out T> {
             if (next is Sequential<T>) nestedSequential = next
             return next
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+            other as SequentialByIterator<*>
+            return iterator == other.iterator
+        }
+
+        override fun hashCode(): Int = iterator.hashCode()
+
+        override fun toString(): String = "SequentialByIterator(iterator=$iterator)"
     }
 }

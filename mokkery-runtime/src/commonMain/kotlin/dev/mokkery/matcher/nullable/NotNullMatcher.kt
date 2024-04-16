@@ -18,11 +18,11 @@ public inline fun <reified T : Any> ArgMatchersScope.notNull(matcher: T = any())
  * Matches an argument that is not null and matches [matcher].
  */
 @DelicateMokkeryApi
-public data class NotNullMatcher<T>(val matcher: ArgMatcher<T & Any>? = null) : ArgMatcher.Composite<T> {
+public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) : ArgMatcher.Composite<T> {
 
     override fun matches(arg: T): Boolean = arg?.let(matcher!!::matches) ?: false
 
-    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = copy(matcher = matcher)
+    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = NotNullMatcher(matcher = matcher)
 
     override fun isFilled(): Boolean = matcher != null
 
@@ -40,4 +40,12 @@ public data class NotNullMatcher<T>(val matcher: ArgMatcher<T & Any>? = null) : 
 
     override fun toString(): String = "notNull($matcher)"
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        other as NotNullMatcher<*>
+        return matcher == other.matcher
+    }
+
+    override fun hashCode(): Int = matcher?.hashCode() ?: 0
 }
