@@ -3,12 +3,14 @@ package dev.mokkery.answering.autofill
 import kotlin.reflect.KClass
 
 /**
- * Allows registering value providers for specific subtypes of [T]. This provider does not
+ * Allows registering value providers for specific types. This provider does not support polymorphism. If
+ * you register provider for some interface `A`, it provides a value only for `A::class`. Provider for `AImpl` must
+ * be registered separately.
  */
 public interface TypeRegistryAutofillProvider : AutofillProvider<Any?> {
 
     /**
-     * Registers a [provider] for [type] [R].
+     * Registers a [provider] for [type].
      * It overwrites any provider registered for the same [type] with this method.
      */
     public fun <T> register(type: KClass<T & Any>, provider: () -> T?)
