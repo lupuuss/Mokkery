@@ -74,7 +74,7 @@ public fun interface ArgMatcher<in T> {
             if (this === other) return true
             if (other == null || this::class != other::class) return false
             other as Equals<*>
-            return value == other.value
+            return value === other.value
         }
 
         override fun hashCode(): Int = value?.hashCode() ?: 0
@@ -93,7 +93,7 @@ public fun interface ArgMatcher<in T> {
             if (this === other) return true
             if (other == null || this::class != other::class) return false
             other as Equals<*>
-            return value == other.value
+            return value === other.value
         }
 
         override fun hashCode(): Int = value?.hashCode() ?: 0
