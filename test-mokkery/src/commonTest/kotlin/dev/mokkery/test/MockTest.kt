@@ -3,6 +3,7 @@ package dev.mokkery.test
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MockMode.strict
+import dev.mokkery.MockMode.original
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -94,6 +95,32 @@ class MockTest {
     fun testStrictAlwaysFailsSuspend() = runTest {
         val mock = mock<TestInterface>(strict)
         assertFails { mock.callWithSuspension(1) }
+    }
+
+    @Test
+    fun testOriginalFailsOnNonDefaultMethod() {
+        val mock = mock<TestInterface>(original)
+        assertFails { mock.callWithString("") }
+        assertFails { mock.callUnit() }
+    }
+
+    @Test
+    fun testOriginalFailsOnNonDefaultMethodSuspend() = runTest {
+        val mock = mock<TestInterface>(original)
+        assertFails { mock.callWithSuspension(1) }
+    }
+
+    @Test
+    fun testOriginalCallsOriginalImpl() = runTest {
+        val mock = mock<TestInterface>(original)
+        assertEquals(3, mock.callWithDefault(1))
+    }
+
+
+    @Test
+    fun testOriginalCallsOriginalImplSuspend() = runTest {
+        val mock = mock<TestInterface>(original)
+        assertEquals(3, mock.fetchWithDefault(1))
     }
 
     @Test
