@@ -7,6 +7,7 @@ const sidebars = {
    'Setup',
    'Quick_start',
    'Limitations',
+   'Thread_safety',
    {
     type: 'category',
     label: 'Guides',

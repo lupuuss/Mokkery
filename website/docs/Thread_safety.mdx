@@ -1,0 +1,26 @@
+---
+description: Describes how to use Mokkery in multithreaded environment
+---
+# Thread safety
+
+Mocks created using Mokkery are generally considered "thread safe" in the context of their usage in a
+ multithreaded environment. It means that calling methods on configured mock from different threads is safe.
+
+**However, configuration operations (e.g. `every`, `everySuspend`) and
+verification operations (e.g. `verify`, `verifySuspend`) are not thread-safe.
+These operations should be performed from a single thread!**
+
+Also, make sure that any defined matcher/answer does not perform any not synchronized side effects. Example below
+shows this kind of side effect.
+
+```kotlin
+var x: Int = 0
+every { mock.getAndIncrement() } calls { x++ }
+```
+
+To synchronize it, you can use [atomic-fu](https://github.com/Kotlin/kotlinx-atomicfu):
+
+```kotlin
+var x = atomic<Int>(0)
+every { mock.getAndIncrement() } calls { x.getAndIncrement() }
+```
