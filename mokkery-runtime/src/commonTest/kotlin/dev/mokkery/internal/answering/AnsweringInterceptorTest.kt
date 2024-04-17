@@ -2,13 +2,16 @@ package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
+import dev.mokkery.MockMode.original
 import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
 import dev.mokkery.test.TestCallMatcher
+import dev.mokkery.test.TestMokkeryInterceptorScope
 import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
@@ -63,6 +66,35 @@ class AnsweringInterceptorTest {
         assertFailsWith<CallNotMockedException> {
             AnsweringInterceptor(autoUnit, callMatcher).interceptSuspendCall(fakeCallContext<Int>())
         }
+    }
+
+    @Test
+    fun testThrowsCallNotMockedOnInterceptCallWhenNoSuperCallsForMockModeOriginal() {
+        assertFailsWith<CallNotMockedException> {
+            AnsweringInterceptor(original, callMatcher).interceptCall(fakeCallContext<Int>())
+        }
+    }
+
+    @Test
+    fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoSuperCallsForMockModeOriginal() = runTest {
+        assertFailsWith<CallNotMockedException> {
+            AnsweringInterceptor(original, callMatcher).interceptSuspendCall(fakeCallContext<Int>())
+        }
+    }
+
+    @Test
+    fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
+        val lookup = TestMokkeryScopeLookup { TestMokkeryInterceptorScope(interceptedType = Unit::class) }
+        val context = fakeCallContext<Int>(supers = mapOf(Unit::class to { _: List<Any?> -> 10 }))
+        assertEquals(10, AnsweringInterceptor(original, callMatcher, lookup).interceptCall(context))
+    }
+
+    @Test
+    fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
+        val lookup = TestMokkeryScopeLookup { TestMokkeryInterceptorScope(interceptedType = Unit::class) }
+        val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
+        val context = fakeCallContext<Int>(supers = mapOf(Unit::class to suspendSuper.unsafeCast()))
+        assertEquals(11, AnsweringInterceptor(original, callMatcher, lookup).interceptSuspendCall(context))
     }
 
     @Test
