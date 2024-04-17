@@ -28,13 +28,14 @@ If you call a method that has no defined behaviour, runtime exception is thrown.
     
 ### Mock modes
 
-Mokkery provides 3 modes for missing answers:
+Mokkery provides 4 modes for missing answers:
 
 
 ```kotlin
 import dev.mokkery.MockMode.strict
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MockMode.autoUnit
+import dev.mokkery.MockMode.original
 
 // default - fails on missing answers
 val repository = mock<BookRepository>(strict)
@@ -44,6 +45,11 @@ val repository = mock<BookRepository>(autofill)
 
 // autoUnit - does not fail on Unit returning methods. 
 val repository = mock<BookRepository>(autoUnit)
+
+// original - calls super implementation if available (default implementation for interface)
+//            Fails on missing super call.
+//            Useful for mocking types highly dependant on default behaviour.
+val repository = mock<BookRepository>(original)
 ```
 
 It is possible to change the default `MockMode` on the Gradle plugin level like this:
