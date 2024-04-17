@@ -5,7 +5,6 @@ import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
-import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass
 

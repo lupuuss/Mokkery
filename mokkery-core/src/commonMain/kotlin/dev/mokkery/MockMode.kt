@@ -18,5 +18,10 @@ public enum class MockMode {
     /**
      * Returns [Unit] for functions that return [Unit], otherwise fails.
      */
-    autoUnit
+    autoUnit,
+
+    /**
+     * Calls original implementations if present, otherwise fails.
+     */
+    original
 }

@@ -4,6 +4,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
+import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
@@ -16,7 +17,6 @@ import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
-import kotlin.reflect.KClass
 
 internal interface AnsweringInterceptor : MokkeryInterceptor {
 
@@ -76,12 +76,13 @@ private class AnsweringInterceptorImpl(
             .find { callMatcher.match(trace, it).isMatching }
             ?.also { it.applyCapture(trace) }
             ?.let { answers.getValue(it) }
-            ?: handleMissingAnswer(trace, context.returnType)
+            ?: handleMissingAnswer(trace, context)
     }
 
-    private fun handleMissingAnswer(trace: CallTrace, returnType: KClass<*>): Answer<*> = when {
+    private fun handleMissingAnswer(trace: CallTrace, context: CallContext): Answer<*> = when {
         mockMode == MockMode.autofill -> Answer.Autofill
-        mockMode == MockMode.autoUnit && returnType == Unit::class -> Answer.Const(Unit)
+        mockMode == MockMode.original && context.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original, lookup)
+        mockMode == MockMode.autoUnit && context.returnType == Unit::class -> Answer.Const(Unit)
         else -> throw CallNotMockedException(trace.toString())
     }
 
