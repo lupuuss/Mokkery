@@ -16,17 +16,20 @@
 The mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven.
 
 ```kotlin
-val repository = mock<BookRepository> {
-    everySuspend { findById(any()) } returns stubBook()
-}
-val service = BookService(repository)
+class BookServiceTest {
 
-@Test
-fun `rent should call repository for each book`() = runTest {
-    service.rentAll(listOf("1", "2"))
-    verifySuspend(exhaustiveOrder) {
-        repository.findById("1")
-        repository.findById("2")
+    val repository = mock<BookRepository> {
+        everySuspend { findById(any()) } calls { (id: String) -> Book(id) }
+    }
+    val service = BookService(repository)
+
+    @Test
+    fun `rent should call repository for each book`() = runTest {
+        service.rentAll(listOf("1", "2"))
+        verifySuspend(exhaustiveOrder) {
+            repository.findById("1")
+            repository.findById("2")
+        }
     }
 }
 ```
