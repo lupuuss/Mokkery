@@ -9,10 +9,10 @@ import TabItem from '@theme/TabItem';
 import {kotlinVersion, mokkeryVersion} from "../versions";
 import Logo from './logo.svg'
 
-const simpleTabBlock = `class BooksServiceTest {
+const simpleTabBlock = `class BookServiceTest {
 
     val repository = mock<BookRepository> {
-        everySuspend { findById(any()) } returns stubBook()
+        everySuspend { findById(any()) } calls { (id: String) -> Book(id) }
     }
     val service = BookService(repository)
 
