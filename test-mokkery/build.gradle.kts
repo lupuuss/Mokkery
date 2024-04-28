@@ -15,6 +15,7 @@ val mokkeryAllowIndirectSuperCalls: String by project
 
 mokkery {
     allowIndirectSuperCalls.set(mokkeryAllowIndirectSuperCalls.toBoolean())
+    ignoreFinalMembers.set(true)
 }
 
 kotlin {

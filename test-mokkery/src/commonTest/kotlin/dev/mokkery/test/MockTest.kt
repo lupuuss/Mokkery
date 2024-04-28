@@ -35,6 +35,9 @@ class MockTest {
             every { call() } returns "1"
         }
         assertEquals("1", mocked.call())
+        assertEquals("Ignored inline property", mocked.inlineProperty)
+        assertEquals("Ignored inline method", mocked.inlineMethod())
+        assertEquals("Ignored final method", mocked.finalMethod())
     }
 
     @Test
