@@ -21,7 +21,7 @@ public enum class MockMode {
     autoUnit,
 
     /**
-     * Calls original implementations if present, otherwise fails.
+     * Calls original implementation if present, otherwise fails.
      */
     original
 }
