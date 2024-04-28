@@ -3,6 +3,7 @@ package dev.mokkery.plugin.transformers
 import dev.mokkery.plugin.core.Cache
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
+import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.Mokkery.Errors
 import dev.mokkery.plugin.core.declarationIrBuilder
@@ -12,6 +13,7 @@ import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
+import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.core.verifyMode
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -69,6 +71,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val internalEverySuspend = getFunction(Mokkery.Function.internalEverySuspend)
     private val internalVerify = getFunction(Mokkery.Function.internalVerify)
     private val internalVerifySuspend = getFunction(Mokkery.Function.internalVerifySuspend)
+    private val validationMode: MembersValidationMode = compilerConfig.validationMode
 
     override fun visitCall(expression: IrCall): IrExpression {
         val name = expression.symbol.owner.kotlinFqName
@@ -244,17 +247,17 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             }
             return false
         }
-        val nonOverridableFunctions = classToMock
+        val illegalFunctions = classToMock
             .functions
-            .filterNot(IrSimpleFunction::isOverridable)
-        val nonOverridableProperties = classToMock
+            .filterNot { it.isValid(validationMode) }
+        val illegalProperties = classToMock
             .properties
-            .filterNot(IrProperty::isOverridable)
-        if (nonOverridableProperties.any() || nonOverridableFunctions.any()) {
+            .filterNot { it.isValid(validationMode) }
+        if (illegalProperties.any() || illegalFunctions.any()) {
             mokkeryErrorAt(this) {
-                val names = nonOverridableFunctions
+                val names = illegalFunctions
                     .map(IrSimpleFunction::renderSymbol)
-                    .plus(nonOverridableProperties.map(IrProperty::renderSymbol))
+                    .plus(illegalProperties.map(IrProperty::renderSymbol))
                 Errors.finalMembersTypeCannotBeIntercepted(
                     typeName = classToMock.kotlinFqName.asString(),
                     functionName = name,
@@ -266,4 +269,29 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         mokkeryLogAt(this) { "Recognized $name call with type ${typeToMock.render()}!" }
         return true
     }
+
+    private fun IrSimpleFunction.isValid(validationMode: MembersValidationMode): Boolean {
+        if (isOverridable) return true
+        return when (validationMode) {
+            MembersValidationMode.Strict -> false
+            MembersValidationMode.IgnoreInline -> isInline
+            MembersValidationMode.IgnoreFinal -> true
+        }
+    }
+
+    private fun IrProperty.isValid(validationMode: MembersValidationMode): Boolean {
+        if (isOverridable) return true
+        return when (validationMode) {
+            MembersValidationMode.Strict -> false
+            MembersValidationMode.IgnoreInline -> isInline
+            MembersValidationMode.IgnoreFinal -> true
+        }
+    }
+
+    private val IrProperty.isInline: Boolean
+        get() {
+            val getter = getter
+            val setter = setter
+            return (getter == null || getter.isInline) && (setter == null || setter.isInline)
+        }
 }
