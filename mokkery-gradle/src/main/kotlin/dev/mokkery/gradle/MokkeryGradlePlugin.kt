@@ -27,6 +27,8 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.defaultVerifyMode.convention(MokkeryCompilerDefaults.verifyMode)
         mokkery.rule.convention(ApplicationRule.AllTests)
         mokkery.allowIndirectSuperCalls.convention(false)
+        mokkery.ignoreInlineMembers.convention(false)
+        mokkery.ignoreFinalMembers.convention(false)
         target.configureDependencies()
         super.apply(target)
     }
@@ -44,6 +46,14 @@ class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 SubpluginOption(
                     key = "allowIndirectSuperCalls",
                     value = project.mokkery.allowIndirectSuperCalls.get().toString()
+                ),
+                SubpluginOption(
+                    key = "ignoreFinalMembers",
+                    value = project.mokkery.ignoreFinalMembers.get().toString()
+                ),
+                SubpluginOption(
+                    key = "ignoreInlineMembers",
+                    value = project.mokkery.ignoreInlineMembers.get().toString()
                 )
             )
         }

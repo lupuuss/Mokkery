@@ -9,4 +9,6 @@ interface MokkeryGradleExtension {
     val defaultMockMode: Property<MockMode>
     val defaultVerifyMode: Property<VerifyMode>
     val allowIndirectSuperCalls: Property<Boolean>
+    val ignoreInlineMembers: Property<Boolean>
+    val ignoreFinalMembers: Property<Boolean>
 }
