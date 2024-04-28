@@ -17,7 +17,7 @@ class MokkeryCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         IrGenerationExtension.registerExtension(MokkeryIrGenerationExtension(configuration))
-        FirExtensionRegistrarAdapter.registerExtension(MokkeryFirRegistrar())
+        FirExtensionRegistrarAdapter.registerExtension(MokkeryFirRegistrar(configuration))
         RootDiagnosticRendererFactory.registerFactory(MokkeryDiagnosticRendererFactory())
         ClassGeneratorExtension.registerExtension(MokkeryClassGenerationExtension(configuration))
     }

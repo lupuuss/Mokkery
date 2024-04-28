@@ -1,8 +1,11 @@
 package dev.mokkery.plugin.diagnostics
 
+import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
+import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.fir.constructors
 import dev.mokkery.plugin.fir.isDefault
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -11,6 +14,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
+import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isInterface
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
@@ -36,13 +40,19 @@ import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isWasm
 
-class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChecker() {
+class MokkeryCallsChecker(
+    private val session: FirSession,
+    configuration: CompilerConfiguration,
+) : FirFunctionCallChecker() {
+
     private val mock = Callable.mock
-    val spy = Callable.spy
-    val every = Callable.every
-    val everySuspend = Callable.everySuspend
-    val verify = Callable.verify
-    val verifySuspend = Callable.verifySuspend
+    private val spy = Callable.spy
+    private val every = Callable.every
+    private val everySuspend = Callable.everySuspend
+    private val verify = Callable.verify
+    private val verifySuspend = Callable.verifySuspend
+
+    private val validationMode = configuration.validationMode
 
     override fun check(expression: FirFunctionCall, context: CheckerContext, reporter: DiagnosticReporter) {
         val callee = expression.calleeReference as? FirResolvedNamedReference ?: return
@@ -53,6 +63,7 @@ class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChec
             context = context,
             reporter = reporter,
             funSymbol = symbol,
+            validationMode = validationMode
         )
         when (symbol.callableId) {
             mock, spy -> scope.checkInterception()
@@ -63,6 +74,7 @@ class MokkeryCallsChecker(private val session: FirSession) : FirFunctionCallChec
 
 private class MokkeryScopedCallsChecker(
     private val session: FirSession,
+    private val validationMode: MembersValidationMode,
     private val expression: FirFunctionCall,
     private val context: CheckerContext,
     private val reporter: DiagnosticReporter,
@@ -144,7 +156,7 @@ private class MokkeryScopedCallsChecker(
             .plus(inheritedSymbols)
         val finalDeclarations = allDeclarationSymbols
             .filterOutWasmSpecialProperties() // TODO Remove when not detectable by FIR
-            .filter { it is FirCallableSymbol<*> && it !is FirConstructorSymbol && it.visibility != Visibilities.Private && it.isFinal }
+            .filterNot { it.isValid(validationMode) }
             .toList()
         if (finalDeclarations.isNotEmpty()) {
             return reporter.reportOn(
@@ -158,6 +170,25 @@ private class MokkeryScopedCallsChecker(
         }
     }
 
+    private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {
+        if (this !is FirCallableSymbol<*>) return true
+        if (this is FirConstructorSymbol) return true
+        if (visibility == Visibilities.Private) return true
+        if (!isFinal) return true
+        return when (validationMode) {
+            MembersValidationMode.Strict -> false
+            MembersValidationMode.IgnoreInline -> isInlineOrInlineProperty
+            MembersValidationMode.IgnoreFinal -> true
+        }
+    }
+
+    private val FirCallableSymbol<*>.isInlineOrInlineProperty: Boolean get() {
+        if (this !is FirPropertySymbol) return isInline
+        val getter = getterSymbol
+        val setter = setterSymbol
+        return (getter == null || getter.isInline) && (setter == null || setter.isInline)
+    }
+
     private fun Sequence<FirBasedSymbol<*>>.filterOutWasmSpecialProperties(): Sequence<FirBasedSymbol<*>> {
         if (!isWasm) return this
         return filterNot { it is FirPropertySymbol && it.name in wasmSpecialPropertyNames }
@@ -165,7 +196,7 @@ private class MokkeryScopedCallsChecker(
 
     // checkTemplating
 
-    fun checkTemplatingFunctionalParam() {
+    private fun checkTemplatingFunctionalParam() {
         val blockArgument = expression
             .arguments
             .last()
