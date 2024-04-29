@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.0-RC1"
+kotlin = "2.0.0-RC2"
 kotlinx-coroutines = "1.8.0"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
