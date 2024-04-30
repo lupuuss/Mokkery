@@ -10,8 +10,11 @@ dependencies {
     api(project(":mokkery-core"))
 }
 
-kotlin.sourceSets.all {
-    languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+kotlin {
+    explicitApi()
+    sourceSets.all {
+        languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+    }
 }
 
 val functionalTest by testing.suites.creating(JvmTestSuite::class) {

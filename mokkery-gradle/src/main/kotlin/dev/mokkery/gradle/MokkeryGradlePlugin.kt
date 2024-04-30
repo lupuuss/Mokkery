@@ -15,8 +15,12 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 
-@Suppress("OPT_IN_USAGE")
-class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
+/**
+ * Configures Mokkery in source sets specified by [MokkeryGradleExtension.rule]. It includes:
+ * * Adding runtime dependency
+ * * Adding configured compiler plugin
+ */
+public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private lateinit var kotlinVersion: String
 

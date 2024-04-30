@@ -2,25 +2,37 @@ package dev.mokkery.gradle
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
-fun interface ApplicationRule {
+/**
+ * Determines if Mokkery should be applied to given [KotlinSourceSet] or not.
+ */
+public fun interface ApplicationRule {
 
-    fun isApplicable(sourceSet: KotlinSourceSet): Boolean
+    public fun isApplicable(sourceSet: KotlinSourceSet): Boolean
 
-    data class MatchesName(val regex: Regex) : ApplicationRule {
-        override fun isApplicable(sourceSet: KotlinSourceSet) = sourceSet.name.matches(regex)
+    /**
+     * Results in Mokkery being applied to all source sets matching [regex].
+     */
+    public data class MatchesName(val regex: Regex) : ApplicationRule {
+        public override fun isApplicable(sourceSet: KotlinSourceSet): Boolean = sourceSet.name.matches(regex)
     }
 
-    data class Listed(private val elements: List<String>) : ApplicationRule {
+    /**
+     * Results in Mokkery being applied to all source sets with specified names.
+     */
+    public data class Listed(private val elements: List<String>) : ApplicationRule {
 
-        constructor(vararg elements: String) : this(elements.toList())
+        public constructor(vararg elements: String) : this(elements.toList())
 
         override fun isApplicable(sourceSet: KotlinSourceSet): Boolean {
             return sourceSet.name in elements
         }
     }
 
-    companion object {
+    public companion object {
 
-        val AllTests: ApplicationRule = MatchesName(Regex(".*Test.*"))
+        /**
+         * Results in Mokkery being applied to all source sets with `Test` phrase.
+         */
+        public val AllTests: ApplicationRule = MatchesName(Regex(".*Test.*"))
     }
 }
