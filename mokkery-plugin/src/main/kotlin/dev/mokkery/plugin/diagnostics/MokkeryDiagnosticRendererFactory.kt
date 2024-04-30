@@ -34,6 +34,12 @@ class MokkeryDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererB = FirDiagnosticRenderers.RENDER_TYPE,
         )
         put(
+            factory = MokkeryDiagnostics.PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED,
+            message = Errors.primitiveTypeCannotBeIntercepted(typeName = "{1}", functionName = "{0}"),
+            rendererA = CommonRenderers.NAME,
+            rendererB = FirDiagnosticRenderers.RENDER_TYPE,
+        )
+        put(
             factory = MokkeryDiagnostics.FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED,
             message = Errors.finalMembersTypeCannotBeIntercepted(
                 typeName = "{1}",

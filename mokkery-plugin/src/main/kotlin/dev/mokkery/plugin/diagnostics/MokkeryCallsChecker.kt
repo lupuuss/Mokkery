@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
+import org.jetbrains.kotlin.fir.isPrimitiveType
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
@@ -91,6 +92,7 @@ private class MokkeryScopedCallsChecker(
         val type = typeArg.toConeTypeProjection().type ?: return
         checkInterceptionTypeParameter(type, typeArg)
         val classSymbol = type.toRegularClassSymbol(session) ?: return
+        checkIsPrimitive(classSymbol, typeArg)
         checkInterceptionModality(classSymbol, typeArg)
         if (classSymbol.isInterface) return
         checkInterceptionDefaultConstructor(classSymbol, typeArg)
@@ -109,6 +111,18 @@ private class MokkeryScopedCallsChecker(
                 factory = MokkeryDiagnostics.INDIRECT_INTERCEPTION,
                 a = funSymbol.name,
                 b = type,
+                context = context
+            )
+        }
+    }
+
+    private fun checkIsPrimitive(classSymbol: FirRegularClassSymbol, typeArg: FirTypeProjection) {
+        if (classSymbol.isPrimitiveType()) {
+            reporter.reportOn(
+                source = typeArg.source ?: expression.source,
+                factory = MokkeryDiagnostics.PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED,
+                a = funSymbol.name,
+                b = classSymbol.defaultType(),
                 context = context
             )
         }

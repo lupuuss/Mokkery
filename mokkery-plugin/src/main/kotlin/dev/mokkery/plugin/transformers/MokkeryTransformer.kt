@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultConstructor
@@ -221,6 +222,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 return false
             }
         if (typeToMock.isAnyFunction()) return true
+        if (typeToMock.isPrimitiveType()) {
+            mokkeryErrorAt(this) {
+                Errors.primitiveTypeCannotBeIntercepted(typeName = typeToMock.render(), functionName = name)
+            }
+            return false
+        }
         val classToMock = typeToMock.getClass()!!
         if (classToMock.modality == Modality.SEALED) {
             mokkeryErrorAt(this) {

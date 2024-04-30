@@ -15,6 +15,7 @@ object MokkeryDiagnostics {
 
     val SEALED_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
     val FINAL_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
+    val PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
     val FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED by error3<PsiElement, Name, ConeKotlinType, List<FirBasedSymbol<*>>>()
     val NO_DEFAULT_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
 

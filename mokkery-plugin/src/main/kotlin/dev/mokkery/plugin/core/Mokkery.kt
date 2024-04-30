@@ -94,6 +94,11 @@ object Mokkery {
             functionName: String
         ) = "Type ''$typeName'' is final and cannot be used with ''$functionName''!"
 
+        fun primitiveTypeCannotBeIntercepted(
+            typeName: String,
+            functionName: String
+        ) = "Type ''$typeName'' is primitive and cannot be used with ''$functionName''!"
+
         fun finalMembersTypeCannotBeIntercepted(
             typeName: String,
             functionName: String,
