@@ -18,6 +18,17 @@ description: Get to know Mokkery's limitations for smoother development!
 * 🔐 Sealed types
 * 🗽 Objects
 
+### Value classes (WASM)
+
+Mokkery supports mocking methods involving value classes, whether they serve as return types or parameters.
+However, for WASM, this support is restricted only to value classes originating from the standard library
+(`kotlin.Result` and `kotlin.time.Duration`).
+
+Any other value class requires registering `AutofillProvider` that returns some *empty* value:
+```kotlin
+AutofillProvider.forInternals.types.register { ValueClass(null) }
+```
+
 ### Calling `mock` & `spy`
 
 Type passed to `spy` and `mock` must be directly specified. Following code is illegal:
