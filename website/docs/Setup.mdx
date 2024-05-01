@@ -30,6 +30,22 @@ pluginManagement {
     }
 }
 ```
+### Source sets
+
+By default, Mokkery is applied to all Kotlin source sets in the project that contain the "Test" phrase.
+To change this behavior, you can provide a different rule in your Gradle file:
+```kotlin
+plugins {
+    id("dev.mokkery")
+}
+
+mokkery {
+    rule.set(ApplicationRule.Listed("jvmTest"))                   // this rule affects only jvmTest
+    rule.set(ApplicationRule.MatchesName(Regex("macos.*Test")))   // this rule affects all "macos.*Test" source sets
+    rule.set { sourceSet -> sourceSet.name.endsWith("Test") }     // this rule affects all ".*Test" source sets
+}
+```
+
 ### Targets
 
 ✅ Supported:
