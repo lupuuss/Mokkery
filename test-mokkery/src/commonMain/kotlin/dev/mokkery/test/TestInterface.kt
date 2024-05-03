@@ -3,6 +3,8 @@ package dev.mokkery.test
 interface TestInterface : BaseInterface {
 
     var property: String
+        get() = "Default value"
+        set(_) { }
 
     fun callWithString(value: String?): Int
 

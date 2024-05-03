@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
@@ -144,26 +145,28 @@ private fun IrBuilderWithScope.createSuperCallLambda(
     superFunction: IrSimpleFunction
 ): IrExpression {
     val pluginContext = transformer.pluginContext
-    val anyNType = pluginContext.irBuiltIns.anyNType
     val anyList = pluginContext.irBuiltIns.listClass.owner
     val lambdaType = pluginContext
         .irBuiltIns
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
-        .typeWith(anyList.defaultTypeErased, anyNType)
+        .typeWith(anyList.defaultTypeErased, superFunction.returnType)
     return irLambda(
-        returnType = anyNType,
+        returnType = superFunction.returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
         val superCall = irCall(symbol = superFunction.symbol, superQualifierSymbol = superFunction.parentAsClass.symbol) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
-            repeat(superFunction.valueParameters.size) { index ->
+            superFunction.valueParameters.forEachIndexed { index, irValueParameter ->
                 putValueArgument(
                     index = index,
-                    valueArgument = irCall(anyList.getSimpleFunction("get")!!) {
-                        dispatchReceiver = irGet(lambda.valueParameters[0])
-                        putValueArgument(0, irInt(index))
-                    }
+                    valueArgument = irAs(
+                        argument = irCall(anyList.getSimpleFunction("get")!!) {
+                            dispatchReceiver = irGet(lambda.valueParameters[0])
+                            putValueArgument(0, irInt(index))
+                        },
+                        type = irValueParameter.type
+                    )
                 )
             }
         }
