@@ -246,7 +246,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             mokkeryErrorAt(this) {
                 Errors.noDuplicatesForMockMany(
                     typeName = duplicates.key.kotlinFqName.asString(),
-                    occurrences = duplicates.value.size,
+                    occurrences = duplicates.value.size.toString(),
                     functionName = name
                 )
             }

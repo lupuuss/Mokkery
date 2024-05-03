@@ -50,7 +50,6 @@ class MokkeryDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererB = FirDiagnosticRenderers.RENDER_TYPE,
             rendererC = CommonRenderers.commaSeparated(FirDiagnosticRenderers.SYMBOL)
         )
-
         put(
             factory = MokkeryDiagnostics.NO_DEFAULT_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
             message = Errors.noDefaultConstructorTypeCannotBeIntercepted(
@@ -59,6 +58,25 @@ class MokkeryDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             ),
             rendererA = CommonRenderers.NAME,
             rendererB = FirDiagnosticRenderers.RENDER_TYPE,
+        )
+        put(
+            factory = MokkeryDiagnostics.MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY,
+            message = Errors.singleSuperClass("{0}", "{1}"),
+            rendererA = CommonRenderers.NAME,
+            rendererB = CommonRenderers.commaSeparated(FirDiagnosticRenderers.RENDER_TYPE)
+        )
+        put(
+            factory = MokkeryDiagnostics.DUPLICATE_TYPES_FOR_MOCK_MANY,
+            message = Errors.noDuplicatesForMockMany("{0}", "{1}", "{2}"),
+            rendererA = FirDiagnosticRenderers.RENDER_TYPE,
+            rendererB = CommonRenderers.NAME,
+            rendererC = CommonRenderers.STRING
+        )
+        put(
+            factory = MokkeryDiagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
+            message = Errors.functionalTypeNotAllowedOnJs("{0}", "{1}"),
+            rendererA = FirDiagnosticRenderers.RENDER_TYPE,
+            rendererB = CommonRenderers.NAME
         )
     }
 }

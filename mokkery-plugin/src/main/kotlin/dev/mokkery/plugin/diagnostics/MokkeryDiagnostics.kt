@@ -18,6 +18,9 @@ object MokkeryDiagnostics {
     val PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
     val FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED by error3<PsiElement, Name, ConeKotlinType, List<FirBasedSymbol<*>>>()
     val NO_DEFAULT_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED by error2<PsiElement, Name, ConeKotlinType>()
+    val MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY by error2<PsiElement, Name, List<ConeKotlinType>>()
+    val DUPLICATE_TYPES_FOR_MOCK_MANY by error3<PsiElement, ConeKotlinType, Name, String>()
+    val FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY by error2<PsiElement, ConeKotlinType, Name>()
 
     val FUNCTIONAL_PARAM_MUST_BE_LAMBDA by error2<PsiElement, Name, FirValueParameterSymbol>()
 

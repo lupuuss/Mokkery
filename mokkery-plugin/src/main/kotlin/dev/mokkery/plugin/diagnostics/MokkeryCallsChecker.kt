@@ -7,6 +7,7 @@ import dev.mokkery.plugin.fir.constructors
 import dev.mokkery.plugin.fir.isDefault
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -36,10 +37,13 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
+import org.jetbrains.kotlin.fir.types.FirTypeProjection
+import org.jetbrains.kotlin.fir.types.isSomeFunctionType
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
 import org.jetbrains.kotlin.fir.types.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 
 class MokkeryCallsChecker(
@@ -48,6 +52,7 @@ class MokkeryCallsChecker(
 ) : FirFunctionCallChecker() {
 
     private val mock = Callable.mock
+    private val mockMany = Callable.mockMany
     private val spy = Callable.spy
     private val every = Callable.every
     private val everySuspend = Callable.everySuspend
@@ -68,6 +73,7 @@ class MokkeryCallsChecker(
         )
         when (symbol.callableId) {
             mock, spy -> scope.checkInterception(expression)
+            mockMany -> scope.checkManyInterceptions(expression)
             every, everySuspend, verify, verifySuspend -> scope.checkTemplating(expression)
         }
     }
@@ -86,6 +92,18 @@ private class MokkeryScopedCallsChecker(
     private val wasmTypeInfo = Name.identifier("typeInfo")
     private val wasmSpecialPropertyNames = listOf(wasmHashCode, wasmTypeInfo)
 
+    fun checkManyInterceptions(expression: FirFunctionCall) {
+        val classMappings = expression.typeArguments.groupBy {
+            val type = it.toConeTypeProjection().type!!
+            checkInterceptionType(it.source ?: expression.source, type)
+            val classSymbol = type.toRegularClassSymbol(session) ?: return
+            classSymbol
+        }
+        checkNoDuplicates(expression.typeArguments.size, classMappings)
+        checkOneSuperClass(classMappings)
+        checkJsFunctionalTypes(classMappings)
+    }
+
     fun checkInterception(expression: FirFunctionCall) {
         val typeArg = expression.typeArguments.first()
         val type = typeArg.toConeTypeProjection().type ?: return
@@ -99,6 +117,48 @@ private class MokkeryScopedCallsChecker(
             .last()
             .unwrapArgument()
         checkTemplatingFunctionalParam(blockArgument.source ?: expression.source, blockArgument)
+    }
+
+    private fun checkNoDuplicates(argumentsCount: Int, classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+        if (classMapping.size != argumentsCount) {
+            val entry = classMapping.entries.first { it.value.size > 1 }
+            reporter.reportOn(
+                source = entry.value[1].source,
+                factory = MokkeryDiagnostics.DUPLICATE_TYPES_FOR_MOCK_MANY,
+                a = entry.key.defaultType(),
+                b = funSymbol.name,
+                c = entry.value.size.toString(),
+                context = context
+            )
+        }
+    }
+
+    private fun checkOneSuperClass(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+        val regularClasses = classMapping.keys.filter { it.classKind == ClassKind.CLASS }
+        if (regularClasses.size > 1) {
+            reporter.reportOn(
+                source = classMapping.getValue(regularClasses[1]).first().source,
+                factory = MokkeryDiagnostics.MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY,
+                a = funSymbol.name,
+                b = regularClasses.map { it.defaultType() },
+                context = context
+            )
+        }
+    }
+
+    private fun checkJsFunctionalTypes(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+        if (session.moduleData.platform.isJs()) {
+            val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(session) }
+            if (funClass != null) {
+                reporter.reportOn(
+                    source = classMapping.getValue(funClass).first().source,
+                    factory = MokkeryDiagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
+                    a = classMapping.getValue(funClass).first().toConeTypeProjection().type!!,
+                    b = funSymbol.name,
+                    context = context
+                )
+            }
+        }
     }
 
     // checkInterception

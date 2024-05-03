@@ -82,6 +82,7 @@ object Mokkery {
 
     object Callable {
         val mock by dev_mokkery.callableId
+        val mockMany by dev_mokkery.callableId
         val spy by dev_mokkery.callableId
         val verify by dev_mokkery.callableId
         val verifySuspend by dev_mokkery.callableId
@@ -128,8 +129,8 @@ object Mokkery {
 
         fun noDuplicatesForMockMany(
             typeName: String, 
-            occurrences: Int,
-            functionName: String
+            functionName: String,
+            occurrences: String,
         ) = "Type ''$typeName'' for ''$functionName'' must occur only once, but it occurs $occurrences times!"
         
         fun singleSuperClass(
