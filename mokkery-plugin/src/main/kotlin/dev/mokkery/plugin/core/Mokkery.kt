@@ -125,6 +125,22 @@ object Mokkery {
             typeName: String,
             functionName: String
         ) = "Class ''$typeName'' has no default constructor and cannot be used with ''$functionName''!"
+
+        fun noDuplicatesForMockMany(
+            typeName: String, 
+            occurrences: Int,
+            functionName: String
+        ) = "Type ''$typeName'' for ''$functionName'' must occur only once, but it occurs $occurrences times!"
+        
+        fun singleSuperClass(
+            functionName: String,
+            superClasses: String
+        ) = "Only one super class is acceptable for ''$functionName'' type! Detected super classes: $superClasses"
+        
+        fun functionalTypeNotAllowedOnJs(
+            typeName: String,
+            functionName: String
+        ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

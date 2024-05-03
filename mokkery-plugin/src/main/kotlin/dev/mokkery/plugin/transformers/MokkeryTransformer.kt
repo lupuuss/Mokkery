@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.isTypeParameter
@@ -67,6 +68,7 @@ import kotlin.time.TimeSource
 class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransformer(compilerPluginScope) {
 
     private val mockCache = Cache<IrClass, IrClass>()
+    private val mockManyCache = Cache<Set<IrClass>, IrClass>()
     private val spyCache = Cache<IrClass, IrClass>()
 
     private val internalEvery = getFunction(Mokkery.Function.internalEvery)
@@ -93,6 +95,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     override fun visitFile(declaration: IrFile): IrFile {
         mockCache.clear()
+        mockManyCache.clear()
         spyCache.clear()
         return super.visitFile(declaration)
     }
@@ -123,10 +126,11 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun replaceWithMockMany(call: IrCall): IrExpression {
-        val classes = call.typeArguments
-            .filter { call.checkInterceptionPossibilities(it) }
-            .mapNotNull { it?.getClass() }
-        val mockedClass = createManyMockClass(classes).also(currentFile::addChild)
+        val classes = call.getTypesToMock()
+        if (classes.isEmpty()) return call
+        val mockedClass = mockManyCache.getOrPut(classes) {
+            createManyMockClass(classes.toList()).also(currentFile::addChild)
+        }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments
@@ -232,9 +236,42 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         return this.type.getClass()
     }
 
-    private fun IrCall.checkInterceptionPossibilities(
-        typeArg: IrType?,
-    ): Boolean {
+    private fun IrCall.getTypesToMock(): Set<IrClass> {
+        val name = symbol.owner.name.asString()
+        if (typeArguments.any { !checkInterceptionPossibilities(it) }) return emptySet()
+        val noDistinctClasses = typeArguments.mapNotNull { it?.getClass() }
+        val classes = noDistinctClasses.toSet()
+        if (classes.size != noDistinctClasses.size) {
+            val duplicates = noDistinctClasses.groupBy { it }.entries.first { it.value.size > 1 }
+            mokkeryErrorAt(this) {
+                Errors.noDuplicatesForMockMany(
+                    typeName = duplicates.key.kotlinFqName.asString(),
+                    occurrences = duplicates.value.size,
+                    functionName = name
+                )
+            }
+            return emptySet()
+        }
+        if (classes.count { it.isClass } > 1) {
+            mokkeryErrorAt(this) {
+                val superClasses = classes.filter(IrClass::isClass).joinToString { it.kotlinFqName.asString() }
+                Errors.singleSuperClass(name, superClasses)
+            }
+            return emptySet()
+        }
+        if (pluginContext.platform.isJs()) {
+            val functionalType = classes.find { it.isFun }
+            if (functionalType != null) {
+                mokkeryErrorAt(this) {
+                    Errors.functionalTypeNotAllowedOnJs(functionalType.kotlinFqName.asString(), name)
+                }
+                return emptySet()
+            }
+        }
+        return classes
+    }
+
+    private fun IrCall.checkInterceptionPossibilities(typeArg: IrType?): Boolean {
         val name: String = symbol.owner.name.asString()
         val typeToMock = typeArg
             ?.takeIf { !it.isTypeParameter() }
