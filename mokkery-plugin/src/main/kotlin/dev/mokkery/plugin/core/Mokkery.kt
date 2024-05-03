@@ -23,6 +23,10 @@ object Mokkery {
 
         val MockMode by dev_mokkery.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
+        val ManyMocks2 by dev_mokkery.klass
+        val ManyMocks3 by dev_mokkery.klass
+        val ManyMocks4 by dev_mokkery.klass
+        val ManyMocks5 by dev_mokkery.klass
 
         val MokkeryInterceptor by dev_mokkery_internal.klass
         val MokkeryInterceptorScope by dev_mokkery_internal.klass
@@ -38,6 +42,17 @@ object Mokkery {
         val TemplatingInterceptor by dev_mokkery_internal_templating.klass
         val TemplatingScope by dev_mokkery_internal_templating.klass
         val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
+
+        fun manyMocks(value: Int): ClassResolver {
+            return manyMocksMap[value] ?: error("Unsupported types number! Expected value: in ${2..5}; Actual value: $value")
+        }
+
+        private val manyMocksMap = mapOf(
+            2 to ManyMocks2,
+            3 to ManyMocks3,
+            4 to ManyMocks4,
+            5 to ManyMocks5,
+        )
     }
 
     object Function {
@@ -57,6 +72,7 @@ object Mokkery {
 
     object Name {
         val mock by dev_mokkery.fqName
+        val mockMany by dev_mokkery.fqName
         val spy by dev_mokkery.fqName
         val every by dev_mokkery.fqName
         val everySuspend by dev_mokkery.fqName

@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.makeNullable
@@ -80,6 +81,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val result = super.visitCall(expression)
         return when (name) {
             Mokkery.Name.mock -> replaceWithMock(expression)
+            Mokkery.Name.mockMany -> replaceWithMockMany(expression)
             Mokkery.Name.spy -> replaceWithSpy(expression)
             Mokkery.Name.every -> replaceWithInternalEvery(expression, internalEvery.symbol)
             Mokkery.Name.verify -> replaceWithInternalVerify(expression, internalVerify.symbol)
@@ -108,6 +110,23 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             return createMockJsFunction(call, klass)
         }
         val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass).also(currentFile::addChild) }
+        return declarationIrBuilder(call) {
+            irCallConstructor(mockedClass.primaryConstructor!!) {
+                val modeArg = call.valueArguments
+                    .getOrNull(0)
+                    ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
+                val block = call.valueArguments.getOrNull(1)
+                putValueArgument(0, modeArg)
+                putValueArgument(1, block ?: irNull())
+            }
+        }
+    }
+
+    private fun replaceWithMockMany(call: IrCall): IrExpression {
+        val classes = call.typeArguments
+            .filter { call.checkInterceptionPossibilities(it) }
+            .mapNotNull { it?.getClass() }
+        val mockedClass = createManyMockClass(classes).also(currentFile::addChild)
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments
@@ -184,6 +203,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     putValueArgument(1, irInt(verifyMode.atMost))
                 }
             }
+
             else -> irGetObject(getIrClassOf(verifyMode::class).symbol)
         }
         return expression
@@ -208,13 +228,14 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun IrCall.getTypeToMock(): IrClass? {
-        if (!checkInterceptionPossibilities()) return null
+        if (!checkInterceptionPossibilities(typeArguments.firstOrNull())) return null
         return this.type.getClass()
     }
 
-    private fun IrCall.checkInterceptionPossibilities(): Boolean {
-        val name = symbol.owner.name.asString()
-        val typeArg = typeArguments.firstOrNull()
+    private fun IrCall.checkInterceptionPossibilities(
+        typeArg: IrType?,
+    ): Boolean {
+        val name: String = symbol.owner.name.asString()
         val typeToMock = typeArg
             ?.takeIf { !it.isTypeParameter() }
             ?: run {
