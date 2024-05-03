@@ -46,7 +46,14 @@ fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
     function: IrSimpleFunction,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
+) = addOverridingMethod(context, listOf(function), block)
+
+fun IrClass.addOverridingMethod(
+    context: IrGeneratorContext,
+    functions: List<IrSimpleFunction>,
+    block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
 ) {
+    val function = functions.first()
     addFunction {
         updateFrom(function)
         name = function.name
@@ -55,7 +62,7 @@ fun IrClass.addOverridingMethod(
         origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
     }.apply {
-        overriddenSymbols = function.overriddenSymbols + function.symbol
+        overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
         metadata = function.metadata
         dispatchReceiverParameter = buildThisValueParam()
         copyParametersFrom(function)
@@ -98,17 +105,25 @@ fun IrClass.addOverridingProperty(
     property: IrProperty,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
+) = addOverridingProperty(context, listOf(property), getterBlock, setterBlock)
+
+fun IrClass.addOverridingProperty(
+    context: IrGeneratorContext,
+    properties: List<IrProperty>,
+    getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
+    setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ) {
+    val property = properties.first()
     addProperty {
         name = property.name
         isVar = property.isVar
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
-        overriddenSymbols = property.overriddenSymbols + property.symbol
+        overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
         val baseGetter = property.getter!!
         val getter = addGetter()
-        getter.overriddenSymbols = listOf(baseGetter.symbol)
+        getter.overriddenSymbols = properties.mapNotNull { it.getter?.symbol }
         getter.returnType = baseGetter.returnType
         getter.metadata = baseGetter.metadata
         getter.dispatchReceiverParameter = buildThisValueParam()
@@ -123,7 +138,7 @@ fun IrClass.addOverridingProperty(
             setter.dispatchReceiverParameter = buildThisValueParam()
             setter.copyParametersFrom(baseSetter)
             setter.copyAnnotationsFrom(baseSetter)
-            setter.overriddenSymbols = listOf(baseSetter.symbol)
+            setter.overriddenSymbols = properties.mapNotNull { it.setter?.symbol }
             setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
         }
     }
