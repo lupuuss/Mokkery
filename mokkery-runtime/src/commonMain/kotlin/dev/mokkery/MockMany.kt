@@ -1,38 +1,102 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package dev.mokkery
 
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 
-@Suppress("UNUSED_PARAMETER")
+/**
+ * Provides mock implementation of [T1] and [T2].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
 public inline fun <reified T1 : Any, reified T2 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: ManyMocks2<T1, T2>.() -> Unit = { }
-): ManyMocks2<T1, T2> = throw MokkeryPluginNotAppliedException()
+    block: MockMany2<T1, T2>.() -> Unit = { }
+): MockMany2<T1, T2> = throw MokkeryPluginNotAppliedException()
 
-@Suppress("UNUSED_PARAMETER")
+/**
+ * Provides mock implementation of [T1], [T2] and [T3].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: ManyMocks3<T1, T2, T3>.() -> Unit = { }
-): ManyMocks3<T1, T2, T3> = throw MokkeryPluginNotAppliedException()
+    block: MockMany3<T1, T2, T3>.() -> Unit = { }
+): MockMany3<T1, T2, T3> = throw MokkeryPluginNotAppliedException()
 
-@Suppress("UNUSED_PARAMETER")
+/**
+ * Provides mock implementation of [T1], [T2], [T3] and [T4].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: ManyMocks4<T1, T2, T3, T4>.() -> Unit = { }
-): ManyMocks4<T1, T2, T3, T4> = throw MokkeryPluginNotAppliedException()
+    block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
+): MockMany4<T1, T2, T3, T4> = throw MokkeryPluginNotAppliedException()
 
-@Suppress("UNUSED_PARAMETER")
+/**
+ * Provides mock implementation of [T1], [T2], [T3], [T4] and [T5].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any, reified T5 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: ManyMocks5<T1, T2, T3, T4, T5>.() -> Unit = { }
-): ManyMocks5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
+    block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
+): MockMany5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
 
-public interface ManyMocks2<T1 : Any, T2 : Any>
-public interface ManyMocks3<T1 : Any, T2 : Any, T3 : Any> : ManyMocks2<T1, T2>
-public interface ManyMocks4<T1 : Any, T2 : Any, T3 : Any, T4 : Any> : ManyMocks3<T1, T2, T3>
-public interface ManyMocks5<T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> : ManyMocks4<T1, T2, T3, T4>
+/**
+ * Marker interface for mock of [T1] and [T2].
+ */
+public interface MockMany2<T1 : Any, T2 : Any>
 
-public inline val <reified T : Any> ManyMocks2<T, *>.t1: T get() = this as T
-public inline val <reified T : Any> ManyMocks2<*, T>.t2: T get() = this as T
-public inline val <reified T : Any> ManyMocks3<*, *, T>.t3: T get() = this as T
-public inline val <reified T : Any> ManyMocks4<*, *, *, T>.t4: T get() = this as T
-public inline val <reified T : Any> ManyMocks5<*, *, *, *, T>.t5: T get() = this as T
+/**
+ * Marker interface for mock of [T1], [T2] and [T3].
+ */
+public interface MockMany3<T1 : Any, T2 : Any, T3 : Any> : MockMany2<T1, T2>
+
+/**
+ * Marker interface for mock of [T1], [T2], [T3] and [T4].
+ */
+public interface MockMany4<T1 : Any, T2 : Any, T3 : Any, T4 : Any> : MockMany3<T1, T2, T3>
+
+/**
+ * Marker interface for mock of [T1], [T2], [T3], [T4] and [T5].
+ */
+public interface MockMany5<T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> : MockMany4<T1, T2, T3, T4>
+
+/**
+ * Casts this as [T1].
+ */
+public inline val <reified T1 : Any> MockMany2<T1, *>.t1: T1 get() = this as T1
+
+/**
+ * Casts this as [T2].
+ */
+public inline val <reified T2 : Any> MockMany2<*, T2>.t2: T2 get() = this as T2
+
+/**
+ * Casts this as [T3].
+ */
+public inline val <reified T3 : Any> MockMany3<*, *, T3>.t3: T3 get() = this as T3
+
+/**
+ * Casts this as [T4].
+ */
+public inline val <reified T4 : Any> MockMany4<*, *, *, T4>.t4: T4 get() = this as T4
+
+/**
+ * Casts this as [T5].
+ */
+public inline val <reified T5 : Any> MockMany5<*, *, *, *, T5>.t5: T5 get() = this as T5

@@ -62,7 +62,7 @@ fun TransformerScope.createMockClass(classToMock: IrClass): IrClass {
 
 fun TransformerScope.createManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mockedTypes = classesToMock.map { it.defaultTypeErased }
-    val manyMocksMarker = getClass(Mokkery.Class.manyMocks(classesToMock.size)).typeWith(mockedTypes)
+    val manyMocksMarker = getClass(Mokkery.Class.mockMany(classesToMock.size)).typeWith(mockedTypes)
     val superTypes = mockedTypes + listOfNotNull(
         getClass(Mokkery.Class.MokkeryMockScope).defaultType,
         if (classesToMock.all { it.isInterface }) pluginContext.irBuiltIns.anyType else null,
