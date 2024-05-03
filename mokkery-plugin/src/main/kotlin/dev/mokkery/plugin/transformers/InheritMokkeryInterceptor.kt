@@ -23,12 +23,31 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 fun IrClass.inheritMokkeryInterceptor(
     transformer: TransformerScope,
     interceptorScopeClass: IrClass,
     classToIntercept: IrClass,
+    interceptorInit: IrBlockBodyBuilder.(IrConstructor) -> IrCall,
+    block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { },
+) {
+    inheritMokkeryInterceptor(
+        transformer = transformer,
+        interceptorScopeClass = interceptorScopeClass,
+        classesToIntercept = listOf(classToIntercept),
+        typeName = classToIntercept.kotlinFqName.asString(),
+        interceptorInit = interceptorInit,
+        block = block
+    )
+}
+
+fun IrClass.inheritMokkeryInterceptor(
+    transformer: TransformerScope,
+    interceptorScopeClass: IrClass,
+    classesToIntercept: List<IrClass>,
+    typeName: String,
     interceptorInit: IrBlockBodyBuilder.(IrConstructor) -> IrCall,
     block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { },
 ) {
@@ -40,18 +59,18 @@ fun IrClass.inheritMokkeryInterceptor(
         isPrimary = true
     }.apply {
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
-            +irDelegatingDefaultConstructorOrAny(classToIntercept)
-            val identifierCall = irCall(transformer.getFunction(Mokkery.Function.generateMockId)) {
-                putValueArgument(0, irString(classToIntercept.kotlinFqName.asString()))
-            }
+            +irDelegatingDefaultConstructorOrAny(classesToIntercept.firstOrNull { it.isClass })
             val initializerCall = interceptorInit(this@apply)
+            val identifierCall = irCall(transformer.getFunction(Mokkery.Function.generateMockId)) {
+                putValueArgument(0, irString(typeName))
+            }
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = typeProperty,
                 value = irCallListOf(
                     transformerScope = transformer,
                     type = context.irBuiltIns.kClassClass.defaultType,
-                    expressions = listOf(kClassReference(classToIntercept.defaultTypeErased))
+                    expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
                 )
             )
             +irSetPropertyField(thisReceiver!!, interceptor, initializerCall)
