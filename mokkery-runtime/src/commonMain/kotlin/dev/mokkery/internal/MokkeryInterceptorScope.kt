@@ -11,7 +11,7 @@ internal interface MokkeryInterceptorScope {
 
     val interceptor: MokkeryInterceptor
 
-    val interceptedType: KClass<*>
+    val interceptedTypes: List<KClass<*>>
 }
 
 internal interface MokkerySpyScope : MokkeryInterceptorScope {
@@ -26,25 +26,28 @@ internal interface MokkeryMockScope : MokkerySpyScope {
 }
 
 
-internal fun MokkerySpyScope(typeName: String, mockedType: KClass<*>): MokkerySpyScope {
-    return DynamicMokkerySpyScope(typeName, mockedType)
+internal fun MokkerySpyScope(typeName: String, mockedTypes: List<KClass<*>>): MokkerySpyScope {
+    return DynamicMokkerySpyScope(typeName, mockedTypes)
 }
 
-internal fun MokkeryMockScope(mode: MockMode, typeName: String, mockedType: KClass<*>): MokkeryMockScope {
-    return DynamicMokkeryMockScope(mode, typeName, mockedType)
+internal fun MokkeryMockScope(mode: MockMode, typeName: String, mockedTypes: List<KClass<*>>): MokkeryMockScope {
+    return DynamicMokkeryMockScope(mode, typeName, mockedTypes)
 }
 
 private class DynamicMokkeryMockScope(
     mode: MockMode,
     typeName: String,
-    override val interceptedType: KClass<*>,
+    override val interceptedTypes: List<KClass<*>>,
 ) : MokkeryMockScope {
     override val interceptor = MokkeryMock(mode)
 
     override val id = generateMockId(typeName)
 }
 
-private class DynamicMokkerySpyScope(typeName: String, override val interceptedType: KClass<*>) : MokkerySpyScope {
+private class DynamicMokkerySpyScope(
+    typeName: String,
+    override val interceptedTypes: List<KClass<*>>
+) : MokkerySpyScope {
 
     override val interceptor = MokkerySpy()
 

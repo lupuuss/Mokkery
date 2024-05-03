@@ -68,3 +68,7 @@ internal class MissingSuperMethodException(type: KClass<*>) : MokkeryRuntimeExce
 internal class MissingArgsForSuperMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
     "Super call requires $expectedCount arguments but $actualCount provided!"
 )
+
+internal class SuperTypeMustBeSpecifiedException(
+    reason: String
+) : MokkeryRuntimeException("You must specify super type! Reason: $reason")

@@ -7,6 +7,7 @@ import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irDelegatingDefaultConstructorOrAny
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
@@ -21,6 +22,7 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 fun IrClass.inheritMokkeryInterceptor(
@@ -33,7 +35,7 @@ fun IrClass.inheritMokkeryInterceptor(
     val context = transformer.pluginContext
     val interceptor = overridePropertyBackingField(context, interceptorScopeClass.getProperty("interceptor"))
     val idProperty = overridePropertyBackingField(context, interceptorScopeClass.getProperty("id"))
-    val typeProperty = overridePropertyBackingField(context, interceptorScopeClass.getProperty("interceptedType"))
+    val typeProperty = overridePropertyBackingField(context, interceptorScopeClass.getProperty("interceptedTypes"))
     addConstructor {
         isPrimary = true
     }.apply {
@@ -46,7 +48,11 @@ fun IrClass.inheritMokkeryInterceptor(
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = typeProperty,
-                value = kClassReference(classToIntercept.defaultTypeErased)
+                value = irCallListOf(
+                    transformerScope = transformer,
+                    type = context.irBuiltIns.kClassClass.defaultType,
+                    expressions = listOf(kClassReference(classToIntercept.defaultTypeErased))
+                )
             )
             +irSetPropertyField(thisReceiver!!, interceptor, initializerCall)
             +irSetPropertyField(thisReceiver!!, idProperty, identifierCall)

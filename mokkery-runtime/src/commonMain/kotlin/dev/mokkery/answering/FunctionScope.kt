@@ -4,6 +4,8 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.ObjectNotMockedException
+import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
+import dev.mokkery.internal.bestName
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass
@@ -103,7 +105,10 @@ public class FunctionScope internal constructor(
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
-        val superType = lookup.resolve(self)?.interceptedType ?: throw ObjectNotMockedException(self)
+        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
+        val superType = selfScope.interceptedTypes
+            .singleOrNull()
+            ?: throw SuperTypeMustBeSpecifiedException("Multiple super types [${selfScope.interceptedTypes.joinToString { it.bestName() }}]!")
         return supers[superType]
             .let { it ?: throw MissingSuperMethodException(superType) }
             .invoke(args)
@@ -113,7 +118,10 @@ public class FunctionScope internal constructor(
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
-        val superType = lookup.resolve(self)?.interceptedType ?: throw ObjectNotMockedException(self)
+        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
+        val superType = selfScope.interceptedTypes
+            .singleOrNull()
+            ?: throw SuperTypeMustBeSpecifiedException("Multiple super types [${selfScope.interceptedTypes.joinToString { it.bestName() }}]!")
         return supers[superType]
             .unsafeCastOrNull<suspend (List<Any?>) -> Any?>()
             .let { it ?: throw MissingSuperMethodException(superType) }

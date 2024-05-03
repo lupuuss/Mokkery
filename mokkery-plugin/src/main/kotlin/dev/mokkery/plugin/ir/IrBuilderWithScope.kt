@@ -1,5 +1,7 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.core.Kotlin
+import dev.mokkery.plugin.core.TransformerScope
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irCatch
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
@@ -19,6 +21,7 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irTry
+import org.jetbrains.kotlin.ir.builders.irVararg
 import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -52,6 +55,7 @@ import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
@@ -195,4 +199,21 @@ fun IrBuilderWithScope.irSetPropertyField(
     value: IrExpression
 ): IrSetField {
     return irSetField(irGet(thisParam), property.backingField!!, value)
+}
+
+fun IrBuilderWithScope.irCallListOf(
+    transformerScope: TransformerScope,
+    type: IrType,
+    expressions: List<IrExpression>
+): IrCall {
+    val args = irVararg(
+        elementType = type,
+        values = expressions
+    )
+    val listOf = transformerScope.pluginContext.referenceFunctions(Kotlin.Name.listOf).first {
+        it.owner.valueParameters.firstOrNull()?.isVararg == true
+    }
+    return irCall(listOf) {
+        putValueArgument(0, args)
+    }
 }

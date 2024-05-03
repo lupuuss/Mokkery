@@ -9,6 +9,7 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReference
@@ -79,25 +80,16 @@ fun IrBlockBodyBuilder.irInterceptCall(
 
 private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameters: List<IrValueParameter>): IrCall {
     val callArgClass = scope.getClass(Mokkery.Class.CallArg)
-    val pluginContext = scope.pluginContext
-    val args = irVararg(
-        elementType = callArgClass.defaultType,
-        values = parameters
-            .map {
-                irCallConstructor(callArgClass.primaryConstructor!!) {
-                    putValueArgument(0, irString(it.name.asString()))
-                    putValueArgument(1, kClassReference(it.type.eraseTypeParameters()))
-                    putValueArgument(2, irGet(it))
-                    putValueArgument(3, irBoolean(it.isVararg))
-                }
+    val callArgs = parameters
+        .map {
+            irCallConstructor(callArgClass.primaryConstructor!!) {
+                putValueArgument(0, irString(it.name.asString()))
+                putValueArgument(1, kClassReference(it.type.eraseTypeParameters()))
+                putValueArgument(2, irGet(it))
+                putValueArgument(3, irBoolean(it.isVararg))
             }
-    )
-    val listOf = pluginContext.referenceFunctions(Kotlin.Name.listOf).first {
-        it.owner.valueParameters.firstOrNull()?.isVararg == true
-    }
-    return irCall(listOf) {
-        putValueArgument(0, args)
-    }
+        }
+    return irCallListOf(scope, callArgClass.defaultType, callArgs)
 }
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {

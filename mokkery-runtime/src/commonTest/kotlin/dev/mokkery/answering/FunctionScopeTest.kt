@@ -34,7 +34,7 @@ class FunctionScopeTest {
     @Test
     fun testCallOriginal() {
         val lookup = TestMokkeryScopeLookup {
-            TestMokkeryInterceptorScope(interceptedType = Unit::class)
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Unit::class))
         }
         assertEquals(2, scope.callOriginal(lookup, listOf(1)))
     }
@@ -42,7 +42,7 @@ class FunctionScopeTest {
     @Test
     fun testCallSuspendOriginal() = runTest {
         val lookup = TestMokkeryScopeLookup {
-            TestMokkeryInterceptorScope(interceptedType = Int::class)
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Int::class))
         }
         assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
     }
