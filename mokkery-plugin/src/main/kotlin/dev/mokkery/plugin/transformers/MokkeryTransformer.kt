@@ -260,7 +260,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             return emptySet()
         }
         if (pluginContext.platform.isJs()) {
-            val functionalType = classes.find { it.isFun }
+            val functionalType = classes.find { it.defaultType.isAnyFunction() }
             if (functionalType != null) {
                 mokkeryErrorAt(this) {
                     Errors.functionalTypeNotAllowedOnJs(functionalType.kotlinFqName.asString(), name)
