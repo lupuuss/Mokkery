@@ -87,9 +87,9 @@ fun IrBuilderWithScope.irTryCatchAny(expression: IrExpression): IrTry {
     return irTry(expression.type.makeNullable(), expression, catches = listOf(irCatch(e, irNull())), null)
 }
 
-fun IrBuilderWithScope.irDelegatingDefaultConstructorOrAny(irClass: IrClass): IrDelegatingConstructorCall {
+fun IrBuilderWithScope.irDelegatingDefaultConstructorOrAny(irClass: IrClass?): IrDelegatingConstructorCall {
     return irDelegatingConstructorCall(
-        irClass.defaultConstructor ?: context.irBuiltIns.anyClass.owner.primaryConstructor!!
+        irClass?.defaultConstructor ?: context.irBuiltIns.anyClass.owner.primaryConstructor!!
     )
 }
 
