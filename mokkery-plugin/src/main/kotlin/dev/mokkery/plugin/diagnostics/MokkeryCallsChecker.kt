@@ -94,21 +94,21 @@ private class MokkeryScopedCallsChecker(
 
     fun checkManyInterceptions(expression: FirFunctionCall) {
         val classMappings = expression.typeArguments.groupBy {
-            val type = it.toConeTypeProjection().type!!
-            checkInterceptionType(it.source ?: expression.source, type)
+            val type = it.toConeTypeProjection().type ?: return
+            if (!checkInterceptionType(it.source ?: expression.source, type)) return
             val classSymbol = type.toRegularClassSymbol(session) ?: return
             classSymbol
         }
-        checkNoDuplicates(expression.typeArguments.size, classMappings)
-        checkOneSuperClass(classMappings)
-        checkJsFunctionalTypes(classMappings)
+        if (!checkNoDuplicates(expression.typeArguments.size, classMappings)) return
+        if (!checkOneSuperClass(classMappings)) return
+        if (!checkJsFunctionalTypes(classMappings)) return
     }
 
-    fun checkInterception(expression: FirFunctionCall) {
+    fun checkInterception(expression: FirFunctionCall): Boolean {
         val typeArg = expression.typeArguments.first()
-        val type = typeArg.toConeTypeProjection().type ?: return
+        val type = typeArg.toConeTypeProjection().type ?: return false
         val source = typeArg.source ?: expression.source
-        checkInterceptionType(source, type)
+        return checkInterceptionType(source, type)
     }
 
     fun checkTemplating(expression: FirFunctionCall) {
@@ -119,7 +119,7 @@ private class MokkeryScopedCallsChecker(
         checkTemplatingFunctionalParam(blockArgument.source ?: expression.source, blockArgument)
     }
 
-    private fun checkNoDuplicates(argumentsCount: Int, classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+    private fun checkNoDuplicates(argumentsCount: Int, classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
         if (classMapping.size != argumentsCount) {
             val entry = classMapping.entries.first { it.value.size > 1 }
             reporter.reportOn(
@@ -130,10 +130,12 @@ private class MokkeryScopedCallsChecker(
                 c = entry.value.size.toString(),
                 context = context
             )
+            return false
         }
+        return true
     }
 
-    private fun checkOneSuperClass(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+    private fun checkOneSuperClass(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
         val regularClasses = classMapping.keys.filter { it.classKind == ClassKind.CLASS }
         if (regularClasses.size > 1) {
             reporter.reportOn(
@@ -143,10 +145,12 @@ private class MokkeryScopedCallsChecker(
                 b = regularClasses.map { it.defaultType() },
                 context = context
             )
+            return false
         }
+        return true
     }
 
-    private fun checkJsFunctionalTypes(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>) {
+    private fun checkJsFunctionalTypes(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
         if (session.moduleData.platform.isJs()) {
             val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(session) }
             if (funClass != null) {
@@ -157,23 +161,24 @@ private class MokkeryScopedCallsChecker(
                     b = funSymbol.name,
                     context = context
                 )
+                return false
             }
         }
+        return true
     }
 
     // checkInterception
 
-    private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType) {
-        checkInterceptionTypeParameter(source, type)
-        val classSymbol = type.toRegularClassSymbol(session) ?: return
-        checkIsPrimitive(source, classSymbol)
-        checkInterceptionModality(source, classSymbol)
-        if (classSymbol.isInterface) return
-        checkInterceptionDefaultConstructor(source, classSymbol)
-        checkInterceptionFinalMembers(source, classSymbol)
+    private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
+        if (!checkInterceptionTypeParameter(source, type)) return false
+        val classSymbol = type.toRegularClassSymbol(session) ?: return false
+        if (!checkInterceptionModality(source, classSymbol)) return false
+        if (classSymbol.isInterface) return true
+        if (!checkClassInterceptionRequirements(source, classSymbol)) return false
+        return true
     }
 
-    private fun checkInterceptionTypeParameter(source: AbstractKtSourceElement?, type: ConeKotlinType) {
+    private fun checkInterceptionTypeParameter(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
         if (type is ConeTypeParameterType) {
             reporter.reportOn(
                 source = source,
@@ -182,25 +187,20 @@ private class MokkeryScopedCallsChecker(
                 b = type,
                 context = context
             )
+            return false
         }
+        return true
     }
 
-    private fun checkIsPrimitive(source: AbstractKtSourceElement?, classSymbol: FirRegularClassSymbol) {
-        if (classSymbol.isPrimitiveType()) {
-            reporter.reportOn(
-                source = source,
-                factory = MokkeryDiagnostics.PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED,
-                a = funSymbol.name,
-                b = classSymbol.defaultType(),
-                context = context
-            )
-        }
-    }
-
-    private fun checkInterceptionModality(source: AbstractKtSourceElement?, classSymbol: FirRegularClassSymbol) {
-        val modalityDiagnostic = when (classSymbol.modality) {
-            Modality.SEALED -> MokkeryDiagnostics.SEALED_TYPE_CANNOT_BE_INTERCEPTED
-            Modality.FINAL -> MokkeryDiagnostics.FINAL_TYPE_CANNOT_BE_INTERCEPTED
+    private fun checkInterceptionModality(
+        source: AbstractKtSourceElement?,
+        classSymbol: FirRegularClassSymbol
+    ): Boolean {
+        val modality = classSymbol.modality
+        val modalityDiagnostic = when  {
+            classSymbol.isPrimitiveType() -> MokkeryDiagnostics.PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED
+            modality == Modality.SEALED -> MokkeryDiagnostics.SEALED_TYPE_CANNOT_BE_INTERCEPTED
+            modality == Modality.FINAL -> MokkeryDiagnostics.FINAL_TYPE_CANNOT_BE_INTERCEPTED
             else -> null
         }
         if (modalityDiagnostic != null) {
@@ -211,13 +211,15 @@ private class MokkeryScopedCallsChecker(
                 b = classSymbol.defaultType(),
                 context = context
             )
+            return false
         }
+        return true
     }
 
-    private fun checkInterceptionDefaultConstructor(
+    private fun checkClassInterceptionRequirements(
         source: AbstractKtSourceElement?,
         classSymbol: FirRegularClassSymbol
-    ) {
+    ): Boolean {
         val constructors = classSymbol.constructors
         if (constructors.any() && constructors.none { it.isDefault() }) {
             reporter.reportOn(
@@ -227,10 +229,8 @@ private class MokkeryScopedCallsChecker(
                 b = classSymbol.defaultType(),
                 context = context
             )
+            return false
         }
-    }
-
-    private fun checkInterceptionFinalMembers(source: AbstractKtSourceElement?, classSymbol: FirRegularClassSymbol) {
         val inheritedSymbols = classSymbol
             .resolvedSuperTypes
             .asSequence()
@@ -245,7 +245,7 @@ private class MokkeryScopedCallsChecker(
             .filterNot { it.isValid(validationMode) }
             .toList()
         if (finalDeclarations.isNotEmpty()) {
-            return reporter.reportOn(
+            reporter.reportOn(
                 source = source,
                 factory = MokkeryDiagnostics.FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED,
                 a = funSymbol.name,
@@ -253,7 +253,9 @@ private class MokkeryScopedCallsChecker(
                 c = finalDeclarations,
                 context = context
             )
+            return false
         }
+        return true
     }
 
     private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {
