@@ -1,13 +1,16 @@
-package dev.mokkery.internal.verify
+package dev.mokkery.internal.names
 
 import dev.mokkery.test.TestMockUniqueReceiversGenerator
 import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import kotlin.collections.associateWith
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.text.removePrefix
+import kotlin.text.substringBefore
 
-class MockReceiverShortenerTest {
+class GroupMockReceiverShortenerTest {
 
     private val namesShortener = TestNameShortener { names ->
         names.associateWith { it.removePrefix("package.") }
@@ -15,7 +18,7 @@ class MockReceiverShortenerTest {
     private val generator = TestMockUniqueReceiversGenerator(
         extractTypeCalls = { it.substringBefore("@") }
     )
-    private val shortener = MockReceiverShortener(namesShortener = namesShortener, receiversGenerator = generator)
+    private val shortener = GroupMockReceiverShortener(namesShortener = namesShortener, receiversGenerator = generator)
 
     private val templates = listOf(
         fakeCallTemplate(receiver = "package.foo@1"),

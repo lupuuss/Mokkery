@@ -1,13 +1,16 @@
-package dev.mokkery.internal.verify
+package dev.mokkery.internal.names
 
 import dev.mokkery.internal.MockUniqueReceiversGenerator
-import dev.mokkery.internal.names.NameShortener
-import dev.mokkery.internal.names.ReverseDomainNameShortener
-import dev.mokkery.internal.names.withTypeArgumentsSupport
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import kotlin.collections.associateByTo
+import kotlin.collections.getValue
+import kotlin.collections.map
+import kotlin.collections.mapTo
+import kotlin.collections.toList
+import kotlin.text.removePrefix
 
-internal class MockReceiverShortener(
+internal class GroupMockReceiverShortener(
     private val namesShortener: NameShortener = ReverseDomainNameShortener.withTypeArgumentsSupport(),
     private val receiversGenerator: MockUniqueReceiversGenerator = MockUniqueReceiversGenerator
 ) {

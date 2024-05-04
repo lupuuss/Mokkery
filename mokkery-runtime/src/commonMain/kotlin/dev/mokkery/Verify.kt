@@ -6,9 +6,9 @@ import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.ObjectNotSpiedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.failAssertion
+import dev.mokkery.internal.names.GroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.verify.MockReceiverShortener
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -44,7 +44,7 @@ public fun verifyNoMoreCalls(vararg mocks: Any) {
         if (tracing.unverified.isNotEmpty()) {
             failAssertion {
                 val renderer = PointListRenderer<CallTrace>()
-                val shortener = MockReceiverShortener()
+                val shortener = GroupMockReceiverShortener()
                 shortener.prepare(tracing.unverified, emptyList())
                 val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
                 appendLine("Unverified calls for $mock:")
