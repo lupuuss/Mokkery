@@ -11,7 +11,7 @@ import kotlin.collections.toList
 import kotlin.text.removePrefix
 
 internal class GroupMockReceiverShortener(
-    private val namesShortener: NameShortener = ReverseDomainNameShortener.withTypeArgumentsSupport(),
+    private val namesShortener: NameShortener = NameShortener.default,
     private val receiversGenerator: MockUniqueReceiversGenerator = MockUniqueReceiversGenerator
 ) {
 
