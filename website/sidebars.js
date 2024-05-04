@@ -18,6 +18,7 @@ const sidebars = {
     collapsed: false,
     items: [
      'Guides/Mocking',
+     'Guides/Mocking_multiple_types',
      'Guides/Answers',
      'Guides/Matchers',
      'Guides/Spying',

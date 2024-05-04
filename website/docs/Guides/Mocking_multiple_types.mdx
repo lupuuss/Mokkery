@@ -1,0 +1,53 @@
+---
+description: Create a single mock that implements multiple types!
+---
+# Mocking multiple types
+
+To create a mock of multiple types use `mockMany`:
+
+```kotlin
+val mock = mockMany<A, B, C>()
+```
+
+`mockMany` accepts up to 5 types. These types have to satisfy given requirements:
+* Each type must be [supported](../Limitations#supported-types).
+* Types must not duplicate.
+* Single super class is allowed.
+* Functional types are not supported on JS.
+
+`mockMany` returns `MockManyN` type that is a marker for multiple type mocks. To access methods from specific type, explicit cast is required.
+You can achive it with `tN` extensions:
+
+```kotlin
+val mock = mockMany<A, B, C> {
+    // t1 extension casts to A
+    every { t1.methodFromA() } returns Unit
+    // t2 extension casts to B
+    every { t2.methodFromB() } returns Unit
+    // t3 extension casts to C
+    every { t3.methodFromC() } returns Unit
+}
+
+val foo = Foo(a = mock.t1)
+```
+
+### Shared methods
+
+If types share methods with the same signature, they are threated as one:
+
+```kotlin
+interface A {
+    // ...
+    fun sharedMethod(i: Int): String
+}
+interface B {
+    // ...
+    fun sharedMethod(i: Int): String
+}
+// ...
+val mock = mockMany<A, B> {
+    every { t1.sharedMethod(any()) } returns "Hello world!"
+}
+// ...
+mock.t2.sharedMethod(1) // returns "Hello world!"
+```
