@@ -223,7 +223,7 @@ data class DelayedConstAnswer<T>(
 }
 ```
 
-For suspending answers it's highly recommended to introduce convinience extension. It's able to indicate that given answer only supports suspending functions:
+For suspending answers it's highly recommended to introduce convenience extension. It's able to indicate that given answer only supports suspending functions:
 
 ```kotlin
 infix fun <T> SuspendAnsweringScope<T>.returnsAfterDelay(value: T) = answers(DelayedConstAnswer(value))
