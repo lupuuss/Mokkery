@@ -3,11 +3,12 @@ package dev.mokkery.internal.verify
 import dev.mokkery.internal.MockUniqueReceiversGenerator
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
+import dev.mokkery.internal.names.withTypeArgumentsSupport
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
 internal class MockReceiverShortener(
-    private val namesShortener: NameShortener = ReverseDomainNameShortener,
+    private val namesShortener: NameShortener = ReverseDomainNameShortener.withTypeArgumentsSupport(),
     private val receiversGenerator: MockUniqueReceiversGenerator = MockUniqueReceiversGenerator
 ) {
 
