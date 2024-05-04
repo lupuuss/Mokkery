@@ -12,6 +12,8 @@ import dev.mokkery.internal.MokkeryInterceptor
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
+import dev.mokkery.internal.names.CallTraceReceiverShortener
+import dev.mokkery.internal.names.shortToString
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.tracing.CallTrace
@@ -30,15 +32,17 @@ internal interface AnsweringInterceptor : MokkeryInterceptor {
 internal fun AnsweringInterceptor(
     mockMode: MockMode,
     callMatcher: CallMatcher = CallMatcher(),
-    lookup: MokkeryScopeLookup = MokkeryScopeLookup.current
+    lookup: MokkeryScopeLookup = MokkeryScopeLookup.current,
+    callTraceReceiverShortener: CallTraceReceiverShortener = CallTraceReceiverShortener,
 ): AnsweringInterceptor {
-    return AnsweringInterceptorImpl(mockMode, callMatcher, lookup)
+    return AnsweringInterceptorImpl(mockMode, callMatcher, lookup, callTraceReceiverShortener)
 }
 
 private class AnsweringInterceptorImpl(
     private val mockMode: MockMode,
     private val callMatcher: CallMatcher,
     private val lookup: MokkeryScopeLookup,
+    private val callTraceReceiverShortener: CallTraceReceiverShortener,
 ) : AnsweringInterceptor {
 
     private val modifiers = atomic(0)
@@ -83,7 +87,7 @@ private class AnsweringInterceptorImpl(
         mockMode == MockMode.autofill -> Answer.Autofill
         mockMode == MockMode.original && context.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original, lookup)
         mockMode == MockMode.autoUnit && context.returnType == Unit::class -> Answer.Const(Unit)
-        else -> throw CallNotMockedException(trace.toString())
+        else -> throw CallNotMockedException(callTraceReceiverShortener.shortToString(trace))
     }
 
     private fun CallContext.toFunctionScope() = FunctionScope(
