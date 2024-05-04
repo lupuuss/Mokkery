@@ -119,52 +119,47 @@ private class MokkeryScopedCallsChecker(
         checkTemplatingFunctionalParam(blockArgument.source ?: expression.source, blockArgument)
     }
 
-    private fun checkNoDuplicates(argumentsCount: Int, classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
-        if (classMapping.size != argumentsCount) {
-            val entry = classMapping.entries.first { it.value.size > 1 }
-            reporter.reportOn(
-                source = entry.value[1].source,
-                factory = MokkeryDiagnostics.DUPLICATE_TYPES_FOR_MOCK_MANY,
-                a = entry.key.defaultType(),
-                b = funSymbol.name,
-                c = entry.value.size.toString(),
-                context = context
-            )
-            return false
-        }
-        return true
+    private fun checkNoDuplicates(
+        argumentsCount: Int,
+        classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>
+    ): Boolean {
+        if (classMapping.size == argumentsCount) return true
+        val entry = classMapping.entries.first { it.value.size > 1 }
+        reporter.reportOn(
+            source = entry.value[1].source,
+            factory = MokkeryDiagnostics.DUPLICATE_TYPES_FOR_MOCK_MANY,
+            a = entry.key.defaultType(),
+            b = funSymbol.name,
+            c = entry.value.size.toString(),
+            context = context
+        )
+        return false
     }
 
     private fun checkOneSuperClass(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
         val regularClasses = classMapping.keys.filter { it.classKind == ClassKind.CLASS }
-        if (regularClasses.size > 1) {
-            reporter.reportOn(
-                source = classMapping.getValue(regularClasses[1]).first().source,
-                factory = MokkeryDiagnostics.MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY,
-                a = funSymbol.name,
-                b = regularClasses.map { it.defaultType() },
-                context = context
-            )
-            return false
-        }
-        return true
+        if (regularClasses.size <= 1) return true
+        reporter.reportOn(
+            source = classMapping.getValue(regularClasses[1]).first().source,
+            factory = MokkeryDiagnostics.MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY,
+            a = funSymbol.name,
+            b = regularClasses.map { it.defaultType() },
+            context = context
+        )
+        return false
     }
 
     private fun checkJsFunctionalTypes(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
-        if (session.moduleData.platform.isJs()) {
-            val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(session) }
-            if (funClass != null) {
-                reporter.reportOn(
-                    source = classMapping.getValue(funClass).first().source,
-                    factory = MokkeryDiagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
-                    a = classMapping.getValue(funClass).first().toConeTypeProjection().type!!,
-                    b = funSymbol.name,
-                    context = context
-                )
-                return false
-            }
-        }
-        return true
+        if (!session.moduleData.platform.isJs()) return true
+        val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(session) } ?: return true
+        reporter.reportOn(
+            source = classMapping.getValue(funClass).first().source,
+            factory = MokkeryDiagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
+            a = classMapping.getValue(funClass).first().toConeTypeProjection().type!!,
+            b = funSymbol.name,
+            context = context
+        )
+        return false
     }
 
     // checkInterception
@@ -179,17 +174,15 @@ private class MokkeryScopedCallsChecker(
     }
 
     private fun checkInterceptionTypeParameter(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
-        if (type is ConeTypeParameterType) {
-            reporter.reportOn(
-                source = source,
-                factory = MokkeryDiagnostics.INDIRECT_INTERCEPTION,
-                a = funSymbol.name,
-                b = type,
-                context = context
-            )
-            return false
-        }
-        return true
+        if (type !is ConeTypeParameterType) return true
+        reporter.reportOn(
+            source = source,
+            factory = MokkeryDiagnostics.INDIRECT_INTERCEPTION,
+            a = funSymbol.name,
+            b = type,
+            context = context
+        )
+        return false
     }
 
     private fun checkInterceptionModality(
@@ -203,17 +196,15 @@ private class MokkeryScopedCallsChecker(
             modality == Modality.FINAL -> MokkeryDiagnostics.FINAL_TYPE_CANNOT_BE_INTERCEPTED
             else -> null
         }
-        if (modalityDiagnostic != null) {
-            reporter.reportOn(
-                source = source,
-                factory = modalityDiagnostic,
-                a = funSymbol.name,
-                b = classSymbol.defaultType(),
-                context = context
-            )
-            return false
-        }
-        return true
+        if (modalityDiagnostic == null) return true
+        reporter.reportOn(
+            source = source,
+            factory = modalityDiagnostic,
+            a = funSymbol.name,
+            b = classSymbol.defaultType(),
+            context = context
+        )
+        return false
     }
 
     private fun checkClassInterceptionRequirements(
@@ -244,18 +235,16 @@ private class MokkeryScopedCallsChecker(
             .filterOutWasmSpecialProperties() // TODO Remove when not detectable by FIR
             .filterNot { it.isValid(validationMode) }
             .toList()
-        if (finalDeclarations.isNotEmpty()) {
-            reporter.reportOn(
-                source = source,
-                factory = MokkeryDiagnostics.FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED,
-                a = funSymbol.name,
-                b = classSymbol.defaultType(),
-                c = finalDeclarations,
-                context = context
-            )
-            return false
-        }
-        return true
+        if (finalDeclarations.isEmpty()) return true
+        reporter.reportOn(
+            source = source,
+            factory = MokkeryDiagnostics.FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED,
+            a = funSymbol.name,
+            b = classSymbol.defaultType(),
+            c = finalDeclarations,
+            context = context
+        )
+        return false
     }
 
     private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {
