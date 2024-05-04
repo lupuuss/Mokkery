@@ -56,8 +56,8 @@ Wildcard vararg matchers can be used with composite matchers (e.g. [logical matc
 everySuspend { repository.findAllById(*anyVarargs()) } returns listOf(stubBook("1"))
 everySuspend { repository.findAllById(*not(varargsAll { it == "2" })) } returns listOf(stubBook("2"))
 
-resporitory.findAllById("2", "2", "2") // returns listOf(stubBook("1"))
-resporitory.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
+repository.findAllById("2", "2", "2") // returns listOf(stubBook("1"))
+repository.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
 ```
 
 ### Custom matchers
@@ -134,7 +134,7 @@ val slot = Capture.slot<Array<String>>()
 
 everySuspend { repository.findAllById(*capture(slot, anyVarargs())) } returns listOf(stubBook("1"))
 
-resporitory.findAllById("1", "2", "3")
+repository.findAllById("1", "2", "3")
 // slot contains arrayOf("1", "2", "3")
 ```
 

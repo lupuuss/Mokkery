@@ -105,7 +105,7 @@ The most straightforward way to call original method is to use `calls` overload:
 ```kotlin
 everySuspend { repository.findById(any()) } calls original
 
-respository.findById("2") // this calls original method implementation with "2"
+repository.findById("2") // this calls original method implementation with "2"
 ```
 
 You can pass different arguments to original call:
@@ -113,7 +113,7 @@ You can pass different arguments to original call:
 ```kotlin
 everySuspend { repository.findById(any()) } calls originalWith("3")
 
-respository.findById("2") // this calls original method implementation with "3"
+repository.findById("2") // this calls original method implementation with "3"
 ```
 
 > **Warning**
@@ -171,7 +171,7 @@ Calling super methods from indirect supertypes is similar to calling original me
 ```kotlin
 everySuspend { repository.findById(any()) } calls superOf<BaseRepository>()
 
-respository.findById("2") // this calls super method implementation from BaseRepository with "2"
+repository.findById("2") // this calls super method implementation from BaseRepository with "2"
 ```
 
 You can pass different arguments to super call:
@@ -179,7 +179,7 @@ You can pass different arguments to super call:
 ```kotlin
 everySuspend { repository.findById(any()) } calls superWith<BaseRepository>("3")
 
-respository.findById("2") // this calls super method implementation from BaseRepository with "3"
+repository.findById("2") // this calls super method implementation from BaseRepository with "3"
 ```
 
 ### Custom answer
@@ -199,7 +199,7 @@ Answer that implements only `call` works for both regular functions and suspendi
 everySuspend { repository.countAllBooks() } answers RandomIntAnswer
 ```
 
-You can provide convinient extension for your custom answer:
+You can provide convenient extension for your custom answer:
 
 ```kotlin
 fun AnsweringScope<Int>.returnsRandomInt() = answers(RandomIntAnswer)

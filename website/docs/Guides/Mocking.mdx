@@ -153,8 +153,8 @@ You can ignore those members with following Gradle options:
 
 ```kotlin
 mokkery {
-    ingoreInlineMembers.set(true) // ignores only inline members
-    ingoreFinalMembers.set(true)  // ignores final members (inline included)
+    ignoreInlineMembers.set(true) // ignores only inline members
+    ignoreFinalMembers.set(true)  // ignores final members (inline included)
 }
 ```
 
@@ -197,5 +197,5 @@ class Foo {
 }
 ```
 
-Be aware that this plugin makes your types open in a production code. It might be problematic in case your artifiacts being consumed by other libararies.
+Be aware that this plugin makes your types open in a production code. It might be problematic in case your artifacts being consumed by other libraries.
 However, it should be fine for any type of applications.
