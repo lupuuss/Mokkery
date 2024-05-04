@@ -1,11 +1,14 @@
 package dev.mokkery.answering
 
+import dev.mokkery.internal.MissingSuperMethodException
+import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.test.TestMokkeryInterceptorScope
 import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 
 class FunctionScopeTest {
@@ -47,6 +50,62 @@ class FunctionScopeTest {
         assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
     }
 
+
+    @Test
+    fun testCallOriginalWhenMultipleSuperTypes() {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Unit::class, Float::class))
+        }
+        assertEquals(2, scope.callOriginal(lookup, listOf(1)))
+    }
+
+    @Test
+    fun testCallSuspendOriginalWhenMultipleSuperTypes() = runTest {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Int::class, Float::class))
+        }
+        assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
+    }
+
+    @Test
+    fun testCallOriginalFailsWhenNoSuperCallForInterceptedSupertype() {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(String::class))
+        }
+        assertFailsWith<MissingSuperMethodException> {
+            scope.callOriginal(lookup, listOf(1))
+        }
+    }
+
+    @Test
+    fun testCallSuspendFailsWhenNoSuperCallForInterceptedSupertype() = runTest {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(String::class))
+        }
+        assertFailsWith<MissingSuperMethodException> {
+            scope.callSuspendOriginal(lookup, listOf(1))
+        }
+    }
+
+    @Test
+    fun testCallOriginalFailsWhenMultipleMatchingSuperCallsForInterceptedTypes() {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Int::class, Unit::class))
+        }
+        assertFailsWith<SuperTypeMustBeSpecifiedException> {
+            scope.callOriginal(lookup, listOf(1))
+        }
+    }
+
+    @Test
+    fun testCallSuspendFailsWhenMultipleMatchingSuperCallsForInterceptedTypes() = runTest {
+        val lookup = TestMokkeryScopeLookup {
+            TestMokkeryInterceptorScope(interceptedTypes = listOf(Int::class, Unit::class))
+        }
+        assertFailsWith<SuperTypeMustBeSpecifiedException> {
+            scope.callSuspendOriginal(lookup, listOf(1))
+        }
+    }
 
     @Test
     fun testEquality() {

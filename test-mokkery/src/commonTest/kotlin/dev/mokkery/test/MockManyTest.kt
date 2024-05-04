@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
+import dev.mokkery.answering.SuperCall.Companion.original
 import dev.mokkery.answering.SuperCall.Companion.superOf
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -53,7 +54,7 @@ class MockManyTest {
     }
 
     @Test
-    fun testMocksProperlyResolvesNameCollidingSuperCallsToMethods() {
+    fun testProperlyResolvesNameCollidingSuperCallsToMethods() {
         every { mock.t1.method(1) } calls superOf<A>()
         every { mock.t1.method(2) } calls superOf<B>()
         every { mock.t1.method(3) } calls superOf<C>()
@@ -63,13 +64,21 @@ class MockManyTest {
     }
 
     @Test
-    fun testMocksProperlyResolvesNameCollidingSuperCallsToProperties() {
+    fun testProperlyResolvesNameCollidingSuperCallsToProperties() {
         every { mock.t1.property } calls superOf<A>()
         assertEquals(1, mock.t1.property)
         every { mock.t1.property } calls superOf<B>()
         assertEquals(2, mock.t1.property)
         every { mock.t1.property } calls superOf<C>()
         assertEquals(3, mock.t1.property)
+    }
+
+    @Test
+    fun testProperlySelectsSingleSuperCallWithOriginal() {
+        every { mock.t2.methodB(any()) } calls original
+        every { mock.t3.methodC(any()) } calls original
+        assertEquals("methodB(2) original", mock.t2.methodB(2))
+        assertEquals("methodC(3) original", mock.t3.methodC(3))
     }
 
     @Test
@@ -115,7 +124,7 @@ class MockManyTest {
 
         open fun method(input: Int): String = "method($input) from B"
 
-        abstract fun methodB(input: Int): String
+        open fun methodB(input: Int): String = "methodB($input) original"
     }
 
     private interface C : A {
@@ -126,6 +135,6 @@ class MockManyTest {
 
         override fun method(input: Int): String = "Overridden method($input) from C"
 
-        fun methodC(input: Int): String
+        fun methodC(input: Int): String = "methodC($input) original"
     }
 }

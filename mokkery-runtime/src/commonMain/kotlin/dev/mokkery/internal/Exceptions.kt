@@ -49,9 +49,9 @@ internal class MissingMatchersForComposite(
     "`$compositeName` expects $expected matchers, but received ${matchers.size}! You probably used literal in composite matcher, which is illegal! Received matchers: $matchers"
 )
 
-internal class MissingSuperMethodException(type: KClass<*>) : MokkeryRuntimeException(
+internal class MissingSuperMethodException(types: List<KClass<*>>) : MokkeryRuntimeException(
     """
-        Super call for ${type.simpleName} could not be performed! Make sure that: 
+        Super call for ${superTypesString(types)} could not be performed! Make sure that: 
             1. In case of direct super calls (call to original/default implementation of mocked method), there is any existing implementation of this method provided in inheritance hierarchy.
             2. In case of indirect super calls, you have them enabled in your Gradle files:
                ```
@@ -62,7 +62,17 @@ internal class MissingSuperMethodException(type: KClass<*>) : MokkeryRuntimeExce
             3. It is not super method that is compiled as Java default. Call to Java default method is checked at bytecode level and results in runtime errors, so it is not supported.
             4. It is not a call to indirect supertype that originates from Java (like kotlin.collections.List).
     """.trimIndent()
-)
+) {
+
+    constructor(type: KClass<*>) : this(listOf(type))
+}
+
+private fun superTypesString(types: List<KClass<*>>): String {
+    return when (types.size) {
+        1 -> "type '${types.single().bestName()}'"
+        else -> "any of types ${types.map(KClass<*>::bestName)}"
+    }
+}
 
 
 internal class MissingArgsForSuperMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(

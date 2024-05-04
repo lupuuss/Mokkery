@@ -7,6 +7,7 @@ import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.bestName
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass
 
@@ -102,29 +103,34 @@ public class FunctionScope internal constructor(
     public suspend fun callSuspendOriginal(args: List<Any?>): Any? = callSuspendOriginal(MokkeryScopeLookup.current, args)
 
     internal fun callOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
-        if (this.args.size != args.size) {
-            throw MissingArgsForSuperMethodException(this.args.size, args.size)
-        }
-        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
-        val superType = selfScope.interceptedTypes
-            .singleOrNull()
-            ?: throw SuperTypeMustBeSpecifiedException("Multiple super types [${selfScope.interceptedTypes.joinToString { it.bestName() }}]!")
-        return supers[superType]
-            .let { it ?: throw MissingSuperMethodException(superType) }
-            .invoke(args)
+        checkArgs(args)
+        val superType = resolveOriginalSupertype(lookup)
+        return supers.getValue(superType).invoke(args)
     }
 
     internal suspend fun callSuspendOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
+        checkArgs(args)
+        val superType = resolveOriginalSupertype(lookup)
+        return supers.getValue(superType)
+            .unsafeCast<suspend (List<Any?>) -> Any?>()
+            .invoke(args)
+    }
+
+    private fun resolveOriginalSupertype(lookup: MokkeryScopeLookup): KClass<*> {
+        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
+        val superCandidates = selfScope.interceptedTypes.filter(supers::contains)
+        if (superCandidates.isEmpty()) throw MissingSuperMethodException(selfScope.interceptedTypes)
+        val superType = superCandidates
+            .singleOrNull()
+            ?: throw SuperTypeMustBeSpecifiedException(
+                "Multiple original super calls available ${superCandidates.map(KClass<*>::bestName)}!"
+            )
+        return superType
+    }
+
+    private fun checkArgs(args: List<Any?>) {
         if (this.args.size != args.size) {
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
-        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
-        val superType = selfScope.interceptedTypes
-            .singleOrNull()
-            ?: throw SuperTypeMustBeSpecifiedException("Multiple super types [${selfScope.interceptedTypes.joinToString { it.bestName() }}]!")
-        return supers[superType]
-            .unsafeCastOrNull<suspend (List<Any?>) -> Any?>()
-            .let { it ?: throw MissingSuperMethodException(superType) }
-            .invoke(args)
     }
 }
