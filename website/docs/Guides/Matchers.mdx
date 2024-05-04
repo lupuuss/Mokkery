@@ -52,7 +52,7 @@ repository.findAllById("1", "2", "3", "3") // fails - method not mocked
 
 Wildcard vararg matchers can be used with composite matchers (e.g. [logical matchers](#logical-matchers)):
 
-```
+```kotlin
 everySuspend { repository.findAllById(*anyVarargs()) } returns listOf(stubBook("1"))
 everySuspend { repository.findAllById(*not(varargsAll { it == "2" })) } returns listOf(stubBook("2"))
 
