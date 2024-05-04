@@ -9,6 +9,7 @@ import dev.mokkery.mockMany
 import dev.mokkery.t1
 import dev.mokkery.t2
 import dev.mokkery.t3
+import dev.mokkery.verify
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -69,6 +70,30 @@ class MockManyTest {
         assertEquals(2, mock.t1.property)
         every { mock.t1.property } calls superOf<C>()
         assertEquals(3, mock.t1.property)
+    }
+
+    @Test
+    fun testSuccessfulVerificationTest() {
+        mock.t1.methodA(1)
+        mock.t2.methodB(2)
+        mock.t3.methodC(3)
+        verify {
+            mock.t1.methodA(1)
+            mock.t2.methodB(2)
+            mock.t3.methodC(3)
+        }
+    }
+
+    @Test
+    fun testFailingVerificationTest() {
+        mock.t1.methodA(0)
+        assertVerified {
+            verify {
+                mock.t1.methodA(1)
+                mock.t2.methodB(2)
+                mock.t3.methodC(2)
+            }
+        }
     }
 
     private interface A {
