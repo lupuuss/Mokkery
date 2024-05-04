@@ -28,29 +28,47 @@ If you call a method that has no defined behaviour, runtime exception is thrown.
     
 ### Mock modes
 
-Mokkery provides 4 modes for missing answers:
+Mokkery provides 4 modes for missing answers.
 
+#### Strict
+
+It is the default mode that fails on missing answers.
 
 ```kotlin
 import dev.mokkery.MockMode.strict
-import dev.mokkery.MockMode.autofill
+
+val repository = mock<BookRepository>(strict)
+```
+#### AutoUnit
+
+Just like [strict](#Strict) but it does not fail on Unit returning methods.
+
+```kotlin
 import dev.mokkery.MockMode.autoUnit
+
+val repository = mock<BookRepository>(autoUnit)
+```
+
+#### Autofill
+
+Returns empty values e.g. 0 for numbers, "" for string and null for complex types.
+```kotlin
+import dev.mokkery.MockMode.autofill
+
+val repository = mock<BookRepository>(autofill)
+```
+
+#### Original
+
+Calls super implementation if available (default implementation for interface). Otherwise, it fails.
+Useful for mocking types highly dependant on default behaviour.
+```kotlin
 import dev.mokkery.MockMode.original
 
-// default - fails on missing answers
-val repository = mock<BookRepository>(strict)
-
-// autofill - returns empty values e.g. 0 for numbers, "" for string and null for complex types.
-val repository = mock<BookRepository>(autofill)
-
-// autoUnit - does not fail on Unit returning methods. 
-val repository = mock<BookRepository>(autoUnit)
-
-// original - calls super implementation if available (default implementation for interface)
-//            Fails on missing super call.
-//            Useful for mocking types highly dependant on default behaviour.
 val repository = mock<BookRepository>(original)
 ```
+
+#### Default mock mode
 
 It is possible to change the default `MockMode` on the Gradle plugin level like this:
 
