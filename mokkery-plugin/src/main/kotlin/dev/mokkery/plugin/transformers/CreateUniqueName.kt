@@ -8,8 +8,8 @@ import java.util.*
 
 fun IrClass.createUniqueMockName(type: String) = name
     .asString()
-    .plus(UUID.randomUUID().toString().replace("-", ""))
     .plus(type)
+    .plus(UUID.randomUUID().toString().replace("-", ""))
     .let(Name::identifier)
 
 fun IrType.createUniqueManyMockName() = classFqName!!
