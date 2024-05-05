@@ -19,7 +19,7 @@ code * {
   --ifm-color-primary-light: #E24462;
   --ifm-color-primary-lighter: #E24462;
   --ifm-color-primary-lightest: #E24462;
-  --ifm-code-font-size: 95%;
+  --ifm-code-font-size: 105%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
