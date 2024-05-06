@@ -23,12 +23,17 @@ internal fun callToString(
     append(callFunctionToString(name, args))
 }
 
-internal fun callFunctionToString(name: String, args: List<CallArg>): String = buildString {
-    append(name)
-    append("(")
-    append(args.joinToString { "${it.name} = ${it.value.description()}" })
-    append(")")
-}
+internal fun callFunctionToString(
+    name: String,
+    args: List<CallArg>,
+) = PropertyDescriptor.fromNameOrNull(name)
+    ?.toCallString(args.map { it.value.description() })
+    ?: buildString {
+        append(name)
+        append("(")
+        append(args.joinToString { "${it.name} = ${it.value.description()}" })
+        append(")")
+    }
 
 internal fun <T> List<T>.subListAfter(index: Int): List<T> {
     if (index >= size) return emptyList()

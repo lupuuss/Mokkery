@@ -1,5 +1,6 @@
 package dev.mokkery.internal.templating
 
+import dev.mokkery.internal.PropertyDescriptor
 import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
@@ -15,10 +16,12 @@ internal data class CallTemplate(
         append(toStringNoReceiver())
     }
 
-    fun toStringNoReceiver() = buildString {
-        append(name)
-        append("(")
-        append(matchers.entries.joinToString { "${it.key} = ${it.value}" })
-        append(")")
-    }
+    fun toStringNoReceiver(): String = PropertyDescriptor.fromNameOrNull(name)
+        ?.toCallString(matchers.values.map(ArgMatcher<Any?>::toString))
+        ?: buildString {
+            append(name)
+            append("(")
+            append(matchers.entries.joinToString { "${it.key} = ${it.value}" })
+            append(")")
+        }
 }
