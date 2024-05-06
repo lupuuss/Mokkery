@@ -127,6 +127,7 @@ fun IrClass.addOverridingProperty(
         getter.returnType = baseGetter.returnType
         getter.metadata = baseGetter.metadata
         getter.dispatchReceiverParameter = buildThisValueParam()
+        getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
         getter.copyParametersFrom(baseGetter)
         getter.copyAnnotationsFrom(baseGetter)
         getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
@@ -136,6 +137,7 @@ fun IrClass.addOverridingProperty(
             setter.returnType = baseSetter.returnType
             setter.metadata = baseSetter.metadata
             setter.dispatchReceiverParameter = buildThisValueParam()
+            setter.contextReceiverParametersCount = baseSetter.contextReceiverParametersCount
             setter.copyParametersFrom(baseSetter)
             setter.copyAnnotationsFrom(baseSetter)
             setter.overriddenSymbols = properties.mapNotNull { it.setter?.symbol }

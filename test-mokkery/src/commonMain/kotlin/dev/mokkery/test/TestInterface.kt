@@ -4,7 +4,11 @@ interface TestInterface : BaseInterface {
 
     var property: String
         get() = "Default value"
-        set(_) { }
+        set(_) = Unit
+
+    var Int.extProperty: String
+        get() = "$this - default property with receiver"
+        set(_) = Unit
 
     fun callWithString(value: String?): Int
 
@@ -13,6 +17,8 @@ interface TestInterface : BaseInterface {
     fun callWithComplex(list: List<String>): List<Int>
 
     fun Int.callWithExtensionReceiver(): String
+
+    fun Int.callWithExtensionReceiverDefault(): String = "$this - default method with receiver"
 
     fun callWithVararg(i: Int, vararg args: String): Double
 
@@ -34,7 +40,7 @@ interface TestInterface : BaseInterface {
 
     fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number
 
-    fun <T> callWithArray(array: Array<T>): T
+    fun <T> callWithArray(array: Array<T>): T = array[0]
 
     fun callWithIntArray(array: IntArray): String
 

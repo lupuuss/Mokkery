@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
@@ -137,11 +138,10 @@ private fun IrBuilderWithScope.createSuperCallLambda(
     superFunction: IrSimpleFunction
 ): IrExpression {
     val pluginContext = transformer.pluginContext
-    val anyList = pluginContext.irBuiltIns.listClass.owner
     val lambdaType = pluginContext
         .irBuiltIns
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
-        .typeWith(anyList.defaultTypeErased, superFunction.returnType)
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, superFunction.returnType)
     return irLambda(
         returnType = superFunction.returnType,
         lambdaType = lambdaType,
@@ -149,11 +149,12 @@ private fun IrBuilderWithScope.createSuperCallLambda(
     ) { lambda ->
         val superCall = irCall(symbol = superFunction.symbol, superQualifierSymbol = superFunction.parentAsClass.symbol) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
-            superFunction.valueParameters.forEachIndexed { index, irValueParameter ->
-                putValueArgument(
-                    index = index,
-                    valueArgument = irAs(
-                        argument = irCall(anyList.getSimpleFunction("get")!!) {
+            contextReceiversCount = superFunction.contextReceiverParametersCount
+            superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+                putArgument(
+                    parameter = irValueParameter,
+                    argument = irAs(
+                        argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
                             dispatchReceiver = irGet(lambda.valueParameters[0])
                             putValueArgument(0, irInt(index))
                         },
