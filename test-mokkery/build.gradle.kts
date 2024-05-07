@@ -88,13 +88,3 @@ dependencies {
     commonTestImplementation(kotlin("test"))
     "coroutinesTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }
-
-// temporary fix until node version with latest wasm support is merged
-extensions.configure(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension::class) {
-    nodeVersion = "21.0.0-v8-canary202309167e82ab1fa2"
-    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask::class) {
-    args.add("--ignore-engines")
-}
