@@ -3,6 +3,8 @@ package dev.mokkery.plugin.transformers
 import dev.mokkery.plugin.core.Cache
 import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
+import dev.mokkery.plugin.core.IrMokkeryKind.Mock
+import dev.mokkery.plugin.core.IrMokkeryKind.Spy
 import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.Mokkery.Errors
@@ -13,6 +15,7 @@ import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.mokkeryLogAt
+import dev.mokkery.plugin.core.platform
 import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.core.verifyMode
 import dev.mokkery.plugin.ir.irCall
@@ -75,7 +78,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val internalEverySuspend = getFunction(Mokkery.Function.internalEverySuspend)
     private val internalVerify = getFunction(Mokkery.Function.internalVerify)
     private val internalVerifySuspend = getFunction(Mokkery.Function.internalVerifySuspend)
-    private val validationMode: MembersValidationMode = compilerConfig.validationMode
+    private val validationMode = compilerConfig.validationMode
 
     override fun visitCall(expression: IrCall): IrExpression {
         val name = expression.symbol.owner.kotlinFqName
@@ -109,14 +112,11 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithMock(call: IrCall): IrExpression {
         val klass = call.getTypeToMock() ?: return call
-        if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
-            return createMockJsFunction(call, klass)
-        }
-        val mockedClass = mockCache.getOrPut(klass) { createMockClass(klass).also(currentFile::addChild) }
+        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock, klass)
+        val mockedClass = mockCache.getOrPut(klass) { buildMockClass(Mock, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
-                val modeArg = call.valueArguments
-                    .getOrNull(0)
+                val modeArg = call.valueArguments.getOrNull(0)
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
                 val block = call.valueArguments.getOrNull(1)
                 putValueArgument(0, modeArg)
@@ -129,29 +129,28 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val classes = call.getTypesToMock()
         if (classes.isEmpty()) return call
         val mockedClass = mockManyCache.getOrPut(classes) {
-            createManyMockClass(classes.toList()).also(currentFile::addChild)
+            buildManyMockClass(classes.toList()).also(currentFile::addChild)
         }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
-                val modeArg = call.valueArguments
-                    .getOrNull(0)
+                val modeArg = call.valueArguments.getOrNull(0)
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
-                val block = call.valueArguments.getOrNull(1)
                 putValueArgument(0, modeArg)
-                putValueArgument(1, block ?: irNull())
+                putValueArgument(1, call.valueArguments.getOrNull(1) ?: irNull())
             }
         }
     }
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
         val klass = call.getTypeToMock() ?: return call
-        if (pluginContext.platform.isJs() && klass.defaultType.isAnyFunction()) {
-            return createSpyJsFunction(call, klass)
-        }
-        val spiedClass = spyCache.getOrPut(klass) { createSpyClass(klass).also(currentFile::addChild) }
+        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy, klass)
+        val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(spiedClass.primaryConstructor!!) {
-                putValueArgument(0, call.valueArguments[0])
+                val block = call.valueArguments.getOrNull(1) ?: irNull()
+                putValueArgument(0, irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict"))
+                putValueArgument(1, block)
+                putValueArgument(2, call.valueArguments[0])
             }
         }
     }
@@ -201,13 +200,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun IrBuilderWithScope.irGetVerifyMode(verifyMode: VerifyMode): IrExpression {
         val expression = when (verifyMode) {
-            is SoftVerifyMode -> {
-                irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!) {
-                    putValueArgument(0, irInt(verifyMode.atLeast))
-                    putValueArgument(1, irInt(verifyMode.atMost))
-                }
+            is SoftVerifyMode -> irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!) {
+                putValueArgument(0, irInt(verifyMode.atLeast))
+                putValueArgument(1, irInt(verifyMode.atMost))
             }
-
             else -> irGetObject(getIrClassOf(verifyMode::class).symbol)
         }
         return expression

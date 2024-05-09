@@ -41,16 +41,16 @@ class ResetTest {
     }
 
     @Test
-    fun testResetAnswersFailsOnSpy() {
-        assertFailsWith<MokkeryRuntimeException> {
-            resetAnswers(spied)
-        }
-    }
-
-    @Test
     fun testResetAnswersOnMock() {
         every { mocked.callWithPrimitives(1) } returns 1.0
         resetAnswers(mocked)
+        assertEquals(0.0, mocked.callWithPrimitives(1))
+    }
+
+    @Test
+    fun testResetAnswersOnSpy() {
+        every { spied.callWithPrimitives(1) } returns 1.0
+        resetAnswers(spied)
         assertEquals(0.0, mocked.callWithPrimitives(1))
     }
 }

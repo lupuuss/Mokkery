@@ -22,6 +22,7 @@ object Mokkery {
     object Class {
 
         val MockMode by dev_mokkery.klass
+        val MokkeryKind by dev_mokkery_internal.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
@@ -30,16 +31,12 @@ object Mokkery {
 
         val MokkeryInterceptor by dev_mokkery_internal.klass
         val MokkeryInterceptorScope by dev_mokkery_internal.klass
-
         val MokkeryMockScope by dev_mokkery_internal.klass
 
-        val MokkerySpy by dev_mokkery_internal.klass
-        val MokkerySpyScope by dev_mokkery_internal.klass
         val CallContext by dev_mokkery_internal.klass
 
         val CallArg by dev_mokkery_internal_tracing.klass
 
-        val TemplatingInterceptor by dev_mokkery_internal_templating.klass
         val TemplatingScope by dev_mokkery_internal_templating.klass
         val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
 
@@ -57,7 +54,8 @@ object Mokkery {
 
     object Function {
         val MokkeryMock by dev_mokkery_internal.function
-        val MokkerySpy by dev_mokkery_internal.function
+        val MokkeryMockScope by dev_mokkery_internal.function
+        val generateMockId by dev_mokkery_internal.function
 
         val internalEvery by dev_mokkery_internal.function
         val internalEverySuspend by dev_mokkery_internal.function
@@ -65,9 +63,6 @@ object Mokkery {
         val internalVerifySuspend by dev_mokkery_internal.function
 
         val TemplatingScope by dev_mokkery_internal_templating.function
-        val MokkeryMockScope by dev_mokkery_internal.function
-        val MokkerySpyScope by dev_mokkery_internal.function
-        val generateMockId by dev_mokkery_internal.function
     }
 
     object Name {

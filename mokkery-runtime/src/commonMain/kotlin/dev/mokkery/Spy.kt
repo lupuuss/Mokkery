@@ -13,4 +13,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
  * * Abstract/open classes with all methods/properties open/abstract and no-args constructor.
  */
 @Suppress("UNUSED_PARAMETER")
-public inline fun <reified T : Any> spy(obj: T): T = throw MokkeryPluginNotAppliedException()
+public inline fun <reified T : Any> spy(
+    obj: T,
+    block: T.() -> Unit = { }
+): T = throw MokkeryPluginNotAppliedException()

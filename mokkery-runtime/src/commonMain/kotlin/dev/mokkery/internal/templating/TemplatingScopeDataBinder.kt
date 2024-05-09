@@ -1,13 +1,13 @@
 package dev.mokkery.internal.templating
 
-import dev.mokkery.internal.MokkerySpyScope
+import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 
 internal interface TemplatingScopeDataBinder {
 
     fun getDataFor(token: Int): RawTemplateData?
 
-    fun bind(token: Int, obj: Any?): MokkerySpyScope?
+    fun bind(token: Int, obj: Any?): MokkeryMockScope?
 
     fun firstProperlyBoundedData(): RawTemplateData
 
@@ -32,10 +32,10 @@ private class TemplatingScopeDataBinderImpl(
         return data.getOrPut(token) { RawTemplateData() }
     }
 
-    override fun bind(token: Int, obj: Any?): MokkerySpyScope? {
+    override fun bind(token: Int, obj: Any?): MokkeryMockScope? {
         obj ?: return null
         bindings[token] = obj
-        val scope = lookup.resolve(obj) as? MokkerySpyScope
+        val scope = lookup.resolve(obj) as? MokkeryMockScope
         if (scope != null) getDataFor(token)
         return scope
     }

@@ -4,7 +4,7 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.MokkerySpyScope
+import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.matcher.ArgMatchersComposer
@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
 
-    val spies: Set<MokkerySpyScope>
+    val mocks: Set<MokkeryMockScope>
     val templates: List<CallTemplate>
 
     fun ensureBinding(token: Int, obj: Any?)
@@ -53,7 +53,7 @@ private class TemplatingScopeImpl(
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    override val spies = mutableSetOf<MokkerySpyScope>()
+    override val mocks = mutableSetOf<MokkeryMockScope>()
     override val templates = mutableListOf<CallTemplate>()
 
     override fun ensureBinding(token: Int, obj: Any?) {
@@ -64,7 +64,7 @@ private class TemplatingScopeImpl(
             templating.isEnabledWith(this) -> return
             templating.isEnabled -> throw ConcurrentTemplatingException()
             else -> {
-                spies.add(scope)
+                mocks.add(scope)
                 templating.start(this)
             }
         }
@@ -72,8 +72,8 @@ private class TemplatingScopeImpl(
 
     override fun release() {
         isReleased = true
-        spies.forEach { it.interceptor.templating.stop() }
-        spies.clear()
+        mocks.forEach { it.interceptor.templating.stop() }
+        mocks.clear()
     }
 
     @DelicateMokkeryApi

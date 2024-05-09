@@ -48,7 +48,7 @@ internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, bloc
         scope.release()
         throw exception
     }
-    val spyInterceptors = scope.spies.associate { it.id to it.interceptor }
+    val spyInterceptors = scope.mocks.associate { it.id to it.interceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }

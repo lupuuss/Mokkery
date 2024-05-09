@@ -26,7 +26,7 @@ internal fun <T> internalEvery(
     }
     return try {
         val template = scope.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-        val mock = scope.spies.first { it.id == template.receiver }
+        val mock = scope.mocks.first { it.id == template.receiver }
         UnifiedAnsweringScope(mock.interceptor.answering, template)
     } finally {
         scope.release()

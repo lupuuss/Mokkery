@@ -17,7 +17,6 @@ import kotlin.test.assertFailsWith
 
 class SpyTest {
 
-    private val spied = spy<TestInterface>(TestInterfaceImpl)
 
     init {
         AutofillProvider.forInternals.types.register { PrimitiveValueClass(0) }
@@ -26,6 +25,7 @@ class SpyTest {
 
     @Test
     fun testEveryMethodReturnsFromRealImpl() {
+        val spied = spy<TestInterface>(TestInterfaceImpl)
         assertEquals("1", spied.property)
         assertEquals(1.0, spied.callWithPrimitives(1))
         assertEquals(listOf(1), spied.callWithComplex(listOf("1")))
@@ -37,13 +37,16 @@ class SpyTest {
 
     @Test
     fun testEverySuspendableMethodReturnsFromRealImpl() = runTest {
+        val spied = spy<TestInterface>(TestInterfaceImpl)
         assertEquals(listOf("1"), spied.callWithSuspension(1))
     }
 
     @Test
-    fun testAllowsChangingBehaviourOfRegularMethodWithFallbackToSpiedObject() {
-        every { spied.property } returns "changedProperty"
-        every { spied.callGeneric(any<Int>()) } calls { (i: Int) -> i + 1 }
+    fun testChangesBehaviourOfRegularMethodWithFallbackToSpiedObject() {
+        val spied = spy<TestInterface>(TestInterfaceImpl) {
+            every { property } returns "changedProperty"
+            every { callGeneric(any<Int>()) } calls { (i: Int) -> i + 1 }
+        }
         every { spied.callNothing() } throws NumberFormatException()
         every { spied.run { 1.callWithExtensionReceiver() } } returns "changedCallWithExtensionReceiver"
         assertEquals("changedProperty", spied.property)
@@ -55,7 +58,8 @@ class SpyTest {
     }
 
     @Test
-    fun testAllowsChangingBehaviourOfSuspendMethod() = runTest {
+    fun testChangesBehaviourOfSuspendMethod() = runTest {
+        val spied = spy<TestInterface>(TestInterfaceImpl)
         everySuspend { spied.callWithSuspension(3) } returns listOf("callWithSuspension")
         assertEquals(listOf("callWithSuspension"), spied.callWithSuspension(3))
         // fallback
@@ -77,10 +81,11 @@ class SpyTest {
     }
 
     @Test
-    fun allowsChangingBehaviourOfRegularFunctionWithFallbackToSpied() {
+    fun testChangesBehaviourOfRegularFunctionWithFallbackToSpied() {
         val func = { i: Int -> i.toString() }
-        val spied = spy(func)
-        every { spied(1) } returns "changed"
+        val spied = spy(func) {
+            every { invoke(1) } returns "changed"
+        }
         assertEquals("changed", spied(1))
         // fallback
         assertEquals("2", spied(2))
@@ -98,7 +103,7 @@ class SpyTest {
 
 
     @Test
-    fun allowsChangingBehaviourOfSuspendFunctionWithFallbackToSpied() = runTest {
+    fun testChangesBehaviourOfSuspendFunctionWithFallbackToSpied() = runTest {
         val func: suspend (Int) -> String = {
             delay(1)
             it.toString()
@@ -145,6 +150,7 @@ class SpyTest {
 
     @Test
     fun testRegistersMethodCalls() = runTest {
+        val spied = spy<TestInterface>(TestInterfaceImpl)
         spied.callWithPrimitives(1)
         spied.callWithSuspension(1)
         spied.callWithComplexResult(Result.success(listOf(1)))

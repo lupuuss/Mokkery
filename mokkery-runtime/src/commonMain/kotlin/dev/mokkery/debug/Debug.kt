@@ -1,10 +1,8 @@
 package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.MokkeryMock
+import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.MokkeryMockScope
-import dev.mokkery.internal.MokkerySpy
-import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.answering.AnsweringInterceptor
 import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.description
@@ -16,8 +14,10 @@ import dev.mokkery.internal.tracing.CallTracingInterceptor
  */
 public fun mokkeryDebugString(obj: Any): String {
     return when (val scope = MokkeryScopeLookup.current.resolve(obj)) {
-        is MokkeryMockScope -> mokkeryDebugMock(scope, scope.interceptor)
-        is MokkerySpyScope -> mokkeryDebugSpy(scope, scope.interceptor)
+        is MokkeryMockScope -> when (scope.interceptor.kind) {
+            MokkeryKind.Spy -> mokkeryDebugSpy(scope)
+            MokkeryKind.Mock ->  mokkeryDebugMock(scope)
+        }
         else -> "Not a mock/spy -> $obj"
     }
 }
@@ -29,23 +29,23 @@ public fun printMokkeryDebug(obj: Any) {
     println(mokkeryDebugString(obj))
 }
 
-private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String {
+private fun mokkeryDebugMock(scope: MokkeryMockScope): String {
     return buildHierarchicalString {
         section("mock") {
             value("id", scope.id)
-            value("mode", mock.mode.name)
-            answersSection(mock.answering)
-            callsSection(mock.callTracing)
+            value("mode", scope.interceptor.mode.name)
+            answersSection(scope.interceptor.answering)
+            callsSection(scope.interceptor.callTracing)
         }
     }
 }
 
-private fun mokkeryDebugSpy(scope: MokkerySpyScope, spy: MokkerySpy): String {
+private fun mokkeryDebugSpy(scope: MokkeryMockScope): String {
     return buildHierarchicalString {
         section("spy") {
             value("id", scope.id)
-            answersSection(spy.answering)
-            callsSection(spy.callTracing)
+            answersSection(scope.interceptor.answering)
+            callsSection(scope.interceptor.callTracing)
         }
     }
 }

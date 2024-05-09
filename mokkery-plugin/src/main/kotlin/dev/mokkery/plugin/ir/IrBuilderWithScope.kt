@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.TransformerScope
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -216,4 +217,8 @@ fun IrBuilderWithScope.irCallListOf(
     return irCall(listOf) {
         putValueArgument(0, args)
     }
+}
+
+fun IrBuilderWithScope.irMokkeryKindValue(enumClass: IrClass, kind: IrMokkeryKind): IrExpression {
+    return irGetEnumEntry(enumClass, kind.name)
 }

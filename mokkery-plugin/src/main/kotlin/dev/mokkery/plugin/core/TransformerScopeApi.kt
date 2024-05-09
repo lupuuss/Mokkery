@@ -20,6 +20,8 @@ fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction =
     resolver.resolve(pluginContext)
 }
 
+inline val TransformerScope.platform get() = pluginContext.platform
+
 inline fun <T> TransformerScope.declarationIrBuilder(
     symbol: IrSymbol,
     context: IrGeneratorContext = pluginContext,
