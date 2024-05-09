@@ -3,7 +3,7 @@ package dev.mokkery
 
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.MokkerySpy
-import dev.mokkery.internal.ObjectNotSpiedException
+import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.failAssertion
 import dev.mokkery.internal.names.GroupMockReceiverShortener
@@ -40,7 +40,7 @@ public fun verifyNoMoreCalls(vararg mocks: Any) {
             .let { MokkeryScopeLookup.current.resolve(it) }
             ?.interceptor
             ?.let { it as? MokkerySpy }
-            ?.callTracing ?: throw ObjectNotSpiedException(mock)
+            ?.callTracing ?: throw ObjectNotMockedException(mock)
         if (tracing.unverified.isNotEmpty()) {
             failAssertion {
                 val renderer = PointListRenderer<CallTrace>()

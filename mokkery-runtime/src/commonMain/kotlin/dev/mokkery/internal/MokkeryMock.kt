@@ -7,7 +7,6 @@ import dev.mokkery.internal.tracing.CallTracingInterceptor
 
 internal interface MokkeryMock : MokkerySpy {
     val mode: MockMode
-    val answering: AnsweringInterceptor
 }
 
 @Suppress("unused")

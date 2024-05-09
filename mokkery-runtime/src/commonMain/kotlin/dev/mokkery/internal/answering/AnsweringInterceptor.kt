@@ -84,6 +84,7 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun handleMissingAnswer(trace: CallTrace, context: CallContext): Answer<*> = when {
+        context.spyDelegate != null -> DelegateAnswer(context.spyDelegate)
         mockMode == MockMode.autofill -> Answer.Autofill
         mockMode == MockMode.original && context.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original, lookup)
         mockMode == MockMode.autoUnit && context.returnType == Unit::class -> Answer.Const(Unit)

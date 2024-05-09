@@ -43,17 +43,20 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 fun IrBlockBodyBuilder.irInterceptMethod(
     transformer: TransformerScope,
-    function: IrSimpleFunction
+    function: IrSimpleFunction,
+    irCallSpyLambda: IrExpression? = null,
 ): IrCall = irInterceptCall(
     transformer = transformer,
     mokkeryScope = irGet(function.dispatchReceiverParameter!!),
-    function = function
+    function = function,
+    irCallSpyLambda = irCallSpyLambda,
 )
 
 fun IrBlockBodyBuilder.irInterceptCall(
     transformer: TransformerScope,
     mokkeryScope: IrExpression,
-    function: IrSimpleFunction
+    function: IrSimpleFunction,
+    irCallSpyLambda: IrExpression? = null
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor).symbol
     val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInterceptorScope)
@@ -74,6 +77,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
             putValueArgument(2, kClassReference(function.returnType.eraseTypeParameters()))
             putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
             putValueArgument(4, irCallSupersMap(transformer, function))
+            if (irCallSpyLambda != null) putValueArgument(5, irCallSpyLambda)
         }
         putValueArgument(0, contextCreationCall)
     }

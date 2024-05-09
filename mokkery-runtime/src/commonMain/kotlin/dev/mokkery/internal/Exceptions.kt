@@ -11,8 +11,6 @@ internal class MokkeryPluginNotAppliedException : MokkeryRuntimeException(
     message = "This call should be replaced by the Mokkery plugin! Please make sure you applied the plugin correctly!"
 )
 
-internal class ObjectNotSpiedException(obj: Any?) : MokkeryRuntimeException("$obj is not spied by Mokkery!")
-
 internal class ObjectNotMockedException(obj: Any?) : MokkeryRuntimeException("$obj is not mocked by Mokkery!")
 
 internal class NotSingleCallInEveryBlockException : MokkeryRuntimeException("Each 'every' block requires single mock call!")

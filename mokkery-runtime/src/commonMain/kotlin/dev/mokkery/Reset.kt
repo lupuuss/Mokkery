@@ -1,6 +1,5 @@
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.MokkerySpyScope
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
@@ -11,7 +10,7 @@ import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 public fun resetAnswers(vararg mocks: Any) {
     mocks.forEach {
         val scope = MokkeryScopeLookup.current.resolve(it)
-        if (scope !is MokkeryMockScope) throw ObjectNotMockedException(it)
+        if (scope !is MokkerySpyScope) throw ObjectNotMockedException(it)
         scope.interceptor.answering.reset()
     }
 }

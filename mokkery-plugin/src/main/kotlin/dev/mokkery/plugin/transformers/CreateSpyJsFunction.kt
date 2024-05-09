@@ -8,21 +8,26 @@ import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
-import dev.mokkery.plugin.ir.irTryCatchAny
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
+import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irIfThenElse
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.getSimpleFunction
 
 fun TransformerScope.createSpyJsFunction(expression: IrCall, classToSpy: IrClass): IrExpression {
     val anyNType = pluginContext.irBuiltIns.anyNType
@@ -37,21 +42,37 @@ fun TransformerScope.createSpyJsFunction(expression: IrCall, classToSpy: IrClass
             }
             val scopeVar = createTmpVariable(mokkeryScopeCall)
             val lambda = irLambda(returnType, typeToSpy, currentFile) { lambdaFun ->
-                val expr = irIfThenElse(
-                    type = returnType,
-                    condition = irCallIsTemplatingEnabled(this@createSpyJsFunction, irGet(scopeVar)),
-                    thenPart = irInterceptCall(this@createSpyJsFunction, irGet(scopeVar), lambdaFun),
-                    elsePart = irBlock {
-                        val args = lambdaFun.valueParameters.map { irGet(it) }.toTypedArray()
-                        +irTryCatchAny(irInterceptCall(this@createSpyJsFunction, irGet(scopeVar), lambdaFun))
-                        +irReturn(irInvoke(spiedObj, lambdaFun.isSuspend, *args))
-                    }
-                )
-                +irReturn(expr)
+                val spyCall = irInvokeSpyLambda(this@createSpyJsFunction, spiedObj, lambdaFun)
+                +irReturn(irInterceptCall(this@createSpyJsFunction, irGet(scopeVar), lambdaFun, spyCall))
             }
             val lambdaVar = createTmpVariable(lambda)
             +irCallRegisterScope(this@createSpyJsFunction, irGet(scopeVar), irGet(lambdaVar))
             +irGet(lambdaVar)
         }
+    }
+}
+
+private fun IrBlockBodyBuilder.irInvokeSpyLambda(
+    transformer: TransformerScope,
+    delegateLambda: IrExpression,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val args = Array(function.valueParameters.size) {
+            irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                dispatchReceiver = irGet(lambda.valueParameters[0])
+                putValueArgument(0, irInt(it))
+            }
+        }
+        +irReturn(irInvoke(function = delegateLambda, isSuspend = lambda.isSuspend, args = args))
     }
 }

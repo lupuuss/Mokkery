@@ -2,12 +2,15 @@ package dev.mokkery.test
 
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.register
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.answering.throws
+import dev.mokkery.every
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.spy
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -38,10 +41,49 @@ class SpyTest {
     }
 
     @Test
+    fun testAllowsChangingBehaviourOfRegularMethodWithFallbackToSpiedObject() {
+        every { spied.property } returns "changedProperty"
+        every { spied.callGeneric(any<Int>()) } calls { (i: Int) -> i + 1 }
+        every { spied.callNothing() } throws NumberFormatException()
+        every { spied.run { 1.callWithExtensionReceiver() } } returns "changedCallWithExtensionReceiver"
+        assertEquals("changedProperty", spied.property)
+        assertEquals(4, spied.callGeneric(3))
+        assertEquals("changedCallWithExtensionReceiver", spied.run { 1.callWithExtensionReceiver() })
+        assertFailsWith<NumberFormatException> { spied.callNothing() }
+        // fallback
+        assertEquals("2", spied.run { 2.callWithExtensionReceiver() })
+    }
+
+    @Test
+    fun testAllowsChangingBehaviourOfSuspendMethod() = runTest {
+        everySuspend { spied.callWithSuspension(3) } returns listOf("callWithSuspension")
+        assertEquals(listOf("callWithSuspension"), spied.callWithSuspension(3))
+        // fallback
+        assertEquals(listOf("2"), spied.callWithSuspension(2))
+    }
+
+    @Test
     fun testReturnsFromSpiedFunction() {
         val func = { i: Int -> i.toString() }
         val spied = spy(func)
         assertEquals("1", spied(1))
+    }
+
+    @Test
+    fun testReturnsFromSpiedFunctionWithExtensionReceiver() {
+        val func: Int.() -> String = { (this + 1).toString() }
+        val spied = spy(func)
+        assertEquals("2", spied(1))
+    }
+
+    @Test
+    fun allowsChangingBehaviourOfRegularFunctionWithFallbackToSpied() {
+        val func = { i: Int -> i.toString() }
+        val spied = spy(func)
+        every { spied(1) } returns "changed"
+        assertEquals("changed", spied(1))
+        // fallback
+        assertEquals("2", spied(2))
     }
 
     @Test
@@ -52,6 +94,20 @@ class SpyTest {
         }
         val spied = spy(func)
         assertEquals("1", spied(1))
+    }
+
+
+    @Test
+    fun allowsChangingBehaviourOfSuspendFunctionWithFallbackToSpied() = runTest {
+        val func: suspend (Int) -> String = {
+            delay(1)
+            it.toString()
+        }
+        val spied = spy(func)
+        everySuspend { spied(1) } returns "changed"
+        assertEquals("changed", spied(1))
+        // fallback
+        assertEquals("2", spied(2))
     }
 
     @Test

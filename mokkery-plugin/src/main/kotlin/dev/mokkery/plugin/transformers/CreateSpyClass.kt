@@ -8,22 +8,28 @@ import dev.mokkery.plugin.ir.buildClass
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.eraseFullValueParametersList
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irTryCatchAny
+import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
+import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
-import org.jetbrains.kotlin.ir.builders.irBlock
+import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
-import org.jetbrains.kotlin.ir.builders.irIfThenElse
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
+import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+import org.jetbrains.kotlin.ir.expressions.putArgument
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isInterface
 
 fun TransformerScope.createSpyClass(classToSpy: IrClass): IrClass {
@@ -65,22 +71,42 @@ private fun IrBlockBodyBuilder.spyingBody(
     function: IrSimpleFunction
 ) {
     function.eraseFullValueParametersList()
-    +irIfThenElse(
-        type = function.returnType,
-        condition = irCallIsTemplatingEnabled(transformer, irGet(function.dispatchReceiverParameter!!)),
-        thenPart = irReturn(irInterceptMethod(transformer, function)),
-        elsePart = irBlock {
-            +irTryCatchAny(irInterceptMethod(transformer, function))
-            val callOriginalMethod = irCall(function.overriddenSymbols.first()) {
-                dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
-                function.valueParameters.forEachIndexed { index, irValueParameter ->
-                    putValueArgument(index, irGet(irValueParameter))
-                }
-                function.extensionReceiverParameter?.let {
-                    extensionReceiver = irGet(it)
-                }
+    val irCallSpyLambda = irCallSpyLambda(transformer, delegateField, function)
+    +irReturn(irInterceptMethod(transformer, function, irCallSpyLambda))
+}
+
+private fun IrBlockBodyBuilder.irCallSpyLambda(
+    transformer: TransformerScope,
+    delegateField: IrField,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val spyFun = function.overriddenSymbols.first().owner
+        val spyCall = irCall(spyFun) {
+            dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
+            contextReceiversCount = spyFun.contextReceiverParametersCount
+            spyFun.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+                putArgument(
+                    parameter = irValueParameter,
+                    argument = irAs(
+                        argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                            dispatchReceiver = irGet(lambda.valueParameters[0])
+                            putValueArgument(0, irInt(index))
+                        },
+                        type = irValueParameter.type
+                    )
+                )
             }
-            +irReturn(callOriginalMethod)
         }
-    )
+        +irReturn(spyCall)
+    }
 }

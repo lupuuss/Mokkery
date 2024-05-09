@@ -5,9 +5,11 @@ import dev.mokkery.internal.MokkeryMock
 import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.MokkerySpy
 import dev.mokkery.internal.MokkerySpyScope
+import dev.mokkery.internal.answering.AnsweringInterceptor
 import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.description
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.tracing.CallTracingInterceptor
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
@@ -32,16 +34,8 @@ private fun mokkeryDebugMock(scope: MokkeryMockScope, mock: MokkeryMock): String
         section("mock") {
             value("id", scope.id)
             value("mode", mock.mode.name)
-            section("answers") {
-                if (mock.answering.answers.isEmpty()) {
-                    line("")
-                } else {
-                    mock.answering.answers.forEach { (template, answer) ->
-                        line("${template.toStringNoReceiver()} ${answer.debug()}")
-                    }
-                }
-            }
-            callsSection(mock)
+            answersSection(mock.answering)
+            callsSection(mock.callTracing)
         }
     }
 }
@@ -50,19 +44,32 @@ private fun mokkeryDebugSpy(scope: MokkerySpyScope, spy: MokkerySpy): String {
     return buildHierarchicalString {
         section("spy") {
             value("id", scope.id)
-            callsSection(spy)
+            answersSection(spy.answering)
+            callsSection(spy.callTracing)
         }
     }
 }
 
-private fun HierarchicalStringBuilder.callsSection(spy: MokkerySpy) {
+private fun HierarchicalStringBuilder.callsSection(callTracing: CallTracingInterceptor) {
     section("calls") {
-        val calls = spy.callTracing.all
+        val calls = callTracing.all
         if (calls.isEmpty()) {
             line("")
             return@section
         }
         calls.forEach { line(it.toStringNoReceiver()) }
+    }
+}
+
+private fun HierarchicalStringBuilder.answersSection(answering: AnsweringInterceptor) {
+    section("answers") {
+        if (answering.answers.isEmpty()) {
+            line("")
+        } else {
+            answering.answers.forEach { (template, answer) ->
+                line("${template.toStringNoReceiver()} ${answer.debug()}")
+            }
+        }
     }
 }
 
