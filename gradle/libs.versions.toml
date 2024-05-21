@@ -5,7 +5,7 @@ buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.23.2"
 dokka = "1.9.20"
-poko = "0.15.3"
+poko = "0.16.0-beta01"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
