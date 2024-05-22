@@ -6,7 +6,6 @@ plugins {
 buildConfig {
     val pluginProject = project(":mokkery-plugin")
     packageName(rootProject.group.toString())
-    buildConfigField("String", "KOTLIN_VERSION", "\"${rootProject.ext["kotlinVersion"]}\"")
     buildConfigField("String", "GROUP", "\"${rootProject.group}\"")
     buildConfigField("String", "VERSION", "\"${rootProject.version}\"")
     buildConfigField("String", "RUNTIME", "\"mokkery-runtime\"")

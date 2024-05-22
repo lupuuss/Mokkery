@@ -15,7 +15,6 @@ class MokkeryGradlePluginFunctionalTest {
             .withProjectDir(testProjectDir)
             .withArguments(
                 "-PmokkeryVersion=${MokkeryConfig.VERSION}",
-                "-PkotlinVersion=${MokkeryConfig.KOTLIN_VERSION}",
                 "clean",
                 "kotlinUpgradeYarnLock",
                 "allTests"

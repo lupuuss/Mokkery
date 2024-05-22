@@ -20,10 +20,8 @@ buildscript {
     }
 }
 
-val kotlinVersion = libs.versions.kotlin.get()
-val mokkeryVersion = "2.0.0-RC1"
-rootProject.ext["kotlinVersion"] = kotlinVersion
-rootProject.version = mokkeryVersion
+
+rootProject.version = libs.versions.mokkery.get()
 rootProject.group = "dev.mokkery"
 
 rootProject.ext["pluginId"] = "dev.mokkery"
@@ -40,7 +38,7 @@ allprojects {
 
 val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
     moduleName.set("Mokkery")
-    moduleVersion.set(mokkeryVersion)
+    moduleVersion.set(libs.versions.mokkery.get())
 }
 val syncDocs by tasks.registering(Sync::class) {
     group = "documentation"
