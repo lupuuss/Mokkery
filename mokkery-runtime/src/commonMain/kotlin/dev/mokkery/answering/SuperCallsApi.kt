@@ -1,5 +1,6 @@
 package dev.mokkery.answering
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.answering.SuperCallAnswer
 import kotlin.reflect.KClass
@@ -17,25 +18,8 @@ public sealed interface SuperCall {
      * It is recommended to use [superOf] and [superWith] instead.
      */
     @DelicateMokkeryApi
-    public class OfType(public val type: KClass<*>, public val args: List<Any?>? = null) : SuperCall {
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as OfType
-            if (type != other.type) return false
-            if (args != other.args) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = type.hashCode()
-            result = 31 * result + (args?.hashCode() ?: 0)
-            return result
-        }
-
-        override fun toString(): String = "OfType(type=$type, args=$args)"
-    }
+    @Poko
+    public class OfType(public val type: KClass<*>, public val args: List<Any?>? = null) : SuperCall
 
     /**
      * Call for an original method of mocked type. If interface is mocked, default implementation is called.
@@ -45,19 +29,8 @@ public sealed interface SuperCall {
      * It is recommended to use [original] and [originalWith] instead.
      */
     @DelicateMokkeryApi
-    public class Original(public val args: List<Any?>? = null) : SuperCall {
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Original
-            return args == other.args
-        }
-
-        override fun hashCode(): Int = args?.hashCode() ?: 0
-
-        override fun toString(): String = "Original(args=$args)"
-    }
+    @Poko
+    public class Original(public val args: List<Any?>? = null) : SuperCall
 
     public companion object {
 

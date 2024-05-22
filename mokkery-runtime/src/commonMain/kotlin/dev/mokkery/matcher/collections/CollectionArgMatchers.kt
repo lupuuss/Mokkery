@@ -1,5 +1,10 @@
+@file:OptIn(ArrayContentSupport::class)
+
 package dev.mokkery.matcher.collections
 
+import dev.drewhamilton.poko.ArrayContentBased
+import dev.drewhamilton.poko.ArrayContentSupport
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
@@ -9,36 +14,20 @@ import dev.mokkery.matcher.ArgMatcher
  */
 public object CollectionArgMatchers {
 
+    @Poko
     public class ValueInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg in iterable
 
         override fun toString(): String = "isIn(${iterable.joinToString()})"
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as ValueInIterable<*>
-            return iterable == other.iterable
-        }
-
-        override fun hashCode(): Int = iterable.hashCode()
     }
 
+    @Poko
     public class ValueNotInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg !in iterable
 
         override fun toString(): String = "isNotIn(${iterable.joinToString()})"
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as ValueNotInIterable<*>
-            return iterable == other.iterable
-        }
-
-        override fun hashCode(): Int = iterable.hashCode()
     }
 
     /**
@@ -63,20 +52,13 @@ public object CollectionArgMatchers {
     /**
      * Matches an array that is equal to [array] with [contentDeepEquals].
      */
-    public class ContentDeepEquals<T>(public val array: Array<T>): ArgMatcher<Array<T>> {
+    @Poko
+    public class ContentDeepEquals<T>(
+        @ArrayContentBased public val array: Array<T>
+    ): ArgMatcher<Array<T>> {
 
         override fun matches(arg: Array<T>): Boolean = arg contentDeepEquals array
 
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as ContentDeepEquals<*>
-            return array.contentEquals(other.array)
-        }
-
-        override fun hashCode(): Int = array.contentHashCode()
-
         override fun toString(): String = "contentDeepEq(${array.asListOrNull().orEmpty().joinToString()})"
-
     }
 }

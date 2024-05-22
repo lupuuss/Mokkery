@@ -2,6 +2,7 @@
 
 package dev.mokkery.answering.autofill
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.autofill.AutofillProvider.Companion.forInternals
 import dev.mokkery.answering.autofill.AutofillProvider.Companion.forMockMode
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
@@ -38,19 +39,8 @@ public fun interface AutofillProvider<out T> {
         /**
          * Represents provided [value].
          */
-        public class Provided<out T>(public val value: T) : Value<T> {
-
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other == null || this::class != other::class) return false
-                other as Provided<*>
-                return value == other.value
-            }
-
-            override fun hashCode(): Int = value?.hashCode() ?: 0
-
-            override fun toString(): String = "Provided(value=$value)"
-        }
+        @Poko
+        public class Provided<out T>(public val value: T) : Value<T>
 
         /**
          * Indicates that value could not be provided.

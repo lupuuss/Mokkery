@@ -5,9 +5,11 @@ buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
 atomicfu = "0.23.2"
 dokka = "1.9.20"
+poko = "0.15.3"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

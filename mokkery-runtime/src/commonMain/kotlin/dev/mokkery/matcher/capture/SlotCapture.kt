@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.capture
 
+import dev.drewhamilton.poko.Poko
 import kotlin.reflect.KProperty
 
 /**
@@ -23,16 +24,8 @@ public interface SlotCapture<T> : ContainerCapture<T> {
         /**
          * Represents last captured value.
          */
+        @Poko
         public class Present<out T>(public val value: T): Value<T> {
-
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other == null || this::class != other::class) return false
-                other as Present<*>
-                return value == other.value
-            }
-
-            override fun hashCode(): Int = value?.hashCode() ?: 0
 
             override fun toString(): String = "Present(value=$value)"
         }

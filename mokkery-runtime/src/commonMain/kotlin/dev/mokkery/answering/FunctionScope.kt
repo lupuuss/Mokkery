@@ -1,5 +1,6 @@
 package dev.mokkery.answering
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
@@ -16,6 +17,7 @@ import kotlin.reflect.KClass
  * Provides a set of mocked function related operations that might be required for implementing [Answer].
  */
 @DelicateMokkeryApi
+@Poko
 public class FunctionScope internal constructor(
     /**
      * Return type of mocked method.
@@ -42,30 +44,6 @@ public class FunctionScope internal constructor(
      * Returns argument with [index] from [args] and expects that it is an instance of type [T].
      */
     public inline fun <reified T> arg(index: Int): T = args[index] as T
-
-    override fun toString(): String = "FunctionScope(self=$self, returnType=$returnType, args=$args, supers=$supers)"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as FunctionScope
-
-        if (returnType != other.returnType) return false
-        if (args != other.args) return false
-        if (self != other.self) return false
-        if (supers != other.supers) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = returnType.hashCode()
-        result = 31 * result + args.hashCode()
-        result = 31 * result + (self?.hashCode() ?: 0)
-        result = 31 * result + supers.hashCode()
-        return result
-    }
 
     /**
      * Calls super method of [superType] with given [args]

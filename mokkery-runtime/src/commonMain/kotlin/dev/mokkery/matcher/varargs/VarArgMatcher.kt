@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.varargs
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.capitalize
@@ -34,26 +35,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      * @param type of vararg element to provide vararg type information in [AllThat.toString]
      */
     @DelicateMokkeryApi
+    @Poko
     public class AllThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.all(predicate)
 
         override fun toString(): String = "${varargNameByElementType(type)}All {...}"
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as AllThat<*>
-            if (type != other.type) return false
-            if (predicate != other.predicate) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = type.hashCode()
-            result = 31 * result + predicate.hashCode()
-            return result
-        }
     }
 
     /**
@@ -61,26 +48,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      * @param type of vararg element to provide vararg type information in [AnyThat.toString]
      */
     @DelicateMokkeryApi
+    @Poko
     public class AnyThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.any(predicate)
 
         override fun toString(): String = "${varargNameByElementType(type)}Any { ... }"
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as AnyThat<*>
-            if (type != other.type) return false
-            if (predicate != other.predicate) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = type.hashCode()
-            result = 31 * result + predicate.hashCode()
-            return result
-        }
     }
 
     /**
@@ -88,21 +61,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      * @param type of vararg element to provide vararg type information in [AnyOf.toString]
      */
     @DelicateMokkeryApi
+    @Poko
     public class AnyOf(private val type: KClass<*>) : Base<Any?>() {
 
         override fun matchesVarargs(varargs: List<Any?>): Boolean = true
 
         override fun toString(): String = "any${varargNameByElementType(type).capitalize()}()"
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as AnyOf
-            return type == other.type
-        }
-
-        override fun hashCode(): Int = type.hashCode()
-
     }
 }
 

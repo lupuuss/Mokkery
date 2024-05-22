@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.logical
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
@@ -14,6 +15,7 @@ public object LogicalMatchers {
      * Matches argument that satisfies all the [matchers]. It must be merged with [expectedMatchers] number of [ArgMatcher]s.
      */
     @DelicateMokkeryApi
+    @Poko
     public class And<T>(
         public val expectedMatchers: Int,
         public val matchers: List<ArgMatcher<T>> = emptyList()
@@ -44,6 +46,7 @@ public object LogicalMatchers {
      * It must be merged with [expectedMatchers] number of ArgMatchers.
      */
     @DelicateMokkeryApi
+    @Poko
     public class Or<T>(
         public val expectedMatchers: Int,
         public val matchers: List<ArgMatcher<T>> = emptyList()
@@ -67,27 +70,13 @@ public object LogicalMatchers {
         override fun capture(value: T) {
             matchers.propagateCapture(value)
         }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Or<*>
-            if (expectedMatchers != other.expectedMatchers) return false
-            if (matchers != other.matchers) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = expectedMatchers
-            result = 31 * result + matchers.hashCode()
-            return result
-        }
     }
 
     /**
      * Matches argument that does not satisfy [matcher].
      */
     @DelicateMokkeryApi
+    @Poko
     public class Not<T>(public val matcher: ArgMatcher<T>? = null) : ArgMatcher.Composite<T> {
 
         override fun matches(arg: T): Boolean = matcher!!.matches(arg).not()
@@ -107,14 +96,5 @@ public object LogicalMatchers {
         override fun capture(value: T) {
             listOfNotNull(matcher).propagateCapture(value)
         }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Not<*>
-            return matcher == other.matcher
-        }
-
-        override fun hashCode(): Int = matcher?.hashCode() ?: 0
     }
 }

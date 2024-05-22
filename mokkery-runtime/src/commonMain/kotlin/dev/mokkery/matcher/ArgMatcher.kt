@@ -1,5 +1,6 @@
 package dev.mokkery.matcher
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.bestName
 import dev.mokkery.internal.description
@@ -26,39 +27,23 @@ public fun interface ArgMatcher<in T> {
     /**
      * Matches an argument that is equal to [value].
      */
+    @Poko
     public class Equals<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
         override fun toString(): String = value.description()
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Equals<*>
-            return value == other.value
-        }
-
-        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      * Matches an argument that is not equal to [value].
      */
+    @Poko
     public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
         override fun toString(): String = "neq(${value.description()})"
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Equals<*>
-            return value == other.value
-        }
-
-        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
@@ -69,15 +54,6 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg === value
 
         override fun toString(): String = "eqRef(${value.description()})"
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Equals<*>
-            return value === other.value
-        }
-
-        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
@@ -88,20 +64,12 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg !== value
 
         override fun toString(): String = "neqRef(${value.description()})"
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Equals<*>
-            return value === other.value
-        }
-
-        override fun hashCode(): Int = value?.hashCode() ?: 0
     }
 
     /**
      *  Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toStringFun].
      */
+    @Poko
     public class Matching<T>(
         public val predicate: (T) -> Boolean,
         public val toStringFun: (() -> String)
@@ -110,26 +78,12 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = predicate(arg)
 
         override fun toString(): String = toStringFun()
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Matching<*>
-            if (predicate != other.predicate) return false
-            if (toStringFun != other.toStringFun) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = predicate.hashCode()
-            result = 31 * result + toStringFun.hashCode()
-            return result
-        }
     }
 
     /**
      * Matches any [Comparable] [value] depending on [type] parameter.
      */
+    @Poko
     public class Comparing<T>(
         public val value: T,
         public val type: Type,
@@ -137,21 +91,6 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
         override fun toString(): String = "${type.toString().lowercase()}(${value.description()})"
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Comparing<*>
-            if (value != other.value) return false
-            if (type != other.type) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = value.hashCode()
-            result = 31 * result + type.hashCode()
-            return result
-        }
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -161,20 +100,12 @@ public fun interface ArgMatcher<in T> {
     /**
      * Matches an argument that is instance of [type].
      */
+    @Poko
     public class OfType<T>(public val type: KClass<*>) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = type.isInstance(arg)
 
         override fun toString(): String = "ofType<${type.bestName()}>()"
-
-        override fun equals(other: kotlin.Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as OfType<*>
-            return type == other.type
-        }
-
-        override fun hashCode(): Int = type.hashCode()
     }
 
     /**

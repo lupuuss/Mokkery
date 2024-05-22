@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.nullable
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
@@ -18,6 +19,7 @@ public inline fun <reified T : Any> ArgMatchersScope.notNull(matcher: T = any())
  * Matches an argument that is not null and matches [matcher].
  */
 @DelicateMokkeryApi
+@Poko
 public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) : ArgMatcher.Composite<T> {
 
     override fun matches(arg: T): Boolean = arg?.let(matcher!!::matches) ?: false
@@ -39,13 +41,4 @@ public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) 
     }
 
     override fun toString(): String = "notNull($matcher)"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        other as NotNullMatcher<*>
-        return matcher == other.matcher
-    }
-
-    override fun hashCode(): Int = matcher?.hashCode() ?: 0
 }

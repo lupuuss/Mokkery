@@ -1,5 +1,7 @@
 package dev.mokkery.answering
 
+import dev.drewhamilton.poko.Poko
+
 /**
  * Contains arguments passed to mocked method. If method has extension receiver it is passed at the start of this list.
  *
@@ -9,6 +11,7 @@ package dev.mokkery.answering
  * ever { dependency.foo(1) } calls { (i: Int) ->  }
  * ```
  */
+@Poko
 public class CallArgs(public val args: List<Any?>) {
 
     /**
@@ -23,15 +26,4 @@ public class CallArgs(public val args: List<Any?>) {
     public inline operator fun <reified T> component5(): T = arg(4)
     public inline operator fun <reified T> component6(): T = arg(5)
     public inline operator fun <reified T> component7(): T = arg(6)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        other as CallArgs
-        return args == other.args
-    }
-
-    override fun hashCode(): Int = args.hashCode()
-
-    override fun toString(): String = "CallArgs(args=$args)"
 }
