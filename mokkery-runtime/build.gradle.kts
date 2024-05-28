@@ -7,7 +7,6 @@ plugins {
 dependencies {
     commonMainApi(project(":mokkery-core"))
     commonTestImplementation(kotlin("test"))
-
-    coroutinesMainImplementation(libs.kotlinx.coroutines.core)
-    coroutinesTestImplementation(libs.kotlinx.coroutines.test)
+    commonMainImplementation(libs.kotlinx.coroutines.core)
+    commonTestImplementation(libs.kotlinx.coroutines.test)
 }
