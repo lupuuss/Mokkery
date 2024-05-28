@@ -1,9 +1,6 @@
-@file:OptIn(ArrayContentSupport::class)
-
 package dev.mokkery.matcher.collections
 
 import dev.drewhamilton.poko.ArrayContentBased
-import dev.drewhamilton.poko.ArrayContentSupport
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.asListOrNull
