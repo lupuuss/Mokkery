@@ -4,8 +4,7 @@ description: Easily create a spy from a real object!
 
 # Spying
 
-Similarly to `mock`, `spy` tracks method calls. However, it is not possible to change spy behavior. It always calls spied object
-method.
+To create a spy use `spy` with spied object as a parameter.
 
 > :warning: **Please read [limitations](../Limitations) section!**
 
@@ -15,5 +14,7 @@ val spiedRepository = spy<BookRepository>(repository)
 ```
 Ensure that you specify a type for the `spy`. In previous example inferred type would be `BookRepositoryImpl`,
 which is very likely to be a final class, and it is not supported to spy them!
+
+By default, spy delegates all calls to spied object. However, you can change methods behaviour in [the same way as with mocks](../Guides/Mocking).
 
 Read [verifying](../Guides/Verifying) section to learn how to verify calls on spy!

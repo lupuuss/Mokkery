@@ -1,15 +1,40 @@
 ---
 description: How to add Mokkery to your Gradle project rapidly!
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Setup
 
 1. Apply Gradle plugin:
-```kotlin
-plugins {
-    kotlin("multiplatform") version "1.9.24" // ...or any other Kotlin plugin
-    id("dev.mokkery") version "1.9.24-1.7.0"
-}
-```
+
+<Tabs
+  groupId="kotlinVersion"
+  defaultValue="k2"
+  values={[
+    {label: 'K1', value: 'k1'},
+    {label: 'K2', value: 'k2'},
+  ]}>
+  <TabItem value="k1">
+      ```kotlin
+      plugins {
+          kotlin("multiplatform") version "1.9.24" // ...or any other Kotlin plugin
+          id("dev.mokkery") version "1.9.24-1.7.0"
+      }
+      ```
+ </TabItem>
+  <TabItem value="k2">
+      ```kotlin
+      plugins {
+          kotlin("multiplatform") version "2.0.0" // ...or any other Kotlin plugin
+          id("dev.mokkery") version "2.0.0"
+      }
+      ```
+  </TabItem>
+</Tabs>
+
+
 2. Ensure that your Mokkery version is compatible with Kotlin version. Refer to [compatibility](#compatibility) section.
 
 3. Check [targets](#targets) section to make sure that all targets from you multiplatform project are supported.
@@ -59,21 +84,35 @@ You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/buil
 
 ### Compatibility
 
-> **Warning**
-> Mokkery 2.0.0 pre-releases are not locked to specific Kotlin pre-release and optimistically assume that compiler
-> API is not going to change. However, breaking changes might happen and result in compile-time errors.
+<Tabs
+  groupId="kotlinVersion"
+  defaultValue="k2"
+  values={[
+    {label: 'K1', value: 'k1'},
+    {label: 'K2', value: 'k2'},
+  ]}>
+  <TabItem value="k1">
+      | Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
+      |------------------------------------|--------------------------------------------------------|--------------------------|
+      | 1.7.0 	                            | 1.9.24, 1.9.23	                                        | `"$kotlinVersion-1.7.0"` |
+      | 1.6.1 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.1"` |
+      | 1.6.0 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.0"` |
+      | 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
+      | 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"$kotlinVersion-1.4.0"` |
+      | 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"$kotlinVersion-1.3.2"` |
+      | 1.3.1 	                            | 1.9.22, 1.9.21, 1.9.20                                 | `"$kotlinVersion-1.3.1"` |
+      | 1.3.0 	                            | 1.9.20, 1.9.10, 1.9.0, 1.8.22, 1.8.21, 1.8.20        	 | `"$kotlinVersion-1.3.0"` |
+      | 1.2.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.2.0"` |
+      | 1.1.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.1.0"` |
+      | 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.0.1"` |
+  </TabItem>
+  <TabItem value="k2">
+      > **Warning**
+      > Mokkery 2.* versions are not locked to specific Kotlin 2.* versions and optimistically assume that compiler
+      > API is not going to change. However, breaking changes might happen and result in compile-time errors. You can track compiler API stability [here](https://youtrack.jetbrains.com/issue/KT-49508/Stabilize-the-K2-Compiler-Plugin-API).
 
-| Mokkery version                  	 | Supported Kotlin version                               | Plugin version           |
-|------------------------------------|--------------------------------------------------------|--------------------------|
-| 2.0.0-RC1 	                      | 2.0.0-RC2+	                                          | `"2.0.0-RC1"`          |
-| 1.7.0 	                            | 1.9.24, 1.9.23	                                        | `"$kotlinVersion-1.7.0"` |
-| 1.6.1 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.1"` |
-| 1.6.0 	                            | 1.9.23                                                 | `"$kotlinVersion-1.6.0"` |
-| 1.5.0 	                            | 1.9.23, 1.9.22	                                        | `"$kotlinVersion-1.5.0"` |
-| 1.4.0 	                            | 1.9.22, 1.9.21, 1.9.20 	                               | `"$kotlinVersion-1.4.0"` |
-| 1.3.2 	                            | 1.9.22, 1.9.21, 1.9.20  	                              | `"$kotlinVersion-1.3.2"` |
-| 1.3.1 	                            | 1.9.22, 1.9.21, 1.9.20                                 | `"$kotlinVersion-1.3.1"` |
-| 1.3.0 	                            | 1.9.20, 1.9.10, 1.9.0, 1.8.22, 1.8.21, 1.8.20        	 | `"$kotlinVersion-1.3.0"` |
-| 1.2.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.2.0"` |
-| 1.1.0 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.1.0"` |
-| 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.0.1"` |
+      | Mokkery version                  	 | Supported Kotlin versions                            |
+      |------------------------------------|--------------------------------------------------------|
+      | 2.0.0 	                            | 2.0.0+	                                            |
+  </TabItem>
+</Tabs>

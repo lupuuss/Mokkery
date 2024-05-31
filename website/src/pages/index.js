@@ -25,7 +25,12 @@ const simpleTabBlock = `class BookServiceTest {
         }
     }
 }`
-const setupTabBlock = `plugins {
+const setupTabBlockK1 = `plugins {
+    kotlin("multiplatform") version "1.9.24" // ...or any other Kotlin plugin
+    id("dev.mokkery") version "1.9.24-1.7.0"
+}
+`
+const setupTabBlockK2 = `plugins {
     kotlin("multiplatform") version "${kotlinVersion}" // ...or any other Kotlin plugin
     id("dev.mokkery") version "${mokkeryVersion}"
 }
@@ -129,11 +134,28 @@ function WhyMokkeryTabs() {
                     </TabItem>
                     <TabItem value="setup" label="⌚&nbsp;Easy&nbsp;setup">
                         <h3 style={{fontWeight: "400"}}>Just apply Gradle plugin and...</h3>
-                        <CodeBlock
-                            language="kotlin"
-                            showLineNumbers>
-                            {setupTabBlock}
-                        </CodeBlock>
+                        <Tabs
+                            groupId="kotlinVersion"
+                            defaultValue="k2"
+                            values={[
+                                {label: 'K1', value: 'k1'},
+                                {label: 'K2', value: 'k2'},
+                            ]}>
+                            <TabItem value="k1">
+                                <CodeBlock
+                                    language="kotlin"
+                                    showLineNumbers>
+                                    {setupTabBlockK1}
+                                    </CodeBlock>
+                            </TabItem>
+                            <TabItem value="k2">
+                                <CodeBlock
+                                    language="kotlin"
+                                    showLineNumbers>
+                                    {setupTabBlockK2}
+                                    </CodeBlock>
+                            </TabItem>
+                            </Tabs>
                         <h3 style={{fontWeight: "400"}}>...that's it!</h3>
                         <h3 style={{fontWeight: "400"}}>Make sure that you have required repositories and compatible
                             Kotlin version!</h3>
