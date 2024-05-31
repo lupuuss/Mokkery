@@ -121,8 +121,9 @@ repository.findById("2") // this calls original method implementation with "3"
 
 #### Resolving ambiguity
 
-While using [multiple types mocking](./Mocking_multiple_types) usage of `original` might not be possible, because there are multiple supercalls available for single method.
-Instead of `original` use `superOf<T>` with supertype speicifed.
+While using [multiple types mocking](./Mocking_multiple_types) usage of `original` might not be possible,
+because there are multiple super calls available for single method. Instead of `original` use `superOf<T>`
+with supertype specified.
 
 ```kotlin
 val mock = mockMany<A, B> {
