@@ -5,16 +5,13 @@ import dev.mokkery.plugin.core.CompilerPluginScope
 import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.IrMokkeryKind.Mock
 import dev.mokkery.plugin.core.IrMokkeryKind.Spy
-import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryLog
-import dev.mokkery.plugin.core.mokkeryLogAt
 import dev.mokkery.plugin.core.platform
-import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.core.verifyMode
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -61,7 +58,6 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val internalEverySuspend = getFunction(Mokkery.Function.internalEverySuspend)
     private val internalVerify = getFunction(Mokkery.Function.internalVerify)
     private val internalVerifySuspend = getFunction(Mokkery.Function.internalVerifySuspend)
-    private val validationMode = compilerConfig.validationMode
 
     override fun visitCall(expression: IrCall): IrExpression {
         val name = expression.symbol.owner.kotlinFqName
