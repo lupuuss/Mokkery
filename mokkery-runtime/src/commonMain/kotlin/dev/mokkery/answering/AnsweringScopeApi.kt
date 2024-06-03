@@ -23,6 +23,19 @@ public infix fun <T> AnsweringScope<T>.throwsErrorWith(message: Any) {
     answers(Answer.Throws(IllegalStateException(message.toString())))
 }
 
+/**
+ * Function call returns [Result.success] with [value].
+ */
+public infix fun <T> AnsweringScope<Result<T>>.succeeds(value: T) {
+    returns(Result.success(value))
+}
+
+/**
+ * Function call returns [Result.failure] with [error].
+ */
+public infix fun <T> AnsweringScope<Result<T>>.fails(error: Throwable) {
+    returns(Result.failure(error))
+}
 
 /**
  * Function call executes [block].
