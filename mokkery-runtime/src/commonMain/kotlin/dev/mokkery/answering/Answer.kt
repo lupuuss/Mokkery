@@ -9,6 +9,7 @@ import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
 import dev.mokkery.internal.answering.BlockingCallDefinitionScope
 import dev.mokkery.internal.answering.SuspendCallDefinitionScope
+import dev.mokkery.internal.description
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -32,6 +33,12 @@ public interface Answer<out T> {
     public suspend fun callSuspend(scope: FunctionScope): T = call(scope)
 
     /**
+     * Returns human-readable answer description. By default, it returns `answers $this`.
+     * It's used for debugging purposes.
+     */
+    public fun description(): String = "answers $this"
+
+    /**
      * Convenience interface for custom suspending answers. By default, it throws runtime exception on [call].
      */
     public interface Suspending<T> : Answer<T> {
@@ -49,6 +56,8 @@ public interface Answer<out T> {
     public class Const<T>(public val value: T) : Answer<T> {
 
         override fun call(scope: FunctionScope): T = value
+
+        override fun description(): String = "returns ${value.description()}"
     }
 
     /**
@@ -58,6 +67,8 @@ public interface Answer<out T> {
     public class Block<T>(public val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Answer<T> {
 
         override fun call(scope: FunctionScope): T = block(BlockingCallDefinitionScope(scope), CallArgs(scope.args))
+
+        override fun description(): String = "calls {...}"
     }
 
     /**
@@ -67,6 +78,8 @@ public interface Answer<out T> {
     public class Throws(public val throwable: Throwable) : Answer<Nothing> {
 
         override fun call(scope: FunctionScope): Nothing = throw throwable
+
+        override fun description(): String = "throws $throwable"
     }
 
     /**
@@ -78,6 +91,8 @@ public interface Answer<out T> {
         override suspend fun callSuspend(scope: FunctionScope): T {
             return block(SuspendCallDefinitionScope(scope), CallArgs(scope.args))
         }
+
+        override fun description(): String = "calls {...}"
     }
 
     /**
@@ -115,6 +130,8 @@ public interface Answer<out T> {
         override fun call(scope: FunctionScope): T = getCurrent().call(scope)
 
         override suspend fun callSuspend(scope: FunctionScope): T = getCurrent().callSuspend(scope)
+
+        override fun description(): String = "sequentially {...}"
 
         private fun getCurrent(): Answer<T> = lock.withLock {
             val nested = nestedSequential

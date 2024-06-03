@@ -23,7 +23,7 @@ internal class SuperCallAnswer<T>(
         is SuperCall.Original -> scope.callSuspendOriginal(lookup, call.args ?: scope.args)
     }.unsafeCast()
 
-    override fun toString(): String {
+    override fun description(): String  {
         val callDescription = when (call) {
             is SuperCall.OfType -> when (call.args) {
                 null -> "superOf<${call.type.simpleName}>()"

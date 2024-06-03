@@ -4,8 +4,6 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.answering.AnsweringInterceptor
-import dev.mokkery.internal.answering.SuperCallAnswer
-import dev.mokkery.internal.description
 import dev.mokkery.internal.dynamic.MokkeryScopeLookup
 import dev.mokkery.internal.tracing.CallTracingInterceptor
 
@@ -73,11 +71,4 @@ private fun HierarchicalStringBuilder.answersSection(answering: AnsweringInterce
     }
 }
 
-private fun Answer<*>.debug(): String = when (this) {
-    is Answer.Const<*> -> "returns ${value.description()}"
-    is Answer.Throws -> "throws $throwable"
-    is Answer.Block, is Answer.BlockSuspend<*> -> "calls {...}"
-    is Answer.Sequential -> "sequentially {...}"
-    is SuperCallAnswer<*> -> toString()
-    else -> "answers $this"
-}
+private fun Answer<*>.debug(): String = description()
