@@ -31,13 +31,14 @@ public class FunctionScope internal constructor(
      * Reference to this mock.
      */
     public val self: Any?,
+
     /**
-     * Contains super method for given super type.
-     * This map might contain suspend functions that require cast.
+     * This map contains available super calls as lambdas of type `(List<Any?>) -> Any?` or
+     * `suspend (List<Any?>) -> Any?` depending on a function type.
      *
      * Use [callSuper], [callSuspendSuper], [callOriginal], [callSuspendOriginal] for convenience.
      */
-    public val supers: Map<KClass<*>, (args: List<Any?>) -> Any?>
+    public val supers: Map<KClass<*>, Function<Any?>>
 ) {
 
     /**
@@ -53,6 +54,7 @@ public class FunctionScope internal constructor(
             throw MissingArgsForSuperMethodException(this.args.size, args.size)
         }
         return supers[superType]
+            .unsafeCastOrNull<(List<Any?>) -> Any?>()
             .let { it ?: throw MissingSuperMethodException(superType) }
             .invoke(args)
     }
@@ -83,13 +85,17 @@ public class FunctionScope internal constructor(
     internal fun callOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
         checkArgs(args)
         val superType = resolveOriginalSupertype(lookup)
-        return supers.getValue(superType).invoke(args)
+        return supers
+            .getValue(superType)
+            .unsafeCast<(List<Any?>) -> Any?>()
+            .invoke(args)
     }
 
     internal suspend fun callSuspendOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
         checkArgs(args)
         val superType = resolveOriginalSupertype(lookup)
-        return supers.getValue(superType)
+        return supers
+            .getValue(superType)
             .unsafeCast<suspend (List<Any?>) -> Any?>()
             .invoke(args)
     }

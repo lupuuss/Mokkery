@@ -2,7 +2,6 @@ package dev.mokkery.answering
 
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.internal.unsafeCast
 import dev.mokkery.test.TestMokkeryInterceptorScope
 import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.runTest
@@ -18,7 +17,7 @@ class FunctionScopeTest {
         args = listOf(1),
         self = Unit,
         supers = mapOf(
-            Unit::class to { it[0] as Int + 1 },
+            Unit::class to blocking{ it[0] as Int + 1 },
             Int::class to suspending { it[0] as Int + 2 }
         )
     )
@@ -131,5 +130,7 @@ class FunctionScopeTest {
         )
     }
 
-    private fun <T> suspending(block: suspend (List<Any?>) -> Any): T = block.unsafeCast()
+    private inline fun suspending(noinline block: suspend (List<Any?>) -> Any) = block
+
+    private inline fun blocking(noinline block: (List<Any?>) -> Any) = block
 }
