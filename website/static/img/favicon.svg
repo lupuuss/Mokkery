@@ -1,7 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" width="662" height="662"><svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="662" height="662">
-	<title>logo_black-svg</title>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="662" height="662">
+	<title>Mokkery logo</title>
 	<style>
-		.s0 { fill: #121214 } 
+		.s0 { fill: #000000 }
+		@media (prefers-color-scheme: light) {
+			.s0 { fill: #000000; }
+		}
+		@media (prefers-color-scheme: dark) {
+			.s0 { fill: #ffffff;
+		}
 	</style>
 	<g id="SvgjsG1008" style="opacity: .3">
 	</g>
@@ -18,6 +24,4 @@
 			</g>
 		</g>
 	</g>
-</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
-@media (prefers-color-scheme: dark) { :root { filter: contrast(0.8333333333333334) brightness(1.7); } }
-</style></svg>
+</svg>
