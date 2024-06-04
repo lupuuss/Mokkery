@@ -185,7 +185,7 @@ repository.findById("2") // this calls super method implementation from BaseRepo
 
 ### Custom answer
 
-To provide custom answer implement [Answer](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
+To provide custom answer implement [Answer](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
 
 ```kotlin
 object RandomIntAnswer : Answer<Int> {
@@ -210,7 +210,7 @@ fun AnsweringScope<Int>.returnsRandomInt() = answers(RandomIntAnswer)
 everySuspend { repository.countAllBooks() }.returnsRandomInt()
 ```
 
-If your answer needs suspension, it is recommended to implement [Answer.Suspending](https://www.mokkery.dev/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
+If your answer needs suspension, it is recommended to implement [Answer.Suspending](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-suspending/index.html):
 
 ```kotlin
 data class DelayedConstAnswer<T>(
