@@ -119,9 +119,9 @@ public infix fun <T> BlockingAnsweringScope<T>.sequentiallyRepeat(
 }
 
 /**
- * Simplification for [SuspendSequentialAnswerBuilder.sequentially] with [repeat] [block].
+ * Simplification for [SuspendAnsweringScope.sequentially] with [repeat] [block].
  */
-public infix fun <T> SuspendSequentialAnswerBuilder<T>.sequentiallyRepeat(
+public infix fun <T> SuspendAnsweringScope<T>.sequentiallyRepeat(
     block: SuspendSequentialAnswerBuilder<T>.() -> Unit
 ) {
     sequentially { repeat { block() } }

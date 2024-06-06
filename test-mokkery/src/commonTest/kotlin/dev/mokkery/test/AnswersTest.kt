@@ -10,6 +10,7 @@ import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.self
 import dev.mokkery.answering.sequentially
+import dev.mokkery.answering.sequentiallyRepeat
 import dev.mokkery.answering.sequentiallyReturns
 import dev.mokkery.answering.sequentiallyThrows
 import dev.mokkery.answering.throws
@@ -85,7 +86,7 @@ class AnswersTest {
     }
 
     @Test
-    fun testSequentiallyRepeat() {
+    fun testSequentiallyWithRepeat() {
         every { mock.callGeneric(any<Int>()) } sequentially {
             returns(1)
             returns(2)
@@ -103,7 +104,7 @@ class AnswersTest {
     }
 
     @Test
-    fun testSequentiallySuspendRepeat() = runTest {
+    fun testSequentiallySuspendWithRepeat() = runTest {
         everySuspend { mock.callWithSuspension(any()) } sequentially {
             returns(listOf("1"))
             returns(listOf("2"))
@@ -118,6 +119,30 @@ class AnswersTest {
         assertEquals(listOf("4"), mock.callWithSuspension(0))
         assertEquals(listOf("3"), mock.callWithSuspension(0))
         assertEquals(listOf("4"), mock.callWithSuspension(0))
+    }
+
+    @Test
+    fun testSequentiallyRepeat() {
+        every { mock.callGeneric(any<Int>()) } sequentiallyRepeat {
+            returns(1)
+            returns(2)
+        }
+        assertEquals(1, mock.callGeneric(0))
+        assertEquals(2, mock.callGeneric(0))
+        assertEquals(1, mock.callGeneric(0))
+        assertEquals(2, mock.callGeneric(0))
+    }
+
+    @Test
+    fun testSuspendSequentiallyRepeat() = runTest {
+        everySuspend { mock.callWithSuspension(any()) } sequentiallyRepeat {
+            returns(listOf("1"))
+            returns(listOf("2"))
+        }
+        assertEquals(listOf("1"), mock.callWithSuspension(0))
+        assertEquals(listOf("2"), mock.callWithSuspension(0))
+        assertEquals(listOf("1"), mock.callWithSuspension(0))
+        assertEquals(listOf("2"), mock.callWithSuspension(0))
     }
 
     @Test
