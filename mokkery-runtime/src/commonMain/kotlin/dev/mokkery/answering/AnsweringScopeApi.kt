@@ -1,5 +1,7 @@
 package dev.mokkery.answering
 
+import dev.mokkery.internal.answering.ReturnsArgAtAnswer
+
 /**
  * Function call always returns [value].
  */
@@ -35,6 +37,13 @@ public infix fun <T> AnsweringScope<Result<T>>.succeeds(value: T) {
  */
 public infix fun <T> AnsweringScope<Result<T>>.fails(error: Throwable) {
     returns(Result.failure(error))
+}
+
+/**
+ * Function call returns argument at [index].
+ */
+public infix fun <T> AnsweringScope<T>.returnsArgAt(index: Int) {
+    answers(ReturnsArgAtAnswer(index))
 }
 
 /**
