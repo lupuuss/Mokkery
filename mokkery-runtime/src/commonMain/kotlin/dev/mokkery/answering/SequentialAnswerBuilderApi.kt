@@ -13,9 +13,9 @@ import dev.mokkery.internal.answering.unifiedSequentially
  *    returns("2")
  * }
  *
- * x.getString("a") // returns "1"
- * x.getString("a") // returns "2"
- * x.getString("a") // fails with no more answers
+ * dependency.getString("a") // returns "1"
+ * dependency.getString("a") // returns "2"
+ * dependency.getString("a") // fails with no more answers
  * ```
  */
 public infix fun <T> BlockingAnsweringScope<T>.sequentially(block: BlockingSequentialAnswerBuilder<T>.() -> Unit) {
@@ -32,9 +32,9 @@ public infix fun <T> BlockingAnsweringScope<T>.sequentially(block: BlockingSeque
  *    returns("2")
  * }
  *
- * x.getString("a") // returns "1"
- * x.getString("a") // returns "2"
- * x.getString("a") // fails with no more answers
+ * dependency.getString("a") // returns "1"
+ * dependency.getString("a") // returns "2"
+ * dependency.getString("a") // fails with no more answers
  * ```
  */
 public infix fun <T> SuspendAnsweringScope<T>.sequentially(block: SuspendSequentialAnswerBuilder<T>.() -> Unit) {
@@ -55,9 +55,9 @@ public infix fun <T> SuspendAnsweringScope<T>.sequentially(block: SuspendSequent
  *    }
  * }
  *
- * x.getString("a") // returns "1"
- * x.getString("a") // returns "2"
- * x.getString("a") // returns "2"
+ * dependency.getString("a") // returns "1"
+ * dependency.getString("a") // returns "2"
+ * dependency.getString("a") // returns "2"
  * ```
  */
 public fun <T> SuspendSequentialAnswerBuilder<T>.repeat(block: SuspendSequentialAnswerBuilder<T>.() -> Unit): Nothing {
@@ -78,9 +78,9 @@ public fun <T> SuspendSequentialAnswerBuilder<T>.repeat(block: SuspendSequential
  *    }
  * }
  *
- * x.getString("a") // returns "1"
- * x.getString("a") // returns "2"
- * x.getString("a") // returns "2"
+ * dependency.getString("a") // returns "1"
+ * dependency.getString("a") // returns "2"
+ * dependency.getString("a") // returns "2"
  * ```
  */
 public fun <T> BlockingSequentialAnswerBuilder<T>.repeat(block: BlockingSequentialAnswerBuilder<T>.() -> Unit): Nothing {
