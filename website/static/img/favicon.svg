@@ -6,7 +6,7 @@
 			.s0 { fill: #000000; }
 		}
 		@media (prefers-color-scheme: dark) {
-			.s0 { fill: #ffffff;
+			.s0 { fill: #ffffff; }
 		}
 	</style>
 	<g id="SvgjsG1008" style="opacity: .3">
