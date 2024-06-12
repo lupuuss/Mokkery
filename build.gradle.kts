@@ -1,4 +1,6 @@
 
+import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 
 plugins {
@@ -17,6 +19,7 @@ buildscript {
     dependencies {
         classpath(":build-mokkery")
         classpath(libs.gradle.plugin.kotlinx.atomicfu)
+        classpath(libs.dokka.base)
     }
 }
 
@@ -39,6 +42,9 @@ allprojects {
 val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
     moduleName.set("Mokkery")
     moduleVersion.set(libs.versions.mokkery.get())
+    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+        customAssets += rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile
+    }
 }
 val syncDocs by tasks.registering(Sync::class) {
     group = "documentation"
