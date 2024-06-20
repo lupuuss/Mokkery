@@ -16,7 +16,9 @@ interface BooksRepository {
 }
 ```
 
-> :warning: **Please read [limitations](../docs/Limitations) section!**
+:::warning
+Please read [limitations](../docs/Limitations) section!
+:::
 
 
 ### Mocking
@@ -37,7 +39,9 @@ For suspending function use `everySuspend`:
 ```kotlin
 everySuspend { repository.countAll() } returns 1
 ```
-> :warning: **Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!**
+:::warning
+Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!
+:::
 
 It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
 
@@ -70,7 +74,10 @@ repository.findById("1") // returns Book(id = "1", ...)
 repository.findById("2") // returns Book(id = "1", ...)
 repository.findById("3") // returns Book(id = "1", ...)
 ```
-> :warning: **When multiple answers match a call, the one defined later takes precedence.**
+
+:::warning
+When multiple answers match a call, the one defined later takes precedence.
+:::
 
 ### Verifying
 

@@ -116,8 +116,9 @@ everySuspend { repository.findById(any()) } calls originalWith("3")
 repository.findById("2") // this calls original method implementation with "3"
 ```
 
-> **Warning**
-> If mocked type is an interface, the default implementation is called.
+:::info
+If mocked type is an interface, the default implementation is called.
+:::
 
 #### Resolving ambiguity
 

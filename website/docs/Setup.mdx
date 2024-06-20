@@ -4,6 +4,7 @@ description: How to add Mokkery to your Gradle project rapidly!
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import Admonition from '@theme/Admonition';
 
 # Setup
 
@@ -59,8 +60,10 @@ pluginManagement {
 
 By default, Mokkery is applied to all Kotlin source sets in the project whose names contain the word 'test' in a case-insensitive manner.
 
-> **Warning**
-> Before version 2.1.0, Mokkery was applied by default only to source sets whose names contained the phrase 'Test' in a case-sensitive manner.
+:::warning
+Before version 2.1.0, Mokkery was applied by default only to source sets whose names contained the phrase 'Test' in a case-sensitive manner.
+In result it was not applied in Kotlin JVM projects.
+:::
 
 To change the default behavior, you can provide a different rule in your Gradle file:
 
@@ -112,10 +115,11 @@ You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/buil
       | 1.0.1 	                            | 1.9.0, 1.8.22, 1.8.21, 1.8.20 	                        | `"$kotlinVersion-1.0.1"` |
   </TabItem>
   <TabItem value="k2">
-      > **Warning**
-      > Mokkery 2.* versions are not locked to specific Kotlin 2.* versions and optimistically assume that compiler
-      > API is not going to change. However, breaking changes might happen and result in compile-time errors. You can track compiler API stability [here](https://youtrack.jetbrains.com/issue/KT-49508/Stabilize-the-K2-Compiler-Plugin-API).
-
+      <Admonition type="warning">
+          Mokkery 2.* versions aren't tied to specific Kotlin 2.* versions, assuming the compiler API will stay stable.
+          However, breaking changes can cause compile-time errors that require updating Mokkery.
+          Track compiler API stability [here](https://youtrack.jetbrains.com/issue/KT-49508/Stabilize-the-K2-Compiler-Plugin-API).
+      </Admonition>
       | Mokkery version                  	 | Supported Kotlin versions                            |
       |------------------------------------|--------------------------------------------------------|
       | 2.1.0 	                            | 2.0.0+	                                            |

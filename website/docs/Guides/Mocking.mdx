@@ -15,7 +15,9 @@ interface BooksRepository {
     fun findAll(): Flow<Book>
 }
 ```
-> :warning: **Please read [limitations](../Limitations) section!**
+:::warning
+Please read [limitations](../Limitations) section!
+:::
 
 Mock tracks all method calls and allows [defining their answers](#defining-answers).
 
@@ -90,7 +92,9 @@ For suspending function use `everySuspend`:
 ```kotlin
 everySuspend { repository.countAll() } returns 1
 ```
- > :warning: **Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!**
+:::warning
+Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!
+:::
 
 It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
 
@@ -189,7 +193,7 @@ allOpen {
 
 Add `OpenForMokkery` to final class:
 
-```
+```kotlin
 @OpenForMokkery
 class Foo {
 
