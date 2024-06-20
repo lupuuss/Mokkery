@@ -31,8 +31,8 @@ public fun interface ApplicationRule {
     public companion object {
 
         /**
-         * Results in Mokkery being applied to all source sets with `Test` phrase.
+         * Results in Mokkery being applied to all source sets with `test` phrase with any capitalization.
          */
-        public val AllTests: ApplicationRule = MatchesName(Regex(".*Test.*"))
+        public val AllTests: ApplicationRule = MatchesName(Regex("(?i).*test.*"))
     }
 }
