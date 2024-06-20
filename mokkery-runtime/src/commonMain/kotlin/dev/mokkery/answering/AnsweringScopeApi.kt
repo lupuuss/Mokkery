@@ -10,22 +10,6 @@ public infix fun <T> AnsweringScope<T>.returns(value: T) {
 }
 
 /**
- * Function call always throws [error].
- */
-public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
-    answers(Answer.Throws(error))
-}
-
-/**
- * Function call always throws an [IllegalStateException] with given [message].
- *
- * This is equivalent of [kotlin.error].
- */
-public infix fun <T> AnsweringScope<T>.throwsErrorWith(message: Any) {
-    answers(Answer.Throws(IllegalStateException(message.toString())))
-}
-
-/**
  * Function call returns [Result.success] with [value].
  */
 public infix fun <T> AnsweringScope<Result<T>>.returnsSuccess(value: T) {
@@ -44,6 +28,22 @@ public infix fun <T> AnsweringScope<Result<T>>.returnsFailure(error: Throwable) 
  */
 public infix fun <T> AnsweringScope<T>.returnsArgAt(index: Int) {
     answers(ReturnsArgAtAnswer(index))
+}
+
+/**
+ * Function call always throws [error].
+ */
+public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
+    answers(Answer.Throws(error))
+}
+
+/**
+ * Function call always throws an [IllegalStateException] with given [message].
+ *
+ * This is equivalent of [kotlin.error].
+ */
+public infix fun <T> AnsweringScope<T>.throwsErrorWith(message: Any) {
+    answers(Answer.Throws(IllegalStateException(message.toString())))
 }
 
 /**
