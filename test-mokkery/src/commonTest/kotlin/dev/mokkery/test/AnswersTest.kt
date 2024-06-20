@@ -8,6 +8,9 @@ import dev.mokkery.answering.SuperCall.Companion.superWith
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
+import dev.mokkery.answering.returnsFailure
+import dev.mokkery.answering.returnsSuccess
 import dev.mokkery.answering.self
 import dev.mokkery.answering.sequentially
 import dev.mokkery.answering.sequentiallyRepeat
@@ -31,6 +34,25 @@ class AnswersTest {
     fun testReturns() {
         every { mock.callGeneric(any<Int>()) } returns 3
         assertEquals(3, mock.callGeneric(0))
+    }
+
+    @Test
+    fun testReturnsSuccess() {
+        every { mock.callWithPrimitiveResult(any()) } returnsSuccess 1
+        assertEquals(Result.success(1), mock.callWithPrimitiveResult(Result.success(0)))
+    }
+
+    @Test
+    fun testReturnsFailure() {
+        val error = IllegalArgumentException("Failed!")
+        every { mock.callWithPrimitiveResult(any()) } returnsFailure error
+        assertEquals(Result.failure(error), mock.callWithPrimitiveResult(Result.success(0)))
+    }
+
+    @Test
+    fun testReturnsArgAt() {
+        every { mock.callWithDefault(any()) } returnsArgAt 0
+        assertEquals(33, mock.callWithDefault(33))
     }
 
     @Test
