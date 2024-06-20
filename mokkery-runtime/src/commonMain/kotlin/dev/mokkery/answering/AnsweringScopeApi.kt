@@ -12,14 +12,14 @@ public infix fun <T> AnsweringScope<T>.returns(value: T) {
 /**
  * Function call returns [Result.success] with [value].
  */
-public infix fun <T> AnsweringScope<Result<T>>.returnsSuccess(value: T) {
+public infix fun <T> AnsweringScope<in Result<T>>.returnsSuccess(value: T) {
     returns(Result.success(value))
 }
 
 /**
  * Function call returns [Result.failure] with [error].
  */
-public infix fun <T> AnsweringScope<Result<T>>.returnsFailure(error: Throwable) {
+public infix fun <T> AnsweringScope<in Result<T>>.returnsFailure(error: Throwable) {
     returns(Result.failure(error))
 }
 
