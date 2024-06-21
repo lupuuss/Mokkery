@@ -15,6 +15,8 @@ import dev.mokkery.verify.VerifyMode
 /**
  * Asserts that calls sequence defined in [block] satisfies given [mode].
  *
+ * Each verification is performed only on unverified calls. In result repeated verifications may give different results.
+ *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
  */
