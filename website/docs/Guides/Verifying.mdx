@@ -5,6 +5,17 @@ description: Efficiently verify method calls on mocks and spies using different 
 To verify method call use `verify` or `verifySuspend`. Verification result depends on the `VerifyMode`.
 It determines the behavior and criteria for verification.
 
+Each verification is performed on unverified calls. In result, repeated verifications may give different results:
+
+```kotlin
+repository.findById("1")
+
+verify { repository.findById("1") } // succeeds
+verify { repository.findById("1") } // fails - no matching calls 
+```
+
+### Global settings
+
 You can change the default `VerifyMode` in the `build.gradle` file:
 
 ```kotlin

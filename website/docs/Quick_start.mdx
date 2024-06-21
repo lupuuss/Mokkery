@@ -95,6 +95,15 @@ verifySuspend {
 }
 ```
 
+Each verification is performed on unverified calls. In result, repeated verifications may give different results:
+
+```kotlin
+repository.findById("1")
+
+verify { repository.findById("1") } // succeeds
+verify { repository.findById("1") } // fails - no matching calls
+```
+
 By default, `verify` works in [soft](../docs/Guides/Verifying#soft-modes-family) mode. It checks if each call pattern occured at least once.
 
 In this mode, each verification is performed independently so in example below, both verifications have the same result:
@@ -107,6 +116,10 @@ repository.findAll()
 verify {
     repository.findAll()
 }
+```
+```kotlin
+repository.findAll()
+repository.findAll()
 
 // verification passes, because findAll was called at least once
 // the only difference is that `findAll` check is duplicated
