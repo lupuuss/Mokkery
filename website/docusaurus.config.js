@@ -76,9 +76,14 @@ const config = {
                         label: 'Docs',
                     },
                     {
-                        to: 'pathname:///api_reference',
+                        href: 'pathname:///api_reference',
                         position: 'left',
                         label: 'API'
+                    },
+                    {
+                        href: 'https://github.com/lupuuss/Mokkery/releases',
+                        position: 'left',
+                        label: 'Releases'
                     },
                     {
                         href: 'https://github.com/lupuuss/Mokkery',
