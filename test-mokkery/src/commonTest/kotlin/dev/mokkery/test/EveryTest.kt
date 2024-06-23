@@ -132,4 +132,9 @@ class EveryTest {
         assertEquals(Result.success(listOf(1)), dependencyMock.callWithComplexResult(Result.success(emptyList())))
     }
 
+    @Test
+    fun testMocksGenericMethodsFromBaseType() {
+        every { dependencyMock.baseCallWithGeneric(any<Int>()) } returns 3
+        assertEquals(3, dependencyMock.baseCallWithGeneric(1))
+    }
 }

@@ -62,7 +62,7 @@ class TemplatingScopeCallsTransformer(
             // make return type nullable to avoid runtime checks on non-primitive types (required by Wasm-JS and K/N to work)
             expression.type = when {
                 pluginContext.platform.isNative() -> pluginContext.irBuiltIns.anyNType
-                else -> returnType.makeNullable()
+                else -> expression.type.makeNullable()
             }
         }
         expression.dispatchReceiver = declarationIrBuilder(expression) {

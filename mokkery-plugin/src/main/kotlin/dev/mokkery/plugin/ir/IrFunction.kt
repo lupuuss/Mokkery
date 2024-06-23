@@ -7,26 +7,22 @@ import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
+import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isFromJava
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
+import org.jetbrains.kotlin.ir.util.remapTypeParameters
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
-fun IrSimpleFunction.copyAnnotationsFrom(function: IrSimpleFunction) {
-    annotations = function.annotations.map { it.deepCopyWithSymbols(this) }
+fun IrSimpleFunction.copyReturnTypeFrom(function: IrSimpleFunction) {
+    returnType = function.returnType.remapTypeParameters(function, this, mapOf())
 }
 
 fun IrSimpleFunction.copyParametersFrom(function: IrSimpleFunction) {
-    typeParameters = function.typeParameters.map { it.deepCopyWithSymbols(this) }
-    fun IrValueParameter.deepCopyWithTypeParameters() = deepCopyWithSymbols(
-        initialParent = this@copyParametersFrom,
-        createTypeRemapper = { IrTypeParameterRemapper(function.typeParameters.zip(typeParameters).toMap()) }
-    )
-    extensionReceiverParameter = function.extensionReceiverParameter?.deepCopyWithTypeParameters()
-    valueParameters = function.valueParameters.map { it.deepCopyWithTypeParameters().apply { defaultValue = null } }
+    extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
+    valueParameters = function.valueParameters
+        .memoryOptimizedMap { it.copyTo(this, defaultValue = null) }
 }
 
 fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach { param ->

@@ -18,6 +18,8 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.types.typeWithParameters
+import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
+import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
@@ -57,7 +59,6 @@ fun IrClass.addOverridingMethod(
     addFunction {
         updateFrom(function)
         name = function.name
-        returnType = function.returnType
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
@@ -65,8 +66,10 @@ fun IrClass.addOverridingMethod(
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
         metadata = function.metadata
         dispatchReceiverParameter = buildThisValueParam()
-        copyParametersFrom(function)
+        copyTypeParametersFrom(function)
         copyAnnotationsFrom(function)
+        copyReturnTypeFrom(function)
+        copyParametersFrom(function)
         contextReceiverParametersCount = function.contextReceiverParametersCount
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
@@ -115,29 +118,32 @@ fun IrClass.addOverridingProperty(
 ) {
     val property = properties.first()
     addProperty {
+        updateFrom(property)
         name = property.name
-        isVar = property.isVar
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
+        isFakeOverride = false
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
         val baseGetter = property.getter!!
         val getter = addGetter()
         getter.overriddenSymbols = properties.mapNotNull { it.getter?.symbol }
-        getter.returnType = baseGetter.returnType
         getter.metadata = baseGetter.metadata
         getter.dispatchReceiverParameter = buildThisValueParam()
         getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
+        getter.copyTypeParametersFrom(baseGetter)
+        getter.copyReturnTypeFrom(baseGetter)
         getter.copyParametersFrom(baseGetter)
         getter.copyAnnotationsFrom(baseGetter)
         getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         if (property.isVar) {
             val baseSetter = property.setter!!
             val setter = addSetter()
-            setter.returnType = baseSetter.returnType
             setter.metadata = baseSetter.metadata
             setter.dispatchReceiverParameter = buildThisValueParam()
             setter.contextReceiverParametersCount = baseSetter.contextReceiverParametersCount
+            setter.copyTypeParametersFrom(baseSetter)
+            setter.copyReturnTypeFrom(baseSetter)
             setter.copyParametersFrom(baseSetter)
             setter.copyAnnotationsFrom(baseSetter)
             setter.overriddenSymbols = properties.mapNotNull { it.setter?.symbol }

@@ -38,8 +38,10 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.ir.util.substitute
 
 fun IrBlockBodyBuilder.irInterceptMethod(
     transformer: TransformerScope,
@@ -142,16 +144,22 @@ private fun IrBuilderWithScope.createSuperCallLambda(
     superFunction: IrSimpleFunction
 ): IrExpression {
     val pluginContext = transformer.pluginContext
+    val typesMap = makeTypeParameterSubstitutionMap(superFunction, function)
+    val returnType = superFunction.returnType.substitute(typesMap)
     val lambdaType = pluginContext
         .irBuiltIns
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
-        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, superFunction.returnType)
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, returnType)
     return irLambda(
-        returnType = superFunction.returnType,
+        returnType = returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
-        val superCall = irCall(symbol = superFunction.symbol, superQualifierSymbol = superFunction.parentAsClass.symbol) {
+        val superCall = irCall(
+            symbol = superFunction.symbol,
+            superQualifierSymbol = superFunction.parentAsClass.symbol,
+            type = returnType,
+        ) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
             contextReceiversCount = superFunction.contextReceiverParametersCount
             superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
@@ -162,7 +170,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
                             dispatchReceiver = irGet(lambda.valueParameters[0])
                             putValueArgument(0, irInt(index))
                         },
-                        type = irValueParameter.type
+                        type = irValueParameter.type.substitute(typesMap)
                     )
                 )
             }

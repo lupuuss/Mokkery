@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
@@ -118,6 +119,7 @@ fun IrBuilderWithScope.irLambda(
         origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
     }.apply {
         val bodyBuilder = DeclarationIrBuilder(context, symbol, startOffset, endOffset)
+        this.copyTypeParametersFrom(func)
         this.copyParametersFrom(func)
         this.parent = parent
         body = bodyBuilder.irBlockBody {
@@ -165,9 +167,10 @@ inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCa
 
 inline fun IrBuilderWithScope.irCall(
     func: IrSimpleFunction,
+    type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCall(func.symbol).apply(block)
+    return irCall(func.symbol, type).apply(block)
 }
 
 fun IrBuilderWithScope.irCall(
