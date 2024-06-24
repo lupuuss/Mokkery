@@ -137,4 +137,10 @@ class EveryTest {
         every { dependencyMock.baseCallWithGeneric(any<Int>()) } returns 3
         assertEquals(3, dependencyMock.baseCallWithGeneric(1))
     }
+
+    @Test
+    fun testMocksGenericPropertyFromBaseTypeWithPrimitiveTypeArgument() {
+        every { dependencyMock.run { any<Int>().baseInterfaceGenericProperty } } returns 3
+        assertEquals(3, dependencyMock.run { 1.baseInterfaceGenericProperty })
+    }
 }
