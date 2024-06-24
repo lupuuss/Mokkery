@@ -27,15 +27,18 @@ import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
+import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irInt
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
@@ -44,19 +47,26 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.IrTypeParameterRemapper
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
+import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
+import org.jetbrains.kotlin.ir.util.passTypeArgumentsFrom
+import org.jetbrains.kotlin.ir.util.remapTypes
 import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import java.util.*
 
 fun TransformerScope.buildMockClass(
@@ -227,7 +237,8 @@ private fun IrBlockBodyBuilder.irLambdaSpyCall(
         parent = parent,
     ) { lambda ->
         val spyFun = function.overriddenSymbols.first().owner
-        val spyCall = irCall(spyFun) {
+        val typesMap = makeTypeParameterSubstitutionMap(spyFun, function)
+        val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
             dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
             contextReceiversCount = spyFun.contextReceiverParametersCount
             spyFun.fullValueParameterList.forEachIndexed { index, irValueParameter ->
@@ -238,7 +249,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyCall(
                             dispatchReceiver = irGet(lambda.valueParameters[0])
                             putValueArgument(0, irInt(index))
                         },
-                        type = irValueParameter.type
+                        type = irValueParameter.type.substitute(typesMap)
                     )
                 )
             }

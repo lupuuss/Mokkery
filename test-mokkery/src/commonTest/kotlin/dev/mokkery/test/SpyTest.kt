@@ -169,6 +169,10 @@ class SpyTest {
 private object TestInterfaceImpl : TestInterface {
 
     override var property: String = "1"
+
+    override val <R> R.baseInterfaceGenericProperty: R
+        get() = this
+
     override fun callWithString(value: String?): Int = 0
 
     override fun callWithPrimitives(i: Int, j: Int): Double = i.toDouble()
@@ -200,6 +204,8 @@ private object TestInterfaceImpl : TestInterface {
     override val baseInterfaceProperty = "123"
 
     override fun baseInterfaceMethod() = Unit
+
+    override fun <R> baseCallWithGeneric(value: R): R = value
 
     override fun <T> callWithArray(array: Array<T>): T = array.first()
 
