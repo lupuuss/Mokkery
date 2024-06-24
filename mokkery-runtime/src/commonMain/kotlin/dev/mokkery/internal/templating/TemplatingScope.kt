@@ -20,8 +20,9 @@ internal interface TemplatingScope : ArgMatchersScope {
 
     val mocks: Set<MokkeryMockScope>
     val templates: List<CallTemplate>
+    val currentGenericReturnTypeHint: KClass<*>?
 
-    fun ensureBinding(token: Int, obj: Any?)
+    fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>? = null)
 
     fun <T> interceptArg(token: Int, name: String, arg: T): T
 
@@ -55,10 +56,13 @@ private class TemplatingScopeImpl(
 
     override val mocks = mutableSetOf<MokkeryMockScope>()
     override val templates = mutableListOf<CallTemplate>()
+    override val currentGenericReturnTypeHint: KClass<*>?
+        get() = binder.firstProperlyBoundedData().genericReturnTypeHint
 
-    override fun ensureBinding(token: Int, obj: Any?) {
+    override fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>?) {
         if (isReleased) return
         val scope = binder.bind(token, obj) ?: return
+        binder.getDataFor(token)?.genericReturnTypeHint = hintReturnType
         val templating = scope.interceptor.templating
         when {
             templating.isEnabledWith(this) -> return

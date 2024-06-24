@@ -14,13 +14,16 @@ internal class TestTemplatingScope(
 ) : TemplatingScope {
 
     private val _recordedSaveCalls = mutableListOf<TemplateParams>()
+
     val recordedSaveCalls: List<TemplateParams> = _recordedSaveCalls
     var released = false
     val argMatchersScope = TestArgMatchersScope()
 
-    override fun ensureBinding(token: Int, obj: Any?) = pluginMethodError()
+    override var currentGenericReturnTypeHint: KClass<*>? = null
 
-    override fun <T> interceptArg(token: Int, name: String, arg: T): T =  pluginMethodError()
+    override fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>?) = pluginMethodError()
+
+    override fun <T> interceptArg(token: Int, name: String, arg: T): T = pluginMethodError()
 
     override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T = pluginMethodError()
 

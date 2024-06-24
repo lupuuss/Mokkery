@@ -31,15 +31,29 @@ class TemplatingInterceptorTest {
     }
 
     @Test
-    fun testReturnsReturnDefaultTokenOnInterceptCallWheEnabled() {
+    fun testReturnsReturnDefaultTokenOnInterceptCallWhenEnabled() {
         templating.start(scope)
         assertEquals(MokkeryToken.ReturnDefault(null), templating.interceptCall(fakeCallContext<Int>()))
     }
 
     @Test
-    fun testReturnsReturnDefaultTokenOnInterceptSuspendCallWheEnabled() = runTest {
+    fun testReturnsReturnDefaultTokenOnInterceptSuspendCallWhenEnabled() = runTest {
         templating.start(scope)
         assertEquals(MokkeryToken.ReturnDefault(null), templating.interceptSuspendCall(fakeCallContext<Int>()))
+    }
+
+    @Test
+    fun testReturnsReturnDefaultTokenWithTypeHintOnInterceptCallWhenEnabled() {
+        templating.start(scope)
+        scope.currentGenericReturnTypeHint = Int::class
+        assertEquals(MokkeryToken.ReturnDefault(Int::class), templating.interceptCall(fakeCallContext<Int>()))
+    }
+
+    @Test
+    fun testReturnsReturnDefaultTokenWithTypeHintOnInterceptSuspendCallWhenEnabled() = runTest {
+        templating.start(scope)
+        scope.currentGenericReturnTypeHint = String::class
+        assertEquals(MokkeryToken.ReturnDefault(String::class), templating.interceptSuspendCall(fakeCallContext<Int>()))
     }
 
     @Test

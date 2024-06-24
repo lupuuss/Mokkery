@@ -7,6 +7,7 @@ import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
@@ -15,6 +16,7 @@ import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
@@ -35,6 +37,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
+import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.platform.konan.isNative
 
 class TemplatingScopeCallsTransformer(
@@ -58,23 +61,27 @@ class TemplatingScopeCallsTransformer(
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
         val returnType = expression.symbol.owner.returnType
-        if (returnType.run { !isPrimitiveType(nullable = false) && !isNothing() }) {
-            // make return type nullable to avoid runtime checks on non-primitive types (required by Wasm-JS and K/N to work)
-            expression.type = when {
-                pluginContext.platform.isNative() -> pluginContext.irBuiltIns.anyNType
-                else -> expression.type.makeNullable()
-            }
-        }
         expression.dispatchReceiver = declarationIrBuilder(expression) {
             irBlock {
                 val tmp = createTmpVariable(receiver)
                 +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!) {
+                    val genericReturnTypeHint = when {
+                        expression.type.isTypeParameter() -> irNull()
+                        returnType.isTypeParameter() -> kClassReference(expression.type)
+                        else -> irNull()
+                    }
                     dispatchReceiver = irGet(templatingScope)
                     putValueArgument(0, irInt(token))
                     putValueArgument(1, irGet(tmp))
+                    putValueArgument(2, genericReturnTypeHint)
                 }
                 +irGet(tmp)
             }
+        }
+        val isNative = pluginContext.platform.isNative()
+        if (!returnType.isPrimitiveType(nullable = false) && !returnType.isNothing() && isNative) {
+            // make return type nullable to avoid runtime checks on non-primitive types (K/N to work)
+            expression.type = pluginContext.irBuiltIns.anyNType
         }
         interceptAllArgsOf(expression)
         token++

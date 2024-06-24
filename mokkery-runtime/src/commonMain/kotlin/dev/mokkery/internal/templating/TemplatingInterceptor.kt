@@ -42,9 +42,10 @@ private class TemplatingMokkeryInterceptorImpl : TemplatingInterceptor {
         if (!_isEnabled) {
             return MokkeryToken.CallNext
         }
+        val hint = templatingScope?.currentGenericReturnTypeHint
         templatingScope?.saveTemplate(context.scope.id, context.name, context.args)
             ?: throw ConcurrentTemplatingException()
-        return MokkeryToken.ReturnDefault(null)
+        return MokkeryToken.ReturnDefault(hint)
     }
 
 }
