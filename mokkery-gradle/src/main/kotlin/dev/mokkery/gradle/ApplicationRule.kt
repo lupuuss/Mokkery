@@ -31,8 +31,9 @@ public fun interface ApplicationRule {
     public companion object {
 
         /**
-         * Results in Mokkery being applied to all source sets with `test` phrase with any capitalization.
+         * Results in Mokkery being applied to any source set with name that contains "Test" or is equal to "test".
+         * It means that it is automatically applied to tests in  Kotlin Multiplatform, Kotlin JVM and Kotlin Android projects.
          */
-        public val AllTests: ApplicationRule = MatchesName(Regex("(?i).*test.*"))
+        public val AllTests: ApplicationRule = ApplicationRule { it.name.contains("Test") && it.name == "test" }
     }
 }

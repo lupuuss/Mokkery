@@ -58,10 +58,11 @@ pluginManagement {
 ```
 ### Source sets
 
-By default, Mokkery is applied to all Kotlin source sets in the project whose names contain the word 'test' in a case-insensitive manner.
+By default, Mokkery is applied to all Kotlin source sets in the project whose names contain the word 'Test'
+or are equal to "test".
 
 :::warning
-Before version 2.1.0, Mokkery was applied by default only to source sets whose names contained the phrase 'Test' in a case-sensitive manner.
+Before version 2.1.0, Mokkery was applied by default only to source sets whose names contained the phrase 'Test'.
 In result it was not applied in Kotlin JVM projects.
 :::
 
