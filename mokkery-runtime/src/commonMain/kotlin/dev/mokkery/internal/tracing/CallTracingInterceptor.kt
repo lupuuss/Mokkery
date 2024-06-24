@@ -45,7 +45,7 @@ private class CallTracingInterceptorImpl(
 
     override fun interceptCall(context: CallContext): Any {
         lock.withLock { _all += context.toTrace() }
-        return MokkeryToken.CALL_NEXT
+        return MokkeryToken.CallNext
     }
 
     private fun CallContext.toTrace() = CallTrace(scope.id, name, args, counter.next())

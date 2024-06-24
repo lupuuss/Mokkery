@@ -22,24 +22,24 @@ class TemplatingInterceptorTest {
 
     @Test
     fun testReturnsCallNextTokenOnInterceptCallWhenNotEnabled() {
-        assertEquals(MokkeryToken.CALL_NEXT, templating.interceptCall(fakeCallContext<Int>()))
+        assertEquals(MokkeryToken.CallNext, templating.interceptCall(fakeCallContext<Int>()))
     }
 
     @Test
     fun testReturnsCallNextTokenOnInterceptSuspendCallWhenNotEnabled() = runTest {
-        assertEquals(MokkeryToken.CALL_NEXT, templating.interceptSuspendCall(fakeCallContext<Int>()))
+        assertEquals(MokkeryToken.CallNext, templating.interceptSuspendCall(fakeCallContext<Int>()))
     }
 
     @Test
     fun testReturnsReturnDefaultTokenOnInterceptCallWheEnabled() {
         templating.start(scope)
-        assertEquals(MokkeryToken.RETURN_DEFAULT, templating.interceptCall(fakeCallContext<Int>()))
+        assertEquals(MokkeryToken.ReturnDefault(null), templating.interceptCall(fakeCallContext<Int>()))
     }
 
     @Test
     fun testReturnsReturnDefaultTokenOnInterceptSuspendCallWheEnabled() = runTest {
         templating.start(scope)
-        assertEquals(MokkeryToken.RETURN_DEFAULT, templating.interceptSuspendCall(fakeCallContext<Int>()))
+        assertEquals(MokkeryToken.ReturnDefault(null), templating.interceptSuspendCall(fakeCallContext<Int>()))
     }
 
     @Test

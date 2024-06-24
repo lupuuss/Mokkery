@@ -2,6 +2,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
+import kotlin.reflect.KClass
 
 
 internal interface MokkeryInterceptor {
@@ -12,8 +13,9 @@ internal interface MokkeryInterceptor {
 
 }
 
-internal enum class MokkeryToken {
-    CALL_NEXT, RETURN_DEFAULT
+internal sealed interface MokkeryToken {
+    data object CallNext : MokkeryToken
+    data class ReturnDefault(val genericReturnTypeHint: KClass<*>?) : MokkeryToken
 }
 
 internal fun combine(vararg interceptors: MokkeryInterceptor): MokkeryInterceptor {
@@ -28,8 +30,8 @@ private class CombinedInterceptor(
     override fun interceptCall(context: CallContext): Any? {
         interceptors.forEach {
             when (val result = it.interceptCall(context)) {
-                MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofill.provideValue(context.returnType)
+                MokkeryToken.CallNext -> Unit
+                is MokkeryToken.ReturnDefault -> return autofillWithGenericHint(result, context)
                 else -> return result
             }
         }
@@ -39,12 +41,15 @@ private class CombinedInterceptor(
     override suspend fun interceptSuspendCall(context: CallContext): Any? {
         interceptors.forEach {
             when (val result = it.interceptSuspendCall(context)) {
-                MokkeryToken.CALL_NEXT -> Unit
-                MokkeryToken.RETURN_DEFAULT -> return autofill.provideValue(context.returnType)
+                MokkeryToken.CallNext -> Unit
+                is MokkeryToken.ReturnDefault -> return autofillWithGenericHint(result, context)
                 else -> return result
             }
         }
         return autofill.provideValue(context.returnType)
     }
 
+    private fun autofillWithGenericHint(token: MokkeryToken.ReturnDefault, context: CallContext): Any? {
+        return autofill.provideValue(token.genericReturnTypeHint ?: context.returnType)
+    }
 }

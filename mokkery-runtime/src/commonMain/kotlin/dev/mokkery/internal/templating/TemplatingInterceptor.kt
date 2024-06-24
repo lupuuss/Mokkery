@@ -2,8 +2,8 @@ package dev.mokkery.internal.templating
 
 import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.MokkeryToken
 import dev.mokkery.internal.MokkeryInterceptor
+import dev.mokkery.internal.MokkeryToken
 import kotlinx.atomicfu.atomic
 
 internal interface TemplatingInterceptor : MokkeryInterceptor {
@@ -40,11 +40,11 @@ private class TemplatingMokkeryInterceptorImpl : TemplatingInterceptor {
 
     override fun interceptCall(context: CallContext): Any {
         if (!_isEnabled) {
-            return MokkeryToken.CALL_NEXT
+            return MokkeryToken.CallNext
         }
         templatingScope?.saveTemplate(context.scope.id, context.name, context.args)
             ?: throw ConcurrentTemplatingException()
-        return MokkeryToken.RETURN_DEFAULT
+        return MokkeryToken.ReturnDefault(null)
     }
 
 }
