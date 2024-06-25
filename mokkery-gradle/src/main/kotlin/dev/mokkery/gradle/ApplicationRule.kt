@@ -32,8 +32,8 @@ public fun interface ApplicationRule {
 
         /**
          * Results in Mokkery being applied to any source set with name that contains "Test" or is equal to "test".
-         * It means that it is automatically applied to tests in  Kotlin Multiplatform, Kotlin JVM and Kotlin Android projects.
+         * It means that it is automatically applied to tests in Multiplatform, JVM and Android projects.
          */
-        public val AllTests: ApplicationRule = ApplicationRule { it.name.contains("Test") && it.name == "test" }
+        public val AllTests: ApplicationRule = ApplicationRule { it.name.contains("Test") || it.name == "test" }
     }
 }
