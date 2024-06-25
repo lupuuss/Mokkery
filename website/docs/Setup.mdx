@@ -36,11 +36,14 @@ import Admonition from '@theme/Admonition';
 </Tabs>
 
 
-2. Ensure that your Mokkery version is compatible with Kotlin version. Refer to [compatibility](#compatibility) section.
+2. Ensure that your Mokkery version is compatible with your Kotlin version. Refer to the [compatibility section](#compatibility).
 
-3. Check [targets](#targets) section to make sure that all targets from you multiplatform project are supported.
+3. Check the [source sets section](#source-sets) to make sure that Mokkery is properly applied in your project.
 
-4. At this point everything should be fine. In case of Gradle being unable to find dependencies, check missing repositories.
+4. Check the [targets section](#targets) to make sure that all targets from you multiplatform project are supported.
+
+5. At this point everything should be fine. In case of Gradle being unable to find dependencies, check missing repositories.
+
 ```kotlin
 // for runtime dependencies
 repositories {
@@ -58,25 +61,30 @@ pluginManagement {
 ```
 ### Source sets
 
-By default, Mokkery is applied to all Kotlin source sets in the project whose names contain the word 'Test'
-or are equal to "test".
+By default, Mokkery is applied to all Kotlin source sets in the project that either contain the word 'Test' in their names or are named exactly 'test'.
+As a result, Mokkery is correctly applied to the default test source sets in Android, JVM, or Multiplatform projects.
+**However, this default behavior might need adjustments if any of your main custom source sets contain the word 'Test'.**
 
 :::warning
 Before version 2.1.0, Mokkery was applied by default only to source sets whose names contained the phrase 'Test'.
-In result it was not applied in Kotlin JVM projects.
+In result it was not applied in JVM projects.
 :::
 
 To change the default behavior, you can provide a different rule in your Gradle file:
 
 ```kotlin
+import dev.mokkery.gradle.ApplicationRule.Listed
+import dev.mokkery.gradle.ApplicationRule.MatchesName
+
 plugins {
+    kotlin("multiplatform")
     id("dev.mokkery")
 }
 
 mokkery {
-    rule.set(ApplicationRule.Listed("jvmTest"))                   // this rule affects only jvmTest
-    rule.set(ApplicationRule.MatchesName(Regex("macos.*Test")))   // this rule affects all "macos.*Test" source sets
-    rule.set { sourceSet -> sourceSet.name.endsWith("Test") }     // this rule affects all ".*Test" source sets
+    rule.set(Listed("jvmTest"))                 // Mokkery is applied to jvmTest source set
+    rule.set(MatchesName(Regex("macos.*Test"))) // Mokkery is applied to source sets matching "macos.*Test"
+    rule.set { it.name.endsWith("Test") }       // Mokkery is applied to source sets ending with "Test"
 }
 ```
 

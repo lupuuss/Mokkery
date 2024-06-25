@@ -157,8 +157,9 @@ function WhyMokkeryTabs() {
                             </TabItem>
                             </Tabs>
                         <h3 style={{fontWeight: "400"}}>...that's it!</h3>
-                        <h3 style={{fontWeight: "400"}}>Make sure that you have required repositories and compatible
-                            Kotlin version!</h3>
+                        <h3 style={{fontWeight: "400"}}>
+                            Please refer to the <Link to="../docs/Setup">setup section</Link>, as additional configuration may be required in some cases!
+                        </h3>
                     </TabItem>
                     <TabItem value="multiplatform" label="🌍&nbsp;Multiplatform">
                         <div style={{fontSize: "1.4rem", fontWeight: "300", width: "100%"}}>
