@@ -3,6 +3,9 @@ package dev.mokkery.plugin.ir
 import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.TransformerScope
+import dev.mokkery.plugin.ir.compat.IrClassReferenceImplCompat
+import dev.mokkery.plugin.ir.compat.IrFunctionExpressionImplCompat
+import dev.mokkery.plugin.ir.compat.IrGetEnumValueImplCompat
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -38,9 +41,6 @@ import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -57,7 +57,7 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
 // use until resolved https://youtrack.jetbrains.com/issue/KT-66178/kClassReference-extension-returns-incorrect-IrClassReferenceImpl
-fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = IrClassReferenceImpl(
+fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = IrClassReferenceImplCompat(
     startOffset = startOffset,
     endOffset = endOffset,
     type = context.irBuiltIns.kClassClass.starProjectedType,
@@ -65,12 +65,19 @@ fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = Ir
     classType = classType
 )
 
-fun IrBuilderWithScope.irGetEnumEntry(irClass: IrClass, name: String): IrGetEnumValue {
-    return IrGetEnumValueImpl(startOffset, endOffset, irClass.defaultType, irClass.getEnumEntry(name).symbol)
-}
+fun IrBuilderWithScope.irGetEnumEntry(
+    irClass: IrClass,
+    name: String
+): IrGetEnumValue = IrGetEnumValueImplCompat(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = irClass.defaultType,
+    symbol = irClass.getEnumEntry(name).symbol
+)
 
-fun IrBuilderWithScope.irCallConstructor(constructor: IrConstructor) =
-    irCallConstructor(constructor.symbol, emptyList())
+fun IrBuilderWithScope.irCallConstructor(
+    constructor: IrConstructor
+) = irCallConstructor(constructor.symbol, emptyList())
 
 fun IrBuilderWithScope.irDelegatingDefaultConstructorOrAny(irClass: IrClass?): IrDelegatingConstructorCall {
     return irDelegatingConstructorCall(
@@ -109,7 +116,7 @@ fun IrBuilderWithScope.irLambda(
             block(this@apply)
         }
     }
-    return IrFunctionExpressionImpl(
+    return IrFunctionExpressionImplCompat(
         UNDEFINED_OFFSET,
         UNDEFINED_OFFSET,
         lambdaType,
