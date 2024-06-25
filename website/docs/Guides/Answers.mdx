@@ -20,7 +20,6 @@ everySuspend { repository.findById(id = any()) } throws IllegalArgumentException
 To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)) use `throwsErrorWith`:
 ```kotlin
 everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
-
 ```
 
 To provide more complex answer use `calls`:
