@@ -21,7 +21,7 @@ internal class TestTemplatingScope(
 
     override var currentGenericReturnTypeHint: KClass<*>? = null
 
-    override fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>?) = pluginMethodError()
+    override fun ensureBinding(token: Int, obj: Any?, genericReturnTypeHint: KClass<*>?) = pluginMethodError()
 
     override fun <T> interceptArg(token: Int, name: String, arg: T): T = pluginMethodError()
 

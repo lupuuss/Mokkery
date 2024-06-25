@@ -22,7 +22,7 @@ internal interface TemplatingScope : ArgMatchersScope {
     val templates: List<CallTemplate>
     val currentGenericReturnTypeHint: KClass<*>?
 
-    fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>? = null)
+    fun ensureBinding(token: Int, obj: Any?, genericReturnTypeHint: KClass<*>? = null)
 
     fun <T> interceptArg(token: Int, name: String, arg: T): T
 
@@ -59,10 +59,10 @@ private class TemplatingScopeImpl(
     override val currentGenericReturnTypeHint: KClass<*>?
         get() = binder.firstProperlyBoundedData().genericReturnTypeHint
 
-    override fun ensureBinding(token: Int, obj: Any?, hintReturnType: KClass<*>?) {
+    override fun ensureBinding(token: Int, obj: Any?, genericReturnTypeHint: KClass<*>?) {
         if (isReleased) return
         val scope = binder.bind(token, obj) ?: return
-        binder.getDataFor(token)?.genericReturnTypeHint = hintReturnType
+        binder.getDataFor(token)?.genericReturnTypeHint = genericReturnTypeHint
         val templating = scope.interceptor.templating
         when {
             templating.isEnabledWith(this) -> return
