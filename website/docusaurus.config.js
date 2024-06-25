@@ -86,6 +86,11 @@ const config = {
                         label: 'Releases'
                     },
                     {
+                        href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
+                        position: 'right',
+                        label: 'Ask a Question'
+                    },
+                    {
                         href: 'https://github.com/lupuuss/Mokkery',
                         position: 'right',
                         className: 'header-github-link'
