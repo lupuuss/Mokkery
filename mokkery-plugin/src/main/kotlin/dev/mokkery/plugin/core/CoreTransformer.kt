@@ -1,9 +1,5 @@
 package dev.mokkery.plugin.core
 
-import dev.mokkery.plugin.core.ClassResolver
-import dev.mokkery.plugin.core.CompilerPluginScope
-import dev.mokkery.plugin.core.FunctionResolver
-import dev.mokkery.plugin.core.TransformerScope
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrClass
