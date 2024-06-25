@@ -45,6 +45,7 @@ class TemplatingScopeCallsTransformer(
     private val templatingScope: IrVariable,
 ) : CoreTransformer(compilerPluginScope) {
 
+    private val isNativePlatform = pluginContext.platform.isNative()
     private var token = 0
     private val localDeclarations = mutableListOf<IrDeclaration>()
     private val argMatchersScopeClass = getClass(Mokkery.Class.ArgMatchersScope)
@@ -66,9 +67,8 @@ class TemplatingScopeCallsTransformer(
                 val tmp = createTmpVariable(receiver)
                 +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!) {
                     val genericReturnTypeHint = when {
-                        expression.type.isTypeParameter() -> irNull()
-                        returnType.isTypeParameter() -> kClassReference(expression.type)
-                        else -> irNull()
+                        !returnType.isTypeParameter() || expression.type.isTypeParameter() -> irNull()
+                        else ->  kClassReference(expression.type)
                     }
                     dispatchReceiver = irGet(templatingScope)
                     putValueArgument(0, irInt(token))
@@ -78,8 +78,7 @@ class TemplatingScopeCallsTransformer(
                 +irGet(tmp)
             }
         }
-        val isNative = pluginContext.platform.isNative()
-        if (!returnType.isPrimitiveType(nullable = false) && !returnType.isNothing() && isNative) {
+        if (isNativePlatform && !returnType.isPrimitiveType(nullable = false) && !returnType.isNothing()) {
             // make return type nullable to avoid runtime checks on non-primitive types (K/N to work)
             expression.type = pluginContext.irBuiltIns.anyNType
         }
