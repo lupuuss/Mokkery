@@ -8,12 +8,13 @@ description: Get to know Mokkery's limitations for smoother development!
 ✅ In general, Mokkery is able to mock a type that is fully overridable. That includes:
 * 🧩 Interfaces 
 * ➡️ Functional types 
-* 🏗️ Abstract/open classes with no-args constructor and all overridable public members
 * 🏛️ Final classes with [all-open plugin](./Guides/Mocking#final-classes)
+* 🏗️ Abstract/open classes with no-args constructor and all overridable public members.\
+\* [It's possible to allow final or inline members](./Guides/Mocking#abstractopen-class-with-final-members)
 
 ❌ Things that Mokkery is **unable** to mock:
 * ➡️ Functions (extensions included)
-* 🏛️ Final classes that are already compiled (it's not possible to apply all-open plugin)
+* 🏛️ Final classes that are already compiled (it's not possible to apply `all-open` plugin)
 * 🔢 Primitives
 * 🔐 Sealed types
 * 🗽 Objects
