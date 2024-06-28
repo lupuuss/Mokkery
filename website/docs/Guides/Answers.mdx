@@ -5,25 +5,26 @@ description: Explore different answer types with clear examples!
 
 ### Essentials
 
-To define a const answer use `returns`:
+To define a const answer, use `returns`:
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } returns stubBook()
+everySuspend { repository.findById(id = any()) } returns Book()
 ```
 
-To throw an exception use `throws`:
+To throw an exception, use `throws`:
 
 ```kotlin
 everySuspend { repository.findById(id = any()) } throws IllegalArgumentException()
 ```
 
-To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)) use `throwsErrorWith`:
+To provide more complex answer, use `calls`:
+
+* For regular functions:
+
 ```kotlin
-everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
+every { repository.findAllByTitle(any()) } calls { (title: String) -> flowOf(Book(title = title)) }
 ```
-
-To provide more complex answer use `calls`:
-
+* For suspend functions:
 ```kotlin
 everySuspend { repository.findById(id = any()) } calls { (id: String) ->
     delay(1_000) // suspension is allowed here!
@@ -31,7 +32,40 @@ everySuspend { repository.findById(id = any()) } calls { (id: String) ->
 }
 ```
 
-### Sequentially
+The `calls` lambda provides [CallArgs](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-call-args/index.html) instance as `it`
+and one of two [CallDefinitionScope](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-call-definition-scope/index.html) variants:
+[BlockingCallDefinitionScope](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-blocking-call-definition-scope/index.html) for `every` or
+[SuspendCallDefinitionScope](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-suspend-call-definition-scope/index.html) for `everySuspend`.
+
+### Utilities
+
+To return specific arg, use `returnsArgAt`:
+```kotlin
+everySuspend { repository.save(book = any()) } returnsArgAt 0
+
+repository.save(Book()) // returns Book that was passed as an argument
+```
+
+To return `Result.success` from functions that return `Result`, use `returnsSuccess`:
+```kotlin
+everySuspend { repository.findByIdAsResult(id = "1") } returnsSuccess Book(id = "1")
+
+repository.findByIdAsResult("1") // returns successful Result with given Book
+```
+
+To return `Result.failure` from functions that return `Result`, use `returnsFailure`:
+```kotlin
+everySuspend { repository.findByIdAsResult(id = "1") } returnsFailure ElementNotFoundException(id = "1")
+
+repository.findByIdAsResult("1") // returns failed Result with given exception
+```
+
+To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)), use `throwsErrorWith`:
+```kotlin
+everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
+```
+
+### Sequence of answers
 
 You can define a sequence of answers using `sequentially`:
 
@@ -77,7 +111,7 @@ You can use `sequentiallyReturns` and `sequentiallyThrows` as a shorthand:
 everySuspend { repository.getById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
 repository.getById("1") // returns stubBook("1")
 repository.getById("2") // returns stubBook("2")
-repository.getById("3") // no more answers
+repository.getById("3") // fails - no more answers
 ```
 
 You can nest `sequentially` calls:
