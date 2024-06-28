@@ -92,8 +92,8 @@ For suspending function use `everySuspend`:
 ```kotlin
 everySuspend { repository.countAll() } returns 1
 ```
-:::warning
-Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!
+:::danger
+Make sure that you are calling a method of mock type! Mocking extension functions is not supported!
 :::
 
 It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
@@ -137,9 +137,9 @@ everySuspend { repository.findById(any()) } returns Book(id = "2", ...)
 repository.findById("1") // returns Book(id = "2", ...)
 ```
 
-### Removing answers
+### Resetting answers
 
-To remove all defined answers use `resetAnswers`:
+To reset all defined answers use `resetAnswers`:
 
 ```kotlin
 everySuspend { repository.findById("1") } returns Book(id = "1", ...)
@@ -166,12 +166,28 @@ With given flags, Mokkery ignores illegal members, but it's still not possible t
 track them. It's possible only for overridable methods.
 
 ### Final classes
+Mocking final classes that are already compiled is currently not possible.
+This includes any class defined in the main source set. However, you can "open" your final classes in the main source set using the all-open plugin.
 
-Mocking final classes that are already compiled is currently not possible. This includes any class defined in main
-source set, therefore this feature is not supported. However, you can "open" your final classes from 
-main source set with [all-open plugin](https://kotlinlang.org/docs/all-open-plugin.html#gradle).
+Mocking final classes that are already compiled is currently not possible. This includes any class defined in the main
+source set. However, you can "open" your final classes from main source set using [all-open plugin](https://kotlinlang.org/docs/all-open-plugin.html#gradle).
 
-You have to define an annotation:
+First, apply the `all-open` plugin:
+
+```kotlin title="build.gradle.kts"
+plugins {
+    // ...
+    kotlin("plugin.allopen")
+}
+```
+
+Second, choose one of two strategies:
+* [Opening specific classes](#open-specific-classes)
+* [Opening all classes](#open-all-classes)
+
+#### Open specific classes
+
+Define an annotation:
 
 ```kotlin
 package your.package
@@ -179,19 +195,7 @@ package your.package
 annotation class OpenForMokkery()
 ```
 
-Apply all-open plugin and configure it:
-
-```kotlin
-plugins {
-    id("org.jetbrains.kotlin.plugin.allopen")
-}
-
-allOpen {
-    annotation("your.package.OpenForMokkery")
-}
-```
-
-Add `OpenForMokkery` to final class:
+Add `OpenForMokkery` to final classes that you want to mock:
 
 ```kotlin
 @OpenForMokkery
@@ -201,5 +205,54 @@ class Foo {
 }
 ```
 
-Be aware that this plugin makes your types open in a production code. It might be problematic in case your artifacts being consumed by other libraries.
-However, it should be fine for any type of applications.
+Configure `all-open` plugin:
+
+```kotlin title="build.gradle.kts"
+allOpen {
+    annotation("your.package.OpenForMokkery")
+}
+```
+
+:::danger
+Specified classes are now open in production.
+This should be fine for apps but can be problematic if your artifacts are consumed by other libraries.
+Refer to [this section](#avoid-opening-production-code) for further guidance.
+:::
+
+#### Open all classes
+
+All Kotlin classes are annotated with `kotlin.Metadata` annotation, so you can use it with `all-open` plugin:
+
+```kotlin title="build.gradle.kts"
+allOpen {
+    annotation("kotlin.Metadata")
+}
+```
+:::danger
+All classes in your project are now open in production.
+This should be fine for apps but can be problematic if your artifacts are consumed by other libraries.
+Refer to [this section](#avoid-opening-production-code) for further guidance.
+:::
+
+#### Avoid opening production code
+
+To avoid opening classes in production, you can conditionally apply the `allOpen` configuration based on whether a testing task is being executed:
+
+```kotlin title="build.gradle.kts"
+// this check might require adjustment depending on your project type and the tasks that you use
+// `endsWith("Test")` works with "*Test" tasks from Multiplafrom projects, but it does not include tasks like `check`
+fun isTestingTask(name: String) = name.endsWith("Test")
+
+val isTesting = gradle
+    .startParameter
+    .taskNames
+    .any(::isTestingTask)
+
+if (isTesting) allOpen { /* selected config here */ }
+
+```
+:::danger
+ `gradle.startParameter.taskNames` only includes explicitly selected tasks.
+ If you run a task that depends on a test task but does not match `isTestingTask`, the `all-open` plugin will not be configured.
+ Adjust the task name condition based on your project type and the tasks you use.
+:::
