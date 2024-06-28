@@ -39,8 +39,8 @@ For suspending function use `everySuspend`:
 ```kotlin
 everySuspend { repository.countAll() } returns 1
 ```
-:::warning
-Make sure that you are calling a method of `BooksRepository`! Mocking extension functions is not supported!
+:::danger
+Make sure that you are calling a method of a mock type! Mocking extension functions is not supported!
 :::
 
 It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
@@ -75,7 +75,7 @@ repository.findById("2") // returns Book(id = "1", ...)
 repository.findById("3") // returns Book(id = "1", ...)
 ```
 
-:::warning
+:::info
 When multiple answers match a call, the one defined later takes precedence.
 :::
 
@@ -104,7 +104,7 @@ verify { repository.findById("1") } // succeeds
 verify { repository.findById("1") } // fails - no matching calls
 ```
 
-By default, `verify` works in [soft](../docs/Guides/Verifying#soft-modes-family) mode. It checks if each call pattern occured at least once.
+By default, `verify` works in [soft](../docs/Guides/Verifying#soft-modes-family) mode. It checks if each call pattern occurred at least once.
 
 In this mode, each verification is performed independently so in example below, both verifications have the same result:
 
