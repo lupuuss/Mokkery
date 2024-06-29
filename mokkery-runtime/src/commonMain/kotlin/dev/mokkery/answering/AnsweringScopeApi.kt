@@ -1,5 +1,6 @@
 package dev.mokkery.answering
 
+import dev.mokkery.internal.answering.ByFunctionAnswer
 import dev.mokkery.internal.answering.ReturnsArgAtAnswer
 
 /**
@@ -10,6 +11,13 @@ public infix fun <T> AnsweringScope<T>.returns(value: T) {
 }
 
 /**
+ * Function call returns value provided each time by [function].
+ */
+public infix fun <T> AnsweringScope<T>.returnsBy(function: () -> T) {
+    answers(ByFunctionAnswer("returnsBy {...}", function))
+}
+
+/**
  * Function call returns [Result.success] with [value].
  */
 public infix fun <T> AnsweringScope<in Result<T>>.returnsSuccess(value: T) {
@@ -17,10 +25,24 @@ public infix fun <T> AnsweringScope<in Result<T>>.returnsSuccess(value: T) {
 }
 
 /**
+ * Function call returns [Result.success] with value provided each time by [function].
+ */
+public infix fun <T> AnsweringScope<in Result<T>>.returnsSuccessBy(function: () -> T) {
+    answers(ByFunctionAnswer("returnsSuccessBy {...}") { Result.success(function()) })
+}
+
+/**
  * Function call returns [Result.failure] with [error].
  */
 public infix fun <T> AnsweringScope<in Result<T>>.returnsFailure(error: Throwable) {
     returns(Result.failure(error))
+}
+
+/**
+ * Function call returns [Result.failure] with exception provided each time by [function].
+ */
+public infix fun <T> AnsweringScope<in Result<T>>.returnsFailureBy(function: () -> Throwable) {
+    answers(ByFunctionAnswer("returnsFailureBy {...}") { Result.failure(function()) })
 }
 
 /**
@@ -35,6 +57,13 @@ public infix fun <T> AnsweringScope<T>.returnsArgAt(index: Int) {
  */
 public infix fun <T> AnsweringScope<T>.throws(error: Throwable) {
     answers(Answer.Throws(error))
+}
+
+/**
+ * Function call throws exception provided each time by [function].
+ */
+public infix fun <T> AnsweringScope<T>.throwsBy(function: () -> Throwable) {
+    answers(ByFunctionAnswer("throwsBy {...}") { throw function() })
 }
 
 /**
