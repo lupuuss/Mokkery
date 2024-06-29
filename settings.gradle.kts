@@ -7,6 +7,10 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
+        // TODO REMOVE after Poko release
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
     }
 }
 
@@ -28,6 +32,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // TODO REMOVE after Poko release
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
     }
 }
 includeBuild("build-mokkery")
