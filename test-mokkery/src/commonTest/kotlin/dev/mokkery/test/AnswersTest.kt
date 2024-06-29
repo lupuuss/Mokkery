@@ -8,15 +8,19 @@ import dev.mokkery.answering.SuperCall.Companion.superWith
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsBy
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.answering.returnsFailure
+import dev.mokkery.answering.returnsFailureBy
 import dev.mokkery.answering.returnsSuccess
+import dev.mokkery.answering.returnsSuccessBy
 import dev.mokkery.answering.self
 import dev.mokkery.answering.sequentially
 import dev.mokkery.answering.sequentiallyRepeat
 import dev.mokkery.answering.sequentiallyReturns
 import dev.mokkery.answering.sequentiallyThrows
 import dev.mokkery.answering.throws
+import dev.mokkery.answering.throwsBy
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
@@ -25,6 +29,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class AnswersTest {
 
@@ -36,6 +42,15 @@ class AnswersTest {
         assertEquals(3, mock.callGeneric(0))
     }
 
+
+    @Test
+    fun testReturnsBy() {
+        var value = 1
+        every { mock.callWithDefault(1) } returnsBy { value++ }
+        assertEquals(1, mock.callWithDefault(1))
+        assertEquals(2, mock.callWithDefault(1))
+    }
+
     @Test
     fun testReturnsSuccess() {
         every { mock.callWithPrimitiveResult(any()) } returnsSuccess 1
@@ -43,10 +58,29 @@ class AnswersTest {
     }
 
     @Test
+    fun testReturnsSuccessBy() {
+        var value = 1
+        every { mock.callWithPrimitiveResult(any()) } returnsSuccessBy { value++ }
+        assertEquals(Result.success(1), mock.callWithPrimitiveResult(Result.success(0)))
+        assertEquals(Result.success(2), mock.callWithPrimitiveResult(Result.success(0)))
+    }
+
+    @Test
     fun testReturnsFailure() {
         val error = IllegalArgumentException("Failed!")
         every { mock.callWithPrimitiveResult(any()) } returnsFailure error
         assertEquals(Result.failure(error), mock.callWithPrimitiveResult(Result.success(0)))
+    }
+
+    @Test
+    fun testReturnsFailureBy() {
+        every { mock.callWithPrimitiveResult(any()) } returnsFailureBy ::IllegalStateException
+        val results = setOf(
+            mock.callWithPrimitiveResult(Result.success(0)),
+            mock.callWithPrimitiveResult(Result.success(0))
+        )
+        assertEquals(2, results.size)
+        assertTrue { results.all { it.exceptionOrNull() is IllegalStateException } }
     }
 
     @Test
@@ -58,9 +92,17 @@ class AnswersTest {
     @Test
     fun testThrows() {
         every { mock.callGeneric(any<Int>()) } throws IllegalArgumentException()
-        assertFailsWith<IllegalArgumentException> {
-            mock.callGeneric(0)
-        }
+        val error1 = assertFailsWith<IllegalArgumentException> { mock.callGeneric(0) }
+        val error2 = assertFailsWith<IllegalArgumentException> { mock.callGeneric(0) }
+        assertEquals(error1, error2)
+    }
+
+    @Test
+    fun testThrowsBy() {
+        every { mock.callWithDefault(1) } throwsBy ::IllegalStateException
+        val error1 = assertFailsWith<IllegalStateException> { mock.callWithDefault(1) }
+        val error2 = assertFailsWith<IllegalStateException> { mock.callWithDefault(1) }
+        assertNotEquals(error1, error2)
     }
 
     @Test
