@@ -1,5 +1,5 @@
 plugins {
-    id("kotlinx-atomicfu")
+    id("org.jetbrains.kotlinx.atomicfu")
     id("mokkery-multiplatform")
     alias(libs.plugins.poko)
 }

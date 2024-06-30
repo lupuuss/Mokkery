@@ -4,7 +4,7 @@ kotlin = "2.0.0"
 kotlinx-coroutines = "1.9.0-RC"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
-atomicfu = "0.24.0"
+atomicfu = "0.25.0"
 dokka = "1.9.20"
 poko = "0.16.0"
 
