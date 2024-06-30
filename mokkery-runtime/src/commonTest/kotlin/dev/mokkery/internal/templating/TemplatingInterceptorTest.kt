@@ -5,7 +5,7 @@ import dev.mokkery.test.TestTemplatingScope
 import dev.mokkery.test.TestTemplatingScope.TemplateParams
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
-import dev.mokkery.test.runTest
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

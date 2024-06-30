@@ -4,7 +4,7 @@ import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.test.TestMokkeryInterceptorScope
 import dev.mokkery.test.TestMokkeryScopeLookup
-import dev.mokkery.test.runTest
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

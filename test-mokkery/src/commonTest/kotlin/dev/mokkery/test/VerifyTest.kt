@@ -48,7 +48,6 @@ class VerifyTest {
     }
 
     @Test
-    @IgnoreOnWasmWasi
     fun testVerifiesSuspendingMethods() {
         assertVerified {
             verifySuspend {

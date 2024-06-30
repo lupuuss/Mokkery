@@ -17,7 +17,7 @@ import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
-import dev.mokkery.test.runTest
+import kotlinx.coroutines.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
