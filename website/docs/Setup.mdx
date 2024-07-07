@@ -59,6 +59,29 @@ pluginManagement {
     }
 }
 ```
+
+For those using convention plugins, make sure that the dependencies configuration includes the path to the required Maven repository.
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        // required to download gradle plugin
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+    }
+}
+```
+
+
+Once the required Maven repository is connected, you will be able to successfully download the Mokkery plugin dependency.
+```kotlin
+dependencies {
+    implementation("dev.mokkery:mokkery-gradle:2.1.1)
+}
+```
+
 ### Source sets
 
 By default, Mokkery is applied to all Kotlin source sets in the project that either contain the word 'Test' in their names or are named exactly 'test'.
