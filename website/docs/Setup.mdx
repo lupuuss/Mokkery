@@ -59,26 +59,23 @@ pluginManagement {
     }
 }
 ```
+### Convention plugins
 
-For those using convention plugins, make sure that the dependencies configuration includes the path to the required Maven repository.
-
+For those using convention plugins, make sure that the dependencies configuration includes the path to the required Maven repository, which can be added using `gradlePluginPortal()`.
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
         // required to download gradle plugin
-        maven {
-            url = uri("https://plugins.gradle.org/m2/")
-        }
+        gradlePluginPortal()
     }
 }
 ```
 
-
 Once the required Maven repository is connected, you will be able to successfully download the Mokkery plugin dependency.
 ```kotlin
 dependencies {
-    implementation("dev.mokkery:mokkery-gradle:2.1.1)
+    implementation("dev.mokkery:mokkery-gradle:2.1.1")
 }
 ```
 
