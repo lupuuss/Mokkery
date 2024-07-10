@@ -10,6 +10,7 @@ import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallListOf
+import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReference
@@ -26,7 +27,6 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.builders.irVararg
 import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -100,7 +100,6 @@ private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameter
 }
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {
-    val pluginContext = transformer.pluginContext
     val allowIndirectSuperCalls = transformer.allowIndirectSuperCalls
     val defaultMode = transformer.pluginContext.languageVersionSettings.getFlag(JvmAnalysisFlags.jvmDefaultMode)
     val supers = function.overriddenSymbols
@@ -108,23 +107,12 @@ private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, fu
         .takeIf { it.isNotEmpty() }
         ?.map { it.owner }
         ?: return null
-    val mapOf = pluginContext
-        .referenceFunctions(Kotlin.Name.mapOf)
-        .first { it.owner.valueParameters.firstOrNull()?.isVararg == true }
     val superLambdas = supers.map { superFunction ->
-        irCreatePair(
-            transformer = transformer,
-            first = kClassReference(superFunction.parentAsClass.defaultType),
-            second = createSuperCallLambda(transformer, function, superFunction)
-        )
+        val kClass = kClassReference(superFunction.parentAsClass.defaultType)
+        val lambda = createSuperCallLambda(transformer, function, superFunction)
+        kClass to lambda
     }
-    return irCall(mapOf) {
-        val varargs = irVararg(
-            elementType = transformer.getClass(Kotlin.Class.Pair).defaultType,
-            values = superLambdas
-        )
-        putValueArgument(0, varargs)
-    }
+    return irCallMapOf(transformer, superLambdas)
 }
 
 private fun IrBuilderWithScope.irCreatePair(

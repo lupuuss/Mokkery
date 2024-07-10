@@ -3,6 +3,8 @@ package dev.mokkery.plugin.ir
 import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.TransformerScope
+import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getFunction
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
@@ -205,4 +207,31 @@ fun IrBuilderWithScope.irCallListOf(
 
 fun IrBuilderWithScope.irMokkeryKindValue(enumClass: IrClass, kind: IrMokkeryKind): IrExpression {
     return irGetEnumEntry(enumClass, kind.name)
+}
+
+fun IrBuilderWithScope.irCallMapOf(
+    transformer: TransformerScope,
+    pairs: List<Pair<IrExpression, IrExpression>>
+): IrCall {
+    val mapOf = transformer.pluginContext
+        .referenceFunctions(Kotlin.Name.mapOf)
+        .first { it.owner.valueParameters.firstOrNull()?.isVararg == true }
+    return irCall(mapOf) {
+        val varargs = irVararg(
+            elementType = transformer.getClass(Kotlin.Class.Pair).defaultType,
+            values = pairs.map { irCreatePair(transformer, it.first, it.second) }
+        )
+        putValueArgument(0, varargs)
+    }
+}
+
+private fun IrBuilderWithScope.irCreatePair(
+    transformer: TransformerScope,
+    first: IrExpression,
+    second: IrExpression
+): IrExpression {
+    return irCall(transformer.getFunction(Kotlin.Function.to)) {
+        extensionReceiver = first
+        putValueArgument(0, second)
+    }
 }
