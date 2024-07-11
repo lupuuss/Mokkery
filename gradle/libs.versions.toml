@@ -1,6 +1,6 @@
 [versions]
 mokkery = "2.3.0-SNAPSHOT"
-kotlin = "2.0.20-Beta1"  # TODO bump to stable
+kotlin = "2.0.20-Beta2"  # TODO bump to stable
 kotlinx-coroutines = "1.8.1"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
