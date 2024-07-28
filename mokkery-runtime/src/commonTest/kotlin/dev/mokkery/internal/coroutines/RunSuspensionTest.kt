@@ -1,6 +1,8 @@
 package dev.mokkery.internal.coroutines
 
-import kotlinx.coroutines.delay
+import dev.mokkery.answering.Answer
+import dev.mokkery.test.fakeFunctionScope
+import kotlin.coroutines.suspendCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,25 +21,34 @@ class RunSuspensionTest {
     }
 
     @Test
-    fun testRunsWholeBlockInPlaceWithSuspension() {
+    fun testRunsWholeBlockInPlaceWithSuspendFunctionsWithoutSuspensionPoints() {
         val checkpoints = mutableListOf<Int>()
         runSuspension {
             checkpoints.add(1)
-            delay(2)
+            noActualSuspensionFun()
             checkpoints.add(2)
-            delay(2)
+            noActualSuspensionFun()
             checkpoints.add(3)
         }
         assertEquals(listOf(1, 2, 3), checkpoints)
     }
 
     @Test
-    fun testThrowsException() {
+    fun testThrowsNestedException() {
         assertFailsWith<IllegalArgumentException> {
             runSuspension {
-                delay(2)
+                noActualSuspensionFun()
                 throw IllegalArgumentException()
             }
         }
     }
+
+    @Test
+    fun testFailsWithActualSuspension() {
+        assertFailsWith<IllegalStateException> {
+            runSuspension { suspendCoroutine {  } }
+        }
+    }
+
+    private suspend fun noActualSuspensionFun(): Int = Answer.Const(1).callSuspend(fakeFunctionScope())
 }
