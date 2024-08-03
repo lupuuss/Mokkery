@@ -7,7 +7,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
-    name: Builds and tests Mokkery
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
