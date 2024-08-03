@@ -1,3 +1,4 @@
+@file:Suppress("NOTHING_TO_INLINE")
 package dev.mokkery.answering
 
 import dev.mokkery.internal.MissingSuperMethodException
