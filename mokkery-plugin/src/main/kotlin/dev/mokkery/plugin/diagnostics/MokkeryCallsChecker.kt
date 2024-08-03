@@ -43,7 +43,9 @@ import org.jetbrains.kotlin.fir.types.isSomeFunctionType
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
 import org.jetbrains.kotlin.fir.types.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.type
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.platform.isWasm
 
 class MokkeryCallsChecker(
     private val session: FirSession,
@@ -84,6 +86,11 @@ private class MokkeryScopedCallsChecker(
     private val reporter: DiagnosticReporter,
     private val funSymbol: FirNamedFunctionSymbol,
 ) {
+
+    private val isWasm = session.moduleData.platform.isWasm()
+    private val wasmHashCode = Name.identifier("_hashCode")
+    private val wasmTypeInfo = Name.identifier("typeInfo")
+    private val wasmSpecialPropertyNames = listOf(wasmHashCode, wasmTypeInfo)
 
     fun checkManyInterceptions(expression: FirFunctionCall) {
         val classMappings = expression.typeArguments.groupBy {
@@ -225,6 +232,7 @@ private class MokkeryScopedCallsChecker(
             .asSequence()
             .plus(inheritedSymbols)
         val finalDeclarations = allDeclarationSymbols
+            .filterOutWasmSpecialProperties() // TODO Remove when not detectable by FIR
             .filterNot { it.isValid(validationMode) }
             .toList()
         if (finalDeclarations.isEmpty()) return true
@@ -258,6 +266,11 @@ private class MokkeryScopedCallsChecker(
             val setter = setterSymbol
             return (getter == null || getter.isInline) && (setter == null || setter.isInline)
         }
+
+    private fun Sequence<FirBasedSymbol<*>>.filterOutWasmSpecialProperties(): Sequence<FirBasedSymbol<*>> {
+        if (!isWasm) return this
+        return filterNot { it is FirPropertySymbol && it.name in wasmSpecialPropertyNames }
+    }
 
     // checkTemplating
 
