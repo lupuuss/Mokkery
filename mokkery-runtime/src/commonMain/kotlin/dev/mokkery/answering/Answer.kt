@@ -7,8 +7,6 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
-import dev.mokkery.internal.answering.BlockingCallDefinitionScope
-import dev.mokkery.internal.answering.SuspendCallDefinitionScope
 import dev.mokkery.internal.description
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
