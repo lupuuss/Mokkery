@@ -1,5 +1,6 @@
 package dev.mokkery.coroutines.answering
 
+import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuspendCallDefinitionScope
 import dev.mokkery.coroutines.internal.answering.AwaitAllDeferred
@@ -79,11 +80,11 @@ public interface Awaitable<out T> {
          */
         public fun <T> send(
             to: SendChannel<T>,
-            valueProvider: suspend (SuspendCallDefinitionScope<T>) -> T
+            valueProvider: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T
         ): Awaitable<Unit> {
             return AwaitSendChannel(
                 toChannel = to,
-                element = { valueProvider(SuspendCallDefinitionScope(it)) },
+                element = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.args)) },
                 elementDescription = { "valueProvider={...}" }
             )
         }
@@ -112,12 +113,12 @@ public interface Awaitable<out T> {
          */
         public fun <T> delayed(
             by: Duration = 1.seconds,
-            valueProvider: suspend (SuspendCallDefinitionScope<T>) -> T
+            valueProvider: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T
         ): Awaitable<T> {
             return AwaitDelayed(
                 duration = by,
                 valueDescription = { "valueProvider={...}" },
-                value = { valueProvider(SuspendCallDefinitionScope(it)) }
+                value = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.args)) }
             )
         }
     }
