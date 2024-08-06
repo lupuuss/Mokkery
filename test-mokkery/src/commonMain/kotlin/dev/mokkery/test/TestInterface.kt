@@ -24,6 +24,9 @@ interface TestInterface : BaseInterface {
 
     suspend fun callWithSuspension(i: Int): List<String>
 
+
+    suspend fun callUnitWithSuspension(i: Int)
+
     fun callWithSelf(dependency: TestInterface)
 
     fun callUnit(): Unit

@@ -1,3 +1,4 @@
+import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
@@ -87,4 +88,5 @@ kotlin {
 dependencies {
     commonTestImplementation(kotlin("test"))
     "coroutinesTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    "coroutinesTestImplementation"(mokkery("coroutines"))
 }
