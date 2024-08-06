@@ -53,29 +53,6 @@ public interface Awaitable<out T> {
         public fun <T> receive(from: ReceiveChannel<T>): Awaitable<T> = AwaitReceiveChannel(from)
 
         /**
-         * Suspends until an argument at specified index is send to the channel.
-         */
-        @Suppress("UNCHECKED_CAST")
-        public fun <T> send(to: SendChannel<T>, argAt: Int): Awaitable<Unit> {
-            return AwaitSendChannel(
-                toChannel = to,
-                element = { it.args[argAt] as T },
-                elementDescription = { "argAt=$argAt" }
-            )
-        }
-
-        /**
-         * Suspends until the [value] is sent to the channel.
-         */
-        public fun <T> send(to: SendChannel<T>, value: T): Awaitable<Unit> {
-            return AwaitSendChannel(
-                toChannel = to,
-                element = { value },
-                elementDescription = { "value=$value" }
-            )
-        }
-
-        /**
          * Suspends until a value provided on each call by the [valueProvider] is sent to the channel.
          */
         public fun <T> send(
@@ -90,26 +67,21 @@ public interface Awaitable<out T> {
         }
 
         /**
-         * Suspends until the [Unit] is sent to the channel.
-         */
-        public fun send(to: SendChannel<Unit>): Awaitable<Unit> = send(to = to, value = Unit)
-
-        /**
-         * Delays for the specified duration and returns [value].
+         * Suspends for the specified duration and returns [value].
          */
         public fun <T> delayed(value: T, by: Duration = 1.seconds): Awaitable<T> {
             return AwaitDelayed(duration = by, valueDescription = value::toString, value = { value })
         }
 
         /**
-         * Delays for the specified duration and returns [Unit].
+         * Suspends for the specified duration and returns [Unit].
          */
         public fun delayed(by: Duration = 1.seconds): Awaitable<Unit> {
             return delayed(by = by, value = Unit)
         }
 
         /**
-         * Delays for the specified duration and returns value provided on each call by [valueProvider].
+         * Suspends for the specified duration and returns value provided on each call by [valueProvider].
          */
         public fun <T> delayed(
             by: Duration = 1.seconds,
