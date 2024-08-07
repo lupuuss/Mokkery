@@ -1,6 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.coroutines.answering.Awaitable.Companion.all
+import dev.mokkery.coroutines.answering.Awaitable.Companion.cancellation
 import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
 import dev.mokkery.coroutines.answering.Awaitable.Companion.receive
 import dev.mokkery.coroutines.answering.Awaitable.Companion.send
@@ -8,12 +9,14 @@ import dev.mokkery.coroutines.answering.awaits
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,6 +29,25 @@ import kotlin.time.Duration.Companion.seconds
 class CoroutinesAnsweringTest {
 
     private val mock = mock<TestInterface>()
+
+
+    @Test
+    fun testAwaitsCancellation() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } awaits cancellation
+        var cancelled = false
+        val job = launch {
+            try {
+                mock.fetchWithDefault(0)
+            } catch (e: CancellationException) {
+                cancelled = true
+            }
+        }
+        advanceUntilIdle()
+        assertFalse(cancelled)
+        job.cancel()
+        advanceUntilIdle()
+        assertTrue(cancelled)
+    }
 
     @Test
     fun testAwaitsDeferred() = runTest {
