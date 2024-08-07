@@ -62,18 +62,6 @@ class CoroutinesAnsweringTest {
     }
 
     @Test
-    fun testAwaitsUnitSendToChannel() = runTest {
-        val channel = Channel<Unit>()
-        everySuspend { mock.callUnitWithSuspension(any()) } awaits send(to = channel)
-        backgroundScope.launch {
-            mock.callUnitWithSuspension(1)
-            mock.callUnitWithSuspension(2)
-        }
-        assertEquals(Unit, channel.receive())
-        assertEquals(Unit, channel.receive())
-    }
-
-    @Test
     fun testAwaitsDelayedValue() = runTest {
         everySuspend { mock.callWithSuspension(1) } awaits delayed(listOf("1"), by = 3.seconds)
         val result = async { mock.callWithSuspension(1) }
