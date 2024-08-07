@@ -19,7 +19,7 @@ class MokkeryGradlePluginFunctionalTest {
                 "kotlinUpgradeYarnLock",
                 "allTests"
             )
-            .forwardStdOutput(System.out.writer())
+            .forwardOutput()
             .build()
     }
 }
