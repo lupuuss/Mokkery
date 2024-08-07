@@ -17,9 +17,10 @@ class MokkeryGradlePluginFunctionalTest {
                 "-PmokkeryVersion=${MokkeryConfig.VERSION}",
                 "clean",
                 "kotlinUpgradeYarnLock",
-                "allTests"
+                "allTests",
+                "--stacktrace"
             )
-            .forwardStdOutput(System.out.writer())
+            .forwardOutput()
             .build()
     }
 }

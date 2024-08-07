@@ -24,7 +24,13 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     targets.configureEach {
         testTask.configure {
             mustRunAfter("test")
-            listOf(":mokkery-runtime", ":mokkery-plugin", ":mokkery-core", ":mokkery-gradle").forEach {
+            listOf(
+                ":mokkery-runtime",
+                ":mokkery-plugin",
+                ":mokkery-core",
+                ":mokkery-gradle",
+                ":mokkery-coroutines"
+            ).forEach {
                 dependsOn(project(it).tasks.named("publishToMavenLocal"))
             }
         }

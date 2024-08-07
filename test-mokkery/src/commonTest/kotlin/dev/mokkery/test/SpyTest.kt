@@ -185,6 +185,8 @@ private object TestInterfaceImpl : TestInterface {
 
     override suspend fun callWithSuspension(i: Int): List<String> = listOf(i.toString())
 
+    override suspend fun callUnitWithSuspension(i: Int) = Unit
+
     override fun callWithSelf(dependency: TestInterface) = Unit
 
     override fun callUnit() = Unit
