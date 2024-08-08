@@ -56,6 +56,13 @@ class CoroutinesAnsweringTest {
     }
 
     @Test
+    fun testAwaitsProvidedDeferred() = runTest {
+        everySuspend { mock.fetchWithDefault(any()) } awaits { (i: Int) -> CompletableDeferred(i) }
+        assertEquals(0, mock.fetchWithDefault(0))
+        assertEquals(1, mock.fetchWithDefault(1))
+    }
+
+    @Test
     fun testAwaitsAllDeferred() = runTest {
         val deferreds = listOf(CompletableDeferred("1"), CompletableDeferred("2"))
         everySuspend { mock.callWithSuspension(any()) } awaits all(deferreds)

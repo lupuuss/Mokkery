@@ -1,5 +1,6 @@
 package dev.mokkery.coroutines.answering
 
+import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.SuspendCallDefinitionScope
 import dev.mokkery.coroutines.internal.answering.AwaitAnswer
@@ -23,6 +24,10 @@ public infix fun <T> SuspendAnsweringScope<T>.awaits(deferred: Deferred<T>) {
 /**
  * Function call awaits on each call for a [Deferred] provided by [provider].
  */
-public infix fun <T> SuspendAnsweringScope<T>.awaits(provider: (SuspendCallDefinitionScope<T>) -> Deferred<T>) {
-    awaits(AwaitDeferred(description = { "{...}" }, deferred = { SuspendCallDefinitionScope<T>(it).let(provider) }))
+public infix fun <T> SuspendAnsweringScope<T>.awaits(provider: SuspendCallDefinitionScope<T>.(CallArgs) -> Deferred<T>) {
+    val awaitable = AwaitDeferred(
+        description = { "{...}" },
+        deferred = { provider(SuspendCallDefinitionScope<T>(it), CallArgs(it.args)) }
+    )
+    awaits(awaitable)
 }
