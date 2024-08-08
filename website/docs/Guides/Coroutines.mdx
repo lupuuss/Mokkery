@@ -1,0 +1,105 @@
+---
+description: Learn how to work with Coroutines efficiently!
+---
+
+# Coroutines
+
+Mokkery supports suspendable functions out of the box, making it easy to mock them right away with the [core answers](../Guides/Answers).
+
+```kotlin
+everySuspend { repository.findById(any()) } calls { (id: String) ->
+    delay(1_000)
+    Book(id = id)
+}
+```
+
+## Coroutine utils module
+
+Starting with Mokkery `2.2.0`, the `mokkery-coroutines` module is available, featuring `kotlinx-coroutines` specific answers.
+
+### Setup
+
+Add `dev.mokkery:mokkery-coroutines:$version` to your dependencies:
+
+```kotlin
+dependencies {
+    implementation("dev.mokkery:mokkery-coroutines:$version")
+}
+```
+
+Alternatively, use the `mokkery(module: String)` utility from the Mokkery Gradle plugin for easier setup:
+
+```kotlin
+import dev.mokkery.gradle.mokkery
+
+dependencies {
+    implementation(mokkery("coroutines")) // defaults to the current Mokkery version
+}
+```
+
+### Awaits API
+
+**To await a [Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/), use `awaits` overload:**
+```kotlin
+val deferred = CompletableDeferred<Book>()
+everySuspend { repository.findById("1") } awaits deferred
+```
+
+**[Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) might be created on each call:**
+
+```kotlin
+everySuspend { repository.findById(any()) } awaits { (id: String) -> createBookDeferred(id) }
+```
+
+**To await multiple
+[Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) instances and return results as a List, use `all`:**
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.all
+
+val deferred1 = CompletableDeferred<Book>()
+val deferred2 = CompletableDeferred<Book>()
+val deferred3 = CompletableDeferred<Book>()
+
+everySuspend { repository.findAll() } awaits all(deferred1, deferred2, deferred3)
+```
+
+**To suspend indefinitely until coroutine is canceled, use `awaits cancellation`:**
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.cancellation
+
+everySuspend { repository.findById(any()) } awaits cancellation
+```
+**To await an element from a
+[Channel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.channels/-channel/), use `awaits receive(...)`:**
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.receive
+
+val channel = Channel<Book>()
+
+everySuspend { repository.findById(any()) } awaits receive(from = channel)
+```
+
+**For `Unit`-returning functions, you can use `awaits send(...)` to send an element to
+a [Channel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.channels/-channel/).**
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.send
+
+val channel = Channel<String>()
+
+everySuspend { repository.deleteById(any()) } awaits send(to = channel) { it.arg(0) } 
+```
+
+**To return a value after a delay, use `awaits delayed(...)`:**
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
+
+everySuspend { repository.findById(any()) } awaits delayed(value = Book(...)) // by default, the delay takes 1 second.
+```
+
+**The `delayed` also accepts a lambda:**
+
+```kotlin
+import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
+
+everySuspend { repository.findById(any()) } awaits delayed(by = 2.seconds) { (id: String) -> Book(id = id) }
+```

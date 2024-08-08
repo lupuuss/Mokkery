@@ -5,19 +5,19 @@ description: Explore different answer types with clear examples!
 
 ### Essentials
 
-To define a const answer, use `returns`:
+**To define a const answer, use `returns`:**
 
 ```kotlin
 everySuspend { repository.findById(id = any()) } returns Book()
 ```
 
-To throw an exception, use `throws`:
+**To throw an exception, use `throws`:**
 
 ```kotlin
 everySuspend { repository.findById(id = any()) } throws IllegalArgumentException()
 ```
 
-To provide more complex answer, use `calls`:
+**To provide more complex answer, use `calls`:**
 
 * For regular functions:
 
@@ -39,28 +39,53 @@ and one of two [CallDefinitionScope](pathname:///api_reference/mokkery-runtime/d
 
 ### Utilities
 
-To return specific arg, use `returnsArgAt`:
+**To return specific arg, use `returnsArgAt`:**
 ```kotlin
 everySuspend { repository.save(book = any()) } returnsArgAt 0
 
 repository.save(Book()) // returns Book that was passed as an argument
 ```
 
-To return `Result.success` from functions that return `Result`, use `returnsSuccess`:
+**To return `Result.success` from functions that return `Result`, use `returnsSuccess`:**
 ```kotlin
 everySuspend { repository.findByIdAsResult(id = "1") } returnsSuccess Book(id = "1")
 
 repository.findByIdAsResult("1") // returns successful Result with given Book
 ```
 
-To return `Result.failure` from functions that return `Result`, use `returnsFailure`:
+**To return `Result.failure` from functions that return `Result`, use `returnsFailure`:**
 ```kotlin
 everySuspend { repository.findByIdAsResult(id = "1") } returnsFailure ElementNotFoundException(id = "1")
 
 repository.findByIdAsResult("1") // returns failed Result with given exception
 ```
 
-To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)), use `throwsErrorWith`:
+**To return a value provided each time by a function, use `returnsBy`:**
+```kotlin
+private var book = Book(...)
+
+// ...
+
+everySuspend { repository.findById(any()) } returnsBy ::book
+
+repository.findById("1") // returns Book provided by `book` property
+book = book.copy(title = "New title")
+repository.findById("1") // returns Book provided by `book` property with changed title
+```
+
+:::tip
+For functions returning a `Result`, you can use `returnsSuccessBy` or `returnsFailureBy`.
+:::
+
+**To throw an exception provided each time by a function, use `throwsBy`:**
+```kotlin
+everySuspend { repository.findById(any()) } throwsBy ::IllegalStateException
+
+runCatching { repository.findById("1") } // throws newly created IllegalStateException
+runCatching { repository.findById("1") } // throws newly created IllegalStateException
+```
+
+**To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)), use `throwsErrorWith`:**
 ```kotlin
 everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
 ```
