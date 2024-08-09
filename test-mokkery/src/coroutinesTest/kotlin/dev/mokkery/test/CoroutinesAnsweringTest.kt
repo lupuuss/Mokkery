@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
+import dev.mokkery.answering.calls
 import dev.mokkery.coroutines.answering.Awaitable.Companion.all
 import dev.mokkery.coroutines.answering.Awaitable.Companion.cancellation
 import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,6 +32,35 @@ class CoroutinesAnsweringTest {
 
     private val mock = mock<TestInterface>()
 
+    @Test
+    fun testSuspendCalls() = runTest {
+        everySuspend { mock.callWithSuspension(any()) } calls { (i: Int) ->
+            delay(3_000)
+            listOf(i.toString())
+        }
+        val result = async { mock.callWithSuspension(1) }
+        advanceTimeBy(2_000)
+        assertFalse(result.isCompleted)
+        advanceTimeBy(2_000)
+        assertTrue(result.isCompleted)
+        assertEquals(listOf("1"), result.await())
+    }
+
+    @Test
+    fun testSuspendCallsForFunctionalTypes() = runTest {
+        val funMock = mock<suspend (Int) -> Int> {
+            everySuspend { invoke(any()) } calls { (i: Int) ->
+                delay(3_000)
+                i
+            }
+        }
+        val result = async { funMock(2) }
+        advanceTimeBy(2_000)
+        assertFalse(result.isCompleted)
+        advanceTimeBy(2_000)
+        assertTrue(result.isCompleted)
+        assertEquals(2, result.await())
+    }
 
     @Test
     fun testAwaitsCancellation() = runTest {
