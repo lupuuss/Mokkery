@@ -15,15 +15,13 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
-            group("coroutines") {
-                group("blocking") {
-                    withJvm()
-                    withNative()
-                }
-                group("jsShared") {
-                    withJs()
-                    withWasmJs()
-                }
+            group("blocking") {
+                withJvm()
+                withNative()
+            }
+            group("jsShared") {
+                withJs()
+                withWasmJs()
             }
             group("wasm") {
                 withWasmJs()
