@@ -93,10 +93,7 @@ class SpyTest {
 
     @Test
     fun testReturnsFromSpiedSuspendFunction() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         assertEquals("1", spied(1))
     }
@@ -104,10 +101,7 @@ class SpyTest {
 
     @Test
     fun testChangesBehaviourOfSuspendFunctionWithFallbackToSpied() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         everySuspend { spied(1) } returns "changed"
         assertEquals("changed", spied(1))
@@ -132,10 +126,7 @@ class SpyTest {
 
     @Test
     fun testRegistersSpiedSuspendFunctionCall() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         spied(1)
         verifySuspend {

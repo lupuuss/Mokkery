@@ -113,10 +113,7 @@ class AnswersTest {
 
     @Test
     fun testSuspendCalls() = runTest {
-        everySuspend { mock.callWithSuspension(any()) } calls { (i: Int) ->
-            delay(1)
-            listOf(i.toString())
-        }
+        everySuspend { mock.callWithSuspension(any()) } calls { (i: Int) -> listOf(i.toString()) }
         assertEquals(listOf("1"), mock.callWithSuspension(1))
     }
 
@@ -137,10 +134,7 @@ class AnswersTest {
     fun testSequentiallySuspend() = runTest {
         everySuspend { mock.callWithSuspension(any()) } sequentially {
             returns(listOf("1"))
-            calls {
-                delay(1)
-                listOf("2")
-            }
+            calls { listOf("2") }
             throws(IllegalArgumentException())
         }
         assertEquals(listOf("1"), mock.callWithSuspension(0))
