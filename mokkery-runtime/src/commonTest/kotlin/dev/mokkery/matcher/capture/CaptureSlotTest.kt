@@ -1,8 +1,10 @@
 package dev.mokkery.matcher.capture
 
+import dev.mokkery.internal.AbsentValueInSlotException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -63,7 +65,7 @@ class CaptureSlotTest {
 
     @Test
     fun testGetFailsWhenValueAbsent() {
-        assertFails {
+        assertFailsWith<AbsentValueInSlotException> {
             slot.get()
         }
     }
