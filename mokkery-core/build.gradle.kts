@@ -1,4 +1,5 @@
 plugins {
+    id("mokkery-publish")
     id("mokkery-multiplatform")
     id("com.github.gmazzo.buildconfig")
 }

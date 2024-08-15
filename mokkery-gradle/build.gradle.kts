@@ -2,6 +2,7 @@
 
 plugins {
     kotlin("jvm")
+    id("mokkery-publish")
     id("com.gradle.plugin-publish") version "1.1.0"
 }
 
@@ -49,8 +50,7 @@ gradlePlugin {
         create(rootProject.name) {
             id = rootProject.extra["pluginId"] as String
             displayName = "Mokkery"
-            description =
-                "Gradle plugin for Mokkery - mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
+            description = "Mokkery is a mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
             version = project.version
             implementationClass = "${project.group}.gradle.MokkeryGradlePlugin"
             tags.set(
