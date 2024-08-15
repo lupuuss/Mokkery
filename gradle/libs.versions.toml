@@ -1,5 +1,5 @@
 [versions]
-mokkery = "2.2.0-SNAPSHOT"
+mokkery = "2.3.0-SNAPSHOT"
 kotlin = "2.0.10"
 kotlinx-coroutines = "1.8.1"
 buildconfig = "4.0.4"
