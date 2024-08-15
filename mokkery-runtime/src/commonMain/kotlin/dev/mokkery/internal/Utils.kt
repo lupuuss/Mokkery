@@ -1,5 +1,6 @@
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.internal.tracing.CallArg
 import kotlin.reflect.KClass
 
@@ -48,5 +49,7 @@ internal fun Any?.description(): String {
     if (values != null) return values.toString()
     return toString()
 }
+
+internal fun mokkeryRuntimeError(message: String): Nothing = throw MokkeryRuntimeException(message)
 
 internal expect fun KClass<*>.bestName(): String

@@ -1,6 +1,7 @@
 package dev.mokkery.matcher.capture
 
 import dev.drewhamilton.poko.Poko
+import dev.mokkery.internal.AbsentValueInSlotException
 import kotlin.reflect.KProperty
 
 /**
@@ -60,7 +61,7 @@ public fun <T> SlotCapture<T>.getIfPresent(): T? = when (val value = value) {
  */
 public fun <T> SlotCapture<T>.get(): T = when (val value = value) {
     is SlotCapture.Value.Present -> value.value
-    SlotCapture.Value.Absent -> error("Expected value in slot, but it is absent!")
+    SlotCapture.Value.Absent -> throw AbsentValueInSlotException()
 }
 
 /**
