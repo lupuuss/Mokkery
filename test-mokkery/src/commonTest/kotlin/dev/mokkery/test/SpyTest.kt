@@ -188,6 +188,8 @@ private object TestInterfaceImpl : TestInterface {
 
     override fun callWithComplexResult(value: Result<List<Int>>): Result<List<Int>> = value
 
+    override suspend fun <T> callWithResult(value: Result<T>): Result<T> = value
+
     override fun callWithPrimitiveValueClass(value: PrimitiveValueClass): PrimitiveValueClass = value
 
     override fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>> = value

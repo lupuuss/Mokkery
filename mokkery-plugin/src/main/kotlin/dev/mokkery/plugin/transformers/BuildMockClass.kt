@@ -233,6 +233,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyCall(
         val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
             dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
             contextReceiversCount = spyFun.contextReceiverParametersCount
+            function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
             spyFun.fullValueParameterList.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,
