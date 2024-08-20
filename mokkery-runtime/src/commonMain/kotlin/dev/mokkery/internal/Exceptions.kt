@@ -80,3 +80,11 @@ internal class MissingArgsForSuperMethodException(expectedCount: Int, actualCoun
 internal class SuperTypeMustBeSpecifiedException(
     reason: String
 ) : MokkeryRuntimeException("You must specify super type! Reason: $reason")
+
+internal class IllegalSuspensionException : MokkeryRuntimeException(
+    "`everySuspend`/`verifySuspend` does not support actual suspension! Only mock method calls are allowed!"
+)
+
+internal class AbsentValueInSlotException : MokkeryRuntimeException(
+    "Expected value in slot, but it is absent!"
+)
