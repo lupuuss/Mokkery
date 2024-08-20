@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-abstract class TestClass(arg: String = "0"): BaseClass() {
+abstract class TestClass(arg: String): BaseClass() {
 
     abstract val property: Int
 

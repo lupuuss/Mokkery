@@ -53,6 +53,7 @@ object Mokkery {
     }
 
     object Function {
+        val autofillConstructor by dev_mokkery_internal.function
         val MokkeryMock by dev_mokkery_internal.function
         val MokkeryMockScope by dev_mokkery_internal.function
         val generateMockId by dev_mokkery_internal.function

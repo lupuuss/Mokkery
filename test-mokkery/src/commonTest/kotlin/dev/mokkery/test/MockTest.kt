@@ -4,9 +4,12 @@ import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MockMode.strict
 import dev.mokkery.MockMode.original
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,6 +42,14 @@ class MockTest {
         assertEquals("Ignored inline property", mocked.inlineProperty)
         assertEquals("Ignored inline method", mocked.inlineMethod())
         assertEquals("Ignored final method", mocked.finalMethod())
+    }
+
+    @Test
+    fun testReturnsMockableClassImplWhenItsPrivate() {
+        val mocked = mock<PrivateTestClass> {
+            every { call(any()) } returnsArgAt 0
+        }
+        assertEquals(1, mocked.call(1))
     }
 
     @Test
@@ -170,5 +181,12 @@ class MockTest {
         }
         assertEquals(listOf("1"), mock(listOf(1)))
     }
+}
+
+private abstract class PrivateTestClass private constructor(i: Int) {
+
+    constructor(d: Double) : this(d.toInt())
+
+    abstract fun call(i: Int): Int
 }
 
