@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 
 /**
  * Configures Mokkery in source sets specified by [MokkeryGradleExtension.rule]. It includes:
@@ -77,7 +78,13 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         .isApplicable(kotlinCompilation.defaultSourceSet)
 
     private fun Project.checkKotlinSetup() {
-        if (extensions.findByName("kotlin") == null) error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
+        if (extensions.findByName("kotlin") == null) {
+            error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
+        }
+        val kotlinVersion = kotlinToolingVersion.toString()
+        if (kotlinVersion.startsWith("1")) {
+            error("Current Kotlin version must be at least 2.0.0, but is $kotlinVersion!")
+        }
     }
 
     private fun Project.configureDependencies() {
