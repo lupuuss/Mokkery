@@ -18,10 +18,6 @@ kotlin {
                 withJvm()
                 withNative()
             }
-            group("jsShared") {
-                withJs()
-                withWasmJs()
-            }
             group("wasm") {
                 withWasmJs()
                 withWasmWasi()
