@@ -117,10 +117,10 @@ object Mokkery {
             nonAbstractMembers: String,
         ) = "Type ''$typeName'' has final members and cannot be used with ''$functionName''! Final members: $nonAbstractMembers"
 
-        fun noDefaultConstructorTypeCannotBeIntercepted(
+        fun noPublicConstructorTypeCannotBeIntercepted(
             typeName: String,
             functionName: String
-        ) = "Class ''$typeName'' has no default constructor and cannot be used with ''$functionName''!"
+        ) = "Type ''$typeName'' has no public constructor and cannot be used with ''$functionName''!"
 
         fun noDuplicatesForMockMany(
             typeName: String, 

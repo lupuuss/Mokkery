@@ -51,8 +51,8 @@ class MokkeryDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererC = CommonRenderers.commaSeparated(FirDiagnosticRenderers.SYMBOL)
         )
         put(
-            factory = MokkeryDiagnostics.NO_DEFAULT_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
-            message = Errors.noDefaultConstructorTypeCannotBeIntercepted(
+            factory = MokkeryDiagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
+            message = Errors.noPublicConstructorTypeCannotBeIntercepted(
                 typeName = "{1}",
                 functionName = "{0}",
             ),
