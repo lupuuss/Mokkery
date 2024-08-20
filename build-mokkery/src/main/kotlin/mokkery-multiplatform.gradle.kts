@@ -14,10 +14,6 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
-            group("blocking") {
-                withJvm()
-                withNative()
-            }
             group("wasm") {
                 withWasmJs()
                 withWasmWasi()
