@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-abstract class TestClass(arg: String): BaseClass() {
+abstract class TestClass(i: InterfaceParam, s: SealedParam, f: FinalParam): BaseClass() {
 
     abstract val property: Int
 
@@ -12,4 +12,8 @@ abstract class TestClass(arg: String): BaseClass() {
     inline val inlineProperty get() = "Ignored inline property"
     inline fun inlineMethod() = "Ignored inline method"
     fun finalMethod() = "Ignored final method"
+
+    interface InterfaceParam
+    sealed class SealedParam
+    sealed class FinalParam
 }

@@ -8,6 +8,8 @@ atomicfu = "0.24.0"
 dokka = "1.9.20"
 poko = "0.16.0"
 vanniktech-publish-plugin = "0.29.0"
+objensis = "3.4"
+bytebuddy = "1.14.19"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
@@ -30,3 +32,6 @@ google-autoservice = { module = "com.google.auto.service:auto-service", version.
 google-autoservice-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "google-autoservice"}
 
 gradle-plugin-kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
+
+objenesis = { module = "org.objenesis:objenesis", version.ref = "objensis" }
+bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
