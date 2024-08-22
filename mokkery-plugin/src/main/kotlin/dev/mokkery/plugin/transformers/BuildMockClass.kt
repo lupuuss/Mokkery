@@ -177,7 +177,7 @@ private fun IrClass.addMockClassConstructor(
         addValueParameter("mode", mockModeClass.defaultType)
         addValueParameter("block", context.irBuiltIns.functionN(1).defaultTypeErased.makeNullable())
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
-            +irDelegatingDefaultConstructorOrAny(classesToIntercept.firstOrNull { it.isClass })
+            +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = typesProperty,

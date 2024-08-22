@@ -6,4 +6,6 @@ import kotlin.reflect.KClass
 internal expect object AnyValueProvider : AutofillProvider<Any?> {
 
     override fun provide(type: KClass<*>): AutofillProvider.Value<Any?>
+
+    fun notNullIfSupported(): AutofillProvider<Any>?
 }

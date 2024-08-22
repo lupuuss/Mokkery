@@ -8,4 +8,6 @@ plugins {
 dependencies {
     commonMainApi(project(":mokkery-core"))
     commonTestImplementation(kotlin("test"))
+    jvmMainImplementation(libs.objenesis)
+    jvmMainImplementation(libs.bytebuddy)
 }

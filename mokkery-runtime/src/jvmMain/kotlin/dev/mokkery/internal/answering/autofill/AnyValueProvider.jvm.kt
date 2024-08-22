@@ -21,4 +21,7 @@ internal actual object AnyValueProvider : AutofillProvider<Any?> {
             it.isAccessible = true
             it.newInstance(buildInTypesMapping[paramType])
         }
+
+    actual fun notNullIfSupported(): AutofillProvider<Any>? = ReflectionBasedValueProvider
 }
+

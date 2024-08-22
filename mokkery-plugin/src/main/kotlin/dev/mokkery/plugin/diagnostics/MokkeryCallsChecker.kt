@@ -4,7 +4,6 @@ import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
 import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.fir.constructors
-import dev.mokkery.plugin.fir.isDefault
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -212,10 +211,10 @@ private class MokkeryScopedCallsChecker(
         classSymbol: FirRegularClassSymbol
     ): Boolean {
         val constructors = classSymbol.constructors
-        if (constructors.any() && constructors.none { it.isDefault() }) {
+        if (constructors.none { it.visibility.isPublicAPI }) {
             reporter.reportOn(
                 source = source,
-                factory = MokkeryDiagnostics.NO_DEFAULT_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
+                factory = MokkeryDiagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
                 a = funSymbol.name,
                 b = classSymbol.defaultType(),
                 context = context

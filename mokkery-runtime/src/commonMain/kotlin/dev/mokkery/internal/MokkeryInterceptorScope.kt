@@ -36,5 +36,5 @@ private class DynamicMokkeryMockScope(
 ) : MokkeryMockScope {
     override val interceptor = MokkeryMock(mode, kind)
 
-    override val id = generateMockId(typeName)
+    override val id = MockUniqueReceiversGenerator.generate(typeName)
 }

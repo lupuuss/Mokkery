@@ -6,6 +6,8 @@ import kotlin.reflect.KClass
 
 internal actual object AnyValueProvider : AutofillProvider<Any?> {
     actual override fun provide(type: KClass<*>): Value<Any?> = UnsafeValue.asAutofillProvided()
+
+    actual fun notNullIfSupported(): AutofillProvider<Any>? = null
 }
 
 private object UnsafeValue
