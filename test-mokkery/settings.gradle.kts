@@ -9,10 +9,6 @@ pluginManagement {
     repositories {
         mavenLocal()
         mavenCentral()
-        // TODO REMOVE after Poko release
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        }
     }
 }
 
@@ -20,9 +16,5 @@ dependencyResolutionManagement {
     repositories {
         mavenLocal()
         mavenCentral()
-        // TODO REMOVE after Poko release
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        }
     }
 }
