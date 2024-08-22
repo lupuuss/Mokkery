@@ -2,6 +2,7 @@
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     alias(libs.plugins.dokka)
@@ -32,6 +33,9 @@ rootProject.ext["pluginId"] = "dev.mokkery"
 allprojects {
     group = rootProject.group
     version = rootProject.version
+    tasks.withType<DokkaTask> {
+        onlyIf { gradle.taskGraph.allTasks.none { it is PublishToMavenLocal } }
+    }
     afterEvaluate {
         extensions.findByType<JavaPluginExtension>()?.apply {
             toolchain.languageVersion.set(JavaLanguageVersion.of(8))
