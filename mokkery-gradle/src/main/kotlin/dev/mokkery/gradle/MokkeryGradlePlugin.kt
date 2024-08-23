@@ -82,7 +82,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
         }
         val kotlinVersion = kotlinToolingVersion.toString()
-        if (kotlinVersion.startsWith("1")) {
+        if (kotlinVersion.startsWith("1.")) {
             error("Current Kotlin version must be at least 2.0.0, but is $kotlinVersion!")
         }
     }
