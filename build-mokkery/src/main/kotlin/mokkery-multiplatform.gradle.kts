@@ -1,11 +1,10 @@
 @file:Suppress("UNUSED_VARIABLE")
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 
 plugins {
-    id("mokkery-publish")
     kotlin("multiplatform")
 }
 
@@ -15,16 +14,6 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
-            group("coroutines") {
-                group("blocking") {
-                    withJvm()
-                    withNative()
-                }
-                group("jsShared") {
-                    withJs()
-                    withWasmJs()
-                }
-            }
             group("wasm") {
                 withWasmJs()
                 withWasmWasi()

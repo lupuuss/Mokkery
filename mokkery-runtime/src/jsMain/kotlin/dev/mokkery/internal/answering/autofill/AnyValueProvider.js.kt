@@ -6,4 +6,6 @@ import kotlin.reflect.KClass
 
 internal actual object AnyValueProvider : AutofillProvider<Any?> {
     actual override fun provide(type: KClass<*>): Value<Any?> = Value.Provided(js("{}"))
+
+    actual fun notNullIfSupported(): AutofillProvider<Any>? = null
 }

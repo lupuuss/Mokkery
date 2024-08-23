@@ -24,7 +24,6 @@ interface TestInterface : BaseInterface {
 
     suspend fun callWithSuspension(i: Int): List<String>
 
-
     suspend fun callUnitWithSuspension(i: Int)
 
     fun callWithSelf(dependency: TestInterface)
@@ -36,6 +35,8 @@ interface TestInterface : BaseInterface {
     fun callWithPrimitiveResult(value: Result<Int>): Result<Int>
 
     fun callWithComplexResult(value: Result<List<Int>>): Result<List<Int>>
+
+    suspend fun <T> callWithResult(value: Result<T>): Result<T> = value
 
     fun callWithPrimitiveValueClass(value: PrimitiveValueClass): PrimitiveValueClass
 

@@ -1,6 +1,8 @@
 package dev.mokkery.answering
 
 import dev.mokkery.internal.answering.ByFunctionAnswer
+import dev.mokkery.internal.answering.CallsCatchingAnswer
+import dev.mokkery.internal.answering.CallsCatchingSuspendAnswer
 import dev.mokkery.internal.answering.ReturnsArgAtAnswer
 
 /**
@@ -87,5 +89,25 @@ public infix fun <T> BlockingAnsweringScope<T>.calls(block: BlockingCallDefiniti
  */
 public infix fun <T> SuspendAnsweringScope<T>.calls(block: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T) {
     answers(Answer.BlockSuspend(block))
+}
+
+/**
+ * Function call executes [block] inside [runCatching] and returns [Result].
+ * It rethrows any [dev.mokkery.MokkeryRuntimeException] as it indicates internal error and cannot be ignored.
+ */
+public infix fun <T> BlockingAnsweringScope<Result<T>>.callsCatching(
+    block: BlockingCallDefinitionScope<Result<T>>.(CallArgs) -> T
+) {
+    answers(CallsCatchingAnswer(block))
+}
+
+/**
+ * Suspend function call executes [block] inside [runCatching] and returns [Result].
+ * It rethrows any [dev.mokkery.MokkeryRuntimeException] as it indicates internal error and cannot be ignored.
+ */
+public infix fun <T> SuspendAnsweringScope<Result<T>>.callsCatching(
+    block: suspend SuspendCallDefinitionScope<Result<T>>.(CallArgs) -> T
+) {
+    answers(CallsCatchingSuspendAnswer(block))
 }
 

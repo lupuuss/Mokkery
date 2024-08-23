@@ -6,10 +6,11 @@ import dev.mokkery.answering.SuperCall.Companion.originalWith
 import dev.mokkery.answering.SuperCall.Companion.superOf
 import dev.mokkery.answering.SuperCall.Companion.superWith
 import dev.mokkery.answering.calls
+import dev.mokkery.answering.callsCatching
 import dev.mokkery.answering.repeat
 import dev.mokkery.answering.returns
-import dev.mokkery.answering.returnsBy
 import dev.mokkery.answering.returnsArgAt
+import dev.mokkery.answering.returnsBy
 import dev.mokkery.answering.returnsFailure
 import dev.mokkery.answering.returnsFailureBy
 import dev.mokkery.answering.returnsSuccess
@@ -41,7 +42,6 @@ class AnswersTest {
         every { mock.callGeneric(any<Int>()) } returns 3
         assertEquals(3, mock.callGeneric(0))
     }
-
 
     @Test
     fun testReturnsBy() {
@@ -113,11 +113,32 @@ class AnswersTest {
 
     @Test
     fun testSuspendCalls() = runTest {
-        everySuspend { mock.callWithSuspension(any()) } calls { (i: Int) ->
-            delay(1)
-            listOf(i.toString())
-        }
+        everySuspend { mock.callWithSuspension(any()) } calls { (i: Int) -> listOf(i.toString()) }
         assertEquals(listOf("1"), mock.callWithSuspension(1))
+    }
+
+    @Test
+    fun testCallsCatching() {
+        every { mock.callWithPrimitiveResult(any()) } callsCatching { (result: Result<Int>) -> result.getOrThrow() }
+        assertEquals(1, mock.callWithPrimitiveResult(Result.success(1)).getOrNull())
+        val exception = IllegalStateException()
+        assertEquals(exception, mock.callWithPrimitiveResult(Result.failure(exception)).exceptionOrNull())
+        assertFailsWith<MokkeryRuntimeException> {
+            mock.callWithPrimitiveResult(Result.failure(MokkeryRuntimeException()))
+        }
+    }
+
+    @Test
+    fun testSuspendCallsCatching() = runTest {
+        everySuspend { mock.callWithResult(any<Result<Int>>()) } callsCatching { (result: Result<Int>) ->
+            result.getOrThrow()
+        }
+        assertEquals(1, mock.callWithResult(Result.success(1)).getOrNull())
+        val exception = IllegalStateException()
+        assertEquals(exception, mock.callWithResult(Result.failure<Int>(exception)).exceptionOrNull())
+        assertFailsWith<MokkeryRuntimeException> {
+            mock.callWithResult(Result.failure<Int>(MokkeryRuntimeException()))
+        }
     }
 
     @Test
@@ -137,10 +158,7 @@ class AnswersTest {
     fun testSequentiallySuspend() = runTest {
         everySuspend { mock.callWithSuspension(any()) } sequentially {
             returns(listOf("1"))
-            calls {
-                delay(1)
-                listOf("2")
-            }
+            calls { listOf("2") }
             throws(IllegalArgumentException())
         }
         assertEquals(listOf("1"), mock.callWithSuspension(0))

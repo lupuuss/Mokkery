@@ -2,70 +2,40 @@ import MokkeryUrls.GitConnection
 import MokkeryUrls.GitDevConnection
 import MokkeryUrls.GitHttp
 import MokkeryUrls.Website
+import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
-    `maven-publish`
-    signing
+    id("com.vanniktech.maven.publish")
     id("org.jetbrains.dokka")
 }
 
-loadLocalProperties()
-
-signing {
-    // disables signing for publishToMavenLocal
-    setRequired { gradle.taskGraph.allTasks.any { it is PublishToMavenRepository } }
-    sign(publishing.publications)
-}
-
-val signingTasks = tasks.withType<Sign>()
-tasks.withType<AbstractPublishToMaven>().configureEach {
-    dependsOn(signingTasks)
-}
-
-val dokkaJar by tasks.registering(Jar::class) {
-    group = JavaBasePlugin.DOCUMENTATION_GROUP
-    archiveClassifier.set("javadoc")
-    from(tasks.getByName("dokkaGfm"))
-}
-
-publishing {
-
-    repositories {
-        maven {
-            name = "sonatype"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = extraString("ossrhUsername")
-                password = extraString("ossrhPassword")
+mavenPublishing {
+    coordinates(project.group.toString(), project.name, project.version.toString())
+    signAllPublications()
+    publishToMavenCentral(SonatypeHost.S01, automaticRelease = false)
+    pom {
+        name.set(project.name)
+        description.set(
+            "Mokkery is a mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
+        )
+        url.set(Website)
+        licenses {
+            license {
+                name.set("The Apache Software License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("repo")
             }
         }
-    }
-    publications.withType<MavenPublication> {
-        artifact(dokkaJar)
-        pom {
-            name.set(project.name)
-            description.set(
-                "Mokkery is a mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
-            )
-            url.set(Website)
-            licenses {
-                license {
-                    name.set("The Apache Software License, Version 2.0")
-                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    distribution.set("repo")
-                }
+        developers {
+            developer {
+                id.set("lupuuss")
+                name.set("lupuuss")
             }
-            developers {
-                developer {
-                    id.set("lupuuss")
-                    name.set("lupuuss")
-                }
-            }
-            scm {
-                url.set(GitHttp)
-                connection.set(GitConnection)
-                developerConnection.set(GitDevConnection)
-            }
+        }
+        scm {
+            url.set(GitHttp)
+            connection.set(GitConnection)
+            developerConnection.set(GitDevConnection)
         }
     }
 }

@@ -8,6 +8,7 @@ import dev.mokkery.internal.MokkeryMockScope
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.matcher.ArgMatchersComposer
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.tracing.CallArg
@@ -91,7 +92,7 @@ private class TemplatingScopeImpl(
         if (isReleased) return arg
         val data = binder.getDataFor(token) ?: return arg
         val args = when {
-            isSpread -> arg.asListOrNull() ?: error("Expected array, but $arg encountered!")
+            isSpread -> arg.asListOrNull() ?: mokkeryRuntimeError("Expected array, but $arg encountered!")
             else -> listOf(arg)
         }
         val size = args.size

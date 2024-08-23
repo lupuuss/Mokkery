@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
-expect class TestResult
+import dev.mokkery.internal.coroutines.runSuspension
 
-expect fun runTest(block: suspend () -> Unit): TestResult
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun runTest(noinline block: suspend () -> Unit) = runSuspension(block)

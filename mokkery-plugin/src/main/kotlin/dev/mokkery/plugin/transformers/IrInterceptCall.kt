@@ -1,11 +1,9 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
-import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -33,6 +31,7 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
@@ -115,17 +114,6 @@ private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, fu
     return irCallMapOf(transformer, superLambdas)
 }
 
-private fun IrBuilderWithScope.irCreatePair(
-    transformer: TransformerScope,
-    first: IrExpression,
-    second: IrExpression
-): IrExpression {
-    return irCall(transformer.getFunction(Kotlin.Function.to)) {
-        extensionReceiver = first
-        putValueArgument(0, second)
-    }
-}
-
 private fun IrBuilderWithScope.createSuperCallLambda(
     transformer: TransformerScope,
     function: IrSimpleFunction,
@@ -150,6 +138,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         ) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
             contextReceiversCount = superFunction.contextReceiverParametersCount
+            function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
             superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,

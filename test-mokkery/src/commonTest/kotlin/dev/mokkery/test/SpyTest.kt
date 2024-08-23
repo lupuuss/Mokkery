@@ -93,10 +93,7 @@ class SpyTest {
 
     @Test
     fun testReturnsFromSpiedSuspendFunction() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         assertEquals("1", spied(1))
     }
@@ -104,10 +101,7 @@ class SpyTest {
 
     @Test
     fun testChangesBehaviourOfSuspendFunctionWithFallbackToSpied() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         everySuspend { spied(1) } returns "changed"
         assertEquals("changed", spied(1))
@@ -132,10 +126,7 @@ class SpyTest {
 
     @Test
     fun testRegistersSpiedSuspendFunctionCall() = runTest {
-        val func: suspend (Int) -> String = {
-            delay(1)
-            it.toString()
-        }
+        val func: suspend (Int) -> String = { it.toString() }
         val spied = spy(func)
         spied(1)
         verifySuspend {
@@ -196,6 +187,8 @@ private object TestInterfaceImpl : TestInterface {
     override fun callWithPrimitiveResult(value: Result<Int>): Result<Int> = value
 
     override fun callWithComplexResult(value: Result<List<Int>>): Result<List<Int>> = value
+
+    override suspend fun <T> callWithResult(value: Result<T>): Result<T> = value
 
     override fun callWithPrimitiveValueClass(value: PrimitiveValueClass): PrimitiveValueClass = value
 
