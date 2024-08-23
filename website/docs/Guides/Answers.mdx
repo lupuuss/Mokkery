@@ -46,6 +46,16 @@ everySuspend { repository.save(book = any()) } returnsArgAt 0
 repository.save(Book()) // returns Book that was passed as an argument
 ```
 
+**If you need a more complex answer for functions that return `Result`, use `callsCatching` :**
+```kotlin
+everySuspend { repository.findByIdAsResult(id = "1") } callsCatching { (id: String) ->
+   if (id == "1") error("Not found!")
+   Book(id = id)
+}
+repository.findByIdAsResult("1") // returns failed Result
+repository.findByIdAsResult("2") // returns successful Result
+```
+
 **To return `Result.success` from functions that return `Result`, use `returnsSuccess`:**
 ```kotlin
 everySuspend { repository.findByIdAsResult(id = "1") } returnsSuccess Book(id = "1")
