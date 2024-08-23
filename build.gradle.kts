@@ -33,9 +33,6 @@ rootProject.ext["pluginId"] = "dev.mokkery"
 allprojects {
     group = rootProject.group
     version = rootProject.version
-    tasks.withType<DokkaTask> {
-        onlyIf { gradle.taskGraph.allTasks.none { it is PublishToMavenLocal } }
-    }
     afterEvaluate {
         extensions.findByType<JavaPluginExtension>()?.apply {
             toolchain.languageVersion.set(JavaLanguageVersion.of(8))
