@@ -54,7 +54,7 @@ repositories {
 // for plugin dependencies
 pluginManagement {
     repositories {
-        gradlePluginPortal()
+        gradlePluginPortal() // required only before Mokkery 2.3.0
         mavenCentral()
     }
 }
@@ -63,23 +63,27 @@ pluginManagement {
 
 ### Convention plugins
 
-For those using convention plugins, make sure that the dependencies configuration includes the path to the required Maven repository, which can be added using `gradlePluginPortal()`.
+:::tip
+Since Mokkery 2.3.0, it's no longer required to add this repository, because Mokkery Gradle plugin is also published to Maven Central.
+:::
+
+For those using convention plugins, make sure that the dependencies configuration includes the path to the required repository, which can be added using `gradlePluginPortal()`.
 
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        // required to download gradle plugin
+        // required to download Mokkery Gradle plugin before version 2.3.0
         gradlePluginPortal()
     }
 }
 ```
 
-Once the required Maven repository is connected, you will be able to successfully download the Mokkery plugin dependency.
+Once the required repository is connected, you will be able to successfully download the Mokkery plugin dependency.
 
 ```kotlin
 dependencies {
-    implementation("dev.mokkery:mokkery-gradle:2.3.0")
+    implementation("dev.mokkery:mokkery-gradle:$mokkeryVersion")
 }
 ```
 
