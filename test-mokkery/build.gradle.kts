@@ -90,3 +90,9 @@ dependencies {
     "coroutinesTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     "coroutinesTestImplementation"(mokkery("coroutines"))
 }
+
+configurations
+    .filter { it.name.startsWith("wasm") }
+    .forEach {
+        it.resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+    }
