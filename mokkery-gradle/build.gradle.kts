@@ -3,7 +3,7 @@
 plugins {
     kotlin("jvm")
     id("mokkery-publish")
-    id("com.gradle.plugin-publish") version "1.1.0"
+    alias(libs.plugins.gradle.portal.publish)
 }
 
 dependencies {
