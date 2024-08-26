@@ -1,6 +1,7 @@
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.extra
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.util.*
 
 fun Project.loadLocalProperties() {
@@ -16,4 +17,8 @@ fun Project.loadLocalProperties() {
     }
 }
 
-fun Project.extraString(name: String) = if (extra.has(name)) extra.get(name) as String else null
+fun Project.excludeFromApiDocs() {
+    tasks.withType(DokkaTaskPartial::class.java) {
+        enabled = false
+    }
+}
