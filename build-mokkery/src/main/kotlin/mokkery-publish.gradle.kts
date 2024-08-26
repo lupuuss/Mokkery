@@ -10,6 +10,8 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
+loadLocalProperties()
+
 mavenPublishing {
     coordinates(project.group.toString(), project.name, project.version.toString())
     signAllPublications()
