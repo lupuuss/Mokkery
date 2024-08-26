@@ -31,6 +31,9 @@ rootProject.ext["pluginId"] = "dev.mokkery"
 allprojects {
     group = rootProject.group
     version = rootProject.version
+    tasks.withType<DokkaTask> {
+        onlyIf { "SNAPSHOT" !in version.toString() }
+    }
     afterEvaluate {
         extensions.findByType<JavaPluginExtension>()?.apply {
             toolchain.languageVersion.set(JavaLanguageVersion.of(8))
