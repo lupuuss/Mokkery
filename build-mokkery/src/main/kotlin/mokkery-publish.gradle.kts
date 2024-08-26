@@ -1,6 +1,7 @@
 import MokkeryUrls.GitConnection
 import MokkeryUrls.GitDevConnection
 import MokkeryUrls.GitHttp
+import MokkeryUrls.GitIssues
 import MokkeryUrls.Website
 import com.vanniktech.maven.publish.SonatypeHost
 
@@ -36,6 +37,9 @@ mavenPublishing {
             url.set(GitHttp)
             connection.set(GitConnection)
             developerConnection.set(GitDevConnection)
+        }
+        issueManagement {
+            url.set(GitIssues)
         }
     }
 }
