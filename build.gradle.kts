@@ -24,8 +24,6 @@ buildscript {
     }
 }
 
-
-rootProject.version = libs.versions.mokkery.get()
 rootProject.group = "dev.mokkery"
 
 rootProject.ext["pluginId"] = "dev.mokkery"
@@ -42,7 +40,7 @@ allprojects {
 
 val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
     moduleName.set("Mokkery")
-    moduleVersion.set(libs.versions.mokkery.get())
+    moduleVersion.set(rootProject.version.toString())
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
         customAssets += rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile
     }
