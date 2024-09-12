@@ -170,7 +170,7 @@ track them. It's possible only for overridable methods.
 Mocking final classes that are already compiled is currently not possible. This includes any class defined in the main
 source set. However, you can "open" your final classes from main source set using [all-open plugin](https://kotlinlang.org/docs/all-open-plugin.html#gradle).
 
-First, apply the `all-open` plugin:
+Apply the `all-open` plugin:
 
 ```kotlin title="build.gradle.kts"
 plugins {
@@ -178,12 +178,6 @@ plugins {
     kotlin("plugin.allopen")
 }
 ```
-
-Second, choose one of two strategies:
-* [Opening specific classes](#open-specific-classes)
-* [Opening all classes](#open-all-classes)
-
-#### Open specific classes
 
 Define an annotation:
 
@@ -217,21 +211,6 @@ This should be fine for apps but can be problematic if your artifacts are consum
 Refer to [this section](#avoid-opening-production-code) for further guidance.
 :::
 
-#### Open all classes
-
-All Kotlin classes are annotated with `kotlin.Metadata` annotation, so you can use it with `all-open` plugin:
-
-```kotlin title="build.gradle.kts"
-allOpen {
-    annotation("kotlin.Metadata")
-}
-```
-:::danger
-All classes in your project are now open in production.
-This should be fine for apps but can be problematic if your artifacts are consumed by other libraries.
-Refer to [this section](#avoid-opening-production-code) for further guidance.
-:::
-
 #### Avoid opening production code
 
 To avoid opening classes in production, you can conditionally apply the `allOpen` configuration based on whether a testing task is being executed:
@@ -246,7 +225,7 @@ val isTesting = gradle
     .taskNames
     .any(::isTestingTask)
 
-if (isTesting) allOpen { /* selected config here */ }
+if (isTesting) allOpen { /* ... */ }
 
 ```
 :::danger
