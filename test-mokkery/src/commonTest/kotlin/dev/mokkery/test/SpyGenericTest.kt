@@ -2,6 +2,7 @@ package dev.mokkery.test
 
 import dev.mokkery.spy
 import dev.mokkery.verifySuspend
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -21,20 +21,6 @@ mokkery {
 
 kotlin {
 
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    applyDefaultHierarchyTemplate {
-        common {
-            group("coroutines") {
-                group("blocking") {
-                    withJvm()
-                    withNative()
-                }
-                withJs()
-                withWasmJs()
-            }
-        }
-    }
-
     jvm()
 
     js(IR) {
@@ -87,8 +73,8 @@ kotlin {
 
 dependencies {
     commonTestImplementation(kotlin("test"))
-    "coroutinesTestImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
-    "coroutinesTestImplementation"(mokkery("coroutines"))
+    commonTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0-RC.2")
+    commonTestImplementation(mokkery("coroutines"))
 }
 
 configurations

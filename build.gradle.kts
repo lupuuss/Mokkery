@@ -19,7 +19,6 @@ buildscript {
 
     dependencies {
         classpath(":build-mokkery")
-        classpath(libs.gradle.plugin.kotlinx.atomicfu)
         classpath(libs.dokka.base)
     }
 }

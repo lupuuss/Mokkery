@@ -11,6 +11,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.spy
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

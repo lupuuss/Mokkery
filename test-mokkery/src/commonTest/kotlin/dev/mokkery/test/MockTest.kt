@@ -2,15 +2,16 @@ package dev.mokkery.test
 
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
-import dev.mokkery.MockMode.strict
 import dev.mokkery.MockMode.original
 import dev.mokkery.answering.calls
+import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
