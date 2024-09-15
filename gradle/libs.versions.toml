@@ -3,7 +3,7 @@ kotlin = "2.0.20"
 kotlinx-coroutines = "1.9.0"
 buildconfig = "4.0.4"
 google-autoservice = "1.0.1"
-atomicfu = "0.24.0"
+atomicfu = "0.25.0"
 dokka = "1.9.20"
 poko = "0.17.0"
 vanniktech-publish-plugin = "0.29.0"
@@ -14,6 +14,7 @@ gradle-portal-publish = "1.2.1"
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
+kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
 
 [libraries]
@@ -31,8 +32,6 @@ kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-em
 
 google-autoservice = { module = "com.google.auto.service:auto-service", version.ref = "google-autoservice"}
 google-autoservice-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "google-autoservice"}
-
-gradle-plugin-kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 
 objenesis = { module = "org.objenesis:objenesis", version.ref = "objensis" }
 bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
