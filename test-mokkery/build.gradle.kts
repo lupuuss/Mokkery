@@ -74,7 +74,7 @@ kotlin {
 
 dependencies {
     commonTestImplementation(kotlin("test"))
-    commonTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0-RC.2")
+    commonTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     commonTestImplementation(mokkery("coroutines"))
 }
 
