@@ -11,7 +11,6 @@ abstract class CoreTransformer(
     compilerPluginScope: CompilerPluginScope
 ) : TransformerScope, IrElementTransformerVoid() {
     final override lateinit var currentFile: IrFile
-        private set
     override val classes = mutableMapOf<ClassResolver, IrClass>()
     override val functions = mutableMapOf<FunctionResolver, IrSimpleFunction>()
     override val compilerConfig: CompilerConfiguration = compilerPluginScope.compilerConfig

@@ -140,6 +140,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
                 val transformer = TemplatingScopeCallsTransformer(this@MokkeryTransformer, variable)
+                transformer.currentFile = currentFile
                 block.transformChildren(transformer, null)
                 +irCall(function) {
                     block as IrFunctionExpression
@@ -165,6 +166,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     compilerPluginScope = this@MokkeryTransformer,
                     templatingScope = variable
                 )
+                transformer.currentFile = currentFile
                 block.transformChildren(transformer, null)
                 +irCall(function) {
                     putValueArgument(0, irGet(variable))

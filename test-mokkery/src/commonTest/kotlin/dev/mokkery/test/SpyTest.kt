@@ -175,7 +175,11 @@ private object TestInterfaceImpl : TestInterface {
 
     override fun callWithVararg(i: Int, vararg args: String): Double = 1.0
 
-    override suspend fun callWithSuspension(i: Int): List<String> = listOf(i.toString())
+    override suspend fun callWithSuspension(i: Int, default: Boolean): List<String> = listOf(i.toString())
+
+    override suspend fun callPrimitiveWithSuspension(i: Int, default: Boolean): Int = i
+
+    override suspend fun <T> callGenericWithSuspension(value: T, default: Boolean): T = value
 
     override suspend fun callUnitWithSuspension(i: Int) = Unit
 
@@ -195,7 +199,7 @@ private object TestInterfaceImpl : TestInterface {
 
     override fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>> = value
 
-    override fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number = value
+    override fun <T> callGeneric(value: T, default: Int): T where T : Comparable<T>, T : Number = value
 
     override val baseInterfaceProperty = "123"
 
