@@ -15,6 +15,14 @@ internal fun <T> autofillConstructor(type: KClass<*>): T = autofillConstructorPr
     .provideValue(type)
     .unsafeCast()
 
+internal inline fun <reified T> callIgnoringClassCastException(block: () -> T) = try {
+    block()
+} catch (e: ClassCastException) {
+    autofill(T::class).unsafeCast()
+}
+
+internal fun autofill(cls: KClass<*>) = AutofillProvider.forInternals.provideValue(cls.takeIfImplementedOrAny())
+
 private val autofillConstructorProvider = AutofillProvider
     .forInternals
     .providingNotNullIfSupported()

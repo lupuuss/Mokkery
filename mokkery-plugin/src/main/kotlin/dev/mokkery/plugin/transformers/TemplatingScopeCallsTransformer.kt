@@ -5,9 +5,13 @@ import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.core.messageCollector
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.kClassReference
+import dev.mokkery.plugin.logAt
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
@@ -30,6 +34,7 @@ import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.putElement
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
@@ -37,6 +42,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
+import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.platform.konan.isNative
 
@@ -78,13 +84,27 @@ class TemplatingScopeCallsTransformer(
                 +irGet(tmp)
             }
         }
-        if (isNativePlatform && !returnType.isPrimitiveType(nullable = false) && !returnType.isNothing()) {
-            // make return type nullable to avoid runtime checks on non-primitive types (K/N to work)
-            expression.type = pluginContext.irBuiltIns.anyNType
-        }
         interceptAllArgsOf(expression)
         token++
-        return expression
+        return when {
+            isNativePlatform -> workaroundNativeChecks(expression, returnType)
+            else -> expression
+        }
+    }
+
+    private fun workaroundNativeChecks(expression: IrCall, returnType: IrType): IrCall {
+        if (returnType.isPrimitiveType(nullable = false) || returnType.isNothing()) return expression
+        expression.apply { type = pluginContext.irBuiltIns.anyNType }
+        if (!expression.isSuspend || expression.valueArguments.all { it != null }) return expression
+        val callIgnoringClassCastExceptionFun = getFunction(Mokkery.Function.callIgnoringClassCastException)
+        return declarationIrBuilder(expression) {
+            irCall(callIgnoringClassCastExceptionFun) {
+                val blockParamType = callIgnoringClassCastExceptionFun.valueParameters[0].type
+                val lambda = irLambda(pluginContext.irBuiltIns.anyNType, blockParamType, currentFile) { +expression }
+                putValueArgument(0, lambda)
+                putTypeArgument(0, pluginContext.irBuiltIns.anyNType)
+            }
+        }
     }
 
     private fun interceptAllArgsOf(expression: IrCall) {
