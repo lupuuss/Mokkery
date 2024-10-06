@@ -99,9 +99,10 @@ class TemplatingScopeCallsTransformer(
         val callIgnoringClassCastExceptionFun = getFunction(Mokkery.Function.callIgnoringClassCastException)
         return declarationIrBuilder(expression) {
             irCall(callIgnoringClassCastExceptionFun) {
-                val blockParamType = callIgnoringClassCastExceptionFun.valueParameters[0].type
+                val blockParamType = callIgnoringClassCastExceptionFun.valueParameters[1].type
                 val lambda = irLambda(pluginContext.irBuiltIns.anyNType, blockParamType, currentFile) { +expression }
-                putValueArgument(0, lambda)
+                putValueArgument(0, irGet(templatingScope))
+                putValueArgument(1, lambda)
                 putTypeArgument(0, pluginContext.irBuiltIns.anyNType)
             }
         }
