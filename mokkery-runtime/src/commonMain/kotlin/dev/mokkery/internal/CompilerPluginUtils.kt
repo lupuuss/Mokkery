@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
 internal fun generateMockId(typeName: String) = MockUniqueReceiversGenerator.generate(typeName)
 
 internal fun <T> autofillConstructor(type: KClass<*>): T = autofillConstructorProvider
-    .provideValue(type)
+    .provideValue(type.takeIfImplementedOrAny())
     .unsafeCast()
 
 internal inline fun <reified T> callIgnoringClassCastException(block: () -> T) = try {
