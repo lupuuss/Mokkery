@@ -52,6 +52,9 @@ class VerifyTest {
         assertVerified {
             verifySuspend {
                 dependencyMock.callWithSuspension(1)
+                dependencyMock.callPrimitiveWithSuspension(1)
+                dependencyMock.callGenericWithSuspension(1)
+                dependencyMock.callGenericWithSuspension(listOf("1"))
             }
         }
     }

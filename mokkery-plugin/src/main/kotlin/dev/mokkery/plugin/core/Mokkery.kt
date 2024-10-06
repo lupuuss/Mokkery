@@ -62,6 +62,7 @@ object Mokkery {
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function
         val internalVerifySuspend by dev_mokkery_internal.function
+        val callIgnoringClassCastException by dev_mokkery_internal.function
 
         val TemplatingScope by dev_mokkery_internal_templating.function
     }

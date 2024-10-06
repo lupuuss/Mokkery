@@ -19,13 +19,10 @@ buildscript {
 
     dependencies {
         classpath(":build-mokkery")
-        classpath(libs.gradle.plugin.kotlinx.atomicfu)
         classpath(libs.dokka.base)
     }
 }
 
-
-rootProject.version = libs.versions.mokkery.get()
 rootProject.group = "dev.mokkery"
 
 rootProject.ext["pluginId"] = "dev.mokkery"
@@ -33,6 +30,9 @@ rootProject.ext["pluginId"] = "dev.mokkery"
 allprojects {
     group = rootProject.group
     version = rootProject.version
+    tasks.withType<DokkaTask> {
+        onlyIf { "SNAPSHOT" !in version.toString() }
+    }
     afterEvaluate {
         extensions.findByType<JavaPluginExtension>()?.apply {
             toolchain.languageVersion.set(JavaLanguageVersion.of(8))
@@ -42,7 +42,7 @@ allprojects {
 
 val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
     moduleName.set("Mokkery")
-    moduleVersion.set(libs.versions.mokkery.get())
+    moduleVersion.set(rootProject.version.toString())
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
         customAssets += rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile
     }

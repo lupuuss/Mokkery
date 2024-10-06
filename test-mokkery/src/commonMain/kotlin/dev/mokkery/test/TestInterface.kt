@@ -22,7 +22,11 @@ interface TestInterface : BaseInterface {
 
     fun callWithVararg(i: Int, vararg args: String): Double
 
-    suspend fun callWithSuspension(i: Int): List<String>
+    suspend fun callWithSuspension(i: Int, default: Boolean = true): List<String>
+
+    suspend fun callPrimitiveWithSuspension(i: Int, default: Boolean = true): Int
+
+    suspend fun <T> callGenericWithSuspension(value: T, default: Boolean = true): T
 
     suspend fun callUnitWithSuspension(i: Int)
 
@@ -42,7 +46,7 @@ interface TestInterface : BaseInterface {
 
     fun callWithComplexValueClass(value: ValueClass<List<String>>): ValueClass<List<String>>
 
-    fun <T> callGeneric(value: T): T where T : Comparable<T>, T : Number
+    fun <T> callGeneric(value: T, default: Int = 1): T where T : Comparable<T>, T : Number
 
     fun <T> callWithArray(array: Array<T>): T = array[0]
 

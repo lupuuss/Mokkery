@@ -1,7 +1,8 @@
-import MokkeryUrls.GitConnection
-import MokkeryUrls.GitDevConnection
-import MokkeryUrls.GitHttp
-import MokkeryUrls.Website
+import MokkeryAttributes.GitConnectionUrl
+import MokkeryAttributes.GitDevConnectionUrl
+import MokkeryAttributes.GitHttpsUrl
+import MokkeryAttributes.GitIssuesUrl
+import MokkeryAttributes.WebsiteUrl
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
@@ -9,16 +10,16 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
+loadLocalProperties()
+
 mavenPublishing {
     coordinates(project.group.toString(), project.name, project.version.toString())
     signAllPublications()
     publishToMavenCentral(SonatypeHost.S01, automaticRelease = false)
     pom {
         name.set(project.name)
-        description.set(
-            "Mokkery is a mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
-        )
-        url.set(Website)
+        description.set(MokkeryAttributes.Description)
+        url.set(WebsiteUrl)
         licenses {
             license {
                 name.set("The Apache Software License, Version 2.0")
@@ -33,9 +34,12 @@ mavenPublishing {
             }
         }
         scm {
-            url.set(GitHttp)
-            connection.set(GitConnection)
-            developerConnection.set(GitDevConnection)
+            url.set(GitHttpsUrl)
+            connection.set(GitConnectionUrl)
+            developerConnection.set(GitDevConnectionUrl)
+        }
+        issueManagement {
+            url.set(GitIssuesUrl)
         }
     }
 }

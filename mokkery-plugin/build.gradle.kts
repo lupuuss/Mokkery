@@ -1,5 +1,3 @@
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-
 plugins {
     id("mokkery-publish")
     kotlin("jvm")
@@ -15,9 +13,7 @@ kotlin.sourceSets.all {
     }
 }
 
-tasks.withType(DokkaTaskPartial::class) {
-    enabled = false
-}
+excludeFromApiDocs()
 
 dependencies {
     kapt(libs.google.autoservice)

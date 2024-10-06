@@ -3,7 +3,7 @@
 plugins {
     kotlin("jvm")
     id("mokkery-publish")
-    id("com.gradle.plugin-publish") version "1.1.0"
+    alias(libs.plugins.gradle.portal.publish)
 }
 
 dependencies {
@@ -44,13 +44,13 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
 tasks.check { dependsOn(functionalTest) }
 
 gradlePlugin {
-    website.set(MokkeryUrls.Website)
-    vcsUrl.set("${MokkeryUrls.GitHttp}.git")
+    website.set(MokkeryAttributes.WebsiteUrl)
+    vcsUrl.set(MokkeryAttributes.GitVscUrl)
     plugins {
         create(rootProject.name) {
             id = rootProject.extra["pluginId"] as String
-            displayName = "Mokkery"
-            description = "Mokkery is a mocking library for Kotlin Multiplatform, easy to use, boilerplate-free and compiler plugin driven."
+            displayName = MokkeryAttributes.DisplayName
+            description = MokkeryAttributes.Description
             version = project.version
             implementationClass = "${project.group}.gradle.MokkeryGradlePlugin"
             tags.set(

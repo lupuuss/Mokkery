@@ -11,6 +11,7 @@ import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
+import dev.mokkery.internal.takeIfImplementedOrAny
 import dev.mokkery.internal.tracing.CallArg
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
@@ -63,7 +64,8 @@ private class TemplatingScopeImpl(
     override fun ensureBinding(token: Int, obj: Any?, genericReturnTypeHint: KClass<*>?) {
         if (isReleased) return
         val scope = binder.bind(token, obj) ?: return
-        binder.getDataFor(token)?.genericReturnTypeHint = genericReturnTypeHint
+        // filters out unimplemented KClasses on K/N
+        binder.getDataFor(token)?.genericReturnTypeHint = genericReturnTypeHint?.takeIfImplementedOrAny()
         val templating = scope.interceptor.templating
         when {
             templating.isEnabledWith(this) -> return
@@ -83,9 +85,11 @@ private class TemplatingScopeImpl(
 
     @DelicateMokkeryApi
     override fun <T> matches(argType: KClass<*>, matcher: ArgMatcher<T>): T {
-        if (isReleased) return autofill.provideValue(argType).unsafeCast()
+        // filters out unimplemented KClasses on K/N
+        val safeKClass = argType.takeIfImplementedOrAny()
+        if (isReleased) return autofill.provideValue(safeKClass).unsafeCast()
         currentArgMatchers.add(matcher.unsafeCast())
-        return autofill.provideValue(argType).unsafeCast()
+        return autofill.provideValue(safeKClass).unsafeCast()
     }
 
     override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T {

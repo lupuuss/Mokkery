@@ -4,12 +4,14 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.register
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.varargs.anyVarargs
 import dev.mokkery.mock
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -142,5 +144,33 @@ class EveryTest {
     fun testMocksGenericPropertyFromBaseTypeWithPrimitiveTypeArgument() {
         every { dependencyMock.run { any<Int>().baseInterfaceGenericProperty } } returns 3
         assertEquals(3, dependencyMock.run { 1.baseInterfaceGenericProperty })
+    }
+
+
+    @Test
+    fun testMocksSuspendFunctionsWithDefaultParametersAndPrimitiveReturnType() = runTest {
+        everySuspend { dependencyMock.callPrimitiveWithSuspension(any()) } returnsArgAt 0
+        assertEquals(1, dependencyMock.callPrimitiveWithSuspension(1))
+    }
+
+    @Test
+    fun testMocksSuspendFunctionsWithDefaultParametersAndComplexReturnType() = runTest {
+        everySuspend { dependencyMock.callWithSuspension(any()) } returns listOf("1")
+        assertEquals(listOf("1"), dependencyMock.callWithSuspension(0))
+    }
+
+    @Test
+    fun testPropagatesClassCastExceptionWhenOccursInArgument() = runTest {
+        assertFailsWith<ClassCastException> {
+            everySuspend { dependencyMock.callWithSuspension(Unit as Int) } returns listOf("1")
+        }
+    }
+
+    @Test
+    fun testMocksSuspendFunctionsWithDefaultParametersAndGenericReturnType() = runTest {
+        everySuspend { dependencyMock.callGenericWithSuspension(1) } returnsArgAt 0
+        everySuspend { dependencyMock.callGenericWithSuspension(listOf("1")) } returnsArgAt 0
+        assertEquals(1, dependencyMock.callGenericWithSuspension(1))
+        assertEquals(listOf("1"), dependencyMock.callGenericWithSuspension(listOf("1")))
     }
 }
