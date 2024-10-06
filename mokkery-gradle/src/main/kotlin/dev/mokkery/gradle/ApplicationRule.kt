@@ -35,5 +35,10 @@ public fun interface ApplicationRule {
          * It means that it is automatically applied to tests in Multiplatform, JVM and Android projects.
          */
         public val AllTests: ApplicationRule = ApplicationRule { it.name.contains("Test") || it.name == "test" }
+
+        /**
+         * Results in Mokkery being applied to all source sets in this project.
+         */
+        public val All: ApplicationRule = ApplicationRule { true }
     }
 }
