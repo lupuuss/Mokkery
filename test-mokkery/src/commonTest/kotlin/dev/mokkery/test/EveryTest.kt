@@ -160,6 +160,13 @@ class EveryTest {
     }
 
     @Test
+    fun testPropagatesClassCastExceptionWhenOccursInArgument() = runTest {
+        assertFailsWith<ClassCastException> {
+            everySuspend { dependencyMock.callWithSuspension(Unit as Int) } returns listOf("1")
+        }
+    }
+
+    @Test
     fun testMocksSuspendFunctionsWithDefaultParametersAndGenericReturnType() = runTest {
         everySuspend { dependencyMock.callGenericWithSuspension(1) } returnsArgAt 0
         everySuspend { dependencyMock.callGenericWithSuspension(listOf("1")) } returnsArgAt 0
