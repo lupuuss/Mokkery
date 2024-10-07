@@ -98,23 +98,25 @@ Before version 2.1.0, Mokkery was applied by default only to source sets whose n
 In result it was not applied in JVM projects.
 :::
 
-To change the default behavior, you can provide a different rule in your Gradle file:
+#### Apply for main
 
+If you need to use Mokkery in the main source set (e.g., when mocks need to be extracted to a separate subproject), use the `ApplicationRule.All`:
 ```kotlin
-import dev.mokkery.gradle.ApplicationRule.Listed
-import dev.mokkery.gradle.ApplicationRule.MatchesName
-
-plugins {
-    kotlin("multiplatform")
-    id("dev.mokkery")
-}
-
 mokkery {
-    rule.set(Listed("jvmTest"))                 // Mokkery is applied to jvmTest source set
-    rule.set(MatchesName(Regex("macos.*Test"))) // Mokkery is applied to source sets matching "macos.*Test"
-    rule.set { it.name.endsWith("Test") }       // Mokkery is applied to source sets ending with "Test"
+   rule.set(ApplicationRule.All)
 }
 ```
+This applies Mokkery to all source sets within the current subproject.
+
+#### Customization
+
+If neither `ApplicationRule.AllTests` nor `ApplicationRule.All` meets your requirements, you can manually specify the source sets. The following options are available:
+* `ApplicationRule.Listed("fooMain", "barMain")` - applies Mokkery only to the explicitly listed source sets.
+* `ApplicationRule.MatchesName(Regex(".+Main"))` - applies Mokkery to all source sets whose names match the given regular expression.
+* Provide a custom rule to suit your needs.
+
+**When selecting source sets manually, ensure that you include all source sets within a subtree.
+The Mokkery plugin does not automatically detect dependencies between source sets, as these dependencies may not always be present.**
 
 ### Targets
 
