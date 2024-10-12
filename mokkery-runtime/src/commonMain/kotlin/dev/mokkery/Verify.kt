@@ -1,10 +1,10 @@
 @file:Suppress( "UNUSED_PARAMETER", "unused")
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryMockScope
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
 import dev.mokkery.internal.failAssertion
 import dev.mokkery.internal.names.GroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
@@ -39,7 +39,7 @@ public fun verifySuspend(
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     mocks.forEach { mock ->
         val tracing = mock
-            .let { MokkeryScopeLookup.current.resolve(it) as? MokkeryMockScope }
+            .let { MokkeryInstanceLookup.current.resolve(it) as? MokkeryMockInstance }
             ?.interceptor
             ?.callTracing ?: throw ObjectNotMockedException(mock)
         if (tracing.unverified.isNotEmpty()) {

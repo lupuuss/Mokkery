@@ -7,7 +7,7 @@ import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.bestName
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass
@@ -75,14 +75,14 @@ public class FunctionScope internal constructor(
     /**
      * Calls original method implementation with given [args].
      */
-    public fun callOriginal(args: List<Any?>): Any? = callOriginal(MokkeryScopeLookup.current, args)
+    public fun callOriginal(args: List<Any?>): Any? = callOriginal(MokkeryInstanceLookup.current, args)
 
     /**
      * Just like [callOriginal] but for suspend calls.
      */
-    public suspend fun callSuspendOriginal(args: List<Any?>): Any? = callSuspendOriginal(MokkeryScopeLookup.current, args)
+    public suspend fun callSuspendOriginal(args: List<Any?>): Any? = callSuspendOriginal(MokkeryInstanceLookup.current, args)
 
-    internal fun callOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
+    internal fun callOriginal(lookup: MokkeryInstanceLookup, args: List<Any?>): Any? {
         checkArgs(args)
         val superType = resolveOriginalSupertype(lookup)
         return supers
@@ -91,7 +91,7 @@ public class FunctionScope internal constructor(
             .invoke(args)
     }
 
-    internal suspend fun callSuspendOriginal(lookup: MokkeryScopeLookup, args: List<Any?>): Any? {
+    internal suspend fun callSuspendOriginal(lookup: MokkeryInstanceLookup, args: List<Any?>): Any? {
         checkArgs(args)
         val superType = resolveOriginalSupertype(lookup)
         return supers
@@ -100,7 +100,7 @@ public class FunctionScope internal constructor(
             .invoke(args)
     }
 
-    private fun resolveOriginalSupertype(lookup: MokkeryScopeLookup): KClass<*> {
+    private fun resolveOriginalSupertype(lookup: MokkeryInstanceLookup): KClass<*> {
         val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
         val superCandidates = selfScope.interceptedTypes.filter(supers::contains)
         if (superCandidates.isEmpty()) throw MissingSuperMethodException(selfScope.interceptedTypes)

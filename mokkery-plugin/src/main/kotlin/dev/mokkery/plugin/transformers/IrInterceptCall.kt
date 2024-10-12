@@ -60,7 +60,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
     irCallSpyLambda: IrExpression? = null
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor).symbol
-    val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInterceptorScope)
+    val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
     val callContextClass = transformer.getClass(Mokkery.Class.CallContext)
     val interceptFun = if (function.isSuspend) {
         interceptorClass.functionByName("interceptSuspendCall")

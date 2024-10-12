@@ -30,15 +30,15 @@ object Mokkery {
         val MockMany5 by dev_mokkery.klass
 
         val MokkeryInterceptor by dev_mokkery_internal.klass
-        val MokkeryInterceptorScope by dev_mokkery_internal.klass
-        val MokkeryMockScope by dev_mokkery_internal.klass
+        val MokkeryInstance by dev_mokkery_internal.klass
+        val MokkeryMockInstance by dev_mokkery_internal.klass
 
         val CallContext by dev_mokkery_internal.klass
 
         val CallArg by dev_mokkery_internal_tracing.klass
 
         val TemplatingScope by dev_mokkery_internal_templating.klass
-        val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
+        val MokkeryInstanceLookup by dev_mokkery_internal_dynamic.klass
 
         fun mockMany(value: Int): ClassResolver {
             return mockManyMap[value] ?: error("Unsupported types number! Expected value: in ${2..5}; Actual value: $value")
@@ -55,7 +55,7 @@ object Mokkery {
     object Function {
         val autofillConstructor by dev_mokkery_internal.function
         val MokkeryMockInterceptor by dev_mokkery_internal.function
-        val MokkeryMockScope by dev_mokkery_internal.function
+        val MokkeryMockInstance by dev_mokkery_internal.function
         val generateMockId by dev_mokkery_internal.function
 
         val internalEvery by dev_mokkery_internal.function

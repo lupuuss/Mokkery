@@ -1,7 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.MokkeryMockScope
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.templating.TemplatingScope
 import dev.mokkery.internal.tracing.CallArg
@@ -9,7 +9,7 @@ import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 internal class TestTemplatingScope(
-    override val mocks: Set<MokkeryMockScope> = emptySet(),
+    override val mocks: Set<MokkeryMockInstance> = emptySet(),
     override val templates: List<CallTemplate> = emptyList(),
 ) : TemplatingScope {
 

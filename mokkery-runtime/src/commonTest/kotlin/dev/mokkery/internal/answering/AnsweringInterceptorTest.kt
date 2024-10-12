@@ -11,8 +11,8 @@ import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
 import dev.mokkery.test.TestCallMatcher
-import dev.mokkery.test.TestMokkeryInterceptorScope
-import dev.mokkery.test.TestMokkeryScopeLookup
+import dev.mokkery.test.TestMokkeryInstance
+import dev.mokkery.test.TestMokkeryInstanceLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallContext
 import dev.mokkery.test.fakeCallTemplate
@@ -27,7 +27,7 @@ import kotlin.test.assertNotNull
 class AnsweringInterceptorTest {
 
     private val callMatcher = TestCallMatcher()
-    private val lookUp = TestMokkeryScopeLookup()
+    private val lookUp = TestMokkeryInstanceLookup()
     private val answering = AnsweringInterceptor(strict, callMatcher, lookUp)
 
     @Test
@@ -84,14 +84,14 @@ class AnsweringInterceptorTest {
 
     @Test
     fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookup = TestMokkeryScopeLookup { TestMokkeryInterceptorScope(interceptedTypes = listOf(Unit::class)) }
+        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
         val context = fakeCallContext<Int>(supers = mapOf(Unit::class to { _: List<Any?> -> 10 }))
         assertEquals(10, AnsweringInterceptor(original, callMatcher, lookup).interceptCall(context))
     }
 
     @Test
     fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
-        val lookup = TestMokkeryScopeLookup { TestMokkeryInterceptorScope(interceptedTypes = listOf(Unit::class)) }
+        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
         val context = fakeCallContext<Int>(supers = mapOf(Unit::class to suspendSuper.unsafeCast()))
         assertEquals(11, AnsweringInterceptor(original, callMatcher, lookup).interceptSuspendCall(context))
@@ -216,7 +216,7 @@ class AnsweringInterceptorTest {
         answering.interceptCall(context)
         assertNotNull(answer.capturedScope)
         assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
-        assertEquals(context.scope, answer.capturedScope!!.self)
+        assertEquals(context.instance, answer.capturedScope!!.self)
         assertEquals(context.returnType, answer.capturedScope!!.returnType)
         assertEquals(context.supers, answer.capturedScope!!.supers)
     }
@@ -233,7 +233,7 @@ class AnsweringInterceptorTest {
         answering.interceptSuspendCall(context)
         assertNotNull(answer.capturedScope)
         assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
-        assertEquals(context.scope, answer.capturedScope!!.self)
+        assertEquals(context.instance, answer.capturedScope!!.self)
         assertEquals(context.returnType, answer.capturedScope!!.returnType)
         assertEquals(context.supers, answer.capturedScope!!.supers)
     }

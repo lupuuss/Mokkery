@@ -97,7 +97,7 @@ private fun IrBuilderWithScope.irCallMokkeryMockScope(
     modeArg: IrExpression,
     kind: IrMokkeryKind,
 ): IrExpression {
-    val mokkeryMockScopeFun = transformer.getFunction(Mokkery.Function.MokkeryMockScope)
+    val mokkeryMockScopeFun = transformer.getFunction(Mokkery.Function.MokkeryMockInstance)
     return irCall(mokkeryMockScopeFun) {
         putValueArgument(0, modeArg)
         putValueArgument(1, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
@@ -111,7 +111,7 @@ private fun IrBuilderWithScope.irCallRegisterScope(
     mokkeryScope: IrExpression,
     obj: IrExpression
 ): IrCall {
-    val lookUpClass = transformer.getClass(Mokkery.Class.MokkeryScopeLookup)
+    val lookUpClass = transformer.getClass(Mokkery.Class.MokkeryInstanceLookup)
     val lookUpCompanion = lookUpClass.companionObject()!!
     val currentLookupCall = irCall(lookUpCompanion.getProperty("current").getter!!) {
         dispatchReceiver = irGetObject(lookUpCompanion.symbol)

@@ -44,7 +44,7 @@ internal inline fun <reified T> fakeCallContext(
     args: List<CallArg> = emptyList(),
     supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
 ) = CallContext(
-    scope = TestMokkeryInterceptorScope(selfId),
+    instance = TestMokkeryInstance(selfId),
     name = name,
     returnType = T::class,
     args = args,

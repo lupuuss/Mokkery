@@ -43,7 +43,7 @@ private class TemplatingMokkeryInterceptorImpl : TemplatingInterceptor {
             return MokkeryToken.CallNext
         }
         val hint = templatingScope?.currentGenericReturnTypeHint
-        templatingScope?.saveTemplate(context.scope.id, context.name, context.args)
+        templatingScope?.saveTemplate(context.instance.id, context.name, context.args)
             ?: throw ConcurrentTemplatingException()
         return MokkeryToken.ReturnDefault(hint)
     }

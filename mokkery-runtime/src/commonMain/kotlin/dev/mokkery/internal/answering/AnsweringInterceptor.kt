@@ -9,7 +9,7 @@ import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.CallTraceReceiverShortener
@@ -32,7 +32,7 @@ internal interface AnsweringInterceptor : MokkeryInterceptor {
 internal fun AnsweringInterceptor(
     mockMode: MockMode,
     callMatcher: CallMatcher = CallMatcher(),
-    lookup: MokkeryScopeLookup = MokkeryScopeLookup.current,
+    lookup: MokkeryInstanceLookup = MokkeryInstanceLookup.current,
     callTraceReceiverShortener: CallTraceReceiverShortener = CallTraceReceiverShortener,
 ): AnsweringInterceptor {
     return AnsweringInterceptorImpl(mockMode, callMatcher, lookup, callTraceReceiverShortener)
@@ -41,7 +41,7 @@ internal fun AnsweringInterceptor(
 private class AnsweringInterceptorImpl(
     private val mockMode: MockMode,
     private val callMatcher: CallMatcher,
-    private val lookup: MokkeryScopeLookup,
+    private val lookup: MokkeryInstanceLookup,
     private val callTraceReceiverShortener: CallTraceReceiverShortener,
 ) : AnsweringInterceptor {
 
@@ -72,7 +72,7 @@ private class AnsweringInterceptorImpl(
     }
 
     private fun findAnswerFor(context: CallContext): Answer<*> {
-        val trace = CallTrace(receiver = context.scope.id, name = context.name, args = context.args, orderStamp = 0)
+        val trace = CallTrace(receiver = context.instance.id, name = context.name, args = context.args, orderStamp = 0)
         val answers = this._answers
         return answers
             .keys
@@ -94,7 +94,7 @@ private class AnsweringInterceptorImpl(
     private fun CallContext.toFunctionScope() = FunctionScope(
         returnType = returnType,
         args = args.map(CallArg::value),
-        self = lookup.reverseResolve(scope),
+        self = lookup.reverseResolve(instance),
         supers = supers
     )
 

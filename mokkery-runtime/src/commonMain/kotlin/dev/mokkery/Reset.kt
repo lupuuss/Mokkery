@@ -1,17 +1,17 @@
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryMockScope
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.ObjectNotMockedException
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
+import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
 
 /**
  * Removes all answers configured for given [mocks].
  */
 public fun resetAnswers(vararg mocks: Any) {
     mocks.forEach {
-        val scope = MokkeryScopeLookup.current.resolve(it)
-        if (scope !is MokkeryMockScope) throw ObjectNotMockedException(it)
-        scope.interceptor.answering.reset()
+        val instance = MokkeryInstanceLookup.current.resolve(it)
+        if (instance !is MokkeryMockInstance) throw ObjectNotMockedException(it)
+        instance.interceptor.answering.reset()
     }
 }
 
@@ -20,8 +20,8 @@ public fun resetAnswers(vararg mocks: Any) {
  */
 public fun resetCalls(vararg mocks: Any) {
     mocks.forEach {
-        val scope = MokkeryScopeLookup.current.resolve(it)
-        if (scope !is MokkeryMockScope) throw ObjectNotMockedException(it)
-        scope.interceptor.callTracing.reset()
+        val instance = MokkeryInstanceLookup.current.resolve(it)
+        if (instance !is MokkeryMockInstance) throw ObjectNotMockedException(it)
+        instance.interceptor.callTracing.reset()
     }
 }

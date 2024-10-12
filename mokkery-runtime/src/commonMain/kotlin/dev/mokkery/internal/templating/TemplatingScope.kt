@@ -4,7 +4,7 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.MokkeryMockScope
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.asListOrNull
 import dev.mokkery.internal.matcher.ArgMatchersComposer
@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
 
-    val mocks: Set<MokkeryMockScope>
+    val mocks: Set<MokkeryMockInstance>
     val templates: List<CallTemplate>
     val currentGenericReturnTypeHint: KClass<*>?
 
@@ -56,7 +56,7 @@ private class TemplatingScopeImpl(
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    override val mocks = mutableSetOf<MokkeryMockScope>()
+    override val mocks = mutableSetOf<MokkeryMockInstance>()
     override val templates = mutableListOf<CallTemplate>()
     override val currentGenericReturnTypeHint: KClass<*>?
         get() = binder.firstProperlyBoundedData().genericReturnTypeHint

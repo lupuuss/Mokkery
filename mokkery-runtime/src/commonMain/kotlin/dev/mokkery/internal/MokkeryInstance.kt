@@ -5,7 +5,7 @@ package dev.mokkery.internal
 import dev.mokkery.MockMode
 import kotlin.reflect.KClass
 
-internal interface MokkeryInterceptorScope {
+internal interface MokkeryInstance {
 
     val id: String
 
@@ -14,26 +14,26 @@ internal interface MokkeryInterceptorScope {
     val interceptedTypes: List<KClass<*>>
 }
 
-internal interface MokkeryMockScope : MokkeryInterceptorScope {
+internal interface MokkeryMockInstance : MokkeryInstance {
 
     override val interceptor: MokkeryMockInterceptor
 }
 
-internal fun MokkeryMockScope(
+internal fun MokkeryMockInstance(
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
     mockedType: KClass<*>
-): MokkeryMockScope {
-    return DynamicMokkeryMockScope(mode, kind, typeName, listOf(mockedType))
+): MokkeryMockInstance {
+    return DynamicMokkeryMockInstance(mode, kind, typeName, listOf(mockedType))
 }
 
-private class DynamicMokkeryMockScope(
+private class DynamicMokkeryMockInstance(
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
     override val interceptedTypes: List<KClass<*>>,
-) : MokkeryMockScope {
+) : MokkeryMockInstance {
     override val interceptor = MokkeryMockInterceptor(mode, kind)
 
     override val id = MockUniqueReceiversGenerator.generate(typeName)
