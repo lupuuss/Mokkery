@@ -9,7 +9,7 @@ internal enum class MokkeryKind {
     Spy, Mock
 }
 
-internal interface MokkeryMock : MokkeryInterceptor {
+internal interface MokkeryMockInterceptor : MokkeryInterceptor {
     val mode: MockMode
     val kind: MokkeryKind
 
@@ -19,7 +19,7 @@ internal interface MokkeryMock : MokkeryInterceptor {
 }
 
 @Suppress("unused")
-internal fun MokkeryMock(mockMode: MockMode, kind: MokkeryKind): MokkeryMock = MokkeryMockImpl(
+internal fun MokkeryMockInterceptor(mockMode: MockMode, kind: MokkeryKind): MokkeryMockInterceptor = MokkeryMockInterceptorImpl(
     mockMode,
     kind,
     TemplatingInterceptor(),
@@ -27,10 +27,10 @@ internal fun MokkeryMock(mockMode: MockMode, kind: MokkeryKind): MokkeryMock = M
     AnsweringInterceptor(mockMode)
 )
 
-private class MokkeryMockImpl(
+private class MokkeryMockInterceptorImpl(
     override val mode: MockMode,
     override val kind: MokkeryKind,
     override val templating: TemplatingInterceptor,
     override val callTracing: CallTracingInterceptor,
     override val answering: AnsweringInterceptor,
-) : MokkeryMock, MokkeryInterceptor by combine(templating, callTracing, answering)
+) : MokkeryMockInterceptor, MokkeryInterceptor by combine(templating, callTracing, answering)

@@ -16,7 +16,7 @@ internal interface MokkeryInterceptorScope {
 
 internal interface MokkeryMockScope : MokkeryInterceptorScope {
 
-    override val interceptor: MokkeryMock
+    override val interceptor: MokkeryMockInterceptor
 }
 
 internal fun MokkeryMockScope(
@@ -34,7 +34,7 @@ private class DynamicMokkeryMockScope(
     typeName: String,
     override val interceptedTypes: List<KClass<*>>,
 ) : MokkeryMockScope {
-    override val interceptor = MokkeryMock(mode, kind)
+    override val interceptor = MokkeryMockInterceptor(mode, kind)
 
     override val id = MockUniqueReceiversGenerator.generate(typeName)
 }

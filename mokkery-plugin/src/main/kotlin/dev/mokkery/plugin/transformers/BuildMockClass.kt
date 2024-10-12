@@ -165,7 +165,7 @@ private fun IrClass.addMockClassConstructor(
     block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { }
 ) {
     val context = transformer.pluginContext
-    val mokkeryMock = transformer.getFunction(Mokkery.Function.MokkeryMock)
+    val mokkeryMock = transformer.getFunction(Mokkery.Function.MokkeryMockInterceptor)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
     val interceptor = overridePropertyBackingField(context, scopeClass.getProperty("interceptor"))
