@@ -3,6 +3,7 @@ package dev.mokkery.plugin.diagnostics
 import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
 import dev.mokkery.plugin.core.validationMode
+import dev.mokkery.plugin.fir.compat.toRegularClassSymbolCompat
 import dev.mokkery.plugin.fir.constructors
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.isSomeFunctionType
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
-import org.jetbrains.kotlin.fir.types.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.isJs
@@ -95,7 +95,7 @@ private class MokkeryScopedCallsChecker(
         val classMappings = expression.typeArguments.groupBy {
             val type = it.toConeTypeProjection().type ?: return
             if (!checkInterceptionType(it.source ?: expression.source, type)) return
-            val classSymbol = type.toRegularClassSymbol(session) ?: return
+            val classSymbol = type.toRegularClassSymbolCompat(session) ?: return
             classSymbol
         }
         if (!checkNoDuplicates(expression.typeArguments.size, classMappings)) return
@@ -165,7 +165,7 @@ private class MokkeryScopedCallsChecker(
 
     private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
         if (!checkInterceptionTypeParameter(source, type)) return false
-        val classSymbol = type.toRegularClassSymbol(session) ?: return false
+        val classSymbol = type.toRegularClassSymbolCompat(session) ?: return false
         if (!checkInterceptionModality(source, classSymbol)) return false
         if (classSymbol.isInterface) return true
         if (!checkClassInterceptionRequirements(source, classSymbol)) return false
@@ -224,7 +224,7 @@ private class MokkeryScopedCallsChecker(
         val inheritedSymbols = classSymbol
             .resolvedSuperTypes
             .asSequence()
-            .mapNotNull { it.toRegularClassSymbol(session) }
+            .mapNotNull { it.toRegularClassSymbolCompat(session) }
             .flatMap { it.declarationSymbols }
         val allDeclarationSymbols = classSymbol
             .declarationSymbols
