@@ -1,7 +1,7 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery.Errors
-import dev.mokkery.plugin.fir.renderTypeCompat
+import dev.mokkery.plugin.fir.compat.renderTypeCompat
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
