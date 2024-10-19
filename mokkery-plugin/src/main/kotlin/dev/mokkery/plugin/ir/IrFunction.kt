@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.ir.compat.copyToCompat
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.backend.jvm.ir.isCompiledToJvmDefault
@@ -7,7 +8,6 @@ import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isFromJava
 import org.jetbrains.kotlin.ir.util.isInterface
@@ -20,9 +20,9 @@ fun IrSimpleFunction.copyReturnTypeFrom(function: IrSimpleFunction) {
 }
 
 fun IrSimpleFunction.copyParametersFrom(function: IrSimpleFunction) {
-    extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
+    extensionReceiverParameter = function.extensionReceiverParameter?.copyToCompat(this)
     valueParameters = function.valueParameters
-        .memoryOptimizedMap { it.copyTo(this, defaultValue = null) }
+        .memoryOptimizedMap { it.copyToCompat(this, defaultValue = null) }
 }
 
 fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach { param ->

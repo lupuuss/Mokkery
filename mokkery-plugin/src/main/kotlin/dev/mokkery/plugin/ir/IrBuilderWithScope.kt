@@ -4,13 +4,15 @@ import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
+import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.ir.compat.IrCallImplCompat
 import dev.mokkery.plugin.ir.compat.IrClassReferenceImplCompat
 import dev.mokkery.plugin.ir.compat.IrFunctionExpressionImplCompat
 import dev.mokkery.plugin.ir.compat.IrGetEnumValueImplCompat
-import dev.mokkery.plugin.core.getClass
-import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.ir.compat.irIfNotNullCompat
+import dev.mokkery.plugin.ir.compat.irIfThenCompat
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -41,8 +43,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -110,8 +111,8 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
     }
 }
 
-fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrIfThenElseImpl {
-    return irIfThen(
+fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
+    return irIfThenCompat(
         condition = irNot(irEqualsNull(argument = arg)),
         thenPart = then
     )
@@ -154,10 +155,10 @@ fun IrBuilderWithScope.irInvokeIfNotNull(
     function: IrExpression,
     isSuspend: Boolean,
     vararg args: IrExpression
-): IrIfThenElseImpl {
-    return irIfNotNull(
-        function,
-        irInvoke(function, isSuspend, *args)
+): IrWhen {
+    return irIfNotNullCompat(
+        arg = function,
+        then = irInvoke(function, isSuspend, *args)
     )
 }
 
@@ -196,14 +197,16 @@ fun IrBuilderWithScope.irCall(
     origin: IrStatementOrigin? = null,
     superQualifierSymbol: IrClassSymbol? = null,
     block: IrCall.() -> Unit = { }
-): IrCall =
-    IrCallImpl(
-        startOffset, endOffset, type, symbol,
-        typeArgumentsCount = typeArgumentsCount,
-        valueArgumentsCount = valueArgumentsCount,
-        origin = origin,
-        superQualifierSymbol = superQualifierSymbol
-    ).apply(block)
+): IrCall = IrCallImplCompat(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = type,
+    origin = origin,
+    typeArgumentsCount = typeArgumentsCount,
+    valueArgumentsCount = valueArgumentsCount,
+    symbol = symbol,
+    superQualifierSymbol = superQualifierSymbol
+).apply(block)
 
 inline fun IrBuilderWithScope.irCallConstructor(
     constructor: IrConstructor,
