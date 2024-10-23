@@ -4,6 +4,7 @@ import dev.mokkery.internal.CallContext
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MokkeryInterceptor
 import dev.mokkery.internal.MokkeryToken
+import dev.mokkery.internal.id
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 

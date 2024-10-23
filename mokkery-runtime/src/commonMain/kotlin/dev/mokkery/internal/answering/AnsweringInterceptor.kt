@@ -10,6 +10,7 @@ import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryInterceptor
 import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
+import dev.mokkery.internal.id
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.CallTraceReceiverShortener

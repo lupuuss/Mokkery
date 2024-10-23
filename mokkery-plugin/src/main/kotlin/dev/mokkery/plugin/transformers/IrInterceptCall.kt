@@ -69,7 +69,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
     }
     return irCall(interceptFun) {
         dispatchReceiver = interceptorScopeClass
-            .getPropertyGetter("interceptor")!!
+            .getPropertyGetter("_mokkeryInterceptor")!!
             .let(::irCall)
             .apply { dispatchReceiver = mokkeryScope }
         val contextCreationCall = irCallConstructor(callContextClass.primaryConstructor!!) {

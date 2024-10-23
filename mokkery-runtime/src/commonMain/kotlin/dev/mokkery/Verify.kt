@@ -6,6 +6,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
 import dev.mokkery.internal.failAssertion
+import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.names.GroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.tracing.CallTrace

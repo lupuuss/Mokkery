@@ -5,6 +5,8 @@ import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.answering.AnsweringInterceptor
 import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
+import dev.mokkery.internal.id
+import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.tracing.CallTracingInterceptor
 
 /**

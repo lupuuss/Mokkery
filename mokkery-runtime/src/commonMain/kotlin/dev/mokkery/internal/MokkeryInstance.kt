@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PropertyName")
 
 package dev.mokkery.internal
 
@@ -7,17 +7,29 @@ import kotlin.reflect.KClass
 
 internal interface MokkeryInstance {
 
-    val id: String
+    val _mokkeryId: String
 
-    val interceptor: MokkeryInterceptor
+    val _mokkeryInterceptor: MokkeryInterceptor
 
-    val interceptedTypes: List<KClass<*>>
+    val _mokkeryInterceptedTypes: List<KClass<*>>
 }
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline val MokkeryInstance.id get() = _mokkeryId
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline val MokkeryInstance.interceptor get() = _mokkeryInterceptor
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline val MokkeryInstance.interceptedTypes get() = _mokkeryInterceptedTypes
 
 internal interface MokkeryMockInstance : MokkeryInstance {
 
-    override val interceptor: MokkeryMockInterceptor
+    override val _mokkeryInterceptor: MokkeryMockInterceptor
 }
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline val MokkeryMockInstance.interceptor get() = _mokkeryInterceptor
 
 internal fun MokkeryMockInstance(
     mode: MockMode,
@@ -32,9 +44,9 @@ private class DynamicMokkeryMockInstance(
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
-    override val interceptedTypes: List<KClass<*>>,
+    override val _mokkeryInterceptedTypes: List<KClass<*>>,
 ) : MokkeryMockInstance {
-    override val interceptor = MokkeryMockInterceptor(mode, kind)
+    override val _mokkeryInterceptor = MokkeryMockInterceptor(mode, kind)
 
-    override val id = MockUniqueReceiversGenerator.generate(typeName)
+    override val _mokkeryId = MockUniqueReceiversGenerator.generate(typeName)
 }

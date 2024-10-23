@@ -84,14 +84,14 @@ class AnsweringInterceptorTest {
 
     @Test
     fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
+        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
         val context = fakeCallContext<Int>(supers = mapOf(Unit::class to { _: List<Any?> -> 10 }))
         assertEquals(10, AnsweringInterceptor(original, callMatcher, lookup).interceptCall(context))
     }
 
     @Test
     fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
-        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
+        val lookup = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
         val context = fakeCallContext<Int>(supers = mapOf(Unit::class to suspendSuper.unsafeCast()))
         assertEquals(11, AnsweringInterceptor(original, callMatcher, lookup).interceptSuspendCall(context))

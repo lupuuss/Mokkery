@@ -8,6 +8,7 @@ import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.bestName
 import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
+import dev.mokkery.internal.interceptedTypes
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.internal.unsafeCastOrNull
 import kotlin.reflect.KClass

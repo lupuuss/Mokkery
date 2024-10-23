@@ -3,6 +3,7 @@ package dev.mokkery
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
+import dev.mokkery.internal.interceptor
 
 /**
  * Removes all answers configured for given [mocks].

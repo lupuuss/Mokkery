@@ -7,6 +7,7 @@ import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.asListOrNull
+import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.matcher.ArgMatchersComposer
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.signature.SignatureGenerator
