@@ -4,7 +4,7 @@ import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.render.ToStringRenderer
 import dev.mokkery.internal.render.ValueDescriptionRenderer
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 
@@ -17,15 +17,15 @@ internal class MatchersStatusRenderer(
         val (template, trace) = value
         return buildString {
             trace.args.forEach {
-                append(it.describeMatchingAgainst(template.matchers[it.name]))
+                append(it.describeMatchingAgainst(template.matchers[it.parameter.name]))
             }
         }
     }
 
-    private fun CallArg.describeMatchingAgainst(matcher: ArgMatcher<Any?>?): String = buildString {
+    private fun CallArgument.describeMatchingAgainst(matcher: ArgMatcher<Any?>?): String = buildString {
         val matches = matcher?.matches(value) == true
         val status = if (matches) "[+]" else "[-]"
-        val statusLine = "$status $name:"
+        val statusLine = "$status ${parameter.name}:"
         val matcherRendered = matcher?.let(matcherRenderer::render) ?: "null"
         append(statusLine)
         if (matches) {

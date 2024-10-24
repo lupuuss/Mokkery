@@ -13,6 +13,7 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_context by fqName
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_matcher by fqName
@@ -35,7 +36,7 @@ object Mokkery {
 
         val CallContext by dev_mokkery_internal.klass
 
-        val CallArg by dev_mokkery_internal_tracing.klass
+        val CallArgument by dev_mokkery_context.klass
 
         val TemplatingScope by dev_mokkery_internal_templating.klass
         val MokkeryInstanceLookup by dev_mokkery_internal_dynamic.klass

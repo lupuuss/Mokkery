@@ -6,7 +6,7 @@ import dev.mokkery.MockMode.original
 import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.CallNotMockedException
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
@@ -210,12 +210,12 @@ class AnsweringInterceptorTest {
         val answer = ScopeCapturingAnswer()
         answering.setup(fakeCallTemplate(), answer)
         val context = fakeCallContext<Int>(
-            args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
+            args = listOf(1, 2, 3).map { CallArgument( it, "<$it>", Int::class, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
         )
         answering.interceptCall(context)
         assertNotNull(answer.capturedScope)
-        assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
+        assertEquals(context.args.map(CallArgument::value), answer.capturedScope!!.args)
         assertEquals(context.instance, answer.capturedScope!!.self)
         assertEquals(context.returnType, answer.capturedScope!!.returnType)
         assertEquals(context.supers, answer.capturedScope!!.supers)
@@ -227,12 +227,12 @@ class AnsweringInterceptorTest {
         val answer = ScopeCapturingAnswer()
         answering.setup(fakeCallTemplate(), answer)
         val context = fakeCallContext<Int>(
-            args = listOf(1, 2, 3).map { CallArg("<$it>", Int::class, it, false) },
+            args = listOf(1, 2, 3).map { CallArgument(it, "<$it>", Int::class, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to {  })
         )
         answering.interceptSuspendCall(context)
         assertNotNull(answer.capturedScope)
-        assertEquals(context.args.map(CallArg::value), answer.capturedScope!!.args)
+        assertEquals(context.args.map(CallArgument::value), answer.capturedScope!!.args)
         assertEquals(context.instance, answer.capturedScope!!.self)
         assertEquals(context.returnType, answer.capturedScope!!.returnType)
         assertEquals(context.supers, answer.capturedScope!!.supers)

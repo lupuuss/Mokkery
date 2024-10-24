@@ -1,6 +1,6 @@
 package dev.mokkery.internal
 
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import kotlin.reflect.KClass
 
 internal actual fun KClass<*>.bestName(): String = simpleName.orEmpty()
@@ -9,4 +9,4 @@ internal actual fun KClass<*>.bestName(): String = simpleName.orEmpty()
 internal actual inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*> = this
 
 @Suppress("NOTHING_TO_INLINE")
-internal actual inline fun List<CallArg>.copyWithReplacedKClasses(): List<CallArg> = this
+internal actual inline fun List<CallArgument>.copyWithReplacedKClasses(): List<CallArgument> = this

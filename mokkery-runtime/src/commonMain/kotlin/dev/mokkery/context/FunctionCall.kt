@@ -8,7 +8,7 @@ import dev.drewhamilton.poko.Poko
 @Poko
 public class FunctionCall internal constructor(
     public val function: Function,
-    public val args: List<Any?>
+    public val args: List<CallArgument>
 ) : MokkeryContext.Element {
 
     override val key: Key = Key

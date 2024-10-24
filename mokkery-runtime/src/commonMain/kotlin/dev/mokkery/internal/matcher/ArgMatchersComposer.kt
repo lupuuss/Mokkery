@@ -4,24 +4,24 @@ import dev.mokkery.internal.MultipleMatchersForSingleArgException
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.arrayElementType
 import dev.mokkery.internal.asListOrNull
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.varargs.VarArgMatcher
 import dev.mokkery.matcher.varargs.VarargMatcherMarker
 
 internal interface ArgMatchersComposer {
 
-    fun compose(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?>
+    fun compose(arg: CallArgument, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?>
 }
 
 internal fun ArgMatchersComposer(): ArgMatchersComposer = ArgMatchersComposerImpl()
 
 private class ArgMatchersComposerImpl : ArgMatchersComposer {
-    override fun compose(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
+    override fun compose(arg: CallArgument, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
         return when {
-            arg.isVararg -> composeVarargs(arg, matchers)
+            arg.parameter.isVararg -> composeVarargs(arg, matchers)
             matchers.isEmpty() -> ArgMatcher.Equals(arg.value)
-            else -> compose(arg.name, matchers)
+            else -> compose(arg.parameter.name, matchers)
         }
     }
 
@@ -47,8 +47,8 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
         return stack.singleOrNull() ?: throw MultipleMatchersForSingleArgException(name, stack)
     }
 
-    private fun composeVarargs(arg: CallArg, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
-        val matcher = compose(arg.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
+    private fun composeVarargs(arg: CallArgument, matchers: List<ArgMatcher<Any?>>): ArgMatcher<Any?> {
+        val matcher = compose(arg.parameter.name, matchers + CompositeVarArgMatcher(arg.value.arrayElementType()))
         require(matcher is CompositeVarArgMatcher)
         val matchersSize = matcher.matchers.size
         val expectedMatchersSize = (arg.value.asListOrNull()?.size ?: 0)

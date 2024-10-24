@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -85,13 +86,13 @@ fun IrBlockBodyBuilder.irInterceptCall(
 }
 
 private fun IrBuilderWithScope.irCallArgsList(scope: TransformerScope, parameters: List<IrValueParameter>): IrCall {
-    val callArgClass = scope.getClass(Mokkery.Class.CallArg)
+    val callArgClass = scope.getClass(Mokkery.Class.CallArgument)
     val callArgs = parameters
         .map {
-            irCallConstructor(callArgClass.primaryConstructor!!) {
-                putValueArgument(0, irString(it.name.asString()))
-                putValueArgument(1, kClassReference(it.type.eraseTypeParameters()))
-                putValueArgument(2, irGet(it))
+            irCallConstructor(callArgClass.constructors.take(2).last()) {
+                putValueArgument(0, irGet(it))
+                putValueArgument(1, irString(it.name.asString()))
+                putValueArgument(2, kClassReference(it.type.eraseTypeParameters()))
                 putValueArgument(3, irBoolean(it.isVararg))
             }
         }

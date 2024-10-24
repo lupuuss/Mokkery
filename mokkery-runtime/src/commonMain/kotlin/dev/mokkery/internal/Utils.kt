@@ -1,7 +1,7 @@
 package dev.mokkery.internal
 
 import dev.mokkery.MokkeryRuntimeException
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
@@ -17,7 +17,7 @@ internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.t
 internal fun callToString(
     receiver: String,
     name: String,
-    args: List<CallArg>,
+    args: List<CallArgument>,
 ) = buildString {
     append(receiver)
     append(".")
@@ -26,13 +26,13 @@ internal fun callToString(
 
 internal fun callFunctionToString(
     name: String,
-    args: List<CallArg>,
+    args: List<CallArgument>,
 ) = PropertyDescriptor.fromNameOrNull(name)
     ?.toCallString(args.map { it.value.description() })
     ?: buildString {
         append(name)
         append("(")
-        append(args.joinToString { "${it.name} = ${it.value.description()}" })
+        append(args.joinToString { "${it.parameter.name} = ${it.value.description()}" })
         append(")")
     }
 
@@ -66,4 +66,4 @@ internal expect inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*>
 /*
  * Similarly to takeIfImplementedOrAny only relevant for K/N. It avoids copying List<CallArgs> on other platforms.
  */
-internal expect inline fun List<CallArg>.copyWithReplacedKClasses(): List<CallArg>
+internal expect inline fun List<CallArgument>.copyWithReplacedKClasses(): List<CallArgument>

@@ -41,5 +41,5 @@ private class CallMatcherImpl(private val signatureGenerator: SignatureGenerator
 
     private fun CallTrace.matchesArgsOf(
         template: CallTemplate
-    ) = args.all { arg -> template.matchers[arg.name]?.matches(arg.value) ?: false }
+    ) = args.all { arg -> template.matchers[arg.parameter.name]?.matches(arg.value) == true }
 }

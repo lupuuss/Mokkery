@@ -13,27 +13,29 @@ import dev.mokkery.internal.answering.autofill.asAutofillProvided
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.CurrentMokkeryInstance
 import dev.mokkery.internal.templating.TemplatingScope
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import kotlin.reflect.KClass
 
 internal fun createMokkeryCallScope(
     instance: MokkeryInstance,
     name: String,
     returnType: KClass<*>,
-    args: List<CallArg>,
+    args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
 ): MokkeryCallScope {
-    val parameters = ArrayList<Function.Parameter>(args.size)
-    val arguments = ArrayList<Any?>(args.size)
     val safeArgs = args.copyWithReplacedKClasses()
-    for (argIndex in safeArgs.indices) {
-        parameters[argIndex] = safeArgs[argIndex].let { Function.Parameter(it.name, it.type, it.isVararg) }
-        arguments[argIndex] = safeArgs[argIndex].value
-    }
+    val call = FunctionCall(
+        function = Function(
+            name = name,
+            parameters = args.map(CallArgument::parameter),
+            returnType = returnType.takeIfImplementedOrAny()
+        ),
+        args = safeArgs
+    )
     return MokkeryCallScope(
         CurrentMokkeryInstance(instance)
-                + FunctionCall(Function(name, parameters, returnType.takeIfImplementedOrAny()), arguments)
+                + call
                 + AssociatedFunctions(supers, spyDelegate)
     )
 }

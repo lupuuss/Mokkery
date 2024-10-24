@@ -13,7 +13,7 @@ import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.signature.SignatureGenerator
 import dev.mokkery.internal.subListAfter
 import dev.mokkery.internal.takeIfImplementedOrAny
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
@@ -31,7 +31,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 
     fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T
 
-    fun saveTemplate(receiver: String, name: String, args: List<CallArg>)
+    fun saveTemplate(receiver: String, name: String, args: List<CallArgument>)
 
     fun release()
 }
@@ -119,21 +119,22 @@ private class TemplatingScopeImpl(
         return arg
     }
 
-    override fun saveTemplate(receiver: String, name: String, args: List<CallArg>) {
+    override fun saveTemplate(receiver: String, name: String, args: List<CallArgument>) {
         if (isReleased) return
         val matchers = flush(args)
         templates += CallTemplate(receiver, name, signatureGenerator.generate(name, args), matchers.toMap())
     }
 
-    private fun flush(args: List<CallArg>): List<Pair<String, ArgMatcher<Any?>>> {
+    private fun flush(args: List<CallArgument>): List<Pair<String, ArgMatcher<Any?>>> {
         val namedMatchers = binder.firstProperlyBoundedData()
             .matchers
             .toMutableMap()
         currentArgMatchers.clear()
         binder.reset()
         return args.map {
-            val matchers = namedMatchers[it.name].orEmpty()
-            it.name to composer.compose(it, matchers)
+            val param = it.parameter
+            val matchers = namedMatchers[param.name].orEmpty()
+            param.name to composer.compose(it, matchers)
         }
     }
 }

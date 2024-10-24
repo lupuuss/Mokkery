@@ -16,7 +16,7 @@ import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.CallTraceReceiverShortener
 import dev.mokkery.internal.names.shortToString
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
@@ -94,7 +94,7 @@ private class AnsweringInterceptorImpl(
 
     private fun CallContext.toFunctionScope() = FunctionScope(
         returnType = returnType,
-        args = args.map(CallArg::value),
+        args = args.map(CallArgument::value),
         self = lookup.reverseResolve(instance),
         supers = supers
     )
@@ -104,7 +104,7 @@ private class AnsweringInterceptorImpl(
         matchers.forEach { (name, matcher) ->
             if (matcher !is Capture<*>) return@forEach
             val capture = matcher as Capture<Any?>
-            val argValue = trace.args.find { it.name == name }?.value
+            val argValue = trace.args.find { it.parameter.name == name }?.value
             capture.capture(argValue)
         }
     }
