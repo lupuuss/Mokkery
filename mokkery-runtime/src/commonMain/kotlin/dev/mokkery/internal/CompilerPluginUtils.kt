@@ -5,10 +5,38 @@ package dev.mokkery.internal
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.getIfProvided
 import dev.mokkery.answering.autofill.provideValue
+import dev.mokkery.context.Function
+import dev.mokkery.context.FunctionCall
+import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.asAutofillProvided
+import dev.mokkery.internal.context.AssociatedFunctions
+import dev.mokkery.internal.context.CurrentMokkeryInstance
 import dev.mokkery.internal.templating.TemplatingScope
+import dev.mokkery.internal.tracing.CallArg
 import kotlin.reflect.KClass
+
+internal fun createMokkeryCallScope(
+    instance: MokkeryInstance,
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArg>,
+    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
+    spyDelegate: kotlin.Function<Any?>? = null
+): MokkeryCallScope {
+    val parameters = ArrayList<Function.Parameter>(args.size)
+    val arguments = ArrayList<Any?>(args.size)
+    val safeArgs = args.copyWithReplacedKClasses()
+    for (argIndex in safeArgs.indices) {
+        parameters[argIndex] = safeArgs[argIndex].let { Function.Parameter(it.name, it.type, it.isVararg) }
+        arguments[argIndex] = safeArgs[argIndex].value
+    }
+    return MokkeryCallScope(
+        CurrentMokkeryInstance(instance)
+                + FunctionCall(Function(name, parameters, returnType.takeIfImplementedOrAny()), arguments)
+                + AssociatedFunctions(supers, spyDelegate)
+    )
+}
 
 internal fun generateMockId(typeName: String) = MockUniqueReceiversGenerator.generate(typeName)
 
