@@ -12,8 +12,14 @@ import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.asAutofillProvided
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.CurrentMokkeryInstance
-import dev.mokkery.internal.templating.TemplatingScope
+import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.context.CallArgument
+import dev.mokkery.internal.context.GlobalMokkeryContext
+import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.utils.copyWithReplacedKClasses
+import dev.mokkery.internal.utils.mokkeryRuntimeError
+import dev.mokkery.internal.utils.takeIfImplementedOrAny
+import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
 internal fun createMokkeryCallScope(
@@ -34,13 +40,17 @@ internal fun createMokkeryCallScope(
         args = safeArgs
     )
     return MokkeryCallScope(
-        CurrentMokkeryInstance(instance)
+        GlobalMokkeryContext
+                + CurrentMokkeryInstance(instance)
                 + call
                 + AssociatedFunctions(supers, spyDelegate)
     )
 }
 
-internal fun generateMockId(typeName: String) = MockUniqueReceiversGenerator.generate(typeName)
+internal fun generateMockId(typeName: String) = GlobalMokkeryContext
+    .tools
+    .instanceIdGenerator
+    .generate(typeName)
 
 internal fun <T> autofillConstructor(type: KClass<*>): T = autofillConstructorProvider
     .provideValue(type.takeIfImplementedOrAny())

@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.substitute
 
 fun IrBlockBodyBuilder.irInterceptMethod(
@@ -60,20 +60,19 @@ fun IrBlockBodyBuilder.irInterceptCall(
     function: IrSimpleFunction,
     irCallSpyLambda: IrExpression? = null
 ): IrCall {
-    val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryInterceptor).symbol
+    val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
     val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
-    val callContextClass = transformer.getClass(Mokkery.Class.CallContext)
     val interceptFun = if (function.isSuspend) {
-        interceptorClass.functionByName("interceptSuspendCall")
+        interceptorClass.functionByName("interceptSuspend")
     } else {
-        interceptorClass.functionByName("interceptCall")
+        interceptorClass.functionByName("intercept")
     }
     return irCall(interceptFun) {
         dispatchReceiver = interceptorScopeClass
             .getPropertyGetter("_mokkeryInterceptor")!!
             .let(::irCall)
             .apply { dispatchReceiver = mokkeryScope }
-        val contextCreationCall = irCallConstructor(callContextClass.primaryConstructor!!) {
+        val contextCreationCall = irCall(transformer.getFunction(Mokkery.Function.createMokkeryCallScope)) {
             putValueArgument(0, mokkeryScope)
             putValueArgument(1, irString(function.name.asString()))
             putValueArgument(2, kClassReference(function.returnType.eraseTypeParameters()))

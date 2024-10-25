@@ -5,10 +5,14 @@ import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.MokkeryContext.Empty
 import dev.mokkery.interceptor.withContext
-import dev.mokkery.internal.mokkeryRuntimeError
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 internal fun combine(vararg interceptors: MokkeryCallInterceptor): MokkeryCallInterceptor {
-    return NextCallInterceptor(0, interceptors)
+    return RecursiveNextCallInterceptor(0, interceptors)
+}
+
+internal fun List<MokkeryCallInterceptor>.combined(): MokkeryCallInterceptor {
+    return RecursiveNextCallInterceptor(0, this.toTypedArray())
 }
 
 internal inline val MokkeryContext.nextInterceptor: MokkeryCallInterceptor
@@ -16,15 +20,18 @@ internal inline val MokkeryContext.nextInterceptor: MokkeryCallInterceptor
         return get(NextCallInterceptor) ?: mokkeryRuntimeError("There is no next interceptor is the pipeline!")
     }
 
-internal class NextCallInterceptor(
+internal interface NextCallInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
+    override val key get() = Key
+    companion object Key : MokkeryContext.Key<NextCallInterceptor>
+}
+
+private class RecursiveNextCallInterceptor(
     private val index: Int,
     private val interceptors: Array<out MokkeryCallInterceptor>,
-) : MokkeryCallInterceptor, MokkeryContext.Element {
-
-    override val key = Key
+) : NextCallInterceptor {
 
     private val next = if (index + 1 < interceptors.size) {
-        NextCallInterceptor(index + 1, interceptors)
+        RecursiveNextCallInterceptor(index + 1, interceptors)
     } else {
         Empty
     }
@@ -36,6 +43,4 @@ internal class NextCallInterceptor(
     override suspend fun interceptSuspend(scope: MokkeryCallScope): Any? {
         return interceptors[index].interceptSuspend(scope.withContext(next))
     }
-
-    companion object Key : MokkeryContext.Key<NextCallInterceptor>
 }

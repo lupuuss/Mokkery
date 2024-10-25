@@ -2,6 +2,7 @@ package dev.mokkery.interceptor
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.FunctionScope
+import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.call
@@ -39,7 +40,9 @@ public val MokkeryCallScope.self: Any?
 /**
  * Returns current call.
  */
-public val MokkeryCallScope.call: FunctionCall get() = context.call
+public val MokkeryCallScope.call: FunctionCall
+    get() = context.call
+
 /**
  * Returns a map of available super calls for currently called function.
  */
@@ -54,7 +57,7 @@ public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
     val function = call.function
     return FunctionScope(
         returnType = function.returnType,
-        args = call.args,
+        args = call.args.map(CallArgument::value),
         self = self,
         supers = supers
     )

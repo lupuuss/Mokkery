@@ -1,10 +1,10 @@
 package dev.mokkery.test
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.answering.AnsweringInterceptor
-import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.interceptor.AnsweringInterceptor
+import dev.mokkery.internal.calls.CallTemplate
 
-internal class TestAnsweringInterceptor : AnsweringInterceptor, TestMokkeryInterceptor() {
+internal class TestAnsweringInterceptor : AnsweringInterceptor, TestMokkeryCallInterceptor() {
 
     private val _answers = mutableMapOf<CallTemplate, Answer<*>>()
     override val answers: Map<CallTemplate, Answer<*>> = _answers

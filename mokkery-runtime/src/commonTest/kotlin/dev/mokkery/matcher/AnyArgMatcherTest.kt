@@ -1,6 +1,5 @@
 package dev.mokkery.matcher
 
-import dev.mokkery.matcher.ArgMatcher
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

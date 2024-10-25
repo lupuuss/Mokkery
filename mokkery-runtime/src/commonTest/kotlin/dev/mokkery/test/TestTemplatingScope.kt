@@ -2,8 +2,8 @@ package dev.mokkery.test
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MokkeryMockInstance
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.templating.TemplatingScope
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.context.CallArgument
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass

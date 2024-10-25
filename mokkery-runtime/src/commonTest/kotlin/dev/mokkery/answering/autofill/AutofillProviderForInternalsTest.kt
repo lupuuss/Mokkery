@@ -1,7 +1,7 @@
 package dev.mokkery.answering.autofill
 
 import dev.mokkery.internal.DefaultNothingException
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest

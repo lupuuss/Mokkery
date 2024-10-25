@@ -3,11 +3,6 @@ package dev.mokkery.internal.names
 internal interface NameShortener {
 
     fun shorten(names: Set<String>): Map<String, String>
-
-    companion object {
-
-        val default = ReverseDomainNameShortener.withTypeArgumentsSupport()
-    }
 }
 
 internal object ReverseDomainNameShortener : NameShortener {

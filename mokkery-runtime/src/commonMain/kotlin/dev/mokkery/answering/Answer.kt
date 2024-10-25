@@ -7,7 +7,7 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingFunctionBlockingCallException
-import dev.mokkery.internal.description
+import dev.mokkery.internal.utils.description
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -123,7 +123,7 @@ public interface Answer<out T> {
         private val lock = reentrantLock()
         private var nestedSequential: Sequential<T>? by atomic(null)
 
-        override fun hasNext(): Boolean = lock.withLock { iterator.hasNext() || (nestedSequential?.hasNext() ?: false) }
+        override fun hasNext(): Boolean = lock.withLock { iterator.hasNext() || (nestedSequential?.hasNext() == true) }
 
         override fun call(scope: FunctionScope): T = getCurrent().call(scope)
 

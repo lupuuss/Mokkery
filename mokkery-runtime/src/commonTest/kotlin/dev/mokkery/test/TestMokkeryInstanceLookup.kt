@@ -1,7 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.internal.MokkeryInstance
-import dev.mokkery.internal.dynamic.MokkeryInstanceLookup
+import dev.mokkery.internal.MokkeryInstanceLookup
 
 internal class TestMokkeryInstanceLookup(
     private val resolveFun: (Any?) -> MokkeryInstance? = { it as MokkeryInstance ? }

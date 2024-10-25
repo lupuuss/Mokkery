@@ -1,8 +1,8 @@
 package dev.mokkery.internal.names
 
-import dev.mokkery.internal.MockUniqueReceiversGenerator
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.context.MokkeryTools
 import kotlin.collections.associateByTo
 import kotlin.collections.getValue
 import kotlin.collections.map
@@ -10,9 +10,14 @@ import kotlin.collections.mapTo
 import kotlin.collections.toList
 import kotlin.text.removePrefix
 
+internal fun MokkeryTools.createGroupMockReceiverShortener() = GroupMockReceiverShortener(
+    namesShortener,
+    instanceIdGenerator
+)
+
 internal class GroupMockReceiverShortener(
-    private val namesShortener: NameShortener = NameShortener.default,
-    private val receiversGenerator: MockUniqueReceiversGenerator = MockUniqueReceiversGenerator
+    private val namesShortener: NameShortener,
+    private val receiversGenerator: MokkeryInstanceIdGenerator
 ) {
 
     private lateinit var names: Map<String, String>

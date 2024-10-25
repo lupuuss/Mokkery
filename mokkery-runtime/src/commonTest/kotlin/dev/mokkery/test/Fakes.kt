@@ -1,11 +1,10 @@
 package dev.mokkery.test
 
 import dev.mokkery.answering.FunctionScope
-import dev.mokkery.internal.CallContext
-import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
@@ -38,19 +37,6 @@ internal inline fun <reified T> fakeCallArg(
     name: String = "arg",
     isVararg: Boolean = false
 ) = CallArgument(value, Function.Parameter(name, T::class, isVararg))
-
-internal inline fun <reified T> fakeCallContext(
-    selfId: String = "mock@1",
-    name: String = "call",
-    args: List<CallArgument> = emptyList(),
-    supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
-) = CallContext(
-    instance = TestMokkeryInstance(selfId),
-    name = name,
-    returnType = T::class,
-    args = args,
-    supers = supers
-)
 
 internal fun fakeCallTrace(
     receiver: String = "mock@1",

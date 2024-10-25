@@ -5,6 +5,6 @@ import kotlin.reflect.KClass
 
 internal data class TestMokkeryInstance(
     override val _mokkeryId: String = "Test",
-    override val _mokkeryInterceptor: TestMokkeryInterceptor = TestMokkeryInterceptor(),
+    override val _mokkeryInterceptor: TestMokkeryCallInterceptor = TestMokkeryCallInterceptor(),
     override val _mokkeryInterceptedTypes: List<KClass<*>> = listOf(Unit::class)
 ) : MokkeryInstance

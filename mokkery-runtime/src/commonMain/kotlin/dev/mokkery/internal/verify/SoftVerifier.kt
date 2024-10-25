@@ -1,18 +1,20 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.failAssertion
-import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.matcher.isMatching
+import dev.mokkery.internal.utils.failAssertion
+import dev.mokkery.internal.calls.CallMatcher
+import dev.mokkery.internal.calls.isMatching
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.context.GlobalMokkeryContext
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 import dev.mokkery.internal.verify.render.TemplateGroupedMatchingResultsRenderer
 
 internal class SoftVerifier(
     private val atLeast: Int,
     private val atMost: Int,
-    private val callMatcher: CallMatcher = CallMatcher(),
+    private val callMatcher: CallMatcher = GlobalMokkeryContext.tools.callMatcher,
     private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults> = TemplateGroupedMatchingResultsRenderer()
 ) : Verifier {
 

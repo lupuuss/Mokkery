@@ -1,7 +1,7 @@
 package dev.mokkery.matcher.nullable
 
 import dev.mokkery.internal.MissingMatchersForComposite
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture

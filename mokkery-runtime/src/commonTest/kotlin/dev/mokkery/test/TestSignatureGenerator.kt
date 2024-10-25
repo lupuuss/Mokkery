@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.signature.SignatureGenerator
+import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.context.CallArgument
 
 internal class TestSignatureGenerator(

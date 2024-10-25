@@ -4,7 +4,8 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
-import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.interceptor.AnsweringInterceptor
 
 internal class UnifiedAnsweringScope<T>(
     private val answering: AnsweringInterceptor,

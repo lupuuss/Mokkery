@@ -1,8 +1,8 @@
 package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MultipleVarargGenericMatchersException
-import dev.mokkery.internal.asListOrNull
-import dev.mokkery.internal.toPlatformArrayOf
+import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.utils.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.varargs.VarArgMatcher

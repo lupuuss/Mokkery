@@ -2,6 +2,7 @@ package dev.mokkery.internal.coroutines
 
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.IllegalSuspensionException
+import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.test.fakeFunctionScope
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.Test
@@ -47,7 +48,7 @@ class RunSuspensionTest {
     @Test
     fun testFailsWithActualSuspension() {
         assertFailsWith<IllegalSuspensionException> {
-            runSuspension { suspendCoroutine {  } }
+            runSuspension { suspendCoroutine { } }
         }
     }
 

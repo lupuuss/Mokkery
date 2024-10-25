@@ -22,7 +22,7 @@ public inline fun <reified T : Any> ArgMatchersScope.notNull(matcher: T = any())
 @Poko
 public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) : ArgMatcher.Composite<T> {
 
-    override fun matches(arg: T): Boolean = arg?.let(matcher!!::matches) ?: false
+    override fun matches(arg: T): Boolean = arg?.let(matcher!!::matches) == true
 
     override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = NotNullMatcher(matcher = matcher)
 

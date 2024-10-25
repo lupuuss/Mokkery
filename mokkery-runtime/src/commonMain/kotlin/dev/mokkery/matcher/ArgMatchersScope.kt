@@ -1,7 +1,6 @@
 package dev.mokkery.matcher
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.annotations.InternalMokkeryApi
 import kotlin.reflect.KClass
 
 /**
