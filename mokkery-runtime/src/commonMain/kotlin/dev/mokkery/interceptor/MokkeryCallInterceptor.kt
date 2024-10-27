@@ -8,6 +8,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.call
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.self
+import dev.mokkery.internal.interceptor.MokkeryCallHooks
 import dev.mokkery.internal.interceptor.nextInterceptor
 import kotlin.reflect.KClass
 
@@ -20,6 +21,14 @@ public interface MokkeryCallInterceptor {
     public fun intercept(scope: MokkeryCallScope): Any?
 
     public suspend fun interceptSuspend(scope: MokkeryCallScope): Any?
+
+    public companion object {
+
+        /**
+         * Allows registering interceptors after a call is traced but before an answer is provided.
+         */
+        public val beforeAnswering: MokkeryHook<MokkeryCallInterceptor> = MokkeryCallHooks.beforeAnswering
+    }
 }
 
 /**

@@ -31,4 +31,9 @@ private class MokkeryMockInterceptorImpl(
     override val templating: TemplatingInterceptor,
     override val callTracing: CallTracingInterceptor,
     override val answering: AnsweringInterceptor,
-) : MokkeryMockInterceptor, MokkeryCallInterceptor by combine(templating, callTracing, answering)
+) : MokkeryMockInterceptor, MokkeryCallInterceptor by combine(
+    templating,
+    callTracing,
+    MokkeryCallHooks.beforeAnswering,
+    answering
+)
