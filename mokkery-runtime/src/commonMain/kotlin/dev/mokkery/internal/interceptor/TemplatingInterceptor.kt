@@ -3,10 +3,11 @@ package dev.mokkery.internal.interceptor
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.internal.context.autofillProvider
 import dev.mokkery.context.call
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.interceptor.nextInterceptSuspend
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.currentMokkeryInstance
@@ -45,9 +46,9 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         templatingScope = null
     }
 
-    override fun intercept(scope: MokkeryCallScope) = intercept(scope) { scope.nextIntercept() }
+    override fun intercept(scope: MokkeryBlockingCallScope) = intercept(scope) { scope.nextIntercept() }
 
-    override suspend fun interceptSuspend(scope: MokkeryCallScope) = intercept(scope) { scope.nextInterceptSuspend() }
+    override suspend fun intercept(scope: MokkerySuspendCallScope) = intercept(scope) { scope.nextIntercept() }
 
     private inline fun intercept(scope: MokkeryCallScope, nextIntercept: () -> Any?): Any? {
         if (!_isEnabled) return nextIntercept()

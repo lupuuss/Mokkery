@@ -7,7 +7,8 @@ import dev.mokkery.test.TestTemplatingScope
 import dev.mokkery.test.TestTemplatingScope.TemplateParams
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.runTest
-import dev.mokkery.test.testCallScope
+import dev.mokkery.test.testBlockingCallScope
+import dev.mokkery.test.testSuspendCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -33,7 +34,7 @@ class TemplatingInterceptorTest {
 
     @Test
     fun testCallsNextInterceptorOnInterceptCallWhenNotEnabled() {
-        val scope = testCallScope<Int>(context = context)
+        val scope = testBlockingCallScope<Int>(context = context)
         templating.intercept(scope)
         assertEquals(listOf(scope), nextInterceptor.interceptedCalls)
         assertEquals(emptyList(), nextInterceptor.interceptedSuspendCalls)
@@ -41,8 +42,8 @@ class TemplatingInterceptorTest {
 
     @Test
     fun testCallsNextInterceptorOnInterceptSuspendCallWhenNotEnabled() = runTest {
-        val scope = testCallScope<Int>(context = context)
-        templating.interceptSuspend(scope)
+        val scope = testSuspendCallScope<Int>(context = context)
+        templating.intercept(scope)
         assertEquals(emptyList(), nextInterceptor.interceptedCalls)
         assertEquals(listOf(scope), nextInterceptor.interceptedSuspendCalls)
     }
@@ -50,38 +51,38 @@ class TemplatingInterceptorTest {
     @Test
     fun testReturnsAutofillValueOnInterceptCallWhenEnabled() {
         templating.start(templatingScope)
-        assertEquals(13, templating.intercept(testCallScope<Int>(context = context)))
+        assertEquals(13, templating.intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnsAutofillValueOnInterceptSuspendCallWhenEnabled() = runTest {
         templating.start(templatingScope)
-        assertEquals(13, templating.interceptSuspend(testCallScope<Int>(context = context)))
+        assertEquals(13, templating.intercept(testSuspendCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnAutofillValueForTypeHintOnInterceptCallWhenEnabled() {
         templating.start(templatingScope)
         templatingScope.currentGenericReturnTypeHint = String::class
-        assertEquals("Hello!", templating.intercept(testCallScope<Int>(context = context)))
+        assertEquals("Hello!", templating.intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnsAutofillValueForTypeHintOnInterceptSuspendCallWhenEnabled() = runTest {
         templating.start(templatingScope)
         templatingScope.currentGenericReturnTypeHint = String::class
-        assertEquals("Hello!", templating.interceptSuspend(testCallScope<Int>(context = context)))
+        assertEquals("Hello!", templating.intercept(testSuspendCallScope<Int>(context = context)))
     }
 
     @Test
     fun testDoesNotRegisterCallsOnInterceptCallWhenNotEnabled() {
-        templating.intercept(testCallScope<Int>(context = nextInterceptor))
+        templating.intercept(testBlockingCallScope<Int>(context = nextInterceptor))
         assertEquals(emptyList(), templatingScope.recordedSaveCalls)
     }
 
     @Test
     fun testDoesNotRegisterCallsOnInterceptSuspendCallWhenNotEnabled() = runTest {
-        templating.interceptSuspend(testCallScope<Int>(context = nextInterceptor))
+        templating.intercept(testSuspendCallScope<Int>(context = nextInterceptor))
         assertEquals(emptyList(), templatingScope.recordedSaveCalls)
     }
 
@@ -89,7 +90,7 @@ class TemplatingInterceptorTest {
     fun testRegisterCallsOnInterceptCallWhenNotEnabled() {
         templating.start(templatingScope)
         templating.intercept(
-            testCallScope<Int>(
+            testBlockingCallScope<Int>(
                 selfId = "mock@1",
                 name = "call1",
                 args = args,
@@ -97,7 +98,7 @@ class TemplatingInterceptorTest {
             )
         )
         templating.intercept(
-            testCallScope<Int>(
+            testBlockingCallScope<Int>(
                 selfId = "mock@1",
                 name = "call2",
                 args = args,
@@ -116,16 +117,16 @@ class TemplatingInterceptorTest {
     @Test
     fun testRegisterCallsOnInterceptSuspendCallWhenNotEnabled() = runTest {
         templating.start(templatingScope)
-        templating.interceptSuspend(
-            testCallScope<Int>(
+        templating.intercept(
+            testSuspendCallScope<Int>(
                 selfId = "mock@1",
                 name = "call1",
                 args = args,
                 context = context
             )
         )
-        templating.interceptSuspend(
-            testCallScope<Int>(
+        templating.intercept(
+            testSuspendCallScope<Int>(
                 selfId = "mock@1",
                 name = "call2",
                 args = args,

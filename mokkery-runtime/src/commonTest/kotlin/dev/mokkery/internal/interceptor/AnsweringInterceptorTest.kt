@@ -22,7 +22,8 @@ import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.runTest
-import dev.mokkery.test.testCallScope
+import dev.mokkery.test.testBlockingCallScope
+import dev.mokkery.test.testSuspendCallScope
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,59 +42,59 @@ class AnsweringInterceptorTest {
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoAnswersAndStrictMode() {
         assertFailsWith<CallNotMockedException> {
-            answering.intercept(testCallScope<Unit>(context = context))
+            answering.intercept(testBlockingCallScope<Unit>(context = context))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoAnswersAndStrictMode() = runTest {
         assertFailsWith<CallNotMockedException> {
-            answering.interceptSuspend(testCallScope<Unit>(context = context))
+            answering.intercept(testSuspendCallScope<Unit>(context = context))
         }
     }
 
     @Test
     fun testReturnsUnitOnInterceptCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsUnit() {
-        AnsweringInterceptor(autoUnit).intercept(testCallScope<Unit>(context = context))
+        AnsweringInterceptor(autoUnit).intercept(testBlockingCallScope<Unit>(context = context))
     }
 
     @Test
     fun testReturnsUnitOnInterceptSuspendCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsUnit() = runTest {
-        AnsweringInterceptor(autoUnit).interceptSuspend(testCallScope<Unit>(context = context))
+        AnsweringInterceptor(autoUnit).intercept(testSuspendCallScope<Unit>(context = context))
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsNotUnit() {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(autoUnit).intercept(testCallScope<Int>(context = context))
+            AnsweringInterceptor(autoUnit).intercept(testBlockingCallScope<Int>(context = context))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsNotUnit() = runTest {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(autoUnit).interceptSuspend(testCallScope<Int>(context = context))
+            AnsweringInterceptor(autoUnit).intercept(testSuspendCallScope<Int>(context = context))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoSuperCallsForMockModeOriginal() {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(original).intercept(testCallScope<Int>(context = context))
+            AnsweringInterceptor(original).intercept(testBlockingCallScope<Int>(context = context))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoSuperCallsForMockModeOriginal() = runTest {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(original).interceptSuspend(testCallScope<Int>(context = context))
+            AnsweringInterceptor(original).intercept(testSuspendCallScope<Int>(context = context))
         }
     }
 
     @Test
     fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
         val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
-        val scope = testCallScope<Int>(
+        val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
             context = context + lookUp
         )
@@ -104,35 +105,35 @@ class AnsweringInterceptorTest {
     fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
         val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
-        val context = testCallScope<Int>(
+        val context = testSuspendCallScope<Int>(
             supers = mapOf(Unit::class to suspendSuper.unsafeCast()),
             context = context + lookUp
         )
-        assertEquals(11, AnsweringInterceptor(original).interceptSuspend(context))
+        assertEquals(11, AnsweringInterceptor(original).intercept(context))
     }
 
     @Test
     fun testReturnsEmptyValueOnInterceptCallWhenNoAnswersAndAutofillModeAndMethodReturnsNotUnit() {
-        assertEquals(0, AnsweringInterceptor(autofill).intercept(testCallScope<Int>(context = context)))
+        assertEquals(0, AnsweringInterceptor(autofill).intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnsEmptyValueOnInterceptSuspendCallWhenNoAnswersAndAutofillModeAndMethodReturnsNotUnit() {
-        assertEquals(0, AnsweringInterceptor(autofill).intercept(testCallScope<Int>(context = context)))
+        assertEquals(0, AnsweringInterceptor(autofill).intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnsAnswerOnInterceptCallForMatchingTemplate() {
         callMatcher.returns(true)
         answering.setup(fakeCallTemplate(), Answer.Const(3))
-        assertEquals(3, answering.intercept(testCallScope<Int>(context = context)))
+        assertEquals(3, answering.intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testReturnsAnswerOnInterceptSuspendCallForMatchingTemplate() = runTest {
         callMatcher.returns(true)
         answering.setup(fakeCallTemplate(), Answer.Const(3))
-        assertEquals(3, answering.interceptSuspend(testCallScope<Int>(context = context)))
+        assertEquals(3, answering.intercept(testSuspendCallScope<Int>(context = context)))
     }
 
     @Test
@@ -140,7 +141,7 @@ class AnsweringInterceptorTest {
         callMatcher.returns(false)
         answering.setup(fakeCallTemplate(), Answer.Const(3))
         assertFailsWith<CallNotMockedException> {
-            answering.intercept(testCallScope<Int>(context = context))
+            answering.intercept(testBlockingCallScope<Int>(context = context))
         }
     }
 
@@ -149,7 +150,7 @@ class AnsweringInterceptorTest {
         callMatcher.returns(false)
         answering.setup(fakeCallTemplate(), Answer.Const(3))
         assertFailsWith<CallNotMockedException> {
-            answering.interceptSuspend(testCallScope<Int>(context = context))
+            answering.intercept(testSuspendCallScope<Int>(context = context))
         }
     }
 
@@ -159,7 +160,7 @@ class AnsweringInterceptorTest {
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1))), Answer.Const(2))
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2))), Answer.Const(3))
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3))), Answer.Const(4))
-        assertEquals(4, answering.intercept(testCallScope<Int>(context = context)))
+        assertEquals(4, answering.intercept(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
@@ -168,7 +169,7 @@ class AnsweringInterceptorTest {
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1))), Answer.Const(2))
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2))), Answer.Const(3))
         answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3))), Answer.Const(4))
-        assertEquals(4, answering.interceptSuspend(testCallScope<Int>(context = context)))
+        assertEquals(4, answering.intercept(testSuspendCallScope<Int>(context = context)))
     }
 
     @Test
@@ -180,7 +181,7 @@ class AnsweringInterceptorTest {
         answering.setup(template1, Answer.Const(2))
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
-        answering.intercept(testCallScope<Int>(context = context))
+        answering.intercept(testBlockingCallScope<Int>(context = context))
         assertEquals(
             listOf(template3),
             callMatcher.recordedCalls.map { it.second }
@@ -196,7 +197,7 @@ class AnsweringInterceptorTest {
         answering.setup(template1, Answer.Const(2))
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
-        val scope = testCallScope<Int>(
+        val scope = testSuspendCallScope<Int>(
             selfId = "mock@1",
             name = "call",
             args = listOf(fakeCallArg(name = "1", value = 1)),
@@ -208,7 +209,7 @@ class AnsweringInterceptorTest {
             args = listOf(fakeCallArg(name = "1", value = 1)),
             orderStamp = 0
         )
-        answering.interceptSuspend(scope)
+        answering.intercept(scope)
         assertEquals(
             listOf(template3),
             callMatcher.recordedCalls.map { it.second }
@@ -224,7 +225,7 @@ class AnsweringInterceptorTest {
         callMatcher.returns(true)
         val answer = ScopeCapturingAnswer()
         answering.setup(fakeCallTemplate(), answer)
-        val scope = testCallScope<Int>(
+        val scope = testBlockingCallScope<Int>(
             args = listOf(1, 2, 3).map { CallArgument(it, "<$it>", Int::class, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to { }),
             context = context
@@ -242,12 +243,12 @@ class AnsweringInterceptorTest {
         callMatcher.returns(true)
         val answer = ScopeCapturingAnswer()
         answering.setup(fakeCallTemplate(), answer)
-        val scope = testCallScope<Int>(
+        val scope = testSuspendCallScope<Int>(
             args = listOf(1, 2, 3).map { CallArgument(it, "<$it>", Int::class, false) },
             supers = mapOf<KClass<*>, (List<Any?>) -> Any?>(Unit::class to { }),
             context = context
         )
-        answering.interceptSuspend(scope)
+        answering.intercept(scope)
         assertNotNull(answer.capturedScope)
         assertEquals(scope.call.args.map(CallArgument::value), answer.capturedScope!!.args)
         assertEquals(scope.context.currentMokkeryInstance, answer.capturedScope!!.self)

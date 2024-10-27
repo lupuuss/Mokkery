@@ -6,7 +6,8 @@ import dev.mokkery.test.TestNextCallInterceptor
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.runTest
-import dev.mokkery.test.testCallScope
+import dev.mokkery.test.testBlockingCallScope
+import dev.mokkery.test.testSuspendCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,8 +29,8 @@ class CallTracingInterceptorTest {
 
     @Test
     fun testRegistersCallsOnInterceptCall() {
-        tracing.intercept(testCallScope<Int>(name = "call", args = args1, context = context))
-        tracing.intercept(testCallScope<Int>(name = "call", args = args2, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args1, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args2, context = context))
         val expected = listOf(
             fakeCallTrace(name = "call", args = args1),
             fakeCallTrace(name = "call", args = args2),
@@ -40,8 +41,8 @@ class CallTracingInterceptorTest {
 
     @Test
     fun testRegistersCallsOnInterceptSuspendCall() = runTest {
-        tracing.interceptSuspend(testCallScope<Int>(name = "call", args = args1, context = context))
-        tracing.interceptSuspend(testCallScope<Int>(name = "call", args = args2, context = context))
+        tracing.intercept(testSuspendCallScope<Int>(name = "call", args = args1, context = context))
+        tracing.intercept(testSuspendCallScope<Int>(name = "call", args = args2, context = context))
         val expected = listOf(
             fakeCallTrace(name = "call", args = args1),
             fakeCallTrace(name = "call", args = args2),
@@ -52,8 +53,8 @@ class CallTracingInterceptorTest {
 
     @Test
     fun testResetClearsCalls()  {
-        tracing.intercept(testCallScope<Int>(name = "call", args = args1, context = context))
-        tracing.intercept(testCallScope<Int>(name = "call", args = args2, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args1, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args2, context = context))
         tracing.reset()
         assertEquals(emptyList(), tracing.all)
         assertEquals(emptyList(), tracing.unverified)
@@ -61,8 +62,8 @@ class CallTracingInterceptorTest {
 
     @Test
     fun testMarkVerifiedRemovesCallFromUnverified()  {
-        tracing.intercept(testCallScope<Int>(name = "call", args = args1, context = context))
-        tracing.intercept(testCallScope<Int>(name = "call", args = args2, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args1, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args2, context = context))
         val unverifiedWithoutFirst = tracing.unverified.drop(1)
         tracing.markVerified(tracing.unverified.first())
         assertEquals(unverifiedWithoutFirst, tracing.unverified)
@@ -70,8 +71,8 @@ class CallTracingInterceptorTest {
 
     @Test
     fun testMarkVerifiedDoesNotRemoveFromAll()  {
-        tracing.intercept(testCallScope<Int>(name = "call", args = args1, context = context))
-        tracing.intercept(testCallScope<Int>(name = "call", args = args2, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args1, context = context))
+        tracing.intercept(testBlockingCallScope<Int>(name = "call", args = args2, context = context))
         val allSnapshot = tracing.all.toMutableList()
         tracing.markVerified(tracing.unverified.first())
         assertEquals(allSnapshot, tracing.all)

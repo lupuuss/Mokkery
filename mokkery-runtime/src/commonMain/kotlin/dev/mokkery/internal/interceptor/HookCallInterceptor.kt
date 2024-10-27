@@ -1,8 +1,10 @@
 package dev.mokkery.internal.interceptor
 
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkeryHook
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import kotlinx.atomicfu.atomic
 
 internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<MokkeryCallInterceptor> {
@@ -17,13 +19,13 @@ internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<Mokkery
         interceptors -= interceptor
     }
 
-    override fun intercept(scope: MokkeryCallScope) = scope
+    override fun intercept(scope: MokkeryBlockingCallScope) = scope
         .combinedInterceptorOf(interceptors)
         .intercept(scope)
 
-    override suspend fun interceptSuspend(scope: MokkeryCallScope) = scope
+    override suspend fun intercept(scope: MokkerySuspendCallScope) = scope
         .combinedInterceptorOf(interceptors)
-        .interceptSuspend(scope)
+        .intercept(scope)
 
     private fun MokkeryCallScope.combinedInterceptorOf(
         interceptors: List<MokkeryCallInterceptor>

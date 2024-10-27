@@ -32,10 +32,13 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
+import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
@@ -62,17 +65,19 @@ fun IrBlockBodyBuilder.irInterceptCall(
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
     val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
-    val interceptFun = if (function.isSuspend) {
-        interceptorClass.functionByName("interceptSuspend")
-    } else {
-        interceptorClass.functionByName("intercept")
-    }
+    val interceptFun = interceptorClass
+        .functions
+        .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
     return irCall(interceptFun) {
         dispatchReceiver = interceptorScopeClass
             .getPropertyGetter("_mokkeryInterceptor")!!
             .let(::irCall)
             .apply { dispatchReceiver = mokkeryScope }
-        val contextCreationCall = irCall(transformer.getFunction(Mokkery.Function.createMokkeryCallScope)) {
+        val scopeCreationFun = when {
+            function.isSuspend -> Mokkery.Function.createMokkerySuspendCallScope
+            else -> Mokkery.Function.createMokkeryBlockingCallScope
+        }
+        val scopeCreationCall = irCall(transformer.getFunction(scopeCreationFun)) {
             putValueArgument(0, mokkeryScope)
             putValueArgument(1, irString(function.name.asString()))
             putValueArgument(2, kClassReference(function.returnType.eraseTypeParameters()))
@@ -80,7 +85,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
             putValueArgument(4, irCallSupersMap(transformer, function))
             if (irCallSpyLambda != null) putValueArgument(5, irCallSpyLambda)
         }
-        putValueArgument(0, contextCreationCall)
+        putValueArgument(0, scopeCreationCall)
     }
 }
 

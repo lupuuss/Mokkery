@@ -14,6 +14,9 @@ import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.CurrentMokkeryInstance
 import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.context.CallArgument
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
@@ -22,14 +25,32 @@ import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
-internal fun createMokkeryCallScope(
+internal fun createMokkeryBlockingCallScope(
     instance: MokkeryInstance,
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
-): MokkeryCallScope {
+) = MokkeryBlockingCallScope(createMokkeryCallContext(instance, name, returnType, args, supers, spyDelegate))
+
+internal fun createMokkerySuspendCallScope(
+    instance: MokkeryInstance,
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
+    spyDelegate: kotlin.Function<Any?>? = null
+) = MokkerySuspendCallScope(createMokkeryCallContext(instance, name, returnType, args, supers, spyDelegate))
+
+private fun createMokkeryCallContext(
+    instance: MokkeryInstance,
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    supers: Map<KClass<*>, kotlin.Function<Any?>>,
+    spyDelegate: kotlin.Function<Any?>?
+): MokkeryContext {
     val safeArgs = args.copyWithReplacedKClasses()
     val call = FunctionCall(
         function = Function(
@@ -39,12 +60,7 @@ internal fun createMokkeryCallScope(
         ),
         args = safeArgs
     )
-    return MokkeryCallScope(
-        GlobalMokkeryContext
-                + CurrentMokkeryInstance(instance)
-                + call
-                + AssociatedFunctions(supers, spyDelegate)
-    )
+    return GlobalMokkeryContext + CurrentMokkeryInstance(instance) + call + AssociatedFunctions(supers, spyDelegate)
 }
 
 internal fun generateMockId(typeName: String) = GlobalMokkeryContext

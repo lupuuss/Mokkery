@@ -18,9 +18,9 @@ import kotlin.reflect.KClass
 @DelicateMokkeryApi
 public interface MokkeryCallInterceptor {
 
-    public fun intercept(scope: MokkeryCallScope): Any?
+    public fun intercept(scope: MokkeryBlockingCallScope): Any?
 
-    public suspend fun interceptSuspend(scope: MokkeryCallScope): Any?
+    public suspend fun intercept(scope: MokkerySuspendCallScope): Any?
 
     public companion object {
 
@@ -33,12 +33,22 @@ public interface MokkeryCallInterceptor {
 
 /**
  * Provides a set of operations available
- * in a [MokkeryCallInterceptor.intercept] and [MokkeryCallInterceptor.interceptSuspend].
+ * in a [MokkeryCallInterceptor.intercept] and [MokkeryCallInterceptor.intercept].
  */
 public interface MokkeryCallScope {
 
     public val context: MokkeryContext
 }
+
+/**
+ * Provides a set of operations specific for [MokkeryCallInterceptor.intercept]
+ */
+public interface MokkeryBlockingCallScope : MokkeryCallScope
+
+/**
+ * Provides a set of operations specific for [MokkeryCallInterceptor.intercept]
+ */
+public interface MokkerySuspendCallScope : MokkeryCallScope
 
 /**
  * Equivalent of `this` in the scope of currently called function.
@@ -76,29 +86,50 @@ public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public fun MokkeryCallScope.nextIntercept(context: MokkeryContext = MokkeryContext.Empty): Any? {
+public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext = MokkeryContext.Empty): Any? {
     return this.context.nextInterceptor.intercept(withContext(context))
 }
 
 /**
- * Calls [MokkeryCallInterceptor.interceptSuspend] on the next interceptor in the pipeline.
+ * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public suspend fun MokkeryCallScope.nextInterceptSuspend(context: MokkeryContext = MokkeryContext.Empty): Any? {
-    return this.context.nextInterceptor.interceptSuspend(withContext(context))
+public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext = MokkeryContext.Empty): Any? {
+    return this.context.nextInterceptor.intercept(withContext(context))
 }
 
-internal fun MokkeryCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryCallScope {
-    return object : MokkeryCallScope {
+internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryBlockingCallScope {
+
+    return object : MokkeryBlockingCallScope {
         override val context = context
 
-        override fun toString(): String = "MokkeryCallScope($context)"
+        override fun toString(): String = "MokkeryBlockingCallScope($context)"
     }
 }
 
-internal fun MokkeryCallScope.withContext(with: MokkeryContext = MokkeryContext.Empty): MokkeryCallScope {
+internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkerySuspendCallScope {
+
+    return object : MokkerySuspendCallScope {
+        override val context = context
+
+        override fun toString(): String = "MokkerySuspendCallScope($context)"
+    }
+}
+
+internal fun MokkeryBlockingCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkeryBlockingCallScope {
     return when {
         with === MokkeryContext.Empty -> this
-        else -> MokkeryCallScope(this.context + with)
+        else -> MokkeryBlockingCallScope(this.context + with)
+    }
+}
+
+internal fun MokkerySuspendCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkerySuspendCallScope {
+    return when {
+        with === MokkeryContext.Empty -> this
+        else -> MokkerySuspendCallScope(this.context + with)
     }
 }

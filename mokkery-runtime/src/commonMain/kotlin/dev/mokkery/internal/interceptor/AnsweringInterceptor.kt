@@ -7,8 +7,10 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.call
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.toFunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
@@ -54,12 +56,12 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
         }
     }
 
-    override fun intercept(scope: MokkeryCallScope): Any? {
+    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
         checkIfIsModified()
         return findAnswerFor(scope.context).call(scope.toFunctionScope())
     }
 
-    override suspend fun interceptSuspend(scope: MokkeryCallScope): Any? {
+    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
         checkIfIsModified()
         return findAnswerFor(scope.context).callSuspend(scope.toFunctionScope())
     }

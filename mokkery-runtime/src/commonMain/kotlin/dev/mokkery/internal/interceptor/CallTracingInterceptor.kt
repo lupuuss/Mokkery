@@ -1,9 +1,10 @@
 package dev.mokkery.internal.interceptor
 
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.interceptor.nextInterceptSuspend
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.context.toTrace
 import dev.mokkery.internal.context.tools
@@ -42,17 +43,18 @@ private class CallTracingInterceptorImpl() : CallTracingInterceptor {
         lock.withLock { verified += trace }
     }
 
-    override fun intercept(scope: MokkeryCallScope): Any? {
-        val context = scope.context
-        val counter = context.tools.callsCounter
-        lock.withLock { _all += context.toTrace(counter.next()) }
+    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
+        traceCallOf(scope)
         return scope.nextIntercept()
     }
 
-    override suspend fun interceptSuspend(scope: MokkeryCallScope): Any? {
+    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
+        traceCallOf(scope)
+        return scope.nextIntercept()
+    }
+    private fun traceCallOf(scope: MokkeryCallScope) {
         val context = scope.context
         val counter = context.tools.callsCounter
         lock.withLock { _all += context.toTrace(counter.next()) }
-        return scope.nextInterceptSuspend()
     }
 }
