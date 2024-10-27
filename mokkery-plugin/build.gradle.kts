@@ -13,8 +13,6 @@ kotlin.sourceSets.all {
     }
 }
 
-excludeFromApiDocs()
-
 dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)

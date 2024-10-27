@@ -40,15 +40,19 @@ allprojects {
     }
 }
 
-val dokkaHtmlMultiModule by tasks.getting(DokkaMultiModuleTask::class) {
+dokka {
     moduleName.set("Mokkery")
     moduleVersion.set(rootProject.version.toString())
-    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-        customAssets += rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile
+    pluginsConfiguration.html {
+        customAssets.from(rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile)
     }
-}
-val syncDocs by tasks.registering(Sync::class) {
-    group = "documentation"
-    from(dokkaHtmlMultiModule.outputDirectory)
-    into(rootProject.layout.projectDirectory.dir("website/static/api_reference"))
+    dokkaPublications.html {
+        outputDirectory.set(rootProject.layout.projectDirectory.dir("website/static/api_reference"))
+    }
+    dependencies {
+        dokka(project(":mokkery-core"))
+        dokka(project(":mokkery-runtime"))
+        dokka(project(":mokkery-coroutines"))
+        dokka(project(":mokkery-gradle"))
+    }
 }
