@@ -2,10 +2,10 @@ package dev.mokkery.matcher.varargs
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.asListOrNull
-import dev.mokkery.internal.capitalize
-import dev.mokkery.internal.unsafeCast
-import dev.mokkery.internal.varargNameByElementType
+import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.utils.capitalize
+import dev.mokkery.internal.utils.unsafeCast
+import dev.mokkery.internal.utils.varargNameByElementType
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.varargs.VarArgMatcher.Base
 import kotlin.reflect.KClass

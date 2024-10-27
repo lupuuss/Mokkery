@@ -1,7 +1,7 @@
 package dev.mokkery.internal.verify.results
 
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.CallTrace
 
 internal sealed interface TemplateMatchingResult {
 

@@ -1,6 +1,6 @@
 package dev.mokkery.answering
 
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
 /**

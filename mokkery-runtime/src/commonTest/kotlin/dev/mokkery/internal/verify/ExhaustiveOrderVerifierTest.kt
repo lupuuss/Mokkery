@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.calls.CallMatchResult
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestRenderer

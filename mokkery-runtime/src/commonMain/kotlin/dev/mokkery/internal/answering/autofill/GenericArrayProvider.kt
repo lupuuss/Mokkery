@@ -1,8 +1,8 @@
 package dev.mokkery.internal.answering.autofill
 
 import dev.mokkery.answering.autofill.AutofillProvider
-import dev.mokkery.internal.isArray
-import dev.mokkery.internal.platformArrayOf
+import dev.mokkery.internal.utils.isArray
+import dev.mokkery.internal.utils.platformArrayOf
 import kotlin.reflect.KClass
 
 internal object GenericArrayProvider : AutofillProvider<Array<*>> {

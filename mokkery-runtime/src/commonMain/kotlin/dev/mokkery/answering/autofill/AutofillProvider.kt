@@ -3,8 +3,6 @@
 package dev.mokkery.answering.autofill
 
 import dev.drewhamilton.poko.Poko
-import dev.mokkery.answering.autofill.AutofillProvider.Companion.forInternals
-import dev.mokkery.answering.autofill.AutofillProvider.Companion.forMockMode
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider

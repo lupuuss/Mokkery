@@ -1,20 +1,23 @@
 package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.MokkeryKind
-import dev.mokkery.internal.MokkeryMockScope
-import dev.mokkery.internal.answering.AnsweringInterceptor
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
-import dev.mokkery.internal.tracing.CallTracingInterceptor
+import dev.mokkery.internal.MokkeryMockInstance
+import dev.mokkery.internal.context.GlobalMokkeryContext
+import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.id
+import dev.mokkery.internal.interceptor
+import dev.mokkery.internal.interceptor.AnsweringInterceptor
+import dev.mokkery.internal.interceptor.CallTracingInterceptor
+import dev.mokkery.internal.interceptor.MokkeryKind
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val scope = MokkeryScopeLookup.current.resolve(obj)) {
-        is MokkeryMockScope -> when (scope.interceptor.kind) {
-            MokkeryKind.Spy -> mokkeryDebugSpy(scope)
-            MokkeryKind.Mock ->  mokkeryDebugMock(scope)
+    return when (val instance = GlobalMokkeryContext.mokkeryInstanceLookup.resolve(obj)) {
+        is MokkeryMockInstance -> when (instance.interceptor.kind) {
+            MokkeryKind.Spy -> mokkeryDebugSpy(instance)
+            MokkeryKind.Mock ->  mokkeryDebugMock(instance)
         }
         else -> "Not a mock/spy -> $obj"
     }
@@ -27,23 +30,23 @@ public fun printMokkeryDebug(obj: Any) {
     println(mokkeryDebugString(obj))
 }
 
-private fun mokkeryDebugMock(scope: MokkeryMockScope): String {
+private fun mokkeryDebugMock(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("mock") {
-            value("id", scope.id)
-            value("mode", scope.interceptor.mode.name)
-            answersSection(scope.interceptor.answering)
-            callsSection(scope.interceptor.callTracing)
+            value("id", instance.id)
+            value("mode", instance.interceptor.mode.name)
+            answersSection(instance.interceptor.answering)
+            callsSection(instance.interceptor.callTracing)
         }
     }
 }
 
-private fun mokkeryDebugSpy(scope: MokkeryMockScope): String {
+private fun mokkeryDebugSpy(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("spy") {
-            value("id", scope.id)
-            answersSection(scope.interceptor.answering)
-            callsSection(scope.interceptor.callTracing)
+            value("id", instance.id)
+            answersSection(instance.interceptor.answering)
+            callsSection(instance.interceptor.callTracing)
         }
     }
 }

@@ -2,7 +2,7 @@ package dev.mokkery.internal.answering.autofill
 
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.TypeRegistryAutofillProvider
-import dev.mokkery.internal.synchronizedMapOf
+import dev.mokkery.internal.utils.synchronizedMapOf
 import kotlin.reflect.KClass
 
 internal fun threadSafeTypeRegistryAutofillProvider(): TypeRegistryAutofillProvider {

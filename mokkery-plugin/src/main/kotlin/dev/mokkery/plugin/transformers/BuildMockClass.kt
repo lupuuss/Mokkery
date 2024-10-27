@@ -65,7 +65,7 @@ fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
     classToMock: IrClass,
 ): IrClass {
-    val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockScope)
+    val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockInstance)
     val typeToMockErased = classToMock.defaultTypeErased
     val mockedClass = pluginContext.irFactory.buildClass(
         classToMock.name.createUniqueMockName(mokkeryKind.name),
@@ -83,7 +83,7 @@ fun TransformerScope.buildMockClass(
         classesToIntercept = listOf(classToMock),
         block = { constructor ->
             if (mokkeryKind == IrMokkeryKind.Spy) {
-                val field = mockedClass.addField(fieldName = "delegate", typeToMockErased)
+                val field = mockedClass.addField(fieldName = "_mokkerySpyDelegate", typeToMockErased)
                 spyDelegateField = field
                 +irSetField(
                     receiver = irGet(mockedClass.thisReceiver!!),
@@ -108,7 +108,7 @@ fun TransformerScope.buildMockClass(
 fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mockedTypes = classesToMock.map { it.defaultTypeErased }
     val manyMocksMarker = getClass(Mokkery.Class.mockMany(classesToMock.size)).typeWith(mockedTypes)
-    val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockScope)
+    val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockInstance)
     val superTypes = mockedTypes + listOfNotNull(
         mokkeryMockScopeClass.defaultType,
         if (classesToMock.all(IrClass::isInterface)) pluginContext.irBuiltIns.anyType else null,
@@ -165,12 +165,12 @@ private fun IrClass.addMockClassConstructor(
     block: IrBlockBodyBuilder.(IrConstructor) -> Unit = { }
 ) {
     val context = transformer.pluginContext
-    val mokkeryMock = transformer.getFunction(Mokkery.Function.MokkeryMock)
+    val mokkeryMock = transformer.getFunction(Mokkery.Function.MokkeryMockInterceptor)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
-    val interceptor = overridePropertyBackingField(context, scopeClass.getProperty("interceptor"))
-    val idProperty = overridePropertyBackingField(context, scopeClass.getProperty("id"))
-    val typesProperty = overridePropertyBackingField(context, scopeClass.getProperty("interceptedTypes"))
+    val interceptor = overridePropertyBackingField(context, scopeClass.getProperty("_mokkeryInterceptor"))
+    val idProperty = overridePropertyBackingField(context, scopeClass.getProperty("_mokkeryId"))
+    val typesProperty = overridePropertyBackingField(context, scopeClass.getProperty("_mokkeryInterceptedTypes"))
     addConstructor {
         isPrimary = true
     }.apply {

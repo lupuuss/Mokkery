@@ -1,9 +1,9 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.matcher.CallMatchResult
-import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallMatchResult
+import dev.mokkery.internal.calls.CallMatcher
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.CallTrace
 
 internal class TestCallMatcher(
     var calls: (trace: CallTrace, template: CallTemplate) -> CallMatchResult = { _, _ -> CallMatchResult.NotMatching }

@@ -4,6 +4,7 @@ import dev.mokkery.plugin.messageCollectorCompat
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
@@ -15,6 +16,10 @@ fun TransformerScope.getClass(resolver: ClassResolver): IrClass = classes.getOrP
 }
 
 fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction = functions.getOrPut(resolver) {
+    resolver.resolve(pluginContext)
+}
+
+fun TransformerScope.getProperty(resolver: PropertyResolver): IrProperty = properties.getOrPut(resolver) {
     resolver.resolve(pluginContext)
 }
 

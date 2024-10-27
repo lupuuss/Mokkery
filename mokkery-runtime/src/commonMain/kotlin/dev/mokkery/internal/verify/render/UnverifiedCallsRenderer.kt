@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTrace
 
 internal class UnverifiedCallsRenderer(
     private val traceListRenderer: Renderer<List<CallTrace>> = PointListRenderer()

@@ -1,12 +1,12 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.calls.CallMatchResult
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.render.ToStringRenderer
 import dev.mokkery.internal.render.indentationString
 import dev.mokkery.internal.render.withIndentation
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
 internal class TemplateGroupedMatchingResultsRenderer(

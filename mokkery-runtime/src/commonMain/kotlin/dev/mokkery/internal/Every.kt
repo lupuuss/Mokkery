@@ -5,8 +5,9 @@ package dev.mokkery.internal
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
-import dev.mokkery.internal.coroutines.runSuspension
-import dev.mokkery.internal.templating.TemplatingScope
+import dev.mokkery.internal.utils.runSuspension
+import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatchersScope
 
 internal fun <T> internalEverySuspend(

@@ -1,6 +1,6 @@
 package dev.mokkery.internal.names
 
-import dev.mokkery.test.TestMockUniqueReceiversGenerator
+import dev.mokkery.test.TestMokkeryInstanceIdGenerator
 import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -15,7 +15,7 @@ class GroupMockReceiverShortenerTest {
     private val namesShortener = TestNameShortener { names ->
         names.associateWith { it.removePrefix("package.") }
     }
-    private val generator = TestMockUniqueReceiversGenerator(
+    private val generator = TestMokkeryInstanceIdGenerator(
         extractTypeCalls = { it.substringBefore("@") }
     )
     private val shortener = GroupMockReceiverShortener(namesShortener = namesShortener, receiversGenerator = generator)

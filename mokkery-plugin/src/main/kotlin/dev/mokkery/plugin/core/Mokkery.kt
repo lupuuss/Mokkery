@@ -13,32 +13,32 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_context by fqName
+    val dev_mokkery_interceptor by fqName
     val dev_mokkery_internal by fqName
-    val dev_mokkery_internal_templating by fqName
+    val dev_mokkery_internal_calls by fqName
+    val dev_mokkery_internal_context by fqName
+    val dev_mokkery_internal_interceptor by fqName
     val dev_mokkery_matcher by fqName
-    val dev_mokkery_internal_tracing by fqName
-    val dev_mokkery_internal_dynamic by fqName
 
     object Class {
 
         val MockMode by dev_mokkery.klass
-        val MokkeryKind by dev_mokkery_internal.klass
+        val MokkeryKind by dev_mokkery_internal_interceptor.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
         val MockMany4 by dev_mokkery.klass
         val MockMany5 by dev_mokkery.klass
 
-        val MokkeryInterceptor by dev_mokkery_internal.klass
-        val MokkeryInterceptorScope by dev_mokkery_internal.klass
-        val MokkeryMockScope by dev_mokkery_internal.klass
+        val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
+        val MokkeryInstance by dev_mokkery_internal.klass
+        val MokkeryMockInstance by dev_mokkery_internal.klass
 
-        val CallContext by dev_mokkery_internal.klass
+        val CallArgument by dev_mokkery_context.klass
 
-        val CallArg by dev_mokkery_internal_tracing.klass
-
-        val TemplatingScope by dev_mokkery_internal_templating.klass
-        val MokkeryScopeLookup by dev_mokkery_internal_dynamic.klass
+        val TemplatingScope by dev_mokkery_internal_calls.klass
+        val MokkeryInstanceLookup by dev_mokkery_internal.klass
 
         fun mockMany(value: Int): ClassResolver {
             return mockManyMap[value] ?: error("Unsupported types number! Expected value: in ${2..5}; Actual value: $value")
@@ -54,17 +54,23 @@ object Mokkery {
 
     object Function {
         val autofillConstructor by dev_mokkery_internal.function
-        val MokkeryMock by dev_mokkery_internal.function
-        val MokkeryMockScope by dev_mokkery_internal.function
+        val MokkeryMockInstance by dev_mokkery_internal.function
         val generateMockId by dev_mokkery_internal.function
-
         val internalEvery by dev_mokkery_internal.function
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function
         val internalVerifySuspend by dev_mokkery_internal.function
         val callIgnoringClassCastException by dev_mokkery_internal.function
+        val createMokkeryBlockingCallScope by dev_mokkery_internal.function
+        val createMokkerySuspendCallScope by dev_mokkery_internal.function
+        val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
+        val TemplatingScope by dev_mokkery_internal_calls.function
+    }
 
-        val TemplatingScope by dev_mokkery_internal_templating.function
+    object Property {
+
+        val GlobalMokkeryContext by dev_mokkery_internal_context.property
+        val mokkeryInstanceLookup by dev_mokkery_internal.property
     }
 
     object Name {
@@ -164,5 +170,11 @@ val FqName.klass: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassRes
 val FqName.function: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, FunctionResolver>>
     get() = PropertyDelegateProvider { _: Any?, property ->
         val resolver = FunctionById(CallableId(this, Name.identifier(property.name)))
+        ReadOnlyProperty { _, _ -> resolver }
+    }
+
+val FqName.property: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, PropertyResolver>>
+    get() = PropertyDelegateProvider { _: Any?, property ->
+        val resolver = PropertyById(CallableId(this, Name.identifier(property.name)))
         ReadOnlyProperty { _, _ -> resolver }
     }
