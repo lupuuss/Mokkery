@@ -2,6 +2,7 @@ package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
@@ -161,6 +162,7 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
     }.apply {
         addBackingField {
             type = property.getter!!.returnType
+            visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
         addDefaultGetter(this@overridePropertyBackingField, context.irBuiltIns)

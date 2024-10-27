@@ -26,6 +26,7 @@ import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -83,7 +84,11 @@ fun TransformerScope.buildMockClass(
         classesToIntercept = listOf(classToMock),
         block = { constructor ->
             if (mokkeryKind == IrMokkeryKind.Spy) {
-                val field = mockedClass.addField(fieldName = "_mokkerySpyDelegate", typeToMockErased)
+                val field = mockedClass.addField(
+                    fieldName = "_mokkerySpyDelegate",
+                    fieldType = typeToMockErased,
+                    fieldVisibility = DescriptorVisibilities.PRIVATE
+                )
                 spyDelegateField = field
                 +irSetField(
                     receiver = irGet(mockedClass.thisReceiver!!),
