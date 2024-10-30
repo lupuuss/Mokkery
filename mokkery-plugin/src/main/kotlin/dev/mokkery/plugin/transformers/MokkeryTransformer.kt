@@ -91,7 +91,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithMock(call: IrCall): IrExpression {
         val klass = call.type.getClass() ?: return call
-        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock, klass)
+        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock)
         val mockedClass = mockCache.getOrPut(klass) { buildMockClass(Mock, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
@@ -122,7 +122,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
         val klass = call.type.getClass() ?: return call
-        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy, klass)
+        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy)
         val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(spiedClass.primaryConstructor!!) {
