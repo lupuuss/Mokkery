@@ -1,6 +1,5 @@
 package dev.mokkery.plugin.ir
 
-import dev.mokkery.plugin.ir.addOverridingMethod
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -11,7 +10,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
-import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
@@ -22,11 +20,7 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
-import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.types.starProjectedType
-import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
-import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -35,6 +29,7 @@ import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 
 fun IrClass.getProperty(name: String): IrProperty {
     val nameId = Name.identifier(name)
@@ -143,7 +138,8 @@ fun IrClass.addOverridingProperty(
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
         val baseGetter = property.getter!!
         val getter = addGetter()
-        getter.overriddenSymbols = properties.mapNotNull { it.getter?.symbol }
+        getter.overriddenSymbols = properties
+            .memoryOptimizedFlatMap { it.getter?.overriddenSymbols.orEmpty() + listOfNotNull(it.getter?.symbol) }
         getter.metadata = baseGetter.metadata
         getter.createDispatchReceiverParameter()
         getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
@@ -162,7 +158,8 @@ fun IrClass.addOverridingProperty(
             setter.copyReturnTypeFrom(baseSetter, parameterMap)
             setter.copyParametersFrom(baseSetter, parameterMap)
             setter.copyAnnotationsFrom(baseSetter)
-            setter.overriddenSymbols = properties.mapNotNull { it.setter?.symbol }
+            setter.overriddenSymbols = properties
+                .memoryOptimizedFlatMap { it.setter?.overriddenSymbols.orEmpty() + listOfNotNull(it.setter?.symbol) }
             setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
         }
     }
