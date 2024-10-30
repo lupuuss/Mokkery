@@ -4,3 +4,4 @@ package dev.mokkery.test
 class FinalClass {
     fun finalMethod(): String = "Final method here!"
 }
+

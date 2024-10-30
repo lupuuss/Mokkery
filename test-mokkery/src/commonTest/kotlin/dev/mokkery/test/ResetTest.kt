@@ -15,42 +15,42 @@ import kotlin.test.assertFailsWith
 
 class ResetTest {
 
-    private val mocked = mock<TestInterface>(autofill)
+    private val mocked = mock<RegularMethodsInterface>(autofill)
     private val spied = spy(mocked)
 
     @Test
     fun testResetCallsOnMock() {
-        mocked.callUnit()
+        mocked.callUnit(Unit)
         resetCalls(mocked)
         assertFailsWith<AssertionError> {
             verify {
-                spied.callUnit()
+                spied.callUnit(Unit)
             }
         }
     }
 
     @Test
     fun testResetCallsOnSpy() {
-        spied.callUnit()
+        spied.callUnit(Unit)
         resetCalls(spied)
         assertFailsWith<AssertionError> {
             verify {
-                spied.callUnit()
+                spied.callUnit(Unit)
             }
         }
     }
 
     @Test
     fun testResetAnswersOnMock() {
-        every { mocked.callWithPrimitives(1) } returns 1.0
+        every { mocked.callPrimitive(1) } returns 1
         resetAnswers(mocked)
-        assertEquals(0.0, mocked.callWithPrimitives(1))
+        assertEquals(0, mocked.callPrimitive(1))
     }
 
     @Test
     fun testResetAnswersOnSpy() {
-        every { spied.callWithPrimitives(1) } returns 1.0
+        every { spied.callPrimitive(1) } returns 1
         resetAnswers(spied)
-        assertEquals(0.0, mocked.callWithPrimitives(1))
+        assertEquals(0, mocked.callPrimitive(1))
     }
 }
