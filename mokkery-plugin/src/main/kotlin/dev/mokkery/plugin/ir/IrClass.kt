@@ -136,20 +136,22 @@ fun IrClass.addOverridingProperty(
         isFakeOverride = false
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
-        val baseGetter = property.getter!!
-        val getter = addGetter()
-        getter.overriddenSymbols = properties
-            .memoryOptimizedFlatMap { it.getter?.overriddenSymbols.orEmpty() + listOfNotNull(it.getter?.symbol) }
-        getter.metadata = baseGetter.metadata
-        getter.createDispatchReceiverParameter()
-        getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
-        getter.copyTypeParametersFrom(baseGetter, parameterMap = parameterMap)
-        getter.copyReturnTypeFrom(baseGetter, parameterMap)
-        getter.copyParametersFrom(baseGetter, parameterMap)
-        getter.copyAnnotationsFrom(baseGetter)
-        getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
-        if (property.isVar) {
-            val baseSetter = property.setter!!
+        val baseGetter = property.getter
+        if (baseGetter != null) {
+            val getter = addGetter()
+            getter.overriddenSymbols = properties
+                .memoryOptimizedFlatMap { it.getter?.overriddenSymbols.orEmpty() + listOfNotNull(it.getter?.symbol) }
+            getter.metadata = baseGetter.metadata
+            getter.createDispatchReceiverParameter()
+            getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
+            getter.copyTypeParametersFrom(baseGetter, parameterMap = parameterMap)
+            getter.copyReturnTypeFrom(baseGetter, parameterMap)
+            getter.copyParametersFrom(baseGetter, parameterMap)
+            getter.copyAnnotationsFrom(baseGetter)
+            getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
+        }
+        val baseSetter = property.setter
+        if (baseSetter != null) {
             val setter = addSetter()
             setter.metadata = baseSetter.metadata
             setter.createDispatchReceiverParameter()
