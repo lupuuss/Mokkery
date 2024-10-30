@@ -7,7 +7,6 @@ import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
-import dev.mokkery.plugin.ir.buildThisValueParam
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
@@ -54,6 +53,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
+import org.jetbrains.kotlin.ir.util.createParameterDeclarations
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isClass
@@ -84,7 +84,7 @@ fun TransformerScope.buildMockClass(
         mokkeryMockScopeClass.defaultType,
         if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
     )
-    mockedClass.thisReceiver = mockedClass.buildThisValueParam()
+    mockedClass.createParameterDeclarations()
     var spyDelegateField: IrField? = null
     mockedClass.origin = Mokkery.Origin
     mockedClass.addMockClassConstructor(
@@ -127,7 +127,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mockedClass = pluginContext.irFactory
         .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
-    mockedClass.thisReceiver = mockedClass.buildThisValueParam()
+    mockedClass.createParameterDeclarations()
     mockedClass.origin = Mokkery.Origin
     val parameterMap = classesToMock.createParametersMapTo(mockedClass)
     val mockedTypes = classesToMock.typeWith(parameterMap)

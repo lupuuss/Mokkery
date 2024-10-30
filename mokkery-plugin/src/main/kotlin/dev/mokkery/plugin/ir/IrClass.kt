@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.ir.addOverridingMethod
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -21,9 +22,13 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
+import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
+import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
@@ -41,12 +46,6 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
         .filterIsInstance<IrEnumEntry>()
         .first { it.name == Name.identifier(name) }
 }
-
-fun IrClass.buildThisValueParam() = buildReceiverParameter(
-    parent = this,
-    origin = IrDeclarationOrigin.INSTANCE_RECEIVER,
-    type = symbol.typeWithParameters(typeParameters)
-)
 
 fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
@@ -71,7 +70,7 @@ fun IrClass.addOverridingMethod(
     }.apply {
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
         metadata = function.metadata
-        dispatchReceiverParameter = buildThisValueParam()
+        createDispatchReceiverParameter()
         copyTypeParametersFrom(function, parameterMap = parameterMap)
         copyAnnotationsFrom(function)
         copyReturnTypeFrom(function, parameterMap)
@@ -146,7 +145,7 @@ fun IrClass.addOverridingProperty(
         val getter = addGetter()
         getter.overriddenSymbols = properties.mapNotNull { it.getter?.symbol }
         getter.metadata = baseGetter.metadata
-        getter.dispatchReceiverParameter = buildThisValueParam()
+        getter.createDispatchReceiverParameter()
         getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
         getter.copyTypeParametersFrom(baseGetter, parameterMap = parameterMap)
         getter.copyReturnTypeFrom(baseGetter, parameterMap)
@@ -157,7 +156,7 @@ fun IrClass.addOverridingProperty(
             val baseSetter = property.setter!!
             val setter = addSetter()
             setter.metadata = baseSetter.metadata
-            setter.dispatchReceiverParameter = buildThisValueParam()
+            setter.createDispatchReceiverParameter()
             setter.contextReceiverParametersCount = baseSetter.contextReceiverParametersCount
             setter.copyTypeParametersFrom(baseSetter, parameterMap = parameterMap)
             setter.copyReturnTypeFrom(baseSetter, parameterMap)
@@ -186,7 +185,7 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
             this.returnType = returnType
             origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
         }.apply {
-            dispatchReceiverParameter = this@overridePropertyBackingField.buildThisValueParam()
+            createDispatchReceiverParameter()
             body = DeclarationIrBuilder(context, symbol).irBlockBody {
                 +irReturn(irGetField(irGet(dispatchReceiverParameter!!), backingField!!))
             }
