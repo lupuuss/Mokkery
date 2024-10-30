@@ -14,7 +14,6 @@ import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
-import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -32,10 +31,8 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.classId
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
@@ -52,33 +49,33 @@ fun IrBlockBodyBuilder.irInterceptMethod(
     irCallSpyLambda: IrExpression? = null,
 ): IrCall = irInterceptCall(
     transformer = transformer,
-    mokkeryScope = irGet(function.dispatchReceiverParameter!!),
+    mokkeryInstance = irGet(function.dispatchReceiverParameter!!),
     function = function,
     irCallSpyLambda = irCallSpyLambda,
 )
 
 fun IrBlockBodyBuilder.irInterceptCall(
     transformer: TransformerScope,
-    mokkeryScope: IrExpression,
+    mokkeryInstance: IrExpression,
     function: IrSimpleFunction,
     irCallSpyLambda: IrExpression? = null
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
-    val interceptorScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
+    val mokkeryInstanceClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
     val interceptFun = interceptorClass
         .functions
         .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
     return irCall(interceptFun) {
-        dispatchReceiver = interceptorScopeClass
+        dispatchReceiver = mokkeryInstanceClass
             .getPropertyGetter("_mokkeryInterceptor")!!
             .let(::irCall)
-            .apply { dispatchReceiver = mokkeryScope }
+            .apply { dispatchReceiver = mokkeryInstance }
         val scopeCreationFun = when {
             function.isSuspend -> Mokkery.Function.createMokkerySuspendCallScope
             else -> Mokkery.Function.createMokkeryBlockingCallScope
         }
         val scopeCreationCall = irCall(transformer.getFunction(scopeCreationFun)) {
-            putValueArgument(0, mokkeryScope)
+            putValueArgument(0, mokkeryInstance)
             putValueArgument(1, irString(function.name.asString()))
             putValueArgument(2, kClassReference(function.returnType.eraseTypeParameters()))
             putValueArgument(3, irCallArgsList(transformer, function.fullValueParameterList))
