@@ -7,17 +7,20 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
-import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetField
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
@@ -48,12 +51,14 @@ fun IrClass.buildThisValueParam() = buildReceiverParameter(
 fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
     function: IrSimpleFunction,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
-) = addOverridingMethod(context, listOf(function), block)
+) = addOverridingMethod(context, listOf(function), parameterMap, block)
 
 fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
     functions: List<IrSimpleFunction>,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
 ) {
     val function = functions.first()
@@ -67,10 +72,10 @@ fun IrClass.addOverridingMethod(
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
         metadata = function.metadata
         dispatchReceiverParameter = buildThisValueParam()
-        copyTypeParametersFrom(function)
+        copyTypeParametersFrom(function, parameterMap = parameterMap)
         copyAnnotationsFrom(function)
-        copyReturnTypeFrom(function)
-        copyParametersFrom(function)
+        copyReturnTypeFrom(function, parameterMap)
+        copyParametersFrom(function, parameterMap)
         contextReceiverParametersCount = function.contextReceiverParametersCount
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
@@ -85,9 +90,12 @@ fun IrClass.overrideAllOverridableFunctions(
     superClass
         .overridableFunctions
         .forEach { overridableFun ->
-            addOverridingMethod(context, overridableFun) {
-                override(it)
-            }
+            addOverridingMethod(
+                context = context,
+                function = overridableFun,
+                parameterMap = superClass.typeParameters.zip(typeParameters).toMap(),
+                block = override
+            )
         }
 }
 
@@ -100,20 +108,28 @@ fun IrClass.overrideAllOverridableProperties(
     superClass
         .overridableProperties
         .forEach { property ->
-            addOverridingProperty(context, property, getterBlock, setterBlock)
+            addOverridingProperty(
+                context = context,
+                property = property,
+                parameterMap = superClass.typeParameters.zip(typeParameters).toMap(),
+                getterBlock = getterBlock,
+                setterBlock = setterBlock
+            )
         }
 }
 
 fun IrClass.addOverridingProperty(
     context: IrGeneratorContext,
     property: IrProperty,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-) = addOverridingProperty(context, listOf(property), getterBlock, setterBlock)
+) = addOverridingProperty(context, listOf(property), parameterMap, getterBlock, setterBlock)
 
 fun IrClass.addOverridingProperty(
     context: IrGeneratorContext,
     properties: List<IrProperty>,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ) {
@@ -132,9 +148,9 @@ fun IrClass.addOverridingProperty(
         getter.metadata = baseGetter.metadata
         getter.dispatchReceiverParameter = buildThisValueParam()
         getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
-        getter.copyTypeParametersFrom(baseGetter)
-        getter.copyReturnTypeFrom(baseGetter)
-        getter.copyParametersFrom(baseGetter)
+        getter.copyTypeParametersFrom(baseGetter, parameterMap = parameterMap)
+        getter.copyReturnTypeFrom(baseGetter, parameterMap)
+        getter.copyParametersFrom(baseGetter, parameterMap)
         getter.copyAnnotationsFrom(baseGetter)
         getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         if (property.isVar) {
@@ -143,9 +159,9 @@ fun IrClass.addOverridingProperty(
             setter.metadata = baseSetter.metadata
             setter.dispatchReceiverParameter = buildThisValueParam()
             setter.contextReceiverParametersCount = baseSetter.contextReceiverParametersCount
-            setter.copyTypeParametersFrom(baseSetter)
-            setter.copyReturnTypeFrom(baseSetter)
-            setter.copyParametersFrom(baseSetter)
+            setter.copyTypeParametersFrom(baseSetter, parameterMap = parameterMap)
+            setter.copyReturnTypeFrom(baseSetter, parameterMap)
+            setter.copyParametersFrom(baseSetter, parameterMap)
             setter.copyAnnotationsFrom(baseSetter)
             setter.overriddenSymbols = properties.mapNotNull { it.setter?.symbol }
             setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
@@ -160,12 +176,21 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
     }.apply {
+        val returnType = property.getter!!.returnType
         addBackingField {
-            type = property.getter!!.returnType
+            type = returnType
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
-        addDefaultGetter(this@overridePropertyBackingField, context.irBuiltIns)
+        addGetter {
+            this.returnType = returnType
+            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+        }.apply {
+            dispatchReceiverParameter = this@overridePropertyBackingField.buildThisValueParam()
+            body = DeclarationIrBuilder(context, symbol).irBlockBody {
+                +irReturn(irGetField(irGet(dispatchReceiverParameter!!), backingField!!))
+            }
+        }
         getter?.overriddenSymbols = listOf(property.getter!!.symbol)
     }
 }

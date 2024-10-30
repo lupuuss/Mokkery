@@ -8,6 +8,7 @@ import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.core.mockMode
+import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
@@ -25,7 +26,6 @@ import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.builders.parent
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -36,14 +36,14 @@ import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
+import org.jetbrains.kotlin.ir.util.render
 
 fun TransformerScope.buildMockJsFunction(
     expression: IrCall,
-    kind: IrMokkeryKind,
-    functionClass: IrClass
+    kind: IrMokkeryKind
 ): IrExpression {
     val anyNType = pluginContext.irBuiltIns.anyNType
-    val typeToMock = functionClass.defaultTypeErased
+    val typeToMock = expression.type
     val returnType = typeToMock.let { it as IrSimpleType }
         .arguments
         .last()

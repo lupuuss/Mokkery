@@ -7,9 +7,8 @@ import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
-import dev.mokkery.plugin.ir.buildClass
+import dev.mokkery.plugin.ir.buildThisValueParam
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.eraseFullValueParametersList
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallListOf
@@ -32,6 +31,7 @@ import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
+import org.jetbrains.kotlin.ir.builders.declarations.buildClass
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
@@ -45,21 +45,28 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
-import org.jetbrains.kotlin.ir.types.classFqName
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.types.typeWithParameters
+import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.memoryOptimizedZip
 import java.util.*
 
 fun TransformerScope.buildMockClass(
@@ -67,13 +74,17 @@ fun TransformerScope.buildMockClass(
     classToMock: IrClass,
 ): IrClass {
     val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockInstance)
-    val typeToMockErased = classToMock.defaultTypeErased
-    val mockedClass = pluginContext.irFactory.buildClass(
-        classToMock.name.createUniqueMockName(mokkeryKind.name),
-        typeToMockErased,
+    val mockedClass = pluginContext
+        .irFactory
+        .buildClass { name = classToMock.name.createUniqueMockName(mokkeryKind.name) }
+    mockedClass.copyTypeParametersFrom(classToMock)
+    val typedClassToMock = classToMock.symbol.typeWithParameters(mockedClass.typeParameters)
+    mockedClass.superTypes = listOfNotNull(
+        typedClassToMock,
         mokkeryMockScopeClass.defaultType,
         if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
     )
+    mockedClass.thisReceiver = mockedClass.buildThisValueParam()
     var spyDelegateField: IrField? = null
     mockedClass.origin = Mokkery.Origin
     mockedClass.addMockClassConstructor(
@@ -86,14 +97,14 @@ fun TransformerScope.buildMockClass(
             if (mokkeryKind == IrMokkeryKind.Spy) {
                 val field = mockedClass.addField(
                     fieldName = "_mokkerySpyDelegate",
-                    fieldType = typeToMockErased,
+                    fieldType = typedClassToMock,
                     fieldVisibility = DescriptorVisibilities.PRIVATE
                 )
                 spyDelegateField = field
                 +irSetField(
                     receiver = irGet(mockedClass.thisReceiver!!),
                     field = field,
-                    value = irGet(constructor.addValueParameter("obj", typeToMockErased))
+                    value = irGet(constructor.addValueParameter("obj", typedClassToMock))
                 )
             }
         }
@@ -111,30 +122,32 @@ fun TransformerScope.buildMockClass(
 }
 
 fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
-    val mockedTypes = classesToMock.map { it.defaultTypeErased }
-    val manyMocksMarker = getClass(Mokkery.Class.mockMany(classesToMock.size)).typeWith(mockedTypes)
-    val mokkeryMockScopeClass = getClass(Mokkery.Class.MokkeryMockInstance)
-    val superTypes = mockedTypes + listOfNotNull(
-        mokkeryMockScopeClass.defaultType,
-        if (classesToMock.all(IrClass::isInterface)) pluginContext.irBuiltIns.anyType else null,
-        manyMocksMarker
-    )
-    val mockedClass = pluginContext.irFactory.buildClass(
-        name = manyMocksMarker.classFqName!!.createUniqueManyMockName(),
-        superTypes = superTypes.toTypedArray()
-    )
+    val manyMocksMarkerClass = getClass(Mokkery.Class.mockMany(classesToMock.size))
+    val mokkeryMockInstanceClass = getClass(Mokkery.Class.MokkeryMockInstance)
+    val mockedClass = pluginContext.irFactory
+        .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
+    classesToMock.forEach(mockedClass::copyTypeParametersFrom)
+    mockedClass.thisReceiver = mockedClass.buildThisValueParam()
     mockedClass.origin = Mokkery.Origin
+    val parameterMap = classesToMock.createParametersMapTo(mockedClass)
+    val mockedTypes = classesToMock.typeWith(parameterMap)
+    val manyMocksMarkerType = manyMocksMarkerClass.symbol.typeWith(mockedTypes)
+    mockedClass.superTypes = mockedTypes + listOfNotNull(
+        mokkeryMockInstanceClass.defaultType,
+        if (classesToMock.all(IrClass::isInterface)) pluginContext.irBuiltIns.anyType else null,
+        manyMocksMarkerType
+    )
     mockedClass.addMockClassConstructor(
         transformer = this,
-        scopeClass = mokkeryMockScopeClass,
+        scopeClass = mokkeryMockInstanceClass,
         mokkeryKind = IrMokkeryKind.Mock,
-        typeName = manyMocksMarker.render(),
+        typeName = manyMocksMarkerType.render(),
         classesToIntercept = classesToMock,
     )
     classesToMock.flatMap { it.overridableFunctions }
         .groupBy { it.signatureString(true) }
         .map { (_, functions) ->
-            mockedClass.addOverridingMethod(pluginContext, functions) {
+            mockedClass.addOverridingMethod(pluginContext, functions, parameterMap) {
                 mockBody(this@buildManyMockClass, it, null)
             }
         }
@@ -144,6 +157,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
             mockedClass.addOverridingProperty(
                 context = pluginContext,
                 properties = properties,
+                parameterMap = parameterMap,
                 getterBlock = { mockBody(this@buildManyMockClass, it, null) },
                 setterBlock = { mockBody(this@buildManyMockClass, it, null) }
             )
@@ -151,12 +165,23 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     return mockedClass
 }
 
+private fun List<IrClass>.createParametersMapTo(cls: IrClass): Map<IrTypeParameter, IrTypeParameter> {
+    return memoryOptimizedFlatMap { it.typeParameters }
+        .memoryOptimizedZip(cls.typeParameters)
+        .toMap()
+}
+
+private fun List<IrClass>.typeWith(parameterMap: Map<IrTypeParameter, IrTypeParameter>): List<IrType> {
+    return memoryOptimizedMap {
+        it.symbol.typeWithParameters(it.typeParameters.memoryOptimizedMap(parameterMap::getValue))
+    }
+}
+
 private fun IrBlockBodyBuilder.mockBody(
     transformer: TransformerScope,
     function: IrSimpleFunction,
-    spyDelegateField: IrField?
+    spyDelegateField: IrField?,
 ) {
-    function.eraseFullValueParametersList()
     val superCallLambda = spyDelegateField?.let { irLambdaSpyCall(transformer, it, function) }
     +irReturn(irInterceptMethod(transformer, function, superCallLambda))
 }

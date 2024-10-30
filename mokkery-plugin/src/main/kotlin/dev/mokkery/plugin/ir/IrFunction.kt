@@ -1,12 +1,11 @@
 package dev.mokkery.plugin.ir
 
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.backend.jvm.ir.isCompiledToJvmDefault
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isFromJava
@@ -15,20 +14,20 @@ import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
-fun IrSimpleFunction.copyReturnTypeFrom(function: IrSimpleFunction) {
-    returnType = function.returnType.remapTypeParameters(function, this, mapOf())
+fun IrSimpleFunction.copyReturnTypeFrom(
+    function: IrSimpleFunction,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
+) {
+    returnType = function.returnType.remapTypeParameters(function, this, parameterMap)
 }
 
-fun IrSimpleFunction.copyParametersFrom(function: IrSimpleFunction) {
-    extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this)
+fun IrSimpleFunction.copyParametersFrom(
+    function: IrSimpleFunction,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
+) {
+    extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this, remapTypeMap = parameterMap)
     valueParameters = function.valueParameters
-        .memoryOptimizedMap { it.copyTo(this, defaultValue = null) }
-}
-
-fun IrFunction.eraseFullValueParametersList() = fullValueParameterList.forEach { param ->
-    val consumedParams = param.type.extractAllConsumedTypeParameters()
-    if (consumedParams.any { it in typeParameters }) return@forEach
-    param.type = param.type.eraseTypeParameters()
+        .memoryOptimizedMap { it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap) }
 }
 
 fun IrSimpleFunction.isJvmBinarySafeSuperCall(
