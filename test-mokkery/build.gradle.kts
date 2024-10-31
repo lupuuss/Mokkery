@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
@@ -21,6 +23,15 @@ mokkery {
 }
 
 kotlin {
+
+    applyDefaultHierarchyTemplate {
+        common {
+            group("wasm") {
+                withWasmJs()
+                withWasmWasi()
+            }
+        }
+    }
 
     jvm()
 
