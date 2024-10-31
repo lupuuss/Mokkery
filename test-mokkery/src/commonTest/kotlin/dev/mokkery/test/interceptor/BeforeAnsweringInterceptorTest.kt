@@ -19,7 +19,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@OptIn(DelicateMokkeryApi::class)
 class BeforeAnsweringInterceptorTest {
 
     private val interceptor = TestInterceptor(

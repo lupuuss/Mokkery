@@ -12,9 +12,24 @@ import kotlin.reflect.KClass
 
 /**
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
+ */
+public fun MokkeryBlockingCallScope.nextIntercept(): Any? {
+    return this.context.nextInterceptor.intercept(this)
+}
+
+/**
+ * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
+ */
+public suspend fun MokkerySuspendCallScope.nextIntercept(): Any? {
+    return this.context.nextInterceptor.intercept(this)
+}
+
+
+/**
+ * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext = MokkeryContext.Empty): Any? {
+public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext): Any? {
     return this.context.nextInterceptor.intercept(withContext(context))
 }
 
@@ -22,7 +37,7 @@ public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext = Mokk
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext = MokkeryContext.Empty): Any? {
+public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext): Any? {
     return this.context.nextInterceptor.intercept(withContext(context))
 }
 
