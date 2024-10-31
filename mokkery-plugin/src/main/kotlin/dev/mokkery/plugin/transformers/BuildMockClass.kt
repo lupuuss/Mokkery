@@ -89,7 +89,7 @@ fun TransformerScope.buildMockClass(
     mockedClass.origin = Mokkery.Origin
     mockedClass.addMockClassConstructor(
         transformer = this,
-        typeName = classToMock.name.asString(),
+        typeName = classToMock.kotlinFqName.asString(),
         mokkeryKind = mokkeryKind,
         mokkeryInstanceClass = mokkeryMockInstanceClass,
         classesToIntercept = listOf(classToMock),
