@@ -31,6 +31,10 @@ public interface MokkeryGradleExtension {
      *
      * By default, it is disabled.
      */
+    @Deprecated(
+        "Scheduled to be removed. Due to https://youtrack.jetbrains.com/issue/KT-71283 it won't work in most cases. " +
+                "Also, this feature is a little bit hacky and probably not very useful."
+    )
     public val allowIndirectSuperCalls: Property<Boolean>
 
     /**
