@@ -1,0 +1,63 @@
+---
+description: Debug your mocks easily!
+---
+
+# Debugging
+
+Mokkery provides tools to simplify debugging in your tests.
+
+## Mock state
+
+You can print the state of a mock using `printMokkeryDebug`:
+
+```kotlin
+val mock = mock<Foo>()
+// ...
+printMokkeryDebug(mock)
+```
+This produces a JSON-like structure printed with `println`:
+
+```
+mock {
+	id = your.package.Foo(1)
+	mode = strict
+	answers {
+		call(input = any()) returns -1
+		call(input = 1) returns 2
+		call(input = 2) returns 4
+		call(input = 3) returns 6
+	}
+	calls {
+		call(input = 0)
+		call(input = 1)
+		call(input = 2)
+	}
+}
+```
+
+You can also create this debug string manually using `mokkeryDebugString` and process it as needed.
+
+## Logging calls
+
+To log each call to a mock, use `MokkeryCallLogger`:
+
+```kotlin
+private val logger = MokkeryCallLogger()
+
+@BeforeTest
+fun before() {
+    MokkeryCallInterceptor.beforeAnswering.register(logger)
+}
+
+@AfterTest
+fun after() {
+    MokkeryCallInterceptor.beforeAnswering.unregister(logger)
+}
+```
+This approach ensures the logger is added only for the duration of a single test class.
+
+For quick debugging, you can simply use:
+
+```kotlin
+MokkeryCallInterceptor.beforeAnswering.register(MokkeryCallLogger())
+```

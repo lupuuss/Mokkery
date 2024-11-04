@@ -2,8 +2,8 @@ package dev.mokkery.matcher
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.bestName
-import dev.mokkery.internal.description
+import dev.mokkery.internal.utils.bestName
+import dev.mokkery.internal.utils.description
 import dev.mokkery.matcher.capture.Capture
 import kotlin.reflect.KClass
 

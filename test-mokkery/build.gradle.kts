@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -20,6 +23,15 @@ mokkery {
 }
 
 kotlin {
+
+    applyDefaultHierarchyTemplate {
+        common {
+            group("wasm") {
+                withWasmJs()
+                withWasmWasi()
+            }
+        }
+    }
 
     jvm()
 
@@ -78,8 +90,10 @@ dependencies {
     commonTestImplementation(mokkery("coroutines"))
 }
 
-configurations
-    .filter { it.name.startsWith("wasm") }
-    .forEach {
-        it.resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
-    }
+if (kotlinToolingVersion.toString() == "2.0.0") {
+    configurations
+        .filter { it.name.startsWith("wasm") }
+        .forEach {
+            it.resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+        }
+}

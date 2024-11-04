@@ -3,7 +3,7 @@ package dev.mokkery.matcher.collections
 import dev.drewhamilton.poko.ArrayContentBased
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.asListOrNull
+import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
 
 /**

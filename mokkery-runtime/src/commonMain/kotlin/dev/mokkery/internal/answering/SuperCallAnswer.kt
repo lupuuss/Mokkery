@@ -3,14 +3,14 @@ package dev.mokkery.internal.answering
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuperCall
-import dev.mokkery.internal.description
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
-import dev.mokkery.internal.unsafeCast
+import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.MokkeryInstanceLookup
+import dev.mokkery.internal.utils.unsafeCast
 
 
 internal class SuperCallAnswer<T>(
     private val call: SuperCall,
-    private val lookup: MokkeryScopeLookup = MokkeryScopeLookup.current,
+    private val lookup: MokkeryInstanceLookup,
 ) : Answer<T> {
 
     override fun call(scope: FunctionScope): T = when (call) {

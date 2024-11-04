@@ -1,17 +1,17 @@
 package dev.mokkery.internal.names
 
-import dev.mokkery.internal.MockUniqueReceiversGenerator
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTrace
 
 internal interface CallTraceReceiverShortener {
 
     fun shorten(callTrace: CallTrace): CallTrace
+}
 
-    companion object : CallTraceReceiverShortener {
-
-        private val receiversGenerator = MockUniqueReceiversGenerator
-        private val namesShortener = NameShortener.default
-
+internal fun CallTraceReceiverShortener(
+    receiversGenerator: MokkeryInstanceIdGenerator,
+    namesShortener: NameShortener,
+): CallTraceReceiverShortener {
+    return object : CallTraceReceiverShortener {
         override fun shorten(callTrace: CallTrace): CallTrace {
             val noIdReceiver = receiversGenerator.extractType(callTrace.receiver)
             val id = callTrace.receiver.removePrefix(noIdReceiver)

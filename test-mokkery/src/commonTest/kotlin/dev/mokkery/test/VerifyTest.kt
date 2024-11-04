@@ -1,76 +1,192 @@
 package dev.mokkery.test
 
-import dev.mokkery.matcher.any
+import dev.mokkery.MockMode.autofill
 import dev.mokkery.mock
 import dev.mokkery.verify
-import dev.mokkery.verifySuspend
+import dev.mokkery.verify.VerifyMode.Companion.atLeast
+import dev.mokkery.verify.VerifyMode.Companion.atMost
+import dev.mokkery.verify.VerifyMode.Companion.exhaustive
+import dev.mokkery.verify.VerifyMode.Companion.exhaustiveOrder
+import dev.mokkery.verify.VerifyMode.Companion.inRange
+import dev.mokkery.verify.VerifyMode.Companion.not
+import dev.mokkery.verify.VerifyMode.Companion.order
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 
 class VerifyTest {
 
-    private val dependencyMock = mock<TestInterface>()
+    private val mock = mock<RegularMethodsInterface>(autofill)
 
     @Test
-    fun testVerifiesRegularMethodCallWithPrimitiveTypes() {
+    fun testDetectsMissingCallsSoft() {
+        mock.callPrimitive(2)
+        mock.callPrimitive(1)
+        verify {
+            mock.callPrimitive(1)
+            mock.callPrimitive(2)
+        }
         assertVerified {
             verify {
-                dependencyMock.callWithPrimitives(1)
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
+                mock.callPrimitive(3)
             }
         }
     }
 
     @Test
-    fun testVerifiesRegularMethodCallWithComplexTypes() {
+    fun testDetectsMissingCallsAtLeast() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(1)
+        verify(atLeast(2)) { mock.callPrimitive(1) }
+        assertVerified { verify(atLeast(3)) { mock.callPrimitive(1) } }
+    }
+
+    @Test
+    fun testDetectsMissingCallsAtMost() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(1)
+        verify(atMost(2)) { mock.callPrimitive(1) }
+        assertVerified { verify(atMost(1)) { mock.callPrimitive(1) } }
+    }
+
+
+    @Test
+    fun testDetectsMissingCallsInRange() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(1)
+        verify(inRange(2..3)) { mock.callPrimitive(1) }
+        assertVerified { verify(inRange(3..4)) { mock.callPrimitive(1) } }
+    }
+
+    @Test
+    fun testDetectsMissingCallsOrder() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(2)
+        verify(order) {
+            mock.callPrimitive(1)
+            mock.callPrimitive(2)
+        }
         assertVerified {
-            verify {
-                dependencyMock.callWithComplex(any())
+            verify(order) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
+                mock.callPrimitive(3)
             }
         }
     }
 
     @Test
-    fun testVerifiesRegularMethodWithExtensionReceiver() {
+    fun testDetectsMissingCallsExhaustiveOrder() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(2)
+        verify(exhaustiveOrder) {
+            mock.callPrimitive(1)
+            mock.callPrimitive(2)
+        }
         assertVerified {
-            verify {
-                dependencyMock.run { 1.callWithExtensionReceiver() }
+            verify(exhaustiveOrder) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
+                mock.callPrimitive(3)
             }
         }
     }
 
     @Test
-    fun testVerifiesMethodsWithAnyVarargs() {
+    fun testDetectsMissingCallsExhaustive() {
+        mock.callPrimitive(1)
+        mock.callPrimitive(2)
+        verify(exhaustive) {
+            mock.callPrimitive(1)
+            mock.callPrimitive(2)
+        }
         assertVerified {
-            verify {
-                dependencyMock.callWithVararg(1, "2")
+            verify(exhaustive) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
+                mock.callPrimitive(3)
             }
         }
     }
 
     @Test
-    fun testVerifiesSuspendingMethods() {
+    fun testDetectsPresentCallsNot() {
+        mock.callPrimitive(1)
+        verify(not) { mock.callPrimitive(2) }
+        assertVerified { verify(not) { mock.callPrimitive(1) } }
+    }
+
+    @Test
+    fun testDetectsChangedOrderOfCallsOrder() {
+        mock.callPrimitive(3)
+        mock.callPrimitive(2)
+        mock.callPrimitive(1)
+        verify(order) {
+            mock.callPrimitive(2)
+            mock.callPrimitive(1)
+        }
         assertVerified {
-            verifySuspend {
-                dependencyMock.callWithSuspension(1)
-                dependencyMock.callPrimitiveWithSuspension(1)
-                dependencyMock.callGenericWithSuspension(1)
-                dependencyMock.callGenericWithSuspension(listOf("1"))
+            verify(order) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
             }
         }
     }
 
     @Test
-    fun testMocksMethodsWithNothingReturnType() {
+    fun testDetectsChangedOrderOfCallsExhaustiveOrder() {
+        mock.callPrimitive(2)
+        mock.callPrimitive(1)
+        verify(exhaustiveOrder) {
+            mock.callPrimitive(2)
+            mock.callPrimitive(1)
+        }
         assertVerified {
-            verify {
-                dependencyMock.callNothing()
+            verify(exhaustiveOrder) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
             }
         }
     }
-}
 
-internal inline fun assertVerified(crossinline block: () -> Unit) {
-    assertFailsWith<AssertionError> {
-        block()
+
+    @Test
+    fun testDetectsExtraCallsInExhaustive() {
+        mock.callPrimitive(3)
+        mock.callPrimitive(2)
+        mock.callPrimitive(1)
+        verify(exhaustive) {
+            mock.callPrimitive(2)
+            mock.callPrimitive(1)
+            mock.callPrimitive(3)
+        }
+        assertVerified {
+            verify(exhaustive) {
+                mock.callPrimitive(1)
+                mock.callPrimitive(2)
+            }
+        }
     }
+
+    @Test
+    fun testDetectsExtraCallsInExhaustiveOrder() {
+        mock.callPrimitive(3)
+        mock.callPrimitive(2)
+        mock.callPrimitive(1)
+        verify(exhaustiveOrder) {
+            mock.callPrimitive(3)
+            mock.callPrimitive(2)
+            mock.callPrimitive(1)
+        }
+        assertVerified {
+            verify(exhaustiveOrder) {
+                mock.callPrimitive(3)
+                mock.callPrimitive(2)
+                mock.callPrimitive(1)
+                mock.callPrimitive(0)
+            }
+        }
+    }
+
+
 }

@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.calls.CallMatchResult
 import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.fakeCallTemplate
@@ -69,7 +69,7 @@ class ExhaustiveSoftVerifierTest {
     @Test
     fun testReturnsAllTracesOnSuccess() {
         val traces = listOf(trace2, trace1)
-        val verified = verifier.verify(traces, listOf(template1, template2,))
+        val verified = verifier.verify(traces, listOf(template1, template2))
         assertEquals(traces, verified)
     }
 

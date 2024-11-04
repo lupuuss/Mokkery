@@ -1,6 +1,7 @@
 package dev.mokkery.internal
 
 import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.internal.utils.bestName
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 

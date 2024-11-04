@@ -16,9 +16,3 @@ fun Project.loadLocalProperties() {
         }
     }
 }
-
-fun Project.excludeFromApiDocs() {
-    tasks.withType(DokkaTaskPartial::class.java) {
-        enabled = false
-    }
-}

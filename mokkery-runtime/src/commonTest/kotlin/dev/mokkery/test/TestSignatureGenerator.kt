@@ -1,19 +1,19 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.signature.SignatureGenerator
-import dev.mokkery.internal.tracing.CallArg
+import dev.mokkery.internal.names.SignatureGenerator
+import dev.mokkery.context.CallArgument
 
 internal class TestSignatureGenerator(
-    var calls: (name: String, args: List<CallArg>) -> String = { _, _ -> "call(i: Int)" },
+    var calls: (name: String, args: List<CallArgument>) -> String = { _, _ -> "call(i: Int)" },
 ) : SignatureGenerator {
 
-    private val _recordedCalls = mutableListOf<Pair<String, List<CallArg>>>()
-    val recordedCalls: List<Pair<String, List<CallArg>>> = _recordedCalls
+    private val _recordedCalls = mutableListOf<Pair<String, List<CallArgument>>>()
+    val recordedCalls: List<Pair<String, List<CallArgument>>> = _recordedCalls
 
     fun returns(value: String) {
         calls = { _, _ -> value }
     }
-    override fun generate(name: String, args: List<CallArg>): String {
+    override fun generate(name: String, args: List<CallArgument>): String {
         _recordedCalls.add(name to args)
         return calls(name, args)
     }

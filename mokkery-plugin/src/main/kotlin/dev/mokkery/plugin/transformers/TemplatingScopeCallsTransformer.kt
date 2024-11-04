@@ -6,12 +6,10 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
-import dev.mokkery.plugin.core.messageCollector
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.logAt
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
@@ -43,7 +41,6 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isSuspend
-import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.platform.konan.isNative
 
 class TemplatingScopeCallsTransformer(
@@ -73,7 +70,7 @@ class TemplatingScopeCallsTransformer(
                 val tmp = createTmpVariable(receiver)
                 +irCall(templatingContextClass.getSimpleFunction("ensureBinding")!!) {
                     val genericReturnTypeHint = when {
-                        !returnType.isTypeParameter() || expression.type.isTypeParameter() -> irNull()
+                        returnType == expression.type -> irNull()
                         else ->  kClassReference(expression.type)
                     }
                     dispatchReceiver = irGet(templatingScope)

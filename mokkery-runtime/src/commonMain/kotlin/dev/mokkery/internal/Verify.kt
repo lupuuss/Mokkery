@@ -2,10 +2,12 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.internal.coroutines.runSuspension
-import dev.mokkery.internal.names.GroupMockReceiverShortener
-import dev.mokkery.internal.templating.TemplatingScope
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.context.GlobalMokkeryContext
+import dev.mokkery.internal.utils.runSuspension
+import dev.mokkery.internal.names.createGroupMockReceiverShortener
+import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
 import dev.mokkery.internal.verify.NotVerifier
@@ -54,7 +56,7 @@ internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, bloc
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
-    val shortener = GroupMockReceiverShortener()
+    val shortener = GlobalMokkeryContext.tools.createGroupMockReceiverShortener()
     shortener.prepare(calls, scope.templates)
     try {
         verifier

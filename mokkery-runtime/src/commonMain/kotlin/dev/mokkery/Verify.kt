@@ -1,14 +1,17 @@
 @file:Suppress( "UNUSED_PARAMETER", "unused")
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryMockScope
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
-import dev.mokkery.internal.dynamic.MokkeryScopeLookup
-import dev.mokkery.internal.failAssertion
-import dev.mokkery.internal.names.GroupMockReceiverShortener
+import dev.mokkery.internal.context.GlobalMokkeryContext
+import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.utils.failAssertion
+import dev.mokkery.internal.interceptor
+import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.context.tools
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -39,13 +42,13 @@ public fun verifySuspend(
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     mocks.forEach { mock ->
         val tracing = mock
-            .let { MokkeryScopeLookup.current.resolve(it) as? MokkeryMockScope }
+            .let { GlobalMokkeryContext.mokkeryInstanceLookup.resolve(it) as? MokkeryMockInstance }
             ?.interceptor
             ?.callTracing ?: throw ObjectNotMockedException(mock)
         if (tracing.unverified.isNotEmpty()) {
             failAssertion {
                 val renderer = PointListRenderer<CallTrace>()
-                val shortener = GroupMockReceiverShortener()
+                val shortener = GlobalMokkeryContext.tools.createGroupMockReceiverShortener()
                 shortener.prepare(tracing.unverified, emptyList())
                 val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
                 appendLine("Unverified calls for $mock:")
