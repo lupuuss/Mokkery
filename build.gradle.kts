@@ -1,7 +1,4 @@
 
-import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.base.DokkaBaseConfiguration
-import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
@@ -42,7 +39,7 @@ allprojects {
 
 dokka {
     moduleName.set("Mokkery")
-    moduleVersion.set(rootProject.version.toString())
+    moduleVersion.set(rootProject.version.toString().replace("-SNAPSHOT", "", ignoreCase = true))
     pluginsConfiguration.html {
         customAssets.from(rootProject.layout.projectDirectory.file("website/static/img/logo-icon.svg").asFile)
     }
