@@ -48,6 +48,7 @@ const config = {
             ({
                 docs: {
                     sidebarPath: './sidebars.js',
+                    editUrl: 'https://github.com/lupuuss/Mokkery/edit/master/website'
                 },
                 theme: {
                     customCss: './src/css/custom.css',
