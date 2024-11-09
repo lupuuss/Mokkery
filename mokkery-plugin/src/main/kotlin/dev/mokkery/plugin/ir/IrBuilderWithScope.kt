@@ -41,8 +41,8 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -110,7 +110,7 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
     }
 }
 
-fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrIfThenElseImpl {
+fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
     return irIfThen(
         condition = irNot(irEqualsNull(argument = arg)),
         thenPart = then
@@ -154,7 +154,7 @@ fun IrBuilderWithScope.irInvokeIfNotNull(
     function: IrExpression,
     isSuspend: Boolean,
     vararg args: IrExpression
-): IrIfThenElseImpl {
+): IrWhen {
     return irIfNotNull(
         function,
         irInvoke(function, isSuspend, *args)
@@ -191,19 +191,19 @@ inline fun IrBuilderWithScope.irCall(
 fun IrBuilderWithScope.irCall(
     symbol: IrSimpleFunctionSymbol,
     type: IrType = symbol.owner.returnType,
-    valueArgumentsCount: Int = symbol.owner.valueParameters.size,
     typeArgumentsCount: Int = symbol.owner.typeParameters.size,
     origin: IrStatementOrigin? = null,
     superQualifierSymbol: IrClassSymbol? = null,
     block: IrCall.() -> Unit = { }
-): IrCall =
-    IrCallImpl(
-        startOffset, endOffset, type, symbol,
-        typeArgumentsCount = typeArgumentsCount,
-        valueArgumentsCount = valueArgumentsCount,
-        origin = origin,
-        superQualifierSymbol = superQualifierSymbol
-    ).apply(block)
+): IrCall = IrCallImpl(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = type,
+    symbol = symbol,
+    typeArgumentsCount = typeArgumentsCount,
+    origin = origin,
+    superQualifierSymbol = superQualifierSymbol
+).apply(block)
 
 inline fun IrBuilderWithScope.irCallConstructor(
     constructor: IrConstructor,
