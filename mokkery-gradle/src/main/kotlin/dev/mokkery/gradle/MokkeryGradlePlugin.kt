@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 
 /**
  * Configures Mokkery in source sets specified by [MokkeryGradleExtension.rule]. It includes:
@@ -81,9 +83,22 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         if (extensions.findByName("kotlin") == null) {
             error("Kotlin plugin not applied! Mokkery requires kotlin plugin!")
         }
-        val kotlinVersion = kotlinToolingVersion.toString()
-        if (kotlinVersion.startsWith("1.")) {
-            error("Current Kotlin version must be at least 2.0.0, but is $kotlinVersion!")
+        val currentKotlinVersion = kotlinToolingVersion.toKotlinVersion()
+        val minimumKotlinVersion = KotlinVersion(MokkeryConfig.MINIMUM_KOTLIN_VERSION)
+        if (currentKotlinVersion < minimumKotlinVersion) {
+            error("Current Kotlin version must be at least ${MokkeryConfig.MINIMUM_KOTLIN_VERSION}, but is $currentKotlinVersion!")
+        }
+        val compiledKotlinVersion = KotlinVersion(MokkeryConfig.COMPILED_KOTLIN_VERSION)
+        val versionWarnings = project.findProperty("dev.mokkery.versionWarnings")
+            .toString()
+            .toBooleanStrictOrNull()
+            ?: true
+        if (versionWarnings && currentKotlinVersion.minor > compiledKotlinVersion.minor) {
+            val log = "w: Mokkery was compiled against Kotlin {}, but the current version is {}!" +
+                    " Minor Kotlin updates might cause compatibility issues, such as NoSuchMethodError, NoClassDefFoundError, etc." +
+                    " Please report any issues at https://github.com/lupuuss/Mokkery/issues!" +
+                    " To hide this message, add 'dev.mokkery.versionWarnings=false' to the Gradle properties."
+            logger.warn(log, compiledKotlinVersion, currentKotlinVersion)
         }
     }
 
@@ -111,4 +126,6 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)
+
+    private fun KotlinVersion(string: String): kotlin.KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
 }
