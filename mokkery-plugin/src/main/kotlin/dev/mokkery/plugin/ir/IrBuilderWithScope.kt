@@ -4,9 +4,6 @@ import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
-import dev.mokkery.plugin.ir.compat.IrClassReferenceImplCompat
-import dev.mokkery.plugin.ir.compat.IrFunctionExpressionImplCompat
-import dev.mokkery.plugin.ir.compat.IrGetEnumValueImplCompat
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
@@ -43,6 +40,9 @@ import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -61,7 +61,7 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
 // use until resolved https://youtrack.jetbrains.com/issue/KT-66178/kClassReference-extension-returns-incorrect-IrClassReferenceImpl
-fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = IrClassReferenceImplCompat(
+fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = IrClassReferenceImpl(
     startOffset = startOffset,
     endOffset = endOffset,
     type = context.irBuiltIns.kClassClass.starProjectedType,
@@ -72,7 +72,7 @@ fun IrBuilderWithScope.kClassReference(classType: IrType): IrClassReference = Ir
 fun IrBuilderWithScope.irGetEnumEntry(
     irClass: IrClass,
     name: String
-): IrGetEnumValue = IrGetEnumValueImplCompat(
+): IrGetEnumValue = IrGetEnumValueImpl(
     startOffset = startOffset,
     endOffset = endOffset,
     type = irClass.defaultType,
@@ -141,12 +141,12 @@ fun IrBuilderWithScope.irLambda(
             block(this@apply)
         }
     }
-    return IrFunctionExpressionImplCompat(
-        UNDEFINED_OFFSET,
-        UNDEFINED_OFFSET,
-        lambdaType,
-        lambda,
-        IrStatementOrigin.LAMBDA
+    return IrFunctionExpressionImpl(
+        startOffset = UNDEFINED_OFFSET,
+        endOffset = UNDEFINED_OFFSET,
+        type = lambdaType,
+        function = lambda,
+        origin = IrStatementOrigin.LAMBDA
     )
 }
 
