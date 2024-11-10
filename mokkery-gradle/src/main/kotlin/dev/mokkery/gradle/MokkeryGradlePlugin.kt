@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 
@@ -72,12 +73,15 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         )
     }
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = kotlinCompilation
-        .project
-        .mokkery
-        .rule
-        .get()
-        .isApplicable(kotlinCompilation.defaultSourceSet)
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        if (kotlinCompilation.target is KotlinMetadataTarget) return true
+        return  kotlinCompilation
+            .project
+            .mokkery
+            .rule
+            .get()
+            .isApplicable(kotlinCompilation.defaultSourceSet)
+    }
 
     private fun Project.checkKotlinSetup() {
         if (extensions.findByName("kotlin") == null) {
@@ -115,7 +119,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 .sourceSets
                 .filter { rule.isApplicable(it) }
             applicableSourceSets
-                .filter { sourceSet -> sourceSet.dependsOn.none { it in applicableSourceSets  } }
+                .filter { sourceSet -> sourceSet.dependsOn.none { it in applicableSourceSets } }
                 .forEach {
                     mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
                     it.dependencies {
@@ -127,5 +131,5 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)
 
-    private fun KotlinVersion(string: String): kotlin.KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
+    private fun KotlinVersion(string: String): KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
 }
