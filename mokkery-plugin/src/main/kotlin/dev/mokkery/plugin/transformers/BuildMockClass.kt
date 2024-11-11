@@ -60,7 +60,6 @@ import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
-import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -141,7 +140,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
         transformer = this,
         mokkeryInstanceClass = mokkeryMockInstanceClass,
         mokkeryKind = IrMokkeryKind.Mock,
-        typeName = manyMocksMarkerType.render(),
+        typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
     classesToMock.flatMap { it.overridableFunctions }
@@ -163,6 +162,9 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
             )
         }
     return mockedClass
+}
+private fun mockManyTypeName(klass: IrClass, types: List<IrClass>): String {
+    return "${klass.kotlinFqName.asString()}<${types.joinToString { it.kotlinFqName.asString() }}>"
 }
 
 private fun List<IrClass>.createParametersMapTo(cls: IrClass): Map<IrTypeParameter, IrTypeParameter> {
