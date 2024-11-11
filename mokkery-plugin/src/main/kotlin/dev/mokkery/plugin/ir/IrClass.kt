@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
@@ -92,6 +93,8 @@ fun IrClass.overrideAllOverridableFunctions(
             )
         }
 }
+
+fun IrClass.getField(name: String) = fields.find { it.name.asString() == name }
 
 fun IrClass.overrideAllOverridableProperties(
     context: IrGeneratorContext,
