@@ -13,11 +13,13 @@ import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.platform
 import dev.mokkery.plugin.core.verifyMode
+import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.isPlatformDependent
+import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.ir.backend.js.utils.typeArguments
@@ -90,9 +92,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun replaceWithMock(call: IrCall): IrExpression {
-        val klass = call.type.getClass() ?: return call
-        if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock)
-        val mockedClass = mockCache.getOrPut(klass) { buildMockClass(Mock, klass).also(currentFile::addChild) }
+        val typeToMock = call.typeArguments.firstOrNull() ?: return call
+        val classToMock = typeToMock.getClass() ?: return call
+        if (platform.isJs() && classToMock.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock)
+        val mockedClass = mockCache.getOrPut(classToMock) { buildMockClass(Mock, classToMock).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments.getOrNull(0)
@@ -100,6 +103,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val block = call.valueArguments.getOrNull(1)
                 putValueArgument(0, modeArg)
                 putValueArgument(1, block ?: irNull())
+                val anyType = context.irBuiltIns.anyType
+                typeToMock.forEachIndexedTypeArgument { index, it ->
+                    putValueArgument(2 + index, kClassReference(it ?: anyType))
+                }
             }
         }
     }
@@ -116,12 +123,19 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
                 putValueArgument(0, modeArg)
                 putValueArgument(1, call.valueArguments.getOrNull(1) ?: irNull())
+                val anyType = context.irBuiltIns.anyType
+                call.typeArguments
+                    .filterNotNull()
+                    .forEachIndexedTypeArgument { index, it ->
+                        putValueArgument(2 + index, kClassReference(it ?: anyType))
+                    }
             }
         }
     }
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
-        val klass = call.type.getClass() ?: return call
+        val typeToMock = call.typeArguments.firstOrNull() ?: return call
+        val klass = typeToMock.getClass() ?: return call
         if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy)
         val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
@@ -130,6 +144,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 putValueArgument(0, irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict"))
                 putValueArgument(1, block)
                 putValueArgument(2, call.valueArguments[0])
+                val anyType = context.irBuiltIns.anyType
+                typeToMock.forEachIndexedTypeArgument { index, it ->
+                    putValueArgument(3 + index, kClassReference(it ?: anyType))
+                }
             }
         }
     }

@@ -150,6 +150,8 @@ object Mokkery {
     object Fields {
 
         const val SpyDelegate = "_mokkerySpyDelegate"
+
+        fun typeArg(index: Int) = "_mokkeryTypeArg$index"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)
