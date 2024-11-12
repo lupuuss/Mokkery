@@ -1,6 +1,5 @@
 package dev.mokkery.test
 
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.context.Function
 import dev.mokkery.every
@@ -10,6 +9,11 @@ import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.mockMany
+import dev.mokkery.t1
+import dev.mokkery.t2
+import dev.mokkery.t3
+import kotlin.collections.Map
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -53,6 +57,28 @@ class GenericTypeArgumentPreservationTest {
         }.invoke(1, 1.0)
         assertEquals(String::class, capturedReturnType)
         assertEquals(listOf(Int::class, Double::class), capturedArgumentTypes)
+    }
+
+    @Test
+    fun testPreservesRegularGenericArgumentForMockMany() {
+        val mock = mockMany<Map.Entry<String, ComplexType>, AutoCloseable, Collection<Int>> {
+            every { t1.key } returns "key"
+            every { t1.value } returns ComplexType("0")
+            every { t2.close() } returns Unit
+            every { t3.contains(any()) } returns true
+        }
+        mock.t1.key
+        assertEquals(String::class, capturedReturnType)
+        assertEquals(listOf<KClass<*>>(), capturedArgumentTypes)
+        mock.t1.value
+        assertEquals(ComplexType::class, capturedReturnType)
+        assertEquals(listOf<KClass<*>>(), capturedArgumentTypes)
+        mock.t2.close()
+        assertEquals(Unit::class, capturedReturnType)
+        assertEquals(listOf<KClass<*>>(), capturedArgumentTypes)
+        mock.t3.contains(10)
+        assertEquals(Boolean::class, capturedReturnType)
+        assertEquals(listOf(Int::class), capturedArgumentTypes)
     }
 
     @Test
