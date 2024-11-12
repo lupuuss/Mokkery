@@ -147,6 +147,13 @@ object Mokkery {
         ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
     }
 
+    object Fields {
+
+        const val SpyDelegate = "_mokkerySpyDelegate"
+
+        fun typeArg(index: Int) = "_mokkeryTypeArg$index"
+    }
+
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)
 
     object Key : GeneratedDeclarationKey() {

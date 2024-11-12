@@ -18,5 +18,6 @@ object Kotlin {
     }
     object Class {
         val Pair by kotlin.klass
+        val List by kotlin_collections.klass
     }
 }
