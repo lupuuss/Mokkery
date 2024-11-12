@@ -2,6 +2,8 @@ package dev.mokkery.test
 
 interface DefaultsInterfaceLevel1<T> : DefaultsInterfaceLevel2<T> {
 
+    fun callNoDefault(): Unit
+
     override var Int.extProperty: Double
         get() = this.toDouble()
         set(value) { }
