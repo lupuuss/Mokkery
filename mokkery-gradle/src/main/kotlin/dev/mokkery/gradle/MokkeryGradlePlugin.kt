@@ -97,9 +97,11 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             .toString()
             .toBooleanStrictOrNull()
             ?: true
-        if (versionWarnings && currentKotlinVersion.minor > compiledKotlinVersion.minor) {
+        val isPotentiallyIncompatibleKotlinVersion = currentKotlinVersion.major > compiledKotlinVersion.major
+                || currentKotlinVersion.minor > compiledKotlinVersion.minor
+        if (versionWarnings && isPotentiallyIncompatibleKotlinVersion) {
             val log = "w: Mokkery was compiled against Kotlin {}, but the current version is {}!" +
-                    " Minor Kotlin updates might cause compatibility issues, such as NoSuchMethodError, NoClassDefFoundError, etc." +
+                    " It might cause compatibility issues, such as NoSuchMethodError, NoClassDefFoundError, etc." +
                     " Please report any issues at https://github.com/lupuuss/Mokkery/issues!" +
                     " To hide this message, add 'dev.mokkery.versionWarnings=false' to the Gradle properties."
             logger.warn(log, compiledKotlinVersion, currentKotlinVersion)
