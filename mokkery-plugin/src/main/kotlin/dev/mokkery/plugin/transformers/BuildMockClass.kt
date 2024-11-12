@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.makeNullable
+import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
@@ -67,6 +68,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
 import java.util.*
 
@@ -189,8 +191,7 @@ private fun IrClass.addMockClassConstructor(
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
     val interceptor = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryInterceptor"))
     val idProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryId"))
-    val typesProperty =
-        overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryInterceptedTypes"))
+    val typesProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryInterceptedTypes"))
     addConstructor {
         isPrimary = true
     }.apply {
@@ -200,6 +201,10 @@ private fun IrClass.addMockClassConstructor(
             IrMokkeryKind.Spy -> addSpyParameter(classesToIntercept)
             IrMokkeryKind.Mock -> null
         }
+        val kClassType = context.irBuiltIns.kClassClass.starProjectedType
+        val typeKClassParameters = classesToIntercept
+            .memoryOptimizedFlatMap(IrClass::typeParameters)
+            .memoryOptimizedMapIndexed { index, it -> addValueParameter("type$index", kClassType) }
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
             +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
@@ -207,7 +212,7 @@ private fun IrClass.addMockClassConstructor(
                 property = typesProperty,
                 value = irCallListOf(
                     transformerScope = transformer,
-                    type = context.irBuiltIns.kClassClass.defaultType,
+                    type = context.irBuiltIns.kClassClass.starProjectedType,
                     expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
                 )
             )
@@ -231,6 +236,13 @@ private fun IrClass.addMockClassConstructor(
                     receiver = irGet(thisReceiver!!),
                     field = addField(fieldName = Mokkery.Fields.SpyDelegate, fieldType = spyParam.type),
                     value = irGet(spyParam)
+                )
+            }
+            typeKClassParameters.forEachIndexed { index, it ->
+                +irSetField(
+                    receiver = irGet(thisReceiver!!),
+                    field = addField(fieldName = Mokkery.Fields.typeArg(index), fieldType = it.type),
+                    value = irGet(it)
                 )
             }
             +irInvokeIfNotNull(irGet(valueParameters[1]), false, irGet(thisReceiver!!))

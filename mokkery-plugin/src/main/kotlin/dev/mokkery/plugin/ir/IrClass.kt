@@ -20,6 +20,12 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
+import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
@@ -41,6 +47,19 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
     return declarations
         .filterIsInstance<IrEnumEntry>()
         .first { it.name == Name.identifier(name) }
+}
+
+fun IrType.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
+    (this as? IrSimpleType)
+        ?.arguments
+        ?.forEachIndexed { index, it ->
+            block(index, it.typeOrNull?.eraseTypeParameters())
+        }
+}
+
+fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
+    memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
+        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
 }
 
 fun IrClass.addOverridingMethod(
@@ -92,6 +111,11 @@ fun IrClass.overrideAllOverridableFunctions(
                 block = override
             )
         }
+}
+
+fun IrType.indexIfParameterOrNull(parent: IrTypeParametersContainer): Int? {
+    val param = asTypeParamOrNull() ?: return null
+    return param.index.takeIf { parent.typeParameters.getOrNull(param.index) == param }
 }
 
 fun IrClass.getField(name: String) = fields.find { it.name.asString() == name }

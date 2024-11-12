@@ -9,12 +9,14 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.irMokkeryKindValue
 import dev.mokkery.plugin.ir.kClassReference
+import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -32,7 +34,8 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
-import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 
@@ -40,13 +43,11 @@ fun TransformerScope.buildMockJsFunction(
     expression: IrCall,
     kind: IrMokkeryKind
 ): IrExpression {
-    val anyNType = pluginContext.irBuiltIns.anyNType
     val typeToMock = expression.type
-    val returnType = typeToMock.let { it as IrSimpleType }
+    val typeArguments = typeToMock.let { it as IrSimpleType }
         .arguments
-        .last()
-        .typeOrNull
-        ?: anyNType
+        .map { it.typeOrFail.eraseTypeParameters() }
+    val returnType = typeArguments.last()
     val transformer = this
     return declarationIrBuilder(expression) {
         irBlock {
@@ -59,7 +60,13 @@ fun TransformerScope.buildMockJsFunction(
                 } else {
                     null
                 }
-                +irReturn(irInterceptCall(transformer, irGet(instanceVar), it, irSpyCall))
+                val parentClass = typeToMock.classOrFail.owner
+                val mapTypeToClass: IrBuilderWithScope.(IrType) -> IrExpression = {
+                    val index = it.indexIfParameterOrNull(parentClass)
+                    if (index != null) kClassReference(typeArguments[index])
+                    else kClassReference(it)
+                }
+                +irReturn(irInterceptCall(transformer, irGet(instanceVar), it, mapTypeToClass, irSpyCall))
             }
             val lambdaVar = createTmpVariable(lambda)
             +irCallRegisterInstance(transformer, irGet(instanceVar), irGet(lambdaVar))
