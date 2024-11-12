@@ -27,6 +27,16 @@ class MockModesTest {
     }
 
     @Test
+    fun testAutoUnitModeSucceedsWhenUnitReturningLambdaCalled() {
+        mock<(Int) -> Unit>(autoUnit).invoke(1)
+    }
+
+    @Test
+    fun testAutoUnitModeFailsWhenNonUnitReturningLambdaCalled() {
+        assertFailsWith<MokkeryRuntimeException> { mock<(Int) -> Int>(autoUnit).invoke(1) }
+    }
+
+    @Test
     fun testAutoUnitModeSucceedsOnClassGenericUnitReturningCalls() {
         val autoUnitMock = mock<GenericFunctionsInterface<Unit>>(autoUnit)
         autoUnitMock.call(Unit)
@@ -51,6 +61,13 @@ class MockModesTest {
         assertEquals(0, autofillMock.callPrimitive(1))
         assertEquals(Unit, autofillMock.callUnit(Unit))
         assertEquals("", autofillMock.callOverloaded(""))
+    }
+
+    @Test
+    fun testAutofillModeSucceedsWhenLambdaCalled() {
+        assertEquals("", mock<(Int) -> String>(autofill).invoke(1))
+        assertEquals(0, mock<(Int) -> Int>(autofill).invoke(1))
+        assertEquals(0.0, mock<(Int) -> Double>(autofill).invoke(1))
     }
 
     @Test
