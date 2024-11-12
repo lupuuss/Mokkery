@@ -2,6 +2,8 @@ package dev.mokkery.test
 
 interface GenericFunctionsInterface<Type> {
 
+    fun call(input: Type): Type
+
     fun <R> callGeneric(input: Type): R
 
     fun <R : Any> callGenericNullabilityMarkers(input: Type & Any): R?
