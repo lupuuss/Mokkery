@@ -26,8 +26,8 @@ const simpleTabBlock = `class BookServiceTest {
     }
 }`
 const setupTabBlockK1 = `plugins {
-    kotlin("multiplatform") version "1.9.24" // ...or any other Kotlin plugin
-    id("dev.mokkery") version "1.9.24-1.7.0"
+    kotlin("multiplatform") version "1.9.25" // ...or any other Kotlin plugin
+    id("dev.mokkery") version "1.9.25-1.7.0"
 }
 `
 const setupTabBlockK2 = `plugins {
