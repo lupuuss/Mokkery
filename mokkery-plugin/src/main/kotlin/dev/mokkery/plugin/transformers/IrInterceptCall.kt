@@ -162,7 +162,6 @@ private fun IrBuilderWithScope.createSuperCallLambda(
             type = returnType,
         ) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
-            contextReceiversCount = superFunction.contextReceiverParametersCount
             function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
             superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
                 putArgument(

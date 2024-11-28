@@ -1,9 +1,9 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
 
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
@@ -40,12 +40,10 @@ kotlin {
         nodejs()
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
     }
-    @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()
     }
