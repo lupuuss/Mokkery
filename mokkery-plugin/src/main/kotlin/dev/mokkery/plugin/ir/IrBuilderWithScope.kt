@@ -9,6 +9,7 @@ import dev.mokkery.plugin.core.getFunction
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
+import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -101,7 +102,7 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
                     val provideCall = irCall(autofillFun) {
                         type = it.type
                         putTypeArgument(0, it.type)
-                        putValueArgument(0, kClassReference(it.type))
+                        putValueArgument(0, kClassReference(it.type.eraseTypeParameters()))
                     }
                     putArgument(it, provideCall)
                 }
