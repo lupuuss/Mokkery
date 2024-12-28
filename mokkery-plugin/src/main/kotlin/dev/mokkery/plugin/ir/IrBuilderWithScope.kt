@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
@@ -178,7 +177,7 @@ fun IrBuilderWithScope.irInvoke(
 }
 
 inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
-    return irCall(symbol).apply(block)
+    return irCallCompat(symbol, symbol.owner.returnType).apply(block)
 }
 
 inline fun IrBuilderWithScope.irCall(
@@ -186,7 +185,7 @@ inline fun IrBuilderWithScope.irCall(
     type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCall(func.symbol, type).apply(block)
+    return irCallCompat(func.symbol, type).apply(block)
 }
 
 fun IrBuilderWithScope.irCall(
