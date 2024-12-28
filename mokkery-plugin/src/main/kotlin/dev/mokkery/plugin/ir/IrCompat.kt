@@ -2,10 +2,17 @@ package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.copyTo
+import org.jetbrains.kotlin.name.Name
 import java.lang.reflect.Parameter
 
 
@@ -46,5 +53,60 @@ fun IrBuilderWithScope.irCallCompat(
                 typeArgumentsCount, // param: typeArgumentsCount
                 origin, // param: origin
             ) as IrCall
+    }
+}
+
+fun IrValueParameter.copyToCompat(
+    irFunction: IrFunction,
+    defaultValue: IrExpressionBody? = this.defaultValue,
+    remapTypeMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
+): IrValueParameter {
+    return try {
+        copyTo(
+            irFunction = irFunction,
+            defaultValue = defaultValue,
+            remapTypeMap = remapTypeMap,
+        )
+    } catch (_: NoSuchMethodError) {
+        val parameterTypes = listOf(
+            IrValueParameter::class.java, // extension receiver
+            IrFunction::class.java, // irFunction
+            IrDeclarationOrigin::class.java,  // origin
+            Int::class.java, // startOffset
+            Int::class.java, // endOffset
+            Name::class.java, // name
+            Map::class.java, // remapTypeMap
+            IrType::class.java, // type
+            IrType::class.java, // varargElementType
+            IrExpressionBody::class.java, // defaultValue
+            Boolean::class.java, // isCrossinline
+            Boolean::class.java, // isNoinline
+            Boolean::class.java, // isAssignable
+            Int::class.java, // defaults mask
+            Any::class.java, // default arguments marker
+        )
+        javaClass
+            .classLoader
+            .loadClass("org.jetbrains.kotlin.ir.util.IrUtilsKt")
+            .methods
+            .single { it.name == "copyTo\$default" && it.parameters.map(Parameter::getType) == parameterTypes }
+            .invoke(
+                null, // static invocation
+                this, // extension receiver
+                irFunction, // param: irFunction
+                null, // param: origin
+                0, // param: startOffset
+                0, // param: endOffset
+                null, // param: name,
+                remapTypeMap, // param: remapTypeMap
+                null, // param: type,
+                null, // param: varargElementType,
+                defaultValue, // param: defaultValue
+                false, // param: isCrossinline
+                false, // param: isNoinline
+                false, // param: isAssignable,
+                0b111011011110, // defaults mask
+                null // default arguments marker
+            ) as IrValueParameter
     }
 }
