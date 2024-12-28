@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
 import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.fir.constructors
+import dev.mokkery.plugin.fir.defaultTypeCompat
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -28,7 +29,6 @@ import org.jetbrains.kotlin.fir.expressions.unwrapArgument
 import org.jetbrains.kotlin.fir.isPrimitiveType
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
-import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -127,7 +127,7 @@ private class MokkeryScopedCallsChecker(
         reporter.reportOn(
             source = entry.value[1].source,
             factory = MokkeryDiagnostics.DUPLICATE_TYPES_FOR_MOCK_MANY,
-            a = entry.key.defaultType(),
+            a = entry.key.defaultTypeCompat(),
             b = funSymbol.name,
             c = entry.value.size.toString(),
             context = context
@@ -142,7 +142,7 @@ private class MokkeryScopedCallsChecker(
             source = classMapping.getValue(regularClasses[1]).first().source,
             factory = MokkeryDiagnostics.MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY,
             a = funSymbol.name,
-            b = regularClasses.map { it.defaultType() },
+            b = regularClasses.map { it.defaultTypeCompat() },
             context = context
         )
         return false
@@ -150,7 +150,7 @@ private class MokkeryScopedCallsChecker(
 
     private fun checkJsFunctionalTypes(classMapping: Map<FirRegularClassSymbol, List<FirTypeProjection>>): Boolean {
         if (!session.moduleData.platform.isJs()) return true
-        val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(session) } ?: return true
+        val funClass = classMapping.keys.find { it.defaultTypeCompat().isSomeFunctionType(session) } ?: return true
         reporter.reportOn(
             source = classMapping.getValue(funClass).first().source,
             factory = MokkeryDiagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
@@ -200,7 +200,7 @@ private class MokkeryScopedCallsChecker(
             source = source,
             factory = modalityDiagnostic,
             a = funSymbol.name,
-            b = classSymbol.defaultType(),
+            b = classSymbol.defaultTypeCompat(),
             context = context
         )
         return false
@@ -216,7 +216,7 @@ private class MokkeryScopedCallsChecker(
                 source = source,
                 factory = MokkeryDiagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
                 a = funSymbol.name,
-                b = classSymbol.defaultType(),
+                b = classSymbol.defaultTypeCompat(),
                 context = context
             )
             return false
@@ -239,7 +239,7 @@ private class MokkeryScopedCallsChecker(
             source = source,
             factory = MokkeryDiagnostics.FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED,
             a = funSymbol.name,
-            b = classSymbol.defaultType(),
+            b = classSymbol.defaultTypeCompat(),
             c = finalDeclarations,
             context = context
         )
