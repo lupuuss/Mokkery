@@ -3,7 +3,6 @@
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 
 plugins {
     kotlin("multiplatform")
@@ -86,12 +85,4 @@ dependencies {
     commonTestImplementation(kotlin("test"))
     commonTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     commonTestImplementation(mokkery("coroutines"))
-}
-
-if (kotlinToolingVersion.toString() == "2.0.0") {
-    configurations
-        .filter { it.name.startsWith("wasm") }
-        .forEach {
-            it.resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
-        }
 }
