@@ -52,11 +52,11 @@ internal class MokkeryTools(
     val callMatcher: CallMatcher
         get() = _callMatcher ?: error("CallMatcher not present in call tools!")
     val argMatchersComposer: ArgMatchersComposer
-        get() = _argMatchersComposer ?: error("ArgMatchersComposer not present in call tools!")
+        get() = _argMatchersComposer ?: error("ArgMatchersComposer not present in tools!")
     val callsCounter: Counter
-        get() = _callsCounter ?: error("Calls Counter not present in call tools!")
+        get() = _callsCounter ?: error("Calls Counter not present in tools!")
     val mocksCounter: Counter
-        get() = _mocksCounter ?: error("Calls Counter not present in call tools!")
+        get() = _mocksCounter ?: error("Mocks Counter not present in tools!")
 
     override val key = Key
 
