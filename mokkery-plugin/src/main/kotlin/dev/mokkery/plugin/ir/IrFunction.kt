@@ -25,9 +25,9 @@ fun IrSimpleFunction.copyParametersFrom(
     function: IrSimpleFunction,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
-    extensionReceiverParameter = function.extensionReceiverParameter?.copyTo(this, remapTypeMap = parameterMap)
+    extensionReceiverParameter = function.extensionReceiverParameter?.copyToCompat(this, remapTypeMap = parameterMap)
     valueParameters = function.valueParameters
-        .memoryOptimizedMap { it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap) }
+        .memoryOptimizedMap { it.copyToCompat(this, defaultValue = null, remapTypeMap = parameterMap) }
 }
 
 fun IrSimpleFunction.isJvmBinarySafeSuperCall(
