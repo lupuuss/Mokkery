@@ -7,7 +7,9 @@ Let's assume we have given interface:
 
 ```kotlin
 interface BooksRepository {
-    
+
+    var cacheEnabled: Boolean
+
     suspend fun findById(id: String): Book
     
     suspend fun countAll(): Int
@@ -30,14 +32,21 @@ val repository = mock<BooksRepository>()
 ```
 If you call a method that has no defined behaviour, it will result in runtime error by default. To learn how to change this locally or globally read [mock mode](../docs/Guides/Mocking#mock-modes) section.
 
-To define an answer for regular function use `every`:
+To define an answer for regular function, use `every`:
 ```kotlin
 every { repository.findAll() } returns flowOf(Book(...))
 ```
-
-For suspending function use `everySuspend`:
+For suspending function, use `everySuspend`:
 ```kotlin
 everySuspend { repository.countAll() } returns 1
+```
+For properties, call getter or setter inside `every`:
+```kotlin
+// getter
+every { repository.cacheEnabled } returns true
+
+// setter
+every { repository.cacheEnabled = any() } returns Unit
 ```
 :::danger
 Make sure that you are calling a method of a mock type! Mocking extension functions is not supported!
