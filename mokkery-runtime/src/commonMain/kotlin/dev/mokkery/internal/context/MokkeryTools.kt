@@ -1,8 +1,11 @@
 package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
+import dev.mokkery.internal.MokkeryInstance
 import dev.mokkery.internal.MokkeryInstanceLookup
+import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.calls.ArgMatchersComposer
 import dev.mokkery.internal.calls.CallMatcher
@@ -15,7 +18,7 @@ import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
 
 internal val MokkeryContext.tools: MokkeryTools
-    get() = get(MokkeryTools) ?: error("MokkeryTools not present in the context!")
+    get() = require(MokkeryTools)
 
 internal class MokkeryTools(
     instanceLookup: MokkeryInstanceLookup? = null,
@@ -58,6 +61,28 @@ internal class MokkeryTools(
     val mocksCounter: Counter
         get() = _mocksCounter ?: error("Mocks Counter not present in tools!")
 
+    fun copy(
+        instanceLookup: MokkeryInstanceLookup? = _instanceLookup,
+        namesShortener: NameShortener? = _namesShortener,
+        instanceIdGenerator: MokkeryInstanceIdGenerator? = _instanceIdGenerator,
+        signatureGenerator: SignatureGenerator? = _signatureGenerator,
+        callTraceReceiverShortener: CallTraceReceiverShortener? = _callTraceReceiverShortener,
+        callMatcher: CallMatcher? = _callMatcher,
+        argMatchersComposer: ArgMatchersComposer? = _argMatchersComposer,
+        callsCounter: Counter? = _callsCounter,
+        mocksCounter: Counter? = _mocksCounter,
+    ) = MokkeryTools(
+        instanceLookup = instanceLookup,
+        namesShortener = namesShortener,
+        instanceIdGenerator = instanceIdGenerator,
+        signatureGenerator = signatureGenerator,
+        callTraceReceiverShortener = callTraceReceiverShortener,
+        callMatcher = callMatcher,
+        argMatchersComposer = argMatchersComposer,
+        callsCounter = callsCounter,
+        mocksCounter = mocksCounter,
+    )
+
     override val key = Key
 
     companion object Key : MokkeryContext.Key<MokkeryTools> {
@@ -80,4 +105,12 @@ internal class MokkeryTools(
             )
         }
     }
+}
+
+internal fun MokkeryTools.resolveMockInstance(obj: Any?): MokkeryMockInstance? {
+    return instanceLookup.resolve(obj) as? MokkeryMockInstance
+}
+
+internal fun MokkeryTools.reverseResolveInstance(instance: MokkeryInstance): Any? {
+    return instanceLookup.reverseResolve(instance)
 }

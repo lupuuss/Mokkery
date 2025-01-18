@@ -1,9 +1,7 @@
 package dev.mokkery.internal.calls
 
 import dev.mokkery.internal.MokkeryMockInstance
-import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.MokkeryInstanceLookup
-import dev.mokkery.internal.mokkeryInstanceLookup
 
 internal interface TemplatingScopeDataBinder {
 

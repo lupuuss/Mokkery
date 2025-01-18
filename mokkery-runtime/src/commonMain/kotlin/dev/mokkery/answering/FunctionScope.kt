@@ -9,7 +9,7 @@ import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.MokkeryInstanceLookup
-import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptedTypes
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.internal.utils.unsafeCastOrNull
@@ -78,13 +78,13 @@ public class FunctionScope internal constructor(
     /**
      * Calls original method implementation with given [args].
      */
-    public fun callOriginal(args: List<Any?>): Any? = callOriginal(GlobalMokkeryContext.mokkeryInstanceLookup, args)
+    public fun callOriginal(args: List<Any?>): Any? = callOriginal(GlobalMokkeryContext.tools.instanceLookup, args)
 
     /**
      * Just like [callOriginal] but for suspend calls.
      */
     public suspend fun callSuspendOriginal(args: List<Any?>): Any? {
-        return callSuspendOriginal(GlobalMokkeryContext.mokkeryInstanceLookup, args)
+        return callSuspendOriginal(GlobalMokkeryContext.tools.instanceLookup, args)
     }
 
     internal fun callOriginal(lookup: MokkeryInstanceLookup, args: List<Any?>): Any? {

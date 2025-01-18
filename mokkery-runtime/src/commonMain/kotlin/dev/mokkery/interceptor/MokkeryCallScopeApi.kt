@@ -5,8 +5,11 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.call
+import dev.mokkery.context.require
+import dev.mokkery.internal.context.CurrentMokkeryInstance
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.self
+import dev.mokkery.internal.context.reverseResolveInstance
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.nextInterceptor
 import kotlin.reflect.KClass
 
@@ -45,7 +48,7 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any?
-    get() = context.self
+    get() = context.run { tools.reverseResolveInstance(require(CurrentMokkeryInstance).value) }
 
 /**
  * Returns current call.

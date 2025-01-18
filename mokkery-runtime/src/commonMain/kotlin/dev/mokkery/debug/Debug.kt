@@ -3,7 +3,8 @@ package dev.mokkery.debug
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.context.resolveMockInstance
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.id
 import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
@@ -14,7 +15,7 @@ import dev.mokkery.internal.interceptor.MokkeryKind
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val instance = GlobalMokkeryContext.mokkeryInstanceLookup.resolve(obj)) {
+    return when (val instance = GlobalMokkeryContext.tools.resolveMockInstance(obj)) {
         is MokkeryMockInstance -> when (instance.interceptor.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(instance)
             MokkeryKind.Mock ->  mokkeryDebugMock(instance)

@@ -4,7 +4,7 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.context.tools
 import kotlin.reflect.KClass
 
 /**
@@ -74,5 +74,5 @@ public sealed interface SuperCall {
  * @see SuperCall.superWith
  */
 public infix fun <T> AnsweringScope<T>.calls(superCall: SuperCall) {
-    answers(SuperCallAnswer(superCall, GlobalMokkeryContext.mokkeryInstanceLookup))
+    answers(SuperCallAnswer(superCall, GlobalMokkeryContext.tools.instanceLookup))
 }

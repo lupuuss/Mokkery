@@ -7,5 +7,5 @@ import dev.mokkery.internal.MokkeryInstanceLookup
 internal val GlobalMokkeryContext: MokkeryContext = createGlobalContext()
 
 private fun createGlobalContext(): MokkeryContext {
-    return MokkeryInstanceLookup() + MokkeryTools.default() + AutofillProvider.forInternals.asContext()
+    return MokkeryTools.default() + AutofillProvider.forInternals.asContext()
 }

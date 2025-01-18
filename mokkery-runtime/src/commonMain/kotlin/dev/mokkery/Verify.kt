@@ -5,12 +5,12 @@ import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.mokkeryInstanceLookup
 import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.context.resolveMockInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
@@ -42,7 +42,7 @@ public fun verifySuspend(
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     mocks.forEach { mock ->
         val tracing = mock
-            .let { GlobalMokkeryContext.mokkeryInstanceLookup.resolve(it) as? MokkeryMockInstance }
+            .let { GlobalMokkeryContext.tools.resolveMockInstance(it) }
             ?.interceptor
             ?.callTracing ?: throw ObjectNotMockedException(mock)
         if (tracing.unverified.isNotEmpty()) {

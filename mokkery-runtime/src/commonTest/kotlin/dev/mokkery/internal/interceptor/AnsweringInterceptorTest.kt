@@ -7,10 +7,10 @@ import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.context.CallArgument
 import dev.mokkery.interceptor.call
+import dev.mokkery.interceptor.self
 import dev.mokkery.interceptor.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.context.currentMokkeryInstance
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
@@ -33,9 +33,10 @@ import kotlin.test.assertNotNull
 class AnsweringInterceptorTest {
 
     private val callMatcher = TestCallMatcher()
-    private val context = TestMokkeryInstanceLookup() + MokkeryTools(
+    private val context = MokkeryTools(
         callMatcher = callMatcher,
-        callTraceReceiverShortener = TestCallTraceReceiverShortener()
+        callTraceReceiverShortener = TestCallTraceReceiverShortener(),
+        instanceLookup = TestMokkeryInstanceLookup()
     )
     private val answering = AnsweringInterceptor(strict)
 
@@ -96,7 +97,7 @@ class AnsweringInterceptorTest {
         val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context + lookUp
+            context = context.copy(instanceLookup = lookUp)
         )
         assertEquals(10, AnsweringInterceptor(original).intercept(scope))
     }
@@ -107,7 +108,7 @@ class AnsweringInterceptorTest {
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
         val context = testSuspendCallScope<Int>(
             supers = mapOf(Unit::class to suspendSuper.unsafeCast()),
-            context = context + lookUp
+            context = context.copy(instanceLookup = lookUp)
         )
         assertEquals(11, AnsweringInterceptor(original).intercept(context))
     }
@@ -233,7 +234,7 @@ class AnsweringInterceptorTest {
         answering.intercept(scope)
         assertNotNull(answer.capturedScope)
         assertEquals(scope.call.args.map(CallArgument::value), answer.capturedScope!!.args)
-        assertEquals(scope.context.currentMokkeryInstance, answer.capturedScope!!.self)
+        assertEquals(scope.self, answer.capturedScope!!.self)
         assertEquals(scope.call.function.returnType, answer.capturedScope!!.returnType)
         assertEquals(scope.supers, answer.capturedScope!!.supers)
     }
@@ -251,7 +252,7 @@ class AnsweringInterceptorTest {
         answering.intercept(scope)
         assertNotNull(answer.capturedScope)
         assertEquals(scope.call.args.map(CallArgument::value), answer.capturedScope!!.args)
-        assertEquals(scope.context.currentMokkeryInstance, answer.capturedScope!!.self)
+        assertEquals(scope.self, answer.capturedScope!!.self)
         assertEquals(scope.call.function.returnType, answer.capturedScope!!.returnType)
         assertEquals(scope.supers, answer.capturedScope!!.supers)
     }

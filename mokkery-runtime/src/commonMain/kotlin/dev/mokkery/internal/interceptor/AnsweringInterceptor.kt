@@ -22,7 +22,6 @@ import dev.mokkery.internal.calls.isMatching
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.toTrace
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.mokkeryInstanceLookup
 import dev.mokkery.internal.names.shortToString
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
@@ -87,7 +86,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill
             mockMode == MockMode.original && functions.supers.isNotEmpty() -> {
-                SuperCallAnswer<Any?>(SuperCall.original, context.mokkeryInstanceLookup)
+                SuperCallAnswer<Any?>(SuperCall.original, context.tools.instanceLookup)
             }
             mockMode == MockMode.autoUnit && context.call.function.returnType == Unit::class -> Answer.Const(Unit)
             else -> throw CallNotMockedException(receiverShortener.shortToString(trace))

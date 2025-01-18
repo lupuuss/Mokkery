@@ -17,7 +17,6 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.autofillProvider
 import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.mokkeryInstanceLookup
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
@@ -43,7 +42,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(context: MokkeryContext = GlobalMokkeryContext): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = context.tools.signatureGenerator,
     composer = context.tools.argMatchersComposer,
-    binder = TemplatingScopeDataBinder(context.mokkeryInstanceLookup),
+    binder = TemplatingScopeDataBinder(context.tools.instanceLookup),
     autofill = context.autofillProvider
 )
 
