@@ -58,3 +58,7 @@ public interface MokkeryContext {
         override fun toString(): String = "MokkeryContext.Empty"
     }
 }
+
+internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
+    return get(key) ?: error("Element for key = $key is required, but not found in the context!")
+}
