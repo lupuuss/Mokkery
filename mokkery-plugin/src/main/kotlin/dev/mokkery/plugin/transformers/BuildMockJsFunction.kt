@@ -114,11 +114,7 @@ private fun IrBuilderWithScope.irCallRegisterInstance(
     mokkeryInstance: IrExpression,
     obj: IrExpression
 ): IrCall {
-    val globalContext = transformer.getProperty(Mokkery.Property.GlobalMokkeryContext)
-    val instanceLookupProperty = transformer.getProperty(Mokkery.Property.mokkeryInstanceLookup)
-    val instanceLookupCall = irCall(instanceLookupProperty.getter!!) {
-        extensionReceiver = irCall(globalContext.getter!!)
-    }
+    val instanceLookupCall = irCall(transformer.getProperty(Mokkery.Property.GlobalMokkeryInstanceLookup).getter!!)
     val lookUpClass = transformer.getClass(Mokkery.Class.MokkeryInstanceLookup)
     val registerCall = irCall(lookUpClass.getSimpleFunction("register")!!) {
         dispatchReceiver = instanceLookupCall

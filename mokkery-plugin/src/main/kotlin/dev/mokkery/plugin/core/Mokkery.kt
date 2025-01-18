@@ -69,8 +69,7 @@ object Mokkery {
 
     object Property {
 
-        val GlobalMokkeryContext by dev_mokkery_internal_context.property
-        val mokkeryInstanceLookup by dev_mokkery_internal.property
+        val GlobalMokkeryInstanceLookup by dev_mokkery_internal.property
     }
 
     object Name {
