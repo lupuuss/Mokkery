@@ -1,7 +1,6 @@
 package dev.mokkery.internal.interceptor
 
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.internal.context.autofillProvider
 import dev.mokkery.context.call
 import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
@@ -12,6 +11,7 @@ import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.CurrentMokkeryInstance
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.id
 import kotlinx.atomicfu.atomic
 
@@ -58,6 +58,6 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         val call = context.call
         templatingScope?.saveTemplate(context.require(CurrentMokkeryInstance).value.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
-        return context.autofillProvider.provideValue(hint ?: call.function.returnType)
+        return context.tools.autofillProvider.provideValue(hint ?: call.function.returnType)
     }
 }

@@ -14,7 +14,6 @@ import dev.mokkery.internal.utils.subListAfter
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.context.autofillProvider
 import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.utils.unsafeCast
@@ -43,7 +42,7 @@ internal fun TemplatingScope(context: MokkeryContext = GlobalMokkeryContext): Te
     signatureGenerator = context.tools.signatureGenerator,
     composer = context.tools.argMatchersComposer,
     binder = TemplatingScopeDataBinder(context.tools.instanceLookup),
-    autofill = context.autofillProvider
+    autofill = context.tools.autofillProvider
 )
 
 private class TemplatingScopeImpl(

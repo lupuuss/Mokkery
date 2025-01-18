@@ -1,5 +1,6 @@
 package dev.mokkery.internal.context
 
+import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
@@ -30,6 +31,7 @@ internal class MokkeryTools(
     argMatchersComposer: ArgMatchersComposer? = null,
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
+    autofillProvider: AutofillProvider<Any?>? = null,
 ) : MokkeryContext.Element {
 
     private val _instanceLookup: MokkeryInstanceLookup? = instanceLookup
@@ -41,6 +43,7 @@ internal class MokkeryTools(
     private val _argMatchersComposer = argMatchersComposer
     private val _callsCounter = callsCounter
     private val _mocksCounter = mocksCounter
+    private val _autofillProvider = autofillProvider
 
     val instanceLookup: MokkeryInstanceLookup
         get() = _instanceLookup ?: error("MokkeryInstanceLookup not present in the tools!")
@@ -60,6 +63,8 @@ internal class MokkeryTools(
         get() = _callsCounter ?: error("Calls Counter not present in tools!")
     val mocksCounter: Counter
         get() = _mocksCounter ?: error("Mocks Counter not present in tools!")
+    val autofillProvider: AutofillProvider<Any?>
+        get() = _autofillProvider ?: error("AutofillProvider not present in tools")
 
     fun copy(
         instanceLookup: MokkeryInstanceLookup? = _instanceLookup,
@@ -71,6 +76,7 @@ internal class MokkeryTools(
         argMatchersComposer: ArgMatchersComposer? = _argMatchersComposer,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
+        autofillProvider: AutofillProvider<Any?>? = _autofillProvider
     ) = MokkeryTools(
         instanceLookup = instanceLookup,
         namesShortener = namesShortener,
@@ -81,6 +87,7 @@ internal class MokkeryTools(
         argMatchersComposer = argMatchersComposer,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
+        autofillProvider = autofillProvider
     )
 
     override val key = Key
@@ -101,7 +108,8 @@ internal class MokkeryTools(
                 callMatcher = CallMatcher(signatureGenerator),
                 argMatchersComposer = ArgMatchersComposer(),
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
-                mocksCounter = mocksCounter
+                mocksCounter = mocksCounter,
+                autofillProvider = AutofillProvider.forInternals
             )
         }
     }

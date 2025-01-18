@@ -1,7 +1,7 @@
 package dev.mokkery.internal.interceptor
 
 import dev.mokkery.answering.autofill.AutofillProvider
-import dev.mokkery.internal.context.asContext
+import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.test.TestNextCallInterceptor
 import dev.mokkery.test.TestTemplatingScope
 import dev.mokkery.test.TestTemplatingScope.TemplateParams
@@ -24,7 +24,7 @@ class TemplatingInterceptorTest {
             else -> Unit
         }
     }
-    private val context = nextInterceptor + autofillProvider.asContext()
+    private val context = nextInterceptor + MokkeryTools(autofillProvider = autofillProvider)
     private val templatingScope = TestTemplatingScope()
     private val templating = TemplatingInterceptor()
     private val args = listOf(
