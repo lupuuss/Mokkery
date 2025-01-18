@@ -15,6 +15,3 @@ public class FunctionCall internal constructor(
 
     public companion object Key : MokkeryContext.Key<FunctionCall>
 }
-
-internal val MokkeryContext.call: FunctionCall
-    get() = get(FunctionCall) ?: error("Function call not present in the context!")

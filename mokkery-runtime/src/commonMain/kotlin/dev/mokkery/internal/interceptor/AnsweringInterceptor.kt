@@ -5,12 +5,12 @@ package dev.mokkery.internal.interceptor
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.call
+import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.toFunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
@@ -19,8 +19,9 @@ import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
+import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.toTrace
+import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.shortToString
 import dev.mokkery.matcher.capture.Capture
@@ -57,39 +58,38 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
 
     override fun intercept(scope: MokkeryBlockingCallScope): Any? {
         checkIfIsModified()
-        return findAnswerFor(scope.context).call(scope.toFunctionScope())
+        return findAnswerFor(scope).call(scope.toFunctionScope())
     }
 
     override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
         checkIfIsModified()
-        return findAnswerFor(scope.context).callSuspend(scope.toFunctionScope())
+        return findAnswerFor(scope).callSuspend(scope.toFunctionScope())
     }
 
-    private fun findAnswerFor(context: MokkeryContext): Answer<*> {
-        val trace = context.toTrace(0)
+    private fun findAnswerFor(scope: MokkeryCallScope): Answer<*> {
+        val trace = scope.toCallTrace(0)
         val answers = this._answers
-        val callMatcher = context.tools.callMatcher
+        val callMatcher = scope.context.tools.callMatcher
         return answers
             .keys
             .reversed()
             .find { callMatcher.match(trace, it).isMatching }
             ?.also { it.applyCapture(trace) }
             ?.let { answers.getValue(it) }
-            ?: handleMissingAnswer(trace, context)
+            ?: handleMissingAnswer(trace, scope)
     }
 
-    private fun handleMissingAnswer(trace: CallTrace, context: MokkeryContext): Answer<*> {
-        val functions = context.associatedFunctions
-        val spyDelegate = functions.spiedFunction
-        val receiverShortener = context.tools.callTraceReceiverShortener
+    private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
+        val tools = scope.context.tools
+        val spyDelegate = scope.associatedFunctions.spiedFunction
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill
-            mockMode == MockMode.original && functions.supers.isNotEmpty() -> {
-                SuperCallAnswer<Any?>(SuperCall.original, context.tools.instanceLookup)
+            mockMode == MockMode.original && scope.associatedFunctions.supers.isNotEmpty() -> {
+                SuperCallAnswer<Any?>(SuperCall.original, tools.instanceLookup)
             }
-            mockMode == MockMode.autoUnit && context.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> throw CallNotMockedException(receiverShortener.shortToString(trace))
+            mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
+            else -> throw CallNotMockedException(tools.callTraceReceiverShortener.shortToString(trace))
         }
     }
 

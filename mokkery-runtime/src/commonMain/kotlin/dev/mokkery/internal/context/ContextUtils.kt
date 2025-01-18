@@ -1,15 +1,14 @@
 package dev.mokkery.internal.context
 
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.call
-import dev.mokkery.context.require
-import dev.mokkery.internal.id
+import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.interceptor.call
 import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.id
 
-internal fun MokkeryContext.toTrace(orderStamp: Long): CallTrace {
+internal fun MokkeryCallScope.toCallTrace(orderStamp: Long): CallTrace {
     val call = call
     return CallTrace(
-        receiver = require(CurrentMokkeryInstance).value.id,
+        receiver = currentMokkeryInstance.id,
         name = call.function.name,
         args = call.args,
         orderStamp = orderStamp
