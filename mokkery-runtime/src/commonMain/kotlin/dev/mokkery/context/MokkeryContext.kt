@@ -2,6 +2,7 @@ package dev.mokkery.context
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 /**
  *  A set of [MokkeryContext.Element]s.
@@ -60,5 +61,5 @@ public interface MokkeryContext {
 }
 
 internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
-    return get(key) ?: error("Element for key = $key is required, but not found in the context!")
+    return get(key) ?: mokkeryRuntimeError("Element for key = $key is required, but not found in the context!")
 }

@@ -17,6 +17,7 @@ import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 internal val MokkeryContext.tools: MokkeryTools
     get() = require(MokkeryTools)
@@ -46,25 +47,25 @@ internal class MokkeryTools(
     private val _autofillProvider = autofillProvider
 
     val instanceLookup: MokkeryInstanceLookup
-        get() = _instanceLookup ?: error("MokkeryInstanceLookup not present in the tools!")
+        get() = _instanceLookup ?: mokkeryRuntimeError("MokkeryInstanceLookup not present in the tools!")
     val namesShortener: NameShortener
-        get() = _namesShortener ?: error("NamesShortener not present in the tools!")
+        get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
     val instanceIdGenerator: MokkeryInstanceIdGenerator
-        get() = _instanceIdGenerator ?: error("MokkeryInstanceIdGenerator not present in the tools!")
+        get() = _instanceIdGenerator ?: mokkeryRuntimeError("MokkeryInstanceIdGenerator not present in the tools!")
     val signatureGenerator: SignatureGenerator
-        get() = _signatureGenerator ?: error("SignatureGenerator not present in the tools!")
+        get() = _signatureGenerator ?: mokkeryRuntimeError("SignatureGenerator not present in the tools!")
     val callTraceReceiverShortener: CallTraceReceiverShortener
-        get() = _callTraceReceiverShortener ?: error("CallTraceReceiverShortener not present in the tools!")
+        get() = _callTraceReceiverShortener ?: mokkeryRuntimeError("CallTraceReceiverShortener not present in the tools!")
     val callMatcher: CallMatcher
-        get() = _callMatcher ?: error("CallMatcher not present in call tools!")
+        get() = _callMatcher ?: mokkeryRuntimeError("CallMatcher not present in call tools!")
     val argMatchersComposer: ArgMatchersComposer
-        get() = _argMatchersComposer ?: error("ArgMatchersComposer not present in tools!")
+        get() = _argMatchersComposer ?: mokkeryRuntimeError("ArgMatchersComposer not present in tools!")
     val callsCounter: Counter
-        get() = _callsCounter ?: error("Calls Counter not present in tools!")
+        get() = _callsCounter ?: mokkeryRuntimeError("Calls Counter not present in tools!")
     val mocksCounter: Counter
-        get() = _mocksCounter ?: error("Mocks Counter not present in tools!")
+        get() = _mocksCounter ?: mokkeryRuntimeError("Mocks Counter not present in tools!")
     val autofillProvider: AutofillProvider<Any?>
-        get() = _autofillProvider ?: error("AutofillProvider not present in tools")
+        get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools")
 
     fun copy(
         instanceLookup: MokkeryInstanceLookup? = _instanceLookup,
