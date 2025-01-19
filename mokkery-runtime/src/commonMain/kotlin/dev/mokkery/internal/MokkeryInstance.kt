@@ -4,7 +4,6 @@ package dev.mokkery.internal
 
 import dev.mokkery.MockMode
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.interceptor.MokkeryMockInterceptor
@@ -53,5 +52,5 @@ private class DynamicMokkeryMockInstance(
 ) : MokkeryMockInstance {
     override val _mokkeryInterceptor = MokkeryMockInterceptor(mode, kind)
 
-    override val _mokkeryId = GlobalMokkeryContext.tools.instanceIdGenerator.generate(typeName)
+    override val _mokkeryId = GlobalMokkeryScope.tools.instanceIdGenerator.generate(typeName)
 }

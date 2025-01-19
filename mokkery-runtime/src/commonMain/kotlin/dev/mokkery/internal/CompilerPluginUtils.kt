@@ -17,7 +17,6 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.mokkeryRuntimeError
@@ -44,7 +43,7 @@ internal fun createMokkerySuspendCallScope(
 ) = MokkerySuspendCallScope(createMokkeryCallContext(instance, name, returnType, args, supers, spyDelegate))
 
 internal val GlobalMokkeryInstanceLookup
-    get() = GlobalMokkeryContext.tools.instanceLookup
+    get() = GlobalMokkeryScope.tools.instanceLookup
 
 private fun createMokkeryCallContext(
     instance: MokkeryInstance,
@@ -63,10 +62,10 @@ private fun createMokkeryCallContext(
         ),
         args = safeArgs
     )
-    return GlobalMokkeryContext + CurrentMokkeryInstance(instance) + call + AssociatedFunctions(supers, spyDelegate)
+    return GlobalMokkeryScope.mokkeryContext + CurrentMokkeryInstance(instance) + call + AssociatedFunctions(supers, spyDelegate)
 }
 
-internal fun generateMockId(typeName: String) = GlobalMokkeryContext
+internal fun generateMockId(typeName: String) = GlobalMokkeryScope
     .tools
     .instanceIdGenerator
     .generate(typeName)

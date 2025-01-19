@@ -1,5 +1,6 @@
 package dev.mokkery.internal.context
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
@@ -20,8 +21,9 @@ import dev.mokkery.internal.names.withTypeArgumentsSupport
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.verify.VerifierFactory
 
-internal val MokkeryContext.tools: MokkeryTools
-    get() = require(MokkeryTools)
+internal val MokkeryScope.tools: MokkeryTools
+    get() = mokkeryContext.require(MokkeryTools)
+
 
 internal class MokkeryTools(
     instanceLookup: MokkeryInstanceLookup? = null,

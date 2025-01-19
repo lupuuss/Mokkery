@@ -57,9 +57,6 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         templatingScope
             ?.saveTemplate(scope.currentMokkeryInstance.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
-        return scope.mokkeryContext
-            .tools
-            .autofillProvider
-            .provideValue(hint ?: call.function.returnType)
+        return scope.tools.autofillProvider.provideValue(hint ?: call.function.returnType)
     }
 }

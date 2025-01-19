@@ -53,7 +53,7 @@ private class CallTracingInterceptorImpl() : CallTracingInterceptor {
         return scope.nextIntercept()
     }
     private fun traceCallOf(scope: MokkeryCallScope) {
-        val counter = scope.mokkeryContext.tools.callsCounter
+        val counter = scope.tools.callsCounter
         lock.withLock { _all += scope.toCallTrace(counter.next()) }
     }
 }

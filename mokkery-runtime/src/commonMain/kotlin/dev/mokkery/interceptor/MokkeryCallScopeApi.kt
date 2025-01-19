@@ -48,7 +48,7 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any?
-    get() = mokkeryContext.tools.reverseResolveInstance(currentMokkeryInstance)
+    get() = tools.reverseResolveInstance(currentMokkeryInstance)
 
 /**
  * Returns current call.

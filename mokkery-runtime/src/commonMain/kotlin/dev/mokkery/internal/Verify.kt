@@ -2,24 +2,12 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.utils.runSuspension
-import dev.mokkery.internal.names.createGroupMockReceiverShortener
-import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
-import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
-import dev.mokkery.internal.verify.NotVerifier
-import dev.mokkery.internal.verify.OrderVerifier
-import dev.mokkery.internal.verify.SoftVerifier
-import dev.mokkery.internal.verify.Verifier
+import dev.mokkery.internal.names.createGroupMockReceiverShortener
+import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.verify.ExhaustiveOrderVerifyMode
-import dev.mokkery.verify.ExhaustiveSoftVerifyMode
-import dev.mokkery.verify.NotVerifyMode
-import dev.mokkery.verify.OrderVerifyMode
-import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
 internal fun internalVerifySuspend(
@@ -33,11 +21,7 @@ internal fun internalVerify(
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    internalBaseVerify(scope, mode, block)
-}
-
-internal fun internalBaseVerify(scope: TemplatingScope, mode: VerifyMode, block: ArgMatchersScope.() -> Unit) {
-    val tools = GlobalMokkeryContext.tools
+    val tools = GlobalMokkeryScope.tools
     val verifier = tools.verifierFactory.create(mode)
     val result = runCatching { block(scope) }
     val exception = result.exceptionOrNull()

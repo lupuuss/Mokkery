@@ -67,7 +67,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
     private fun findAnswerFor(scope: MokkeryCallScope): Answer<*> {
         val trace = scope.toCallTrace(0)
         val answers = this._answers
-        val callMatcher = scope.mokkeryContext.tools.callMatcher
+        val callMatcher = scope.tools.callMatcher
         return answers
             .keys
             .reversed()
@@ -86,7 +86,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
                 SuperCallAnswer<Any?>(SuperCall.original)
             }
             mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> throw CallNotMockedException(scope.mokkeryContext.tools.callTraceReceiverShortener.shortToString(trace))
+            else -> throw CallNotMockedException(scope.tools.callTraceReceiverShortener.shortToString(trace))
         }
     }
 

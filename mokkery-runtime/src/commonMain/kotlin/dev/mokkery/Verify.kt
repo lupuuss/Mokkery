@@ -1,10 +1,10 @@
 @file:Suppress( "UNUSED_PARAMETER", "unused")
 package dev.mokkery
 
+import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.context.GlobalMokkeryContext
 import dev.mokkery.internal.context.resolveMockInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor
@@ -39,7 +39,7 @@ public fun verifySuspend(
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
-    val tools = GlobalMokkeryContext.tools
+    val tools = GlobalMokkeryScope.tools
     mocks.forEach { mock ->
         val tracing = mock
             .let { tools.resolveMockInstance(it) }
