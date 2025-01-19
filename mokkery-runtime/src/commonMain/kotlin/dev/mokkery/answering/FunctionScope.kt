@@ -4,13 +4,8 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
-import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.utils.bestName
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.MokkeryInstanceLookup
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.interceptedTypes
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.internal.utils.unsafeCastOrNull
 import kotlin.reflect.KClass
@@ -41,7 +36,8 @@ public class FunctionScope internal constructor(
      *
      * Use [callSuper], [callSuspendSuper], [callOriginal], [callSuspendOriginal] for convenience.
      */
-    public val supers: Map<KClass<*>, Function<Any?>>
+    public val supers: Map<KClass<*>, Function<Any?>>,
+    internal val classSupertypes: List<KClass<*>>
 ) {
 
     /**
@@ -78,37 +74,30 @@ public class FunctionScope internal constructor(
     /**
      * Calls original method implementation with given [args].
      */
-    public fun callOriginal(args: List<Any?>): Any? = callOriginal(GlobalMokkeryContext.tools.instanceLookup, args)
-
-    /**
-     * Just like [callOriginal] but for suspend calls.
-     */
-    public suspend fun callSuspendOriginal(args: List<Any?>): Any? {
-        return callSuspendOriginal(GlobalMokkeryContext.tools.instanceLookup, args)
-    }
-
-    internal fun callOriginal(lookup: MokkeryInstanceLookup, args: List<Any?>): Any? {
+    public fun callOriginal(args: List<Any?>): Any? {
         checkArgs(args)
-        val superType = resolveOriginalSupertype(lookup)
+        val superType = resolveOriginalSupertype()
         return supers
             .getValue(superType)
             .unsafeCast<(List<Any?>) -> Any?>()
             .invoke(args)
     }
 
-    internal suspend fun callSuspendOriginal(lookup: MokkeryInstanceLookup, args: List<Any?>): Any? {
+    /**
+     * Just like [callOriginal] but for suspend calls.
+     */
+    public suspend fun callSuspendOriginal(args: List<Any?>): Any? {
         checkArgs(args)
-        val superType = resolveOriginalSupertype(lookup)
+        val superType = resolveOriginalSupertype()
         return supers
             .getValue(superType)
             .unsafeCast<suspend (List<Any?>) -> Any?>()
             .invoke(args)
     }
 
-    private fun resolveOriginalSupertype(lookup: MokkeryInstanceLookup): KClass<*> {
-        val selfScope = lookup.resolve(self) ?: throw ObjectNotMockedException(self)
-        val superCandidates = selfScope.interceptedTypes.filter(supers::contains)
-        if (superCandidates.isEmpty()) throw MissingSuperMethodException(selfScope.interceptedTypes)
+    private fun resolveOriginalSupertype(): KClass<*> {
+        val superCandidates = classSupertypes.filter(supers::contains)
+        if (superCandidates.isEmpty()) throw MissingSuperMethodException(classSupertypes)
         val superType = superCandidates
             .singleOrNull()
             ?: throw SuperTypeMustBeSpecifiedException(

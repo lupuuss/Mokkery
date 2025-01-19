@@ -12,12 +12,14 @@ fun fakeFunctionScope(
     returnType: KClass<*> = Unit::class,
     self: Any? = Unit,
     supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
-    args: List<Any?> = emptyList()
+    args: List<Any?> = emptyList(),
+    classSupertypes: List<KClass<*>> = listOf(Unit::class)
 ) = FunctionScope(
     returnType = returnType,
     args = args,
     self = self,
-    supers = supers
+    supers = supers,
+    classSupertypes = classSupertypes
 )
 
 internal fun fakeCallTemplate(

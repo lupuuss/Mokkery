@@ -6,6 +6,7 @@ import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.test.TestMokkeryInstance
 import dev.mokkery.test.TestMokkeryInstanceLookup
 import dev.mokkery.test.runTest
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -13,15 +14,19 @@ import kotlin.test.assertNotEquals
 
 class FunctionScopeTest {
 
-    private val scope = FunctionScope(
-        returnType = Int::class,
-        args = listOf(1),
-        self = Unit,
-        supers = mapOf(
-            Unit::class to blocking{ it[0] as Int + 1 },
-            Int::class to suspending { it[0] as Int + 2 }
+    private var classSupertypes: List<KClass<*>> = listOf(Unit::class)
+    private val scope by lazy {
+        FunctionScope(
+            returnType = Int::class,
+            args = listOf(1),
+            self = Unit,
+            supers = mapOf(
+                Unit::class to blocking{ it[0] as Int + 1 },
+                Int::class to suspending { it[0] as Int + 2 }
+            ),
+            classSupertypes = classSupertypes
         )
-    )
+    }
 
     @Test
     fun testCallSuper() {
@@ -36,98 +41,85 @@ class FunctionScopeTest {
 
     @Test
     fun testCallOriginal() {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class))
-        }
-        assertEquals(2, scope.callOriginal(lookup, listOf(1)))
+        assertEquals(2, scope.callOriginal(listOf(1)))
     }
 
     @Test
     fun testCallSuspendOriginal() = runTest {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Int::class))
-        }
-        assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
+        classSupertypes = listOf(Int::class)
+        assertEquals(3, scope.callSuspendOriginal(listOf(1)))
     }
 
 
     @Test
     fun testCallOriginalWhenMultipleSuperTypes() {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class, Float::class))
-        }
-        assertEquals(2, scope.callOriginal(lookup, listOf(1)))
+        classSupertypes = listOf(Unit::class, Float::class)
+        assertEquals(2, scope.callOriginal(listOf(1)))
     }
 
     @Test
     fun testCallSuspendOriginalWhenMultipleSuperTypes() = runTest {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Int::class, Float::class))
-        }
-        assertEquals(3, scope.callSuspendOriginal(lookup, listOf(1)))
+        classSupertypes = listOf(Int::class, Float::class)
+        assertEquals(3, scope.callSuspendOriginal(listOf(1)))
     }
 
     @Test
     fun testCallOriginalFailsWhenNoSuperCallForInterceptedSupertype() {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(String::class))
-        }
+        classSupertypes = listOf(String::class)
         assertFailsWith<MissingSuperMethodException> {
-            scope.callOriginal(lookup, listOf(1))
+            scope.callOriginal(listOf(1))
         }
     }
 
     @Test
     fun testCallSuspendFailsWhenNoSuperCallForInterceptedSupertype() = runTest {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(String::class))
-        }
+        classSupertypes = listOf(String::class)
         assertFailsWith<MissingSuperMethodException> {
-            scope.callSuspendOriginal(lookup, listOf(1))
+            scope.callSuspendOriginal(listOf(1))
         }
     }
 
     @Test
     fun testCallOriginalFailsWhenMultipleMatchingSuperCallsForInterceptedTypes() {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Int::class, Unit::class))
-        }
+        classSupertypes = listOf(Int::class, Unit::class)
         assertFailsWith<SuperTypeMustBeSpecifiedException> {
-            scope.callOriginal(lookup, listOf(1))
+            scope.callOriginal(listOf(1))
         }
     }
 
     @Test
     fun testCallSuspendFailsWhenMultipleMatchingSuperCallsForInterceptedTypes() = runTest {
-        val lookup = TestMokkeryInstanceLookup {
-            TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Int::class, Unit::class))
-        }
+        classSupertypes = listOf(Int::class, Unit::class)
         assertFailsWith<SuperTypeMustBeSpecifiedException> {
-            scope.callSuspendOriginal(lookup, listOf(1))
+            scope.callSuspendOriginal(listOf(1))
         }
     }
 
     @Test
     fun testEquality() {
         assertEquals(
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap()),
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap())
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class))
         )
         assertNotEquals(
-            FunctionScope(String::class, listOf(1, 2, 3), Unit, emptyMap()),
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap())
+            FunctionScope(String::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class))
         )
         assertNotEquals(
-            FunctionScope(Int::class, listOf(2, 3), Unit, emptyMap()),
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap())
+            FunctionScope(Int::class, listOf(2, 3), Unit, emptyMap(), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class))
         )
         assertNotEquals(
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap()),
-            FunctionScope(Int::class, listOf(1, 2, 3), 1, emptyMap())
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), 1, emptyMap(), listOf(Unit::class))
         )
         assertNotEquals(
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, mapOf(Unit::class to { })),
-            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap())
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, mapOf(Unit::class to { }), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class))
+        )
+        assertNotEquals(
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Unit::class)),
+            FunctionScope(Int::class, listOf(1, 2, 3), Unit, emptyMap(), listOf(Int::class))
         )
     }
 

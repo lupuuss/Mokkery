@@ -80,16 +80,15 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
     }
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
-        val tools = scope.context.tools
         val spyDelegate = scope.associatedFunctions.spiedFunction
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill
             mockMode == MockMode.original && scope.associatedFunctions.supers.isNotEmpty() -> {
-                SuperCallAnswer<Any?>(SuperCall.original, tools.instanceLookup)
+                SuperCallAnswer<Any?>(SuperCall.original)
             }
             mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> throw CallNotMockedException(tools.callTraceReceiverShortener.shortToString(trace))
+            else -> throw CallNotMockedException(scope.context.tools.callTraceReceiverShortener.shortToString(trace))
         }
     }
 

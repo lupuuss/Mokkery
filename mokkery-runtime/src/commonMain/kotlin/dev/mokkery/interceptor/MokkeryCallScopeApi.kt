@@ -9,6 +9,7 @@ import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.currentMokkeryInstance
 import dev.mokkery.internal.context.reverseResolveInstance
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.interceptedTypes
 import dev.mokkery.internal.interceptor.nextInterceptor
 import kotlin.reflect.KClass
 
@@ -71,6 +72,7 @@ public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
         returnType = function.returnType,
         args = call.args.map(CallArgument::value),
         self = self,
-        supers = supers
+        supers = supers,
+        classSupertypes = currentMokkeryInstance.interceptedTypes
     )
 }
