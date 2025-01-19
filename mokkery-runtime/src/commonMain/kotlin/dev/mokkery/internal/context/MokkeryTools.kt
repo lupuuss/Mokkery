@@ -18,6 +18,7 @@ import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
 import dev.mokkery.internal.utils.mokkeryRuntimeError
+import dev.mokkery.internal.verify.VerifierFactory
 
 internal val MokkeryContext.tools: MokkeryTools
     get() = require(MokkeryTools)
@@ -33,6 +34,7 @@ internal class MokkeryTools(
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
+    verifierFactory: VerifierFactory? = null,
 ) : MokkeryContext.Element {
 
     private val _instanceLookup: MokkeryInstanceLookup? = instanceLookup
@@ -45,6 +47,7 @@ internal class MokkeryTools(
     private val _callsCounter = callsCounter
     private val _mocksCounter = mocksCounter
     private val _autofillProvider = autofillProvider
+    private val _verifierFactory = verifierFactory
 
     val instanceLookup: MokkeryInstanceLookup
         get() = _instanceLookup ?: mokkeryRuntimeError("MokkeryInstanceLookup not present in the tools!")
@@ -65,7 +68,9 @@ internal class MokkeryTools(
     val mocksCounter: Counter
         get() = _mocksCounter ?: mokkeryRuntimeError("Mocks Counter not present in tools!")
     val autofillProvider: AutofillProvider<Any?>
-        get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools")
+        get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools!")
+    val verifierFactory: VerifierFactory
+        get() = _verifierFactory ?: mokkeryRuntimeError("VerifierFactory not present in tools!")
 
     fun copy(
         instanceLookup: MokkeryInstanceLookup? = _instanceLookup,
@@ -77,7 +82,8 @@ internal class MokkeryTools(
         argMatchersComposer: ArgMatchersComposer? = _argMatchersComposer,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
-        autofillProvider: AutofillProvider<Any?>? = _autofillProvider
+        autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
+        verifierFactory: VerifierFactory? = _verifierFactory
     ) = MokkeryTools(
         instanceLookup = instanceLookup,
         namesShortener = namesShortener,
@@ -88,7 +94,8 @@ internal class MokkeryTools(
         argMatchersComposer = argMatchersComposer,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
-        autofillProvider = autofillProvider
+        autofillProvider = autofillProvider,
+        verifierFactory = verifierFactory
     )
 
     override val key = Key
@@ -100,17 +107,19 @@ internal class MokkeryTools(
             val instanceIdGenerator = UniqueMokkeryInstanceIdGenerator(mocksCounter)
             val namesShortener = ReverseDomainNameShortener.withTypeArgumentsSupport()
             val signatureGenerator = SignatureGenerator()
+            val callMatcher = CallMatcher(signatureGenerator)
             return MokkeryTools(
                 instanceLookup = MokkeryInstanceLookup(),
                 namesShortener = namesShortener,
                 instanceIdGenerator = instanceIdGenerator,
                 signatureGenerator = signatureGenerator,
                 callTraceReceiverShortener = CallTraceReceiverShortener(instanceIdGenerator, namesShortener),
-                callMatcher = CallMatcher(signatureGenerator),
+                callMatcher = callMatcher,
                 argMatchersComposer = ArgMatchersComposer(),
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
-                autofillProvider = AutofillProvider.forInternals
+                autofillProvider = AutofillProvider.forInternals,
+                verifierFactory = VerifierFactory(callMatcher)
             )
         }
     }

@@ -1,18 +1,15 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.calls.CallMatcher
-import dev.mokkery.internal.calls.isMatching
-import dev.mokkery.internal.render.PointListRenderer
-import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.calls.isMatching
+import dev.mokkery.internal.render.Renderer
+import dev.mokkery.internal.utils.failAssertion
 
 internal class NotVerifier(
-    private val callMatcher: CallMatcher = GlobalMokkeryContext.tools.callMatcher,
-    private val traceListRenderer: Renderer<List<CallTrace>> = PointListRenderer(),
+    private val callMatcher: CallMatcher,
+    private val traceListRenderer: Renderer<List<CallTrace>>
 ) : Verifier {
 
     override fun verify(

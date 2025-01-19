@@ -33,17 +33,12 @@ internal fun internalVerify(
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val verifier = when (mode) {
-        OrderVerifyMode -> OrderVerifier()
-        ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier()
-        ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier()
-        NotVerifyMode -> NotVerifier()
-        is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
-    }
-    internalBaseVerify(scope, verifier, block)
+    internalBaseVerify(scope, mode, block)
 }
 
-internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, block: ArgMatchersScope.() -> Unit) {
+internal fun internalBaseVerify(scope: TemplatingScope, mode: VerifyMode, block: ArgMatchersScope.() -> Unit) {
+    val tools = GlobalMokkeryContext.tools
+    val verifier = tools.verifierFactory.create(mode)
     val result = runCatching { block(scope) }
     val exception = result.exceptionOrNull()
     if (exception != null && exception !is DefaultNothingException) {
@@ -56,7 +51,7 @@ internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, bloc
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
-    val shortener = GlobalMokkeryContext.tools.createGroupMockReceiverShortener()
+    val shortener = tools.createGroupMockReceiverShortener()
     shortener.prepare(calls, scope.templates)
     try {
         verifier

@@ -1,21 +1,17 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.calls.CallMatcher
-import dev.mokkery.internal.calls.isMatching
-import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.calls.isMatching
+import dev.mokkery.internal.render.Renderer
+import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
-import dev.mokkery.internal.verify.render.TemplateGroupedMatchingResultsRenderer
-import dev.mokkery.internal.verify.render.UnverifiedCallsRenderer
 
 internal class ExhaustiveSoftVerifier(
-    private val callMatcher: CallMatcher = GlobalMokkeryContext.tools.callMatcher,
-    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults> = TemplateGroupedMatchingResultsRenderer(),
-    private val unverifiedCallsRenderer: Renderer<List<CallTrace>> = UnverifiedCallsRenderer()
+    private val callMatcher: CallMatcher,
+    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults>,
+    private val unverifiedCallsRenderer: Renderer<List<CallTrace>>
 ) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
