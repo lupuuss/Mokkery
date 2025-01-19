@@ -1,5 +1,6 @@
 package dev.mokkery.interceptor
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
@@ -40,10 +41,7 @@ public interface MokkeryCallInterceptor {
 /**
  * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for both regular and suspend functions.
  */
-public interface MokkeryCallScope {
-
-    public val mokkeryContext: MokkeryContext
-}
+public interface MokkeryCallScope : MokkeryScope
 
 /**
  * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for regular functions only.
