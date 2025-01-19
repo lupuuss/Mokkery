@@ -1,7 +1,6 @@
 package dev.mokkery.internal.interceptor
 
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
@@ -10,7 +9,6 @@ import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.context.CurrentMokkeryInstance
 import dev.mokkery.internal.context.currentMokkeryInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.id
@@ -59,7 +57,7 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         templatingScope
             ?.saveTemplate(scope.currentMokkeryInstance.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
-        return scope.context
+        return scope.mokkeryContext
             .tools
             .autofillProvider
             .provideValue(hint ?: call.function.returnType)

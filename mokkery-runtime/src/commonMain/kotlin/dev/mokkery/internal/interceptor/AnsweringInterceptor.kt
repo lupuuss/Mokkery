@@ -5,7 +5,6 @@ package dev.mokkery.internal.interceptor
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
-import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
@@ -19,7 +18,6 @@ import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
-import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
@@ -69,7 +67,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
     private fun findAnswerFor(scope: MokkeryCallScope): Answer<*> {
         val trace = scope.toCallTrace(0)
         val answers = this._answers
-        val callMatcher = scope.context.tools.callMatcher
+        val callMatcher = scope.mokkeryContext.tools.callMatcher
         return answers
             .keys
             .reversed()
@@ -88,7 +86,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
                 SuperCallAnswer<Any?>(SuperCall.original)
             }
             mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> throw CallNotMockedException(scope.context.tools.callTraceReceiverShortener.shortToString(trace))
+            else -> throw CallNotMockedException(scope.mokkeryContext.tools.callTraceReceiverShortener.shortToString(trace))
         }
     }
 

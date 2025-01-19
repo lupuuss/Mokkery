@@ -60,7 +60,7 @@ class CombineTest {
     fun testAllowsChangingContext() {
         val a = interceptor { it.nextIntercept() }
         val b = interceptor { it.nextIntercept(TestMokkeryContext(10)) }
-        val c = interceptor { it.context[TestMokkeryContext]?.value }
+        val c = interceptor { it.mokkeryContext[TestMokkeryContext]?.value }
         val result = combine(a, b, c)
             .intercept(MokkeryBlockingCallScope(TestMokkeryContext(2)))
         assertEquals(10, result)
@@ -70,7 +70,7 @@ class CombineTest {
     fun testAllowsChangingContextSuspend() = runTest {
         val a = interceptorSuspend { it.nextIntercept() }
         val b = interceptorSuspend { it.nextIntercept(TestMokkeryContext(11)) }
-        val c = interceptorSuspend { it.context[TestMokkeryContext]?.value }
+        val c = interceptorSuspend { it.mokkeryContext[TestMokkeryContext]?.value }
         val result = combine(a, b, c)
             .intercept(MokkerySuspendCallScope(TestMokkeryContext(3)))
         assertEquals(11, result)

@@ -6,7 +6,7 @@ import dev.mokkery.interceptor.MokkeryCallScope
 import kotlin.reflect.KClass
 
 internal val MokkeryCallScope.associatedFunctions: AssociatedFunctions
-    get() = context.require(AssociatedFunctions)
+    get() = mokkeryContext.require(AssociatedFunctions)
 
 internal class AssociatedFunctions(
     val supers: Map<KClass<*>, Function<Any?>>,

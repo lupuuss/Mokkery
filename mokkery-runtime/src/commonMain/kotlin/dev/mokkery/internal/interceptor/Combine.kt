@@ -8,7 +8,6 @@ import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.withContext
-import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 internal fun combine(vararg interceptors: MokkeryCallInterceptor): MokkeryCallInterceptor {
     return RecursiveNextCallInterceptor(0, interceptors)
@@ -19,7 +18,7 @@ internal fun List<MokkeryCallInterceptor>.combined(): MokkeryCallInterceptor {
 }
 
 internal inline val MokkeryCallScope.nextInterceptor: MokkeryCallInterceptor
-    get() = context.require(NextCallInterceptor)
+    get() = mokkeryContext.require(NextCallInterceptor)
 
 internal interface NextCallInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
 

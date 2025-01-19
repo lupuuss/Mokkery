@@ -6,7 +6,7 @@ import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.internal.MokkeryInstance
 
 internal val MokkeryCallScope.currentMokkeryInstance: MokkeryInstance
-    get() = context.require(CurrentMokkeryInstance).value
+    get() = mokkeryContext.require(CurrentMokkeryInstance).value
 
 internal class CurrentMokkeryInstance(val value: MokkeryInstance) : MokkeryContext.Element {
 
