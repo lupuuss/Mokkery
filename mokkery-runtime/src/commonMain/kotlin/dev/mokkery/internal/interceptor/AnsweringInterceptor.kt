@@ -19,6 +19,7 @@ import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
 import dev.mokkery.internal.context.associatedFunctions
+import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.shortToString
@@ -34,9 +35,9 @@ internal interface AnsweringInterceptor : MokkeryCallInterceptor {
     fun reset()
 }
 
-internal fun AnsweringInterceptor(mockMode: MockMode): AnsweringInterceptor = AnsweringInterceptorImpl(mockMode)
+internal fun AnsweringInterceptor(): AnsweringInterceptor = AnsweringInterceptorImpl()
 
-private class AnsweringInterceptorImpl(private val mockMode: MockMode) : AnsweringInterceptor {
+private class AnsweringInterceptorImpl() : AnsweringInterceptor {
 
     private val modifiers = atomic(0)
     private val _answers = linkedMapOf<CallTemplate, Answer<*>>()
@@ -79,6 +80,7 @@ private class AnsweringInterceptorImpl(private val mockMode: MockMode) : Answeri
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
         val spyDelegate = scope.associatedFunctions.spiedFunction
+        val mockMode = scope.currentMockContext.mode
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill

@@ -6,7 +6,7 @@ import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.currentMokkeryInstance
+import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.reverseResolveInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptedTypes
@@ -48,7 +48,7 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any?
-    get() = tools.reverseResolveInstance(currentMokkeryInstance)
+    get() = tools.reverseResolveInstance(currentMockContext.self)
 
 /**
  * Returns current call.
@@ -73,6 +73,6 @@ public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
         args = call.args.map(CallArgument::value),
         self = self,
         supers = supers,
-        classSupertypes = currentMokkeryInstance.interceptedTypes
+        classSupertypes = currentMockContext.interceptedTypes
     )
 }

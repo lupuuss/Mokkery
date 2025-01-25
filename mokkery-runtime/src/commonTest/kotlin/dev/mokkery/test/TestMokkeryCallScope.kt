@@ -7,7 +7,6 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
-import dev.mokkery.internal.context.CurrentMokkeryInstance
 import kotlin.reflect.KClass
 
 internal inline fun <reified T> testBlockingCallScope(
@@ -56,7 +55,7 @@ internal fun testCallContext(
     supers: Map<KClass<*>, kotlin.Function<Any?>>,
     spiedFunction: kotlin.Function<Any?>?,
     context: MokkeryContext,
-) = context
-    .plus(CurrentMokkeryInstance(TestMokkeryInstance(selfId)))
+) = TestMokkeryInstance(selfId).mokkeryContext
     .plus(FunctionCall(Function(name, args.map { it.parameter }, returnType), args))
     .plus(AssociatedFunctions(supers, spiedFunction))
+    .plus(context)

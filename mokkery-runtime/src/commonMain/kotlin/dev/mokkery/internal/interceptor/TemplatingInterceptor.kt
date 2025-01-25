@@ -9,9 +9,8 @@ import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.context.currentMokkeryInstance
+import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.id
 import kotlinx.atomicfu.atomic
 
 internal interface TemplatingInterceptor : MokkeryCallInterceptor {
@@ -55,7 +54,7 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         val hint = templatingScope?.currentGenericReturnTypeHint
         val call = scope.call
         templatingScope
-            ?.saveTemplate(scope.currentMokkeryInstance.id, call.function.name, call.args)
+            ?.saveTemplate(scope.currentMockContext.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
         return scope.tools.autofillProvider.provideValue(hint ?: call.function.returnType)
     }

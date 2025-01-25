@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
@@ -102,10 +103,11 @@ private fun IrBuilderWithScope.irCallMokkeryMockInstance(
 ): IrExpression {
     val mokkeryMockInstanceFun = transformer.getFunction(Mokkery.Function.MokkeryMockInstance)
     return irCall(mokkeryMockInstanceFun) {
-        putValueArgument(0, modeArg)
-        putValueArgument(1, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
-        putValueArgument(2, irString(typeToMock.classFqName!!.asString()))
-        putValueArgument(3, kClassReference(typeToMock))
+        putValueArgument(0, irGetObject(transformer.getClass(Mokkery.Class.GlobalMokkeryScope).symbol))
+        putValueArgument(1, modeArg)
+        putValueArgument(2, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
+        putValueArgument(3, irString(typeToMock.classFqName!!.asString()))
+        putValueArgument(4, kClassReference(typeToMock))
     }
 }
 

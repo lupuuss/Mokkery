@@ -5,6 +5,7 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
 import dev.mokkery.plugin.ir.defaultTypeErased
@@ -187,14 +188,15 @@ private fun IrClass.addMockClassConstructor(
 ) {
     val context = transformer.pluginContext
     val mokkeryMockInterceptorFun = transformer.getFunction(Mokkery.Function.MokkeryMockInterceptor)
+    val mokkeryScopeClass = transformer.getClass(Mokkery.Class.MokkeryScope)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
-    val interceptor = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryInterceptor"))
-    val idProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryId"))
-    val typesProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("_mokkeryInterceptedTypes"))
+    val interceptor = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("mokkeryInterceptor"))
+    val contextProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("mokkeryContext"))
     addConstructor {
         isPrimary = true
     }.apply {
+        addValueParameter("parent", mokkeryScopeClass.defaultType)
         addValueParameter("mode", mockModeClass.defaultType)
         addValueParameter("block", context.irBuiltIns.functionN(1).defaultTypeErased.makeNullable())
         val spyParam = when (mokkeryKind) {
@@ -209,26 +211,26 @@ private fun IrClass.addMockClassConstructor(
             +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
-                property = typesProperty,
-                value = irCallListOf(
-                    transformerScope = transformer,
-                    type = context.irBuiltIns.kClassClass.starProjectedType,
-                    expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
-                )
-            )
-            +irSetPropertyField(
-                thisParam = thisReceiver!!,
                 property = interceptor,
-                value = irCall(mokkeryMockInterceptorFun) {
-                    putValueArgument(0, irGet(valueParameters[0]))
-                    putValueArgument(1, irMokkeryKindValue(mokkeryKindClass, mokkeryKind))
-                }
+                value = irCall(mokkeryMockInterceptorFun)
             )
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
-                property = idProperty,
-                value = irCall(transformer.getFunction(Mokkery.Function.generateMockId)) {
+                property = contextProperty,
+                value = irCall(transformer.getFunction(Mokkery.Function.createMokkeryInstanceContext)) {
+                    extensionReceiver = irGet(valueParameters[0])
                     putValueArgument(0, irString(typeName))
+                    putValueArgument(1, irGet(valueParameters[1]))
+                    putValueArgument(2, irMokkeryKindValue(mokkeryKindClass, mokkeryKind))
+                    putValueArgument(
+                        index = 3,
+                        valueArgument = irCallListOf(
+                            transformerScope = transformer,
+                            type = context.irBuiltIns.kClassClass.starProjectedType,
+                            expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
+                        )
+                    )
+                    putValueArgument(4, irGet(thisReceiver!!))
                 }
             )
             if (spyParam != null) {
@@ -245,12 +247,12 @@ private fun IrClass.addMockClassConstructor(
                     value = irGet(it)
                 )
             }
-            +irInvokeIfNotNull(irGet(valueParameters[1]), false, irGet(thisReceiver!!))
+            +irInvokeIfNotNull(irGet(valueParameters[2]), false, irGet(thisReceiver!!))
         }
     }
     addOverridingMethod(context, context.irBuiltIns.memberToString.owner) {
-        +irReturn(irCall(idProperty.getter!!.symbol) {
-            dispatchReceiver = irGet(it.dispatchReceiverParameter!!)
+        +irReturn(irCall(transformer.getProperty(Mokkery.Property.mockId).getter!!.symbol) {
+            extensionReceiver = irGet(it.dispatchReceiverParameter!!)
         })
     }
 }

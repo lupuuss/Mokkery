@@ -101,11 +101,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val modeArg = call.valueArguments.getOrNull(0)
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
                 val block = call.valueArguments.getOrNull(1)
-                putValueArgument(0, modeArg)
-                putValueArgument(1, block ?: irNull())
+                putValueArgument(0, irGetObject(getClass(Mokkery.Class.GlobalMokkeryScope).symbol))
+                putValueArgument(1, modeArg)
+                putValueArgument(2, block ?: irNull())
                 val anyType = context.irBuiltIns.anyType
                 typeToMock.forEachIndexedTypeArgument { index, it ->
-                    putValueArgument(2 + index, kClassReference(it ?: anyType))
+                    putValueArgument(3 + index, kClassReference(it ?: anyType))
                 }
             }
         }
@@ -121,13 +122,14 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             irCallConstructor(mockedClass.primaryConstructor!!) {
                 val modeArg = call.valueArguments.getOrNull(0)
                     ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
-                putValueArgument(0, modeArg)
-                putValueArgument(1, call.valueArguments.getOrNull(1) ?: irNull())
+                putValueArgument(0, irGetObject(getClass(Mokkery.Class.GlobalMokkeryScope).symbol))
+                putValueArgument(1, modeArg)
+                putValueArgument(2, call.valueArguments.getOrNull(1) ?: irNull())
                 val anyType = context.irBuiltIns.anyType
                 call.typeArguments
                     .filterNotNull()
                     .forEachIndexedTypeArgument { index, it ->
-                        putValueArgument(2 + index, kClassReference(it ?: anyType))
+                        putValueArgument(3 + index, kClassReference(it ?: anyType))
                     }
             }
         }
@@ -141,12 +143,13 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         return declarationIrBuilder(call) {
             irCallConstructor(spiedClass.primaryConstructor!!) {
                 val block = call.valueArguments.getOrNull(1) ?: irNull()
-                putValueArgument(0, irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict"))
-                putValueArgument(1, block)
-                putValueArgument(2, call.valueArguments[0])
+                putValueArgument(0, irGetObject(getClass(Mokkery.Class.GlobalMokkeryScope).symbol))
+                putValueArgument(1, irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict"))
+                putValueArgument(2, block)
+                putValueArgument(3, call.valueArguments[0])
                 val anyType = context.irBuiltIns.anyType
                 typeToMock.forEachIndexedTypeArgument { index, it ->
-                    putValueArgument(3 + index, kClassReference(it ?: anyType))
+                    putValueArgument(4 + index, kClassReference(it ?: anyType))
                 }
             }
         }

@@ -3,6 +3,7 @@ package dev.mokkery.debug
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryMockInstance
+import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.resolveMockInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.id
@@ -16,7 +17,7 @@ import dev.mokkery.internal.interceptor.MokkeryKind
  */
 public fun mokkeryDebugString(obj: Any): String {
     return when (val instance = GlobalMokkeryScope.tools.resolveMockInstance(obj)) {
-        is MokkeryMockInstance -> when (instance.interceptor.kind) {
+        is MokkeryMockInstance -> when (instance.currentMockContext.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(instance)
             MokkeryKind.Mock ->  mokkeryDebugMock(instance)
         }
@@ -35,7 +36,7 @@ private fun mokkeryDebugMock(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("mock") {
             value("id", instance.id)
-            value("mode", instance.interceptor.mode.name)
+            value("mode", instance.currentMockContext.mode.name)
             answersSection(instance.interceptor.answering)
             callsSection(instance.interceptor.callTracing)
         }

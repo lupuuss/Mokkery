@@ -1,9 +1,9 @@
 package dev.mokkery.internal.interceptor
 
+import dev.mokkery.MockMode
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MockMode.original
-import dev.mokkery.MockMode.strict
 import dev.mokkery.answering.Answer
 import dev.mokkery.context.CallArgument
 import dev.mokkery.interceptor.call
@@ -11,6 +11,7 @@ import dev.mokkery.interceptor.self
 import dev.mokkery.interceptor.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
+import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
@@ -33,12 +34,13 @@ import kotlin.test.assertNotNull
 class AnsweringInterceptorTest {
 
     private val callMatcher = TestCallMatcher()
-    private val context = MokkeryTools(
+    private val tools = MokkeryTools(
         callMatcher = callMatcher,
         callTraceReceiverShortener = TestCallTraceReceiverShortener(),
         instanceLookup = TestMokkeryInstanceLookup()
     )
-    private val answering = AnsweringInterceptor(strict)
+    private val context = tools + currentMockContext(MockMode.strict)
+    private val answering = AnsweringInterceptor()
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoAnswersAndStrictMode() {
@@ -56,71 +58,77 @@ class AnsweringInterceptorTest {
 
     @Test
     fun testReturnsUnitOnInterceptCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsUnit() {
-        AnsweringInterceptor(autoUnit).intercept(testBlockingCallScope<Unit>(context = context))
+        answering.intercept(testBlockingCallScope<Unit>(context = context + currentMockContext(autoUnit)))
     }
 
     @Test
     fun testReturnsUnitOnInterceptSuspendCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsUnit() = runTest {
-        AnsweringInterceptor(autoUnit).intercept(testSuspendCallScope<Unit>(context = context))
+        answering.intercept(testSuspendCallScope<Unit>(context = context + currentMockContext(autoUnit)))
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsNotUnit() {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(autoUnit).intercept(testBlockingCallScope<Int>(context = context))
+            answering.intercept(testBlockingCallScope<Int>(context = context + currentMockContext(autoUnit)))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoAnswersAndAutoUnitModeAndMethodReturnsNotUnit() = runTest {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(autoUnit).intercept(testSuspendCallScope<Int>(context = context))
+            answering.intercept(testSuspendCallScope<Int>(context = context + currentMockContext(autoUnit)))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptCallWhenNoSuperCallsForMockModeOriginal() {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(original).intercept(testBlockingCallScope<Int>(context = context))
+            answering.intercept(testBlockingCallScope<Int>(context = context + currentMockContext(original)))
         }
     }
 
     @Test
     fun testThrowsCallNotMockedOnInterceptSuspendCallWhenNoSuperCallsForMockModeOriginal() = runTest {
         assertFailsWith<CallNotMockedException> {
-            AnsweringInterceptor(original).intercept(testSuspendCallScope<Int>(context = context))
+            answering.intercept(testSuspendCallScope<Int>(context = context + currentMockContext(original)))
         }
     }
 
     @Test
     fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
+        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context.copy(instanceLookup = lookUp)
+            context = context + tools.copy(instanceLookup = lookUp) + currentMockContext(original)
         )
-        assertEquals(10, AnsweringInterceptor(original).intercept(scope))
+        assertEquals(10, answering.intercept(scope))
     }
 
     @Test
     fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
-        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(_mokkeryInterceptedTypes = listOf(Unit::class)) }
+        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
-        val context = testSuspendCallScope<Int>(
+        val scope = testSuspendCallScope<Int>(
             supers = mapOf(Unit::class to suspendSuper.unsafeCast()),
-            context = context.copy(instanceLookup = lookUp)
+            context = context + tools.copy(instanceLookup = lookUp) + currentMockContext(original)
         )
-        assertEquals(11, AnsweringInterceptor(original).intercept(context))
+        assertEquals(11, answering.intercept(scope))
     }
 
     @Test
     fun testReturnsEmptyValueOnInterceptCallWhenNoAnswersAndAutofillModeAndMethodReturnsNotUnit() {
-        assertEquals(0, AnsweringInterceptor(autofill).intercept(testBlockingCallScope<Int>(context = context)))
+        assertEquals(
+            expected = 0,
+            actual = answering.intercept(testBlockingCallScope<Int>(context = context + currentMockContext(autofill)))
+        )
     }
 
     @Test
     fun testReturnsEmptyValueOnInterceptSuspendCallWhenNoAnswersAndAutofillModeAndMethodReturnsNotUnit() {
-        assertEquals(0, AnsweringInterceptor(autofill).intercept(testBlockingCallScope<Int>(context = context)))
+        assertEquals(
+            0,
+            answering.intercept(testBlockingCallScope<Int>(context = context + currentMockContext(autofill)))
+        )
     }
 
     @Test
@@ -256,4 +264,6 @@ class AnsweringInterceptorTest {
         assertEquals(scope.call.function.returnType, answer.capturedScope!!.returnType)
         assertEquals(scope.supers, answer.capturedScope!!.supers)
     }
+
+    private fun currentMockContext(mode: MockMode) = TestMokkeryInstance(mode = mode).currentMockContext
 }
