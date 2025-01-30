@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.copyTo
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.name.Name
 import java.lang.reflect.Parameter
 
@@ -127,3 +128,19 @@ val IrCall.typeArgumentsCompat: MutableList<IrType?>
                 this, // extension receiver
             ) as MutableList<IrType?>
     }
+
+fun IrType.eraseTypeParametersCompat(): IrType {
+    return try {
+        eraseTypeParameters()
+    } catch (e: NoClassDefFoundError) {
+        javaClass
+            .classLoader
+            .loadClass("org.jetbrains.kotlin.backend.jvm.ir.JvmIrTypeUtilsKt")
+            .methods
+            .single { it.name == "eraseTypeParameters" }
+            .invoke(
+                null, // static invocation
+                this, // extension receiver
+            ) as IrType
+    }
+}

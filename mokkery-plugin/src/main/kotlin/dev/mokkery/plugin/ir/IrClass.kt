@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
@@ -51,13 +50,13 @@ fun IrType.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     (this as? IrSimpleType)
         ?.arguments
         ?.forEachIndexed { index, it ->
-            block(index, it.typeOrNull?.eraseTypeParameters())
+            block(index, it.typeOrNull?.eraseTypeParametersCompat())
         }
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
-        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
+        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParametersCompat()) }
 }
 
 fun IrClass.addOverridingMethod(
@@ -224,4 +223,4 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridable }
 
-val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
+val IrClass.defaultTypeErased get() = defaultType.eraseTypeParametersCompat()
