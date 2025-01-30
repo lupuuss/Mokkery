@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.name.Name
 import java.lang.reflect.Parameter
 
@@ -144,3 +145,18 @@ fun IrType.eraseTypeParametersCompat(): IrType {
             ) as IrType
     }
 }
+
+val IrFunction.nonDispatchParametersCompat: List<IrValueParameter>
+    get() = try {
+        nonDispatchParameters
+    } catch (e: NoSuchMethodError) {
+        javaClass
+            .classLoader
+            .loadClass("org.jetbrains.kotlin.backend.jvm.InlineClassAbiKt")
+            .methods
+            .single { it.name == "getFullValueParameterList" }
+            .invoke(
+                null, // static invocation
+                this, // extension receiver
+            ) as List<IrValueParameter>
+    }
