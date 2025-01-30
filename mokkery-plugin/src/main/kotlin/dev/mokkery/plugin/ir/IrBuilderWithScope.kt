@@ -53,7 +53,6 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -101,7 +100,7 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
                     val provideCall = irCall(autofillFun) {
                         type = it.type
                         putTypeArgument(0, it.type)
-                        putValueArgument(0, kClassReference(it.type.eraseTypeParameters()))
+                        putValueArgument(0, kClassReference(it.type.eraseTypeParametersCompat()))
                     }
                     putArgument(it, provideCall)
                 }
