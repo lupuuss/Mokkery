@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -110,3 +112,18 @@ fun IrValueParameter.copyToCompat(
             ) as IrValueParameter
     }
 }
+
+val IrCall.typeArgumentsCompat: MutableList<IrType?>
+    get() = try {
+        typeArguments
+    } catch (e: NoSuchMethodError) {
+        javaClass
+            .classLoader
+            .loadClass("org.jetbrains.kotlin.ir.backend.js.utils.IrJsUtilsKt")
+            .methods
+            .single { it.name == "getTypeArguments" }
+            .invoke(
+                null, // static invocation
+                this, // extension receiver
+            ) as MutableList<IrType?>
+    }
