@@ -25,7 +25,6 @@ import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -63,6 +62,7 @@ import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.FqName
@@ -287,7 +287,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyCall(
         val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
             dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
             function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            spyFun.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+            spyFun.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,
                     argument = irAs(
