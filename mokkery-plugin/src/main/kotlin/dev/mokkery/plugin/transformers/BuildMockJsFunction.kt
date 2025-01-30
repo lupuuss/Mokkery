@@ -15,7 +15,6 @@ import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.irMokkeryKindValue
 import dev.mokkery.plugin.ir.kClassReference
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -37,6 +36,7 @@ import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 
 fun TransformerScope.buildMockJsFunction(

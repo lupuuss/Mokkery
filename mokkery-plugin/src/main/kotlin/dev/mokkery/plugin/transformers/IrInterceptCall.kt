@@ -15,8 +15,6 @@ import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReference
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -38,11 +36,13 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
 
@@ -96,7 +96,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
             extensionReceiver = mokkeryInstance
             putValueArgument(0, irString(function.name.asString()))
             putValueArgument(1, typeToKClassMapper(function.returnType))
-            putValueArgument(2, irCallArgsList(transformer, function.fullValueParameterList, typeToKClassMapper))
+            putValueArgument(2, irCallArgsList(transformer, function.nonDispatchParameters, typeToKClassMapper))
             putValueArgument(3, irCallSupersMap(transformer, function))
             if (irCallSpyLambda != null) putValueArgument(4, irCallSpyLambda)
         }
@@ -162,7 +162,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         ) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
             function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+            superFunction.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,
                     argument = irAs(
