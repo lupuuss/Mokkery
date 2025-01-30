@@ -9,6 +9,7 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.eraseTypeParametersCompat
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
@@ -37,7 +38,6 @@ import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 
 fun TransformerScope.buildMockJsFunction(
@@ -47,7 +47,7 @@ fun TransformerScope.buildMockJsFunction(
     val typeToMock = expression.type
     val typeArguments = typeToMock.let { it as IrSimpleType }
         .arguments
-        .map { it.typeOrFail.eraseTypeParameters() }
+        .map { it.typeOrFail.eraseTypeParametersCompat() }
     val returnType = typeArguments.last()
     val transformer = this
     return declarationIrBuilder(expression) {

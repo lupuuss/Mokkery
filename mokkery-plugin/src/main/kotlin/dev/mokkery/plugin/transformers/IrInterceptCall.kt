@@ -6,6 +6,7 @@ import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.eraseTypeParametersCompat
 import dev.mokkery.plugin.ir.getField
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
@@ -36,7 +37,6 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -65,7 +65,7 @@ fun IrBlockBodyBuilder.irInterceptMethod(
                     field = parentClass.getField(Mokkery.Fields.typeArg(index))!!
                 )
             } else {
-                kClassReference(it.eraseTypeParameters())
+                kClassReference(it.eraseTypeParametersCompat())
             }
         }
     )
