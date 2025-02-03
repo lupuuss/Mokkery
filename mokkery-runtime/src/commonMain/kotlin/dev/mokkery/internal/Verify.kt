@@ -2,47 +2,52 @@
 
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryTestsScope
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.internal.context.mocksRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
-internal fun internalVerifySuspend(
+internal fun MokkeryTestsScope.internalVerifySuspend(
     scope: TemplatingScope,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ) = internalVerify(scope, mode) { runSuspension { block() } }
 
-internal fun internalVerify(
-    scope: TemplatingScope,
+internal fun MokkeryTestsScope.internalVerify(
+    templating: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val tools = GlobalMokkeryScope.tools
     val verifier = tools.verifierFactory.create(mode)
-    val result = runCatching { block(scope) }
+    val result = runCatching { block(templating) }
     val exception = result.exceptionOrNull()
     if (exception != null && exception !is DefaultNothingException) {
-        scope.release()
+        templating.release()
         throw exception
     }
-    val spyInterceptors = scope.mocks.associate { it.id to it.interceptor }
+    val instanceLookup = tools.instanceLookup
+    val allMokkeryInstances = mocksRegistry.mocks
+        .mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
+        .plus(templating.mocks)
+    val spyInterceptors = allMokkeryInstances.associate { it.id to it.interceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
     val shortener = tools.createGroupMockReceiverShortener()
-    shortener.prepare(calls, scope.templates)
+    shortener.prepare(calls, templating.templates)
     try {
         verifier
-            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(scope.templates))
+            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(templating.templates))
             .map(shortener::getOriginalTrace)
             .forEach { spyInterceptors.getValue(it.receiver).callTracing.markVerified(it) }
     } finally {
-        scope.release()
+        templating.release()
     }
 }
