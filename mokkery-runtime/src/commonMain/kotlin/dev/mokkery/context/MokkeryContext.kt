@@ -1,15 +1,13 @@
 package dev.mokkery.context
 
-import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 /**
  *  A set of [MokkeryContext.Element]s.
- *  It's used to provide any information/dependency required for Mokkery interceptors.
+ *  It's used to provide any information/dependency Mokkery machinery.
  *  It works in the same way as [kotlin.coroutines.CoroutineContext].
  */
-@DelicateMokkeryApi
 public interface MokkeryContext {
 
     public operator fun <T : Element> get(key: Key<T>): T?
