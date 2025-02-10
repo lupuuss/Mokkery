@@ -1,13 +1,10 @@
 package dev.mokkery.internal.context
 
-import dev.mokkery.MokkeryTestsScope
+import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.require
+import dev.mokkery.internal.MokkeryInstance
 import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.withLock
-
-internal val MokkeryTestsScope.mocksRegistry: MocksRegistry
-    get() = mokkeryContext.require(MocksRegistry)
 
 internal interface MocksRegistry : MokkeryContext.Element {
 
@@ -24,7 +21,7 @@ internal fun MocksRegistry(mocks: Set<Any> = emptySet()): MocksRegistry {
     return MocksRegistryImpl(mocks)
 }
 
-private class MocksRegistryImpl(mocks: Set<Any>) : MocksRegistry {
+private class MocksRegistryImpl(mocks: Set<Any>) : MocksRegistry, MockInstantiationListener {
 
     private val _mocks = mocks.toMutableSet()
     private val lock = ReentrantLock()
@@ -34,6 +31,11 @@ private class MocksRegistryImpl(mocks: Set<Any>) : MocksRegistry {
 
     override fun register(mock: Any) {
         lock.withLock { _mocks.add(mock) }
+    }
+
+    override fun onMockInstantiation(scope: MokkeryScope) {
+        if (scope !is MokkeryInstance) return
+        register(scope.tools.reverseResolveInstance(scope)!!)
     }
 
     override fun toString(): String = "MocksRegistry { ${mocks.joinToString()} }"

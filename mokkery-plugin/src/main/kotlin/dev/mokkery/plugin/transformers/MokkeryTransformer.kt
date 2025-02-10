@@ -69,8 +69,8 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val internalVerify = getFunction(Mokkery.Function.internalVerify)
     private val internalVerifySuspend = getFunction(Mokkery.Function.internalVerifySuspend)
     private val globalMokkeryScopeSymbol = getClass(Mokkery.Class.GlobalMokkeryScope).symbol
-    private val mokkeryTestsClass = getClass(Mokkery.Class.MokkeryTestsScope)
-    private val testsScopeNameClass = getClass(Mokkery.Class.TestsScopeName)
+    private val mokkerySuiteScopeClass = getClass(Mokkery.Class.MokkerySuiteScope)
+    private val suiteNameClass = getClass(Mokkery.Class.SuiteName)
 
 
     override fun visitClass(declaration: IrClass): IrStatement {
@@ -110,20 +110,20 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun overrideMokkeryTestsScopeIfNotOverridden(irClass: IrClass) {
         if (!irClass.isClass) return
-        if (irClass.superTypes.none { it.getClass() == mokkeryTestsClass }) return
+        if (irClass.superTypes.none { it.getClass() == mokkerySuiteScopeClass }) return
         val property = irClass.getProperty("mokkeryContext")
         if (!property.isFakeOverride) return
         irClass.declarations.remove(property)
-        val baseProperty = mokkeryTestsClass.getProperty("mokkeryContext")
+        val baseProperty = mokkerySuiteScopeClass.getProperty("mokkeryContext")
         val newProperty = irClass.overridePropertyBackingField(context = pluginContext, property = baseProperty)
         val constructor = irClass.primaryConstructor!!
         val oldBody = constructor.body
         constructor.body = declarationIrBuilder(constructor.symbol) {
             irBlockBody {
-                val testScopeFun = getFunction(Mokkery.Function.MokkeryTestsScope)
+                val testScopeFun = getFunction(Mokkery.Function.MokkerySuiteScope)
                 val getContext = irCall(baseProperty.getter!!) {
                     dispatchReceiver = irCall(testScopeFun) {
-                        val testsScopeName = irCallConstructor(testsScopeNameClass.primaryConstructor!!) {
+                        val testsScopeName = irCallConstructor(suiteNameClass.primaryConstructor!!) {
                             putValueArgument(0, irString(irClass.kotlinFqName.asString()))
                         }
                         putValueArgument(0, testsScopeName)

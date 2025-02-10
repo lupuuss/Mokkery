@@ -1,6 +1,6 @@
 package dev.mokkery.test
 
-import dev.mokkery.MokkeryTestsScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
@@ -8,7 +8,6 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.mockMany
 import dev.mokkery.mocks
-import dev.mokkery.registerMock
 import dev.mokkery.spy
 import dev.mokkery.t2
 import dev.mokkery.verify
@@ -17,9 +16,7 @@ import dev.mokkery.verifyNoMoreCalls
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private val outerMock = mock<RegularMethodsInterface>()
-
-class MokkeryTestsScopeGenerationTest : MokkeryTestsScope {
+class MokkerySuiteScopeGenerationTest : MokkerySuiteScope {
 
     private val mockA = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
     private val mockB = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
@@ -46,7 +43,7 @@ class MokkeryTestsScopeGenerationTest : MokkeryTestsScope {
 
     @Test
     fun testContainsAllMocks() {
-        val expectedMocks = setOf(registerMock(outerMock), mockA, mockB)
+        val expectedMocks = setOf(mockA, mockB)
         assertEquals(expectedMocks, mocks)
     }
 

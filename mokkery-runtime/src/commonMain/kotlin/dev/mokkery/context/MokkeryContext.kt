@@ -61,3 +61,7 @@ public interface MokkeryContext {
 internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
     return get(key) ?: mokkeryRuntimeError("Element for key = $key is required, but not found in the context!")
 }
+
+internal inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
+    fold(Unit) { _, element -> block(element) }
+}

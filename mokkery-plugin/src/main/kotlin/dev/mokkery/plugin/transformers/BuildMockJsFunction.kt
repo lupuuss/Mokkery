@@ -72,9 +72,8 @@ fun TransformerScope.buildMockJsFunction(
             }
             val lambdaVar = createTmpVariable(lambda)
             +irCallRegisterInstance(transformer, irGet(instanceVar), irGet(lambdaVar))
-            +irCall(transformer.getFunction(Mokkery.Function.registerMock)) {
-                this.extensionReceiver = parentScope
-                putValueArgument(0, irGet(lambdaVar))
+            +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationCallbacks)) {
+                this.extensionReceiver = irGet(instanceVar)
             }
             val block = expression.valueArguments.getOrNull(1)
             if (block != null) {

@@ -32,14 +32,14 @@ object Mokkery {
         val MockMany4 by dev_mokkery.klass
         val MockMany5 by dev_mokkery.klass
 
-        val MokkeryTestsScope by dev_mokkery.klass
+        val MokkerySuiteScope by dev_mokkery.klass
 
         val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
         val MokkeryInstance by dev_mokkery_internal.klass
         val MokkeryMockInstance by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
-        val TestsScopeName by dev_mokkery_internal_context.klass
+        val SuiteName by dev_mokkery_internal_context.klass
 
         val TemplatingScope by dev_mokkery_internal_calls.klass
         val MokkeryInstanceLookup by dev_mokkery_internal.klass
@@ -70,8 +70,8 @@ object Mokkery {
         val createMokkeryInstanceContext by dev_mokkery_internal.function
         val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val TemplatingScope by dev_mokkery_internal_calls.function
-        val registerMock by dev_mokkery.function
-        val MokkeryTestsScope by dev_mokkery.function
+        val invokeMockInstantiationCallbacks by dev_mokkery_internal_context.function
+        val MokkerySuiteScope by dev_mokkery.function
     }
 
     object Property {

@@ -40,14 +40,14 @@ public fun verifySuspend(
 /**
  * Asserts that calls sequence defined in [block] satisfies given [mode].
  *
- * If verify mode is exhaustive, mocks from [MokkeryTestsScope] are also checked.
+ * If verify mode is exhaustive, mocks from [MokkerySuiteScope] are also checked.
  *
  * Each verification is performed only on unverified calls. In result repeated verifications may give different results.
  *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
  */
-public fun MokkeryTestsScope.verify(
+public fun MokkerySuiteScope.verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
@@ -55,9 +55,9 @@ public fun MokkeryTestsScope.verify(
 /**
  * Just like [verify], but allows suspendable function calls.
  *
- * If verify mode is exhaustive, mocks from [MokkeryTestsScope] are also checked.
+ * If verify mode is exhaustive, mocks from [MokkerySuiteScope] are also checked.
  */
-public fun MokkeryTestsScope.verifySuspend(
+public fun MokkerySuiteScope.verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ): Unit = throw MokkeryPluginNotAppliedException()
@@ -66,13 +66,13 @@ public fun MokkeryTestsScope.verifySuspend(
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
-    MokkeryTestsScope(MocksRegistry(mocks = mocks.toSet())).verifyNoMoreCalls()
+    MokkerySuiteScope(MocksRegistry(mocks = mocks.toSet())).verifyNoMoreCalls()
 }
 
 /**
- * Asserts that all mocks from given [MokkeryTestsScope] have no unverified calls.
+ * Asserts that all mocks from given [MokkerySuiteScope] have no unverified calls.
  */
-public fun MokkeryTestsScope.verifyNoMoreCalls() {
+public fun MokkerySuiteScope.verifyNoMoreCalls() {
     val tools = this.tools
     mocks.forEach { mock ->
         val tracing = mock

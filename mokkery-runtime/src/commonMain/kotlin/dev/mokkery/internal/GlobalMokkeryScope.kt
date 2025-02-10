@@ -1,11 +1,10 @@
 package dev.mokkery.internal
 
-import dev.mokkery.MokkeryTestsScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.context.IgnoringMocksRegistry
 import dev.mokkery.internal.context.MokkeryTools
 
-internal object GlobalMokkeryScope : MokkeryTestsScope {
+internal object GlobalMokkeryScope : MokkerySuiteScope {
 
-    override val mokkeryContext: MokkeryContext = MokkeryTools.default() + IgnoringMocksRegistry
+    override val mokkeryContext: MokkeryContext = MokkeryTools.default()
 }

@@ -21,7 +21,7 @@ public inline fun <reified T : Any> mock(
 
 
 /**
- * Provides mock implementation of given type [T] and registers it in this [MokkeryTestsScope].
+ * Provides mock implementation of given type [T]. It is a child of given [MokkerySuiteScope].
  *
  * [T] **must** be provided directly and **cannot** be a generic parameter.
  *
@@ -30,7 +30,7 @@ public inline fun <reified T : Any> mock(
  * * Function types
  * * Abstract/open classes with all methods/properties open/abstract and no-args constructor.
  */
-public inline fun <reified T : Any> MokkeryTestsScope.mock(
+public inline fun <reified T : Any> MokkerySuiteScope.mock(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: T.() -> Unit = { }
 ): T = throw MokkeryPluginNotAppliedException()

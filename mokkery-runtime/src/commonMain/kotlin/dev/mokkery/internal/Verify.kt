@@ -2,23 +2,23 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.MokkeryTestsScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.context.mocksRegistry
+import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
-internal fun MokkeryTestsScope.internalVerifySuspend(
+internal fun MokkerySuiteScope.internalVerifySuspend(
     scope: TemplatingScope,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ) = internalVerify(scope, mode) { runSuspension { block() } }
 
-internal fun MokkeryTestsScope.internalVerify(
+internal fun MokkerySuiteScope.internalVerify(
     templating: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
@@ -31,8 +31,10 @@ internal fun MokkeryTestsScope.internalVerify(
         throw exception
     }
     val instanceLookup = tools.instanceLookup
-    val allMokkeryInstances = mocksRegistry.mocks
-        .mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
+    val allMokkeryInstances = mokkeryContext[MocksRegistry]
+        ?.mocks
+        ?.mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
+        .orEmpty()
         .plus(templating.mocks)
     val spyInterceptors = allMokkeryInstances.associate { it.id to it.interceptor }
     val calls = spyInterceptors
