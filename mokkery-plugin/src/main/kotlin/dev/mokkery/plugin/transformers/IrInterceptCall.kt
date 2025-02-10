@@ -6,6 +6,7 @@ import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.eraseTypeParametersCompat
 import dev.mokkery.plugin.ir.getField
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
@@ -15,14 +16,12 @@ import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
 import dev.mokkery.plugin.ir.kClassReference
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
+import dev.mokkery.plugin.ir.nonDispatchParametersCompat
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBoolean
-import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irInt
@@ -66,7 +65,7 @@ fun IrBlockBodyBuilder.irInterceptMethod(
                     field = parentClass.getField(Mokkery.Fields.typeArg(index))!!
                 )
             } else {
-                kClassReference(it.eraseTypeParameters())
+                kClassReference(it.eraseTypeParametersCompat())
             }
         }
     )
@@ -97,7 +96,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
             extensionReceiver = mokkeryInstance
             putValueArgument(0, irString(function.name.asString()))
             putValueArgument(1, typeToKClassMapper(function.returnType))
-            putValueArgument(2, irCallArgsList(transformer, function.fullValueParameterList, typeToKClassMapper))
+            putValueArgument(2, irCallArgsList(transformer, function.nonDispatchParametersCompat, typeToKClassMapper))
             putValueArgument(3, irCallSupersMap(transformer, function))
             if (irCallSpyLambda != null) putValueArgument(4, irCallSpyLambda)
         }
@@ -163,7 +162,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         ) {
             dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
             function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            superFunction.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+            superFunction.nonDispatchParametersCompat.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,
                     argument = irAs(

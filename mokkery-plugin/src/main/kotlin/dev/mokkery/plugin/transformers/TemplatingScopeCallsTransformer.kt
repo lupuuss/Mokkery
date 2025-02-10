@@ -11,6 +11,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.jvm.ir.isValueClassType
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
@@ -90,7 +91,7 @@ class TemplatingScopeCallsTransformer(
     }
 
     private fun workaroundNativeChecks(expression: IrCall, returnType: IrType): IrCall {
-        if (returnType.isPrimitiveType(nullable = false) || returnType.isNothing()) return expression
+        if (returnType.isPrimitiveType(nullable = false) || returnType.isNothing() || returnType.isValueClassType()) return expression
         expression.apply { type = pluginContext.irBuiltIns.anyNType }
         if (!expression.isSuspend || expression.valueArguments.all { it != null }) return expression
         val callIgnoringClassCastExceptionFun = getFunction(Mokkery.Function.callIgnoringClassCastException)

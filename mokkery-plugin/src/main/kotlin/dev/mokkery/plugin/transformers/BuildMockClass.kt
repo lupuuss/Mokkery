@@ -19,13 +19,13 @@ import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.irMokkeryKindValue
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
+import dev.mokkery.plugin.ir.nonDispatchParametersCompat
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.jvm.fullValueParameterList
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -287,7 +287,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyCall(
         val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
             dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
             function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            spyFun.fullValueParameterList.forEachIndexed { index, irValueParameter ->
+            spyFun.nonDispatchParametersCompat.forEachIndexed { index, irValueParameter ->
                 putArgument(
                     parameter = irValueParameter,
                     argument = irAs(
