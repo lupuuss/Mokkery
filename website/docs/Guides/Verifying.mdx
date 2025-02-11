@@ -78,7 +78,10 @@ In conclusion, there is no point of putting duplicated patterns in `verify` with
 
 `VerifyMode.exhaustive` acts the same way as soft, but also checks if all calls have been verified.
 
-**Exhaustiveness is only checked for mocks that are called in verification block!**
+:::warning
+Exhaustiveness is only checked for mocks called within the verification block!
+To enforce stricter exhaustiveness checks, see [this chapter](./Strict_exhaustiveness).
+:::
 
 ```kotlin
 repository.findById("1")
@@ -123,7 +126,10 @@ verifySuspend(order) {
 `VerifyMode.exhaustiveOrder` verifies that all calls occurred in the exact same way. No extra calls are allowed beyond
 what is specified for verification.
 
-**Exhaustiveness is only checked for mocks that are called in verification block!**
+:::warning
+Exhaustiveness is only checked for mocks called within the verification block!
+To enforce stricter exhaustiveness checks, see [this chapter](./Strict_exhaustiveness).
+:::
 
 ```kotlin
 repository.findById("1")
