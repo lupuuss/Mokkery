@@ -2,7 +2,7 @@
 kotlin = "2.1.10"
 kotlinx-coroutines = "1.10.1"
 buildconfig = "4.0.4"
-google-autoservice = "1.0.1"
+google-autoservice = "1.1.1"
 atomicfu = "0.27.0"
 dokka = "2.0.0"
 poko = "0.17.2"
