@@ -14,7 +14,9 @@ loadLocalProperties()
 
 mavenPublishing {
     coordinates(project.group.toString(), project.name, project.version.toString())
-    signAllPublications()
+    if (gradle.startParameter.taskNames.any { it.contains("MavenCentral") }) {
+        signAllPublications()
+    }
     publishToMavenCentral(SonatypeHost.S01, automaticRelease = false)
     pom {
         name.set(project.name)
