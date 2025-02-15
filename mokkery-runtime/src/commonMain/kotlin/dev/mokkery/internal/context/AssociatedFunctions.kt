@@ -1,10 +1,12 @@
 package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
+import dev.mokkery.interceptor.MokkeryCallScope
 import kotlin.reflect.KClass
 
-internal val MokkeryContext.associatedFunctions
-    get() = get(AssociatedFunctions) ?: error("Associated functions not found!")
+internal val MokkeryCallScope.associatedFunctions: AssociatedFunctions
+    get() = mokkeryContext.require(AssociatedFunctions)
 
 internal class AssociatedFunctions(
     val supers: Map<KClass<*>, Function<Any?>>,

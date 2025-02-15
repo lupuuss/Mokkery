@@ -14,7 +14,8 @@ internal class MokkeryPluginNotAppliedException : MokkeryRuntimeException(
 
 internal class ObjectNotMockedException(obj: Any?) : MokkeryRuntimeException("$obj is not mocked by Mokkery!")
 
-internal class NotSingleCallInEveryBlockException : MokkeryRuntimeException("Each 'every' block requires single mock call!")
+internal class NotSingleCallInEveryBlockException :
+    MokkeryRuntimeException("Each 'every' block requires single mock call!")
 
 internal class SuspendingFunctionBlockingCallException : MokkeryRuntimeException(
     message = "Regular function was mocked with suspending call!"
@@ -24,13 +25,16 @@ internal class ConcurrentTemplatingException : MokkeryRuntimeException(
     "Any concurrent calls involving verify and every are illegal!"
 )
 
-internal class DefaultNothingException : MokkeryRuntimeException("This is the default exception for Nothing return type!")
+internal class DefaultNothingException :
+    MokkeryRuntimeException("This is the default exception for Nothing return type!")
 
-internal class MultipleVarargGenericMatchersException : MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
+internal class MultipleVarargGenericMatchersException :
+    MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
 
-internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>>) : MokkeryRuntimeException(
-    "Multiple matchers for param '$name' = $matchers"
-)
+internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>>) :
+    MokkeryRuntimeException(
+        "Multiple matchers for param '$name' = $matchers"
+    )
 
 internal class VarargsAmbiguityDetectedException : MokkeryRuntimeException(
     "Varargs matchers registered in a ambiguous way. Pleas read the documentation how to avoid varargs ambiguity or report an issue."
@@ -88,4 +92,12 @@ internal class IllegalSuspensionException : MokkeryRuntimeException(
 
 internal class AbsentValueInSlotException : MokkeryRuntimeException(
     "Expected value in slot, but it is absent!"
+)
+
+internal class MokkerySuiteScopeNotImplementedException : MokkeryRuntimeException(
+    """
+        This method should be overridden by the Mokkery compiler plugin for any class in your source code.
+        If you're seeing this error, it likely means that the Mokkery plugin is either not applied or incorrectly configured.
+        Another possible cause is that `MokkerySuiteScope` is inherited indirectly through another interface. In this case, you can either inherit `MokkerySuiteScope` directly or manually implement it by delegating to an instance created with the `MokkerySuiteScope` function.  
+    """.trimIndent()
 )

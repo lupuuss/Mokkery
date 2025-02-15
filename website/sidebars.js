@@ -23,6 +23,7 @@ const sidebars = {
      'Guides/Matchers',
      'Guides/Spying',
      'Guides/Verifying',
+     'Guides/Strict_exhaustiveness',
      'Guides/Coroutines',
      'Guides/Debugging'
     ]

@@ -1,6 +1,5 @@
 package dev.mokkery.internal.interceptor
 
-import dev.mokkery.MockMode
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 
 internal enum class MokkeryKind {
@@ -8,8 +7,6 @@ internal enum class MokkeryKind {
 }
 
 internal interface MokkeryMockInterceptor : MokkeryCallInterceptor {
-    val mode: MockMode
-    val kind: MokkeryKind
 
     val templating: TemplatingInterceptor
     val callTracing: CallTracingInterceptor
@@ -17,17 +14,13 @@ internal interface MokkeryMockInterceptor : MokkeryCallInterceptor {
 }
 
 @Suppress("unused")
-internal fun MokkeryMockInterceptor(mockMode: MockMode, kind: MokkeryKind): MokkeryMockInterceptor = MokkeryMockInterceptorImpl(
-    mockMode,
-    kind,
+internal fun MokkeryMockInterceptor(): MokkeryMockInterceptor = MokkeryMockInterceptorImpl(
     TemplatingInterceptor(),
     CallTracingInterceptor(),
-    AnsweringInterceptor(mockMode)
+    AnsweringInterceptor()
 )
 
 private class MokkeryMockInterceptorImpl(
-    override val mode: MockMode,
-    override val kind: MokkeryKind,
     override val templating: TemplatingInterceptor,
     override val callTracing: CallTracingInterceptor,
     override val answering: AnsweringInterceptor,

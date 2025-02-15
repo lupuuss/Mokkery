@@ -1,14 +1,13 @@
 package dev.mokkery.context
 
-import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 /**
  *  A set of [MokkeryContext.Element]s.
- *  It's used to provide any information/dependency required for Mokkery interceptors.
+ *  It's used to provide any information/dependency Mokkery machinery.
  *  It works in the same way as [kotlin.coroutines.CoroutineContext].
  */
-@DelicateMokkeryApi
 public interface MokkeryContext {
 
     public operator fun <T : Element> get(key: Key<T>): T?
@@ -57,4 +56,12 @@ public interface MokkeryContext {
 
         override fun toString(): String = "MokkeryContext.Empty"
     }
+}
+
+internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
+    return get(key) ?: mokkeryRuntimeError("Element for key = $key is required, but not found in the context!")
+}
+
+internal inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
+    fold(Unit) { _, element -> block(element) }
 }

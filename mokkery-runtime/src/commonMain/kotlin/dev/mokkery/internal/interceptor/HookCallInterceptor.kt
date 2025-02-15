@@ -29,5 +29,5 @@ internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<Mokkery
 
     private fun MokkeryCallScope.combinedInterceptorOf(
         interceptors: List<MokkeryCallInterceptor>
-    ) = (interceptors + context.nextInterceptor).combined()
+    ) = (interceptors + nextInterceptor).combined()
 }

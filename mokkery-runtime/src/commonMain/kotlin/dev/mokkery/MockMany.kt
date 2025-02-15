@@ -57,6 +57,59 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified
 ): MockMany5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
 
 /**
+ * Provides mock implementation of [T1] and [T2]. It is a child of given [MokkerySuiteScope].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
+public inline fun <reified T1 : Any, reified T2 : Any> MokkerySuiteScope.mockMany(
+    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    block: MockMany2<T1, T2>.() -> Unit = { }
+): MockMany2<T1, T2> = throw MokkeryPluginNotAppliedException()
+
+/**
+ * Provides mock implementation of [T1], [T2] and [T3]. It is a child of given [MokkerySuiteScope].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
+public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> MokkerySuiteScope.mockMany(
+    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    block: MockMany3<T1, T2, T3>.() -> Unit = { }
+): MockMany3<T1, T2, T3> = throw MokkeryPluginNotAppliedException()
+
+/**
+ * Provides mock implementation of [T1], [T2], [T3] and [T4]. It is a child of given [MokkerySuiteScope].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
+public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any> MokkerySuiteScope.mockMany(
+    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
+): MockMany4<T1, T2, T3, T4> = throw MokkeryPluginNotAppliedException()
+
+/**
+ * Provides mock implementation of [T1], [T2], [T3], [T4] and [T5]. It is a child of given [MokkerySuiteScope].
+ *
+ * Types restrictions:
+ * * Each type has to satisfy type restriction from [mock].
+ * * Only one class is allowed
+ * * No type duplicates
+ */
+public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any, reified T5 : Any> MokkerySuiteScope.mockMany(
+    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
+): MockMany5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
+
+
+/**
  * Marker interface for mock of [T1] and [T2].
  */
 public interface MockMany2<T1 : Any, T2 : Any>

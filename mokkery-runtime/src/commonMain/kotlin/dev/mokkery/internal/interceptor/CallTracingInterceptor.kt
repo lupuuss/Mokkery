@@ -6,7 +6,7 @@ import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.context.toTrace
+import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -53,8 +53,7 @@ private class CallTracingInterceptorImpl() : CallTracingInterceptor {
         return scope.nextIntercept()
     }
     private fun traceCallOf(scope: MokkeryCallScope) {
-        val context = scope.context
-        val counter = context.tools.callsCounter
-        lock.withLock { _all += context.toTrace(counter.next()) }
+        val counter = scope.tools.callsCounter
+        lock.withLock { _all += scope.toCallTrace(counter.next()) }
     }
 }

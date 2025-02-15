@@ -1,17 +1,16 @@
 package dev.mokkery.internal.interceptor
 
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.internal.context.autofillProvider
-import dev.mokkery.context.call
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.context.currentMokkeryInstance
-import dev.mokkery.internal.id
+import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.atomic
 
 internal interface TemplatingInterceptor : MokkeryCallInterceptor {
@@ -53,10 +52,10 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
     private inline fun intercept(scope: MokkeryCallScope, nextIntercept: () -> Any?): Any? {
         if (!_isEnabled) return nextIntercept()
         val hint = templatingScope?.currentGenericReturnTypeHint
-        val context = scope.context
-        val call = context.call
-        templatingScope?.saveTemplate(context.currentMokkeryInstance.id, call.function.name, call.args)
+        val call = scope.call
+        templatingScope
+            ?.saveTemplate(scope.currentMockContext.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
-        return context.autofillProvider.provideValue(hint ?: call.function.returnType)
+        return scope.tools.autofillProvider.provideValue(hint ?: call.function.returnType)
     }
 }

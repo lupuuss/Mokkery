@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
@@ -52,7 +53,8 @@ fun TransformerScope.buildMockJsFunction(
     return declarationIrBuilder(expression) {
         irBlock {
             val modeArg = irMockModeArg(transformer, expression, kind)
-            val mokkeryInstanceCall = irCallMokkeryMockInstance(transformer, typeToMock, modeArg, kind)
+            val parentScope = expression.extensionReceiver ?: irGetObject(transformer.getClass(Mokkery.Class.GlobalMokkeryScope).symbol)
+            val mokkeryInstanceCall = irCallMokkeryMockInstance(transformer, parentScope, typeToMock, modeArg, kind)
             val instanceVar = createTmpVariable(mokkeryInstanceCall)
             val lambda = irLambda(returnType, typeToMock, currentFile) {
                 val irSpyCall = if (kind == IrMokkeryKind.Spy) {
@@ -70,6 +72,9 @@ fun TransformerScope.buildMockJsFunction(
             }
             val lambdaVar = createTmpVariable(lambda)
             +irCallRegisterInstance(transformer, irGet(instanceVar), irGet(lambdaVar))
+            +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationCallbacks)) {
+                this.extensionReceiver = irGet(instanceVar)
+            }
             val block = expression.valueArguments.getOrNull(1)
             if (block != null) {
                 +irInvoke(block, false, irGet(lambdaVar))
@@ -96,16 +101,18 @@ private fun IrBuilderWithScope.irMockModeArg(
 
 private fun IrBuilderWithScope.irCallMokkeryMockInstance(
     transformer: TransformerScope,
+    parentScope: IrExpression,
     typeToMock: IrType,
     modeArg: IrExpression,
     kind: IrMokkeryKind,
 ): IrExpression {
     val mokkeryMockInstanceFun = transformer.getFunction(Mokkery.Function.MokkeryMockInstance)
     return irCall(mokkeryMockInstanceFun) {
-        putValueArgument(0, modeArg)
-        putValueArgument(1, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
-        putValueArgument(2, irString(typeToMock.classFqName!!.asString()))
-        putValueArgument(3, kClassReference(typeToMock))
+        putValueArgument(0, parentScope)
+        putValueArgument(1, modeArg)
+        putValueArgument(2, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
+        putValueArgument(3, irString(typeToMock.classFqName!!.asString()))
+        putValueArgument(4, kClassReference(typeToMock))
     }
 }
 
@@ -114,11 +121,7 @@ private fun IrBuilderWithScope.irCallRegisterInstance(
     mokkeryInstance: IrExpression,
     obj: IrExpression
 ): IrCall {
-    val globalContext = transformer.getProperty(Mokkery.Property.GlobalMokkeryContext)
-    val instanceLookupProperty = transformer.getProperty(Mokkery.Property.mokkeryInstanceLookup)
-    val instanceLookupCall = irCall(instanceLookupProperty.getter!!) {
-        extensionReceiver = irCall(globalContext.getter!!)
-    }
+    val instanceLookupCall = irCall(transformer.getProperty(Mokkery.Property.GlobalMokkeryInstanceLookup).getter!!)
     val lookUpClass = transformer.getClass(Mokkery.Class.MokkeryInstanceLookup)
     val registerCall = irCall(lookUpClass.getSimpleFunction("register")!!) {
         dispatchReceiver = instanceLookupCall

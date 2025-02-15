@@ -1,5 +1,6 @@
 package dev.mokkery.interceptor
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
@@ -40,10 +41,7 @@ public interface MokkeryCallInterceptor {
 /**
  * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for both regular and suspend functions.
  */
-public interface MokkeryCallScope {
-
-    public val context: MokkeryContext
-}
+public interface MokkeryCallScope : MokkeryScope
 
 /**
  * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for regular functions only.
@@ -58,7 +56,7 @@ public interface MokkerySuspendCallScope : MokkeryCallScope
 internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryBlockingCallScope {
 
     return object : MokkeryBlockingCallScope {
-        override val context = context
+        override val mokkeryContext = context
 
         override fun toString(): String = "MokkeryBlockingCallScope($context)"
     }
@@ -67,7 +65,7 @@ internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.E
 internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkerySuspendCallScope {
 
     return object : MokkerySuspendCallScope {
-        override val context = context
+        override val mokkeryContext = context
 
         override fun toString(): String = "MokkerySuspendCallScope($context)"
     }
@@ -78,7 +76,7 @@ internal fun MokkeryBlockingCallScope.withContext(
 ): MokkeryBlockingCallScope {
     return when {
         with === MokkeryContext.Empty -> this
-        else -> MokkeryBlockingCallScope(this.context + with)
+        else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
     }
 }
 
@@ -87,6 +85,6 @@ internal fun MokkerySuspendCallScope.withContext(
 ): MokkerySuspendCallScope {
     return when {
         with === MokkeryContext.Empty -> this
-        else -> MokkerySuspendCallScope(this.context + with)
+        else -> MokkerySuspendCallScope(this.mokkeryContext + with)
     }
 }

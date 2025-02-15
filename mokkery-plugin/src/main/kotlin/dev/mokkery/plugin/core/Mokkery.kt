@@ -16,14 +16,15 @@ object Mokkery {
     val dev_mokkery_context by fqName
     val dev_mokkery_interceptor by fqName
     val dev_mokkery_internal by fqName
-    val dev_mokkery_internal_calls by fqName
     val dev_mokkery_internal_context by fqName
+    val dev_mokkery_internal_calls by fqName
     val dev_mokkery_internal_interceptor by fqName
     val dev_mokkery_matcher by fqName
 
     object Class {
 
         val MockMode by dev_mokkery.klass
+        val MokkeryScope by dev_mokkery.klass
         val MokkeryKind by dev_mokkery_internal_interceptor.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
         val MockMany2 by dev_mokkery.klass
@@ -31,14 +32,18 @@ object Mokkery {
         val MockMany4 by dev_mokkery.klass
         val MockMany5 by dev_mokkery.klass
 
+        val MokkerySuiteScope by dev_mokkery.klass
+
         val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
         val MokkeryInstance by dev_mokkery_internal.klass
         val MokkeryMockInstance by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
+        val SuiteName by dev_mokkery_internal_context.klass
 
         val TemplatingScope by dev_mokkery_internal_calls.klass
         val MokkeryInstanceLookup by dev_mokkery_internal.klass
+        val GlobalMokkeryScope by dev_mokkery_internal.klass
 
         fun mockMany(value: Int): ClassResolver {
             return mockManyMap[value] ?: error("Unsupported types number! Expected value: in ${2..5}; Actual value: $value")
@@ -55,7 +60,6 @@ object Mokkery {
     object Function {
         val autofillConstructor by dev_mokkery_internal.function
         val MokkeryMockInstance by dev_mokkery_internal.function
-        val generateMockId by dev_mokkery_internal.function
         val internalEvery by dev_mokkery_internal.function
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function
@@ -63,14 +67,17 @@ object Mokkery {
         val callIgnoringClassCastException by dev_mokkery_internal.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
         val createMokkerySuspendCallScope by dev_mokkery_internal.function
+        val createMokkeryInstanceContext by dev_mokkery_internal.function
         val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val TemplatingScope by dev_mokkery_internal_calls.function
+        val invokeMockInstantiationCallbacks by dev_mokkery_internal_context.function
+        val MokkerySuiteScope by dev_mokkery.function
     }
 
     object Property {
 
-        val GlobalMokkeryContext by dev_mokkery_internal_context.property
-        val mokkeryInstanceLookup by dev_mokkery_internal.property
+        val GlobalMokkeryInstanceLookup by dev_mokkery_internal.property
+        val mockId by dev_mokkery_internal.property
     }
 
     object Name {

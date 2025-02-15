@@ -1,9 +1,11 @@
 package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
+import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryMockInstance
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.mokkeryInstanceLookup
+import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.resolveMockInstance
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.id
 import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
@@ -14,8 +16,8 @@ import dev.mokkery.internal.interceptor.MokkeryKind
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val instance = GlobalMokkeryContext.mokkeryInstanceLookup.resolve(obj)) {
-        is MokkeryMockInstance -> when (instance.interceptor.kind) {
+    return when (val instance = GlobalMokkeryScope.tools.resolveMockInstance(obj)) {
+        is MokkeryMockInstance -> when (instance.currentMockContext.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(instance)
             MokkeryKind.Mock ->  mokkeryDebugMock(instance)
         }
@@ -34,7 +36,7 @@ private fun mokkeryDebugMock(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("mock") {
             value("id", instance.id)
-            value("mode", instance.interceptor.mode.name)
+            value("mode", instance.currentMockContext.mode.name)
             answersSection(instance.interceptor.answering)
             callsSection(instance.interceptor.callTracing)
         }

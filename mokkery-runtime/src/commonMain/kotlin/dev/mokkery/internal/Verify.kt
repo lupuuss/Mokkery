@@ -2,68 +2,54 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.utils.runSuspension
-import dev.mokkery.internal.names.createGroupMockReceiverShortener
-import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
-import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
-import dev.mokkery.internal.verify.NotVerifier
-import dev.mokkery.internal.verify.OrderVerifier
-import dev.mokkery.internal.verify.SoftVerifier
-import dev.mokkery.internal.verify.Verifier
+import dev.mokkery.internal.names.createGroupMockReceiverShortener
+import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.verify.ExhaustiveOrderVerifyMode
-import dev.mokkery.verify.ExhaustiveSoftVerifyMode
-import dev.mokkery.verify.NotVerifyMode
-import dev.mokkery.verify.OrderVerifyMode
-import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 
-internal fun internalVerifySuspend(
+internal fun MokkerySuiteScope.internalVerifySuspend(
     scope: TemplatingScope,
     mode: VerifyMode,
     block: suspend ArgMatchersScope.() -> Unit
 ) = internalVerify(scope, mode) { runSuspension { block() } }
 
-internal fun internalVerify(
-    scope: TemplatingScope,
+internal fun MokkerySuiteScope.internalVerify(
+    templating: TemplatingScope,
     mode: VerifyMode,
     block: ArgMatchersScope.() -> Unit
 ) {
-    val verifier = when (mode) {
-        OrderVerifyMode -> OrderVerifier()
-        ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier()
-        ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier()
-        NotVerifyMode -> NotVerifier()
-        is SoftVerifyMode -> SoftVerifier(mode.atLeast, mode.atMost)
-    }
-    internalBaseVerify(scope, verifier, block)
-}
-
-internal fun internalBaseVerify(scope: TemplatingScope, verifier: Verifier, block: ArgMatchersScope.() -> Unit) {
-    val result = runCatching { block(scope) }
+    val verifier = tools.verifierFactory.create(mode)
+    val result = runCatching { block(templating) }
     val exception = result.exceptionOrNull()
     if (exception != null && exception !is DefaultNothingException) {
-        scope.release()
+        templating.release()
         throw exception
     }
-    val spyInterceptors = scope.mocks.associate { it.id to it.interceptor }
+    val instanceLookup = tools.instanceLookup
+    val allMokkeryInstances = mokkeryContext[MocksRegistry]
+        ?.mocks
+        ?.mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
+        .orEmpty()
+        .plus(templating.mocks)
+    val spyInterceptors = allMokkeryInstances.associate { it.id to it.interceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
-    val shortener = GlobalMokkeryContext.tools.createGroupMockReceiverShortener()
-    shortener.prepare(calls, scope.templates)
+    val shortener = tools.createGroupMockReceiverShortener()
+    shortener.prepare(calls, templating.templates)
     try {
         verifier
-            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(scope.templates))
+            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(templating.templates))
             .map(shortener::getOriginalTrace)
             .forEach { spyInterceptors.getValue(it.receiver).callTracing.markVerified(it) }
     } finally {
-        scope.release()
+        templating.release()
     }
 }

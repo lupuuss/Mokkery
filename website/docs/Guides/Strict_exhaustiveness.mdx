@@ -1,0 +1,118 @@
+---
+description: Enforce strict exhaustiveness checks with `MokkerySuiteScope`!
+---
+
+# Strict exhaustiveness
+
+Let's consider the following example:
+
+```kotlin
+class ClassTest {
+     private val a = mock<A>()
+     private val b = mock<B>()
+
+     @Test
+     fun test() {
+         a.call(1)
+         b.call(2)
+         // Verification passes
+         verify(exhaustive) {
+             a.call(1)
+         }
+     }
+}
+```
+
+This behavior is expected since Mokkery can only enforce exhaustiveness checks for mocks used within the `verify` block.
+
+To address this limitation, Mokkery `2.7.0` introduces `MokkerySuiteScope`.
+
+:::warning
+This approach is meaningful only when using exhaustive verification modes, such as `exhaustive` and `exhaustiveOrder`, or when using `verifyNoMoreCalls`.
+:::
+
+### Quick Start
+
+To improve exhaustiveness checks in your test class, simply mark it with `MokkerySuiteScope` interface:
+
+```kotlin
+class ClassTest : MokkerySuiteScope {
+     private val a = mock<A>()
+     private val b = mock<B>()
+
+     @Test
+     fun test() {
+         a.call(1)
+         b.call(2)
+         // Verification fails - b.call(2) was not verified
+         verify(exhaustive) {
+             a.call(1)
+         }
+     }
+}
+```
+
+Additionally, Mokkery provides the `MokkerySuiteScope.verifyNoMoreCalls` extension,
+which checks that no unverified calls remain in the scope and can help enforce exhaustiveness checks automatically:
+
+```kotlin
+class ClassTest : MokkerySuiteScope {
+     private val a = mock<A>()
+     private val b = mock<B>()
+
+     @Test
+     fun test() {
+         a.call(1)
+         b.call(2)
+     }
+
+     @AfterTest
+     fun after() {
+        // fails after `test` - 2 unverified calls
+        verifyNoMoreCalls()
+     }
+}
+```
+
+### How it works?
+
+Mokkery provides overloads of mock creation functions as extensions of `MokkerySuiteScope`.
+Mocks created this way become part of the given scope.
+
+Similarly, Mokkery provides overloads of `verify` and `verifySuspend` as extensions of `MokkerySuiteScope`.
+These overloads make verification aware of all mocks in the scope, ensuring stricter exhaustiveness checks.
+
+```kotlin
+class ClassTest : MokkerySuiteScope {
+     private val a = mock<A>() // <-- This calls `fun MokkerySuiteScope.mock(...)`, not `fun mock(...)`
+     private val b = mock<B>() // <-- Same as above
+
+     @Test
+     fun test() {
+         a.call(1)
+         b.call(2)
+         // Verification fails - b.call(2) was not verified
+         verify(exhaustive) { // <-- This calls `fun MokkerySuiteScope.verify(...)`, not `fun verify(...)`
+             a.call(1)
+         }
+     }
+}
+```
+
+### Manual scope creation
+
+If you cannot mark your test class with `MokkerySuiteScope`, create an instance using the `MokkerySuiteScope` function.
+
+```kotlin
+with(MokkerySuiteScope()) {
+    val a = mock<A>()
+    val b = mock<B>()
+    a.call(1)
+    b.call(2)
+    // Verification fails
+    // Unverified call: b.call(2)
+    verify(exhaustive) {
+        a.call(1)
+    }
+}
+```

@@ -1,23 +1,21 @@
 package dev.mokkery.internal.calls
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.ConcurrentTemplatingException
+import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
-import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor
-import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.names.SignatureGenerator
+import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.subListAfter
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
-import dev.mokkery.context.CallArgument
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.context.autofillProvider
-import dev.mokkery.internal.context.GlobalMokkeryContext
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.mokkeryInstanceLookup
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
@@ -40,11 +38,11 @@ internal interface TemplatingScope : ArgMatchersScope {
     fun release()
 }
 
-internal fun TemplatingScope(context: MokkeryContext = GlobalMokkeryContext): TemplatingScope = TemplatingScopeImpl(
-    signatureGenerator = context.tools.signatureGenerator,
-    composer = context.tools.argMatchersComposer,
-    binder = TemplatingScopeDataBinder(context.mokkeryInstanceLookup),
-    autofill = context.autofillProvider
+internal fun TemplatingScope(scope: MokkeryScope = GlobalMokkeryScope): TemplatingScope = TemplatingScopeImpl(
+    signatureGenerator = scope.tools.signatureGenerator,
+    composer = scope.tools.argMatchersComposer,
+    binder = TemplatingScopeDataBinder(scope.tools.instanceLookup),
+    autofill = scope.tools.autofillProvider
 )
 
 private class TemplatingScopeImpl(

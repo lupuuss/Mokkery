@@ -4,6 +4,7 @@ import dev.mokkery.interceptor.MokkeryCallListener
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.self
+import dev.mokkery.internal.context.suiteName
 import dev.mokkery.internal.utils.callToString
 
 /**
@@ -27,7 +28,10 @@ public class MokkeryCallLogger(
 ) : MokkeryCallListener {
 
     override fun onIntercept(scope: MokkeryCallScope) {
-        callToString(scope.self.toString(), scope.call.function.name, scope.call.args)
+        scope.suiteName
+            ?.let { "[$it] " }
+            .orEmpty()
+            .plus(callToString(scope.self.toString(), scope.call.function.name, scope.call.args))
             .let(lineTransformer)
             .let(loggingFunction)
     }

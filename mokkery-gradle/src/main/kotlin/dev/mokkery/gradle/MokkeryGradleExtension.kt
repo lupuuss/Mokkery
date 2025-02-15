@@ -33,7 +33,8 @@ public interface MokkeryGradleExtension {
      */
     @Deprecated(
         "Scheduled to be removed. Due to https://youtrack.jetbrains.com/issue/KT-71283 it won't work in most cases. " +
-                "Also, this feature is a little bit hacky and probably not very useful."
+                "Also, this feature is a little bit hacky and probably not very useful.",
+        level = DeprecationLevel.ERROR
     )
     public val allowIndirectSuperCalls: Property<Boolean>
 
