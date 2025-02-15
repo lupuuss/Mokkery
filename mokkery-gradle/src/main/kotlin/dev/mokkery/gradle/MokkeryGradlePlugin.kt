@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION_ERROR")
+
 package dev.mokkery.gradle
 
 import dev.mokkery.MokkeryCompilerDefaults
