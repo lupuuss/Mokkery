@@ -114,7 +114,7 @@ const config = {
             /** @type {import('@dipakparmar/docusaurus-plugin-umami').Options} */
             ({
                 websiteID: "8ac18f2b-fd23-4ba9-ae10-0ae329f59a2f",
-                analyticsDomain: "umami-for-mokkery-gr425ns0h-damian-baczynskis-projects.vercel.app"
+                analyticsDomain: "umami-for-mokkery.vercel.app"
             }),
         ],
     ],
