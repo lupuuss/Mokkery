@@ -55,60 +55,69 @@ const config = {
                 },
             }),
         ],
-    ],    themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-        ({
-            image: 'img/logo-social.jpg',
-            colorMode: {
-                defaultMode: 'dark'
+    ],
+    themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
+        image: 'img/logo-social.jpg',
+        colorMode: {
+            defaultMode: 'dark'
+        },
+        navbar: {
+            title: 'Mokkery',
+            logo: {
+                alt: 'Mokkery logo',
+                src: 'img/logo_purple.svg',
+                srcDark: 'img/logo_white.svg',
             },
-            navbar: {
-                title: 'Mokkery',
-                logo: {
-                    alt: 'Mokkery logo',
-                    src: 'img/logo_purple.svg',
-                    srcDark: 'img/logo_white.svg',
+            items: [
+                {
+                    type: 'docSidebar',
+                    sidebarId: 'docs',
+                    position: 'left',
+                    label: 'Docs',
                 },
-                items: [
-                    {
-                        type: 'docSidebar',
-                        sidebarId: 'docs',
-                        position: 'left',
-                        label: 'Docs',
-                    },
-                    {
-                        href: 'pathname:///api_reference',
-                        position: 'left',
-                        label: 'API'
-                    },
-                    {
-                        href: 'https://github.com/lupuuss/Mokkery/releases',
-                        position: 'left',
-                        label: 'Releases'
-                    },
-                    {
-                        href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
-                        position: 'right',
-                        label: 'Ask a Question'
-                    },
-                    {
-                        href: 'https://github.com/lupuuss/Mokkery',
-                        position: 'right',
-                        className: 'header-github-link'
-                    },
-                ],
-            },
-            prism: {
-                theme: prismThemes.oneLight,
-                darkTheme: prismThemes.oneDark,
-            },
-            algolia: {
-                appId: 'N0WOZ1O51K',
-                apiKey: '7f1f027d4ff4397b01a917d0867d2013',
-                indexName: 'mokkery',
-                contextualSearch: false
-            },
-        }),
+                {
+                    href: 'pathname:///api_reference',
+                    position: 'left',
+                    label: 'API'
+                },
+                {
+                    href: 'https://github.com/lupuuss/Mokkery/releases',
+                    position: 'left',
+                    label: 'Releases'
+                },
+                {
+                    href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
+                    position: 'right',
+                    label: 'Ask a Question'
+                },
+                {
+                    href: 'https://github.com/lupuuss/Mokkery',
+                    position: 'right',
+                    className: 'header-github-link'
+                },
+            ],
+        },
+        prism: {
+            theme: prismThemes.oneLight,
+            darkTheme: prismThemes.oneDark,
+        },
+        algolia: {
+            appId: 'N0WOZ1O51K',
+            apiKey: '7f1f027d4ff4397b01a917d0867d2013',
+            indexName: 'mokkery',
+            contextualSearch: false
+        },
+    }),
+    plugins: [
+        [
+            "@dipakparmar/docusaurus-plugin-umami",
+            /** @type {import('@dipakparmar/docusaurus-plugin-umami').Options} */
+            ({
+                websiteID: "8ac18f2b-fd23-4ba9-ae10-0ae329f59a2f",
+                analyticsDomain: "umami-for-mokkery-gr425ns0h-damian-baczynskis-projects.vercel.app"
+            }),
+        ],
+    ],
 };
 
 export default config;
