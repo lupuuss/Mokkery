@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -23,8 +22,6 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
-import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
@@ -53,13 +50,13 @@ fun IrType.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     (this as? IrSimpleType)
         ?.arguments
         ?.forEachIndexed { index, it ->
-            block(index, it.typeOrNull?.eraseTypeParameters())
+            block(index, it.typeOrNull?.eraseTypeParametersCompat())
         }
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
-        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
+        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParametersCompat()) }
 }
 
 fun IrClass.addOverridingMethod(
@@ -226,4 +223,4 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridable }
 
-val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
+val IrClass.defaultTypeErased get() = defaultType.eraseTypeParametersCompat()
