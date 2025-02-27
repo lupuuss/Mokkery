@@ -57,43 +57,49 @@ const config = {
         ],
     ],
     themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
-        image: 'img/logo-social.jpg',
-        colorMode: {
-            defaultMode: 'dark'
-        },
-        navbar: {
-            title: 'Mokkery',
-            logo: {
-                alt: 'Mokkery logo',
-                src: 'img/logo_purple.svg',
-                srcDark: 'img/logo_white.svg',
+
+            image: 'img/logo-social.jpg',
+            colorMode: {
+                defaultMode: 'dark'
             },
-            items: [
-                {
-                    type: 'docSidebar',
-                    sidebarId: 'docs',
-                    position: 'left',
-                    label: 'Docs',
+            navbar: {
+                title: 'Mokkery',
+                logo: {
+                    alt: 'Mokkery logo',
+                    src: 'img/logo_purple.svg',
+                    srcDark: 'img/logo_white.svg',
                 },
-                {
-                    href: 'pathname:///api_reference',
-                    position: 'left',
-                    label: 'API'
+                items: [
+                    {
+                        type: 'docSidebar',
+                        sidebarId: 'docs',
+                        position: 'left',
+                        label: 'Docs',
+                        'data-umami-event': 'header-docs'
+                    },
+                    {
+                        href: 'pathname:///api_reference',
+                        position: 'left',
+                        label: 'API',
+                        'data-umami-event': 'header-api-reference-button'
                 },
                 {
                     href: 'https://github.com/lupuuss/Mokkery/releases',
                     position: 'left',
-                    label: 'Releases'
+                    label: 'Releases',
+                        'data-umami-event': 'header-github-releases-button'
                 },
                 {
                     href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
                     position: 'right',
-                    label: 'Ask a Question'
-                },
-                {
-                    href: 'https://github.com/lupuuss/Mokkery',
-                    position: 'right',
-                    className: 'header-github-link'
+                    label: 'Ask a Question',
+                        'data-umami-event': 'header-github-discussions-button'
+                    },
+                    {
+                        href: 'https://github.com/lupuuss/Mokkery',
+                        position: 'right',
+                        className: 'header-github-link',
+                        'data-umami-event': 'header-github-button'
                 },
             ],
         },

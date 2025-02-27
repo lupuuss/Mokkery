@@ -100,6 +100,7 @@ function HomepageHeader() {
                     flexWrap: "wrap"
                 }}>
                     <Link
+                        data-umami-event="home-get-started-button"
                         className="button button--secondary button--lg"
                         to="../docs/Setup">
                         Get started!
@@ -125,14 +126,14 @@ function WhyMokkeryTabs() {
             <h2 style={{fontWeight: "400"}}>Why Mokkery?</h2>
             <div style={{minHeight: "500px"}}>
                 <Tabs>
-                    <TabItem value="simple" label="🌿&nbsp;Simple">
+                    <TabItem value="simple" label="🌿&nbsp;Simple" data-umami-event="home-tabs" data-umami-event-tab="simple">
                         <CodeBlock
                             language="kotlin"
                             showLineNumbers>
                             {simpleTabBlock}
                         </CodeBlock>
                     </TabItem>
-                    <TabItem value="setup" label="⌚&nbsp;Easy&nbsp;setup">
+                    <TabItem value="setup" label="⌚&nbsp;Easy&nbsp;setup" data-umami-event="home-tabs" data-umami-event-tab="setup">
                         <h3 style={{fontWeight: "400"}}>Just apply Gradle plugin and...</h3>
                         <Tabs
                             groupId="kotlinVersion"
@@ -161,7 +162,7 @@ function WhyMokkeryTabs() {
                             Please refer to the <Link to="../docs/Setup">setup section</Link>, as additional configuration may be required in some cases!
                         </h3>
                     </TabItem>
-                    <TabItem value="multiplatform" label="🌍&nbsp;Multiplatform">
+                    <TabItem value="multiplatform" label="🌍&nbsp;Multiplatform" data-umami-event="home-tabs" data-umami-event-tab="multiplatform">
                         <div style={{fontSize: "1.4rem", fontWeight: "300", width: "100%"}}>
                             <div style={{height: "1rem"}}/>
                             <ul>
@@ -173,7 +174,7 @@ function WhyMokkeryTabs() {
                             </ul>
                         </div>
                     </TabItem>
-                    <TabItem value="customizable" label="🖌️&nbsp;Customizable">
+                    <TabItem value="customizable" label="🖌️&nbsp;Customizable" data-umami-event="home-tabs" data-umami-event-tab="customizable">
                         <h3 style={{fontWeight: "400"}}>Change Mokkery strictness globally...</h3>
                         <CodeBlock
                             title="build.gradle.kts"
@@ -189,7 +190,7 @@ function WhyMokkeryTabs() {
                             {customizableLocallyTabBlock}
                         </CodeBlock>
                     </TabItem>
-                    <TabItem value="extensible" label="🧩&nbsp;Extensible">
+                    <TabItem value="extensible" label="🧩&nbsp;Extensible" data-umami-event="home-tabs" data-umami-event-tab="extensible">
                         <h3 style={{fontWeight: "400"}}>Custom matchers!</h3>
                         <CodeBlock
                             language="kotlin"
