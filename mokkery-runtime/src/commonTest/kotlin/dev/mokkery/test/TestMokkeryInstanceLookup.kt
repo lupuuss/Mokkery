@@ -1,14 +1,14 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.MokkeryInstance
+import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryInstanceLookup
 
 internal class TestMokkeryInstanceLookup(
-    private val resolveFun: (Any?) -> MokkeryInstance? = { it as MokkeryInstance ? }
+    private val resolveFun: (Any?) -> MokkeryInstanceScope? = { it as MokkeryInstanceScope ? }
 ) : MokkeryInstanceLookup {
-    override fun register(obj: Any?, instance: MokkeryInstance) = error("")
+    override fun register(obj: Any?, instance: MokkeryInstanceScope) = error("")
 
-    override fun resolve(obj: Any?): MokkeryInstance? = resolveFun(obj)
+    override fun resolve(obj: Any?): MokkeryInstanceScope? = resolveFun(obj)
 
-    override fun reverseResolve(obj: MokkeryInstance): Any = obj
+    override fun reverseResolve(obj: MokkeryInstanceScope): Any = obj
 }

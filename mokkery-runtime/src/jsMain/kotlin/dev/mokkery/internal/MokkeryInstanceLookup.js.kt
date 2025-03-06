@@ -8,18 +8,18 @@ internal actual fun MokkeryInstanceLookup(): MokkeryInstanceLookup = JsMokkeryIn
 
 internal object JsMokkeryInstanceLookup : MokkeryInstanceLookup {
 
-    private val mapping = WeakMap<Any, MokkeryInstance>()
-    private val reverseMapping = WeakMap<MokkeryInstance, WeakRef<Any>>()
-    override fun register(obj: Any?, instance: MokkeryInstance) {
+    private val mapping = WeakMap<Any, MokkeryInstanceScope>()
+    private val reverseMapping = WeakMap<MokkeryInstanceScope, WeakRef<Any>>()
+    override fun register(obj: Any?, instance: MokkeryInstanceScope) {
         mapping[obj ?: return] = instance
         reverseMapping[instance] = obj.weaken()
     }
-    override fun resolve(obj: Any?): MokkeryInstance? {
-        if (obj is MokkeryInstance) return obj
+    override fun resolve(obj: Any?): MokkeryInstanceScope? {
+        if (obj is MokkeryInstanceScope) return obj
         return mapping[obj ?: return null]
     }
 
-    override fun reverseResolve(obj: MokkeryInstance): Any {
+    override fun reverseResolve(obj: MokkeryInstanceScope): Any {
         return reverseMapping[obj]?.value ?: obj
     }
 }

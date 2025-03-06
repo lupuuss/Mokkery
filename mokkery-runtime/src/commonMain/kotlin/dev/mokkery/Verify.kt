@@ -6,10 +6,8 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
-import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.context.resolveMockInstance
-import dev.mokkery.internal.context.resolveMockInstanceOrNull
+import dev.mokkery.internal.context.resolveInstanceScope
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mokkeryMockInterceptor
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
@@ -71,7 +69,7 @@ public fun MokkerySuiteScope.verifySuspend(
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     val tools = GlobalMokkeryScope.tools
-    val instances = mocks.map(tools::resolveMockInstance)
+    val instances = mocks.map(tools::resolveInstanceScope)
     MokkerySuiteScope(MocksRegistry(mocks = instances)).verifyNoMoreCalls()
 }
 

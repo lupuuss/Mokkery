@@ -4,22 +4,22 @@ import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 internal interface MokkeryInstanceLookup {
 
-    fun register(obj: Any?, instance: MokkeryInstance)
+    fun register(obj: Any?, instance: MokkeryInstanceScope)
 
-    fun resolve(obj: Any?): MokkeryInstance?
+    fun resolve(obj: Any?): MokkeryInstanceScope?
 
-    fun reverseResolve(obj: MokkeryInstance): Any?
+    fun reverseResolve(obj: MokkeryInstanceScope): Any?
 }
 
 internal expect fun MokkeryInstanceLookup(): MokkeryInstanceLookup
 
 internal object StaticMokkeryInstanceLookup : MokkeryInstanceLookup {
 
-    override fun register(obj: Any?, instance: MokkeryInstance): Nothing {
+    override fun register(obj: Any?, instance: MokkeryInstanceScope): Nothing {
         mokkeryRuntimeError("Registering MokkeryInstance on non-JS platforms is not supported!")
     }
 
-    override fun resolve(obj: Any?): MokkeryInstance? = obj as? MokkeryInstance
+    override fun resolve(obj: Any?): MokkeryInstanceScope? = obj as? MokkeryInstanceScope
 
-    override fun reverseResolve(obj: MokkeryInstance): Any = obj
+    override fun reverseResolve(obj: MokkeryInstanceScope): Any = obj
 }

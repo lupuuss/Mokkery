@@ -2,9 +2,9 @@ package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.MokkeryInstance
+import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.context.resolveMockInstanceOrNull
+import dev.mokkery.internal.context.resolveInstanceScopeOrNull
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
@@ -16,11 +16,11 @@ import dev.mokkery.internal.mokkeryMockInterceptor
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val instance = GlobalMokkeryScope.tools.resolveMockInstanceOrNull(obj)) {
+    return when (val scope = GlobalMokkeryScope.tools.resolveInstanceScopeOrNull(obj)) {
         null -> "Not a mock/spy -> $obj"
-        else -> when (instance.currentMockContext.kind) {
-            MokkeryKind.Spy -> mokkeryDebugSpy(instance)
-            MokkeryKind.Mock ->  mokkeryDebugMock(instance)
+        else -> when (scope.currentMockContext.kind) {
+            MokkeryKind.Spy -> mokkeryDebugSpy(scope)
+            MokkeryKind.Mock ->  mokkeryDebugMock(scope)
         }
     }
 }
@@ -32,7 +32,7 @@ public fun printMokkeryDebug(obj: Any) {
     println(mokkeryDebugString(obj))
 }
 
-private fun mokkeryDebugMock(instance: MokkeryInstance): String {
+private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("mock") {
             value("id", instance.mockId)
@@ -43,7 +43,7 @@ private fun mokkeryDebugMock(instance: MokkeryInstance): String {
     }
 }
 
-private fun mokkeryDebugSpy(instance: MokkeryInstance): String {
+private fun mokkeryDebugSpy(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("spy") {
             value("id", instance.mockId)

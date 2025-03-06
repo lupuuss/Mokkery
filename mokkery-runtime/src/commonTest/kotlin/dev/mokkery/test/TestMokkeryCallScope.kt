@@ -55,7 +55,7 @@ internal fun testCallContext(
     supers: Map<KClass<*>, kotlin.Function<Any?>>,
     spiedFunction: kotlin.Function<Any?>?,
     context: MokkeryContext,
-) = TestMokkeryInstance(selfId).mokkeryContext
+) = TestMokkeryInstanceScope(selfId).mokkeryContext
     .plus(FunctionCall(Function(name, args.map { it.parameter }, returnType), args))
     .plus(AssociatedFunctions(supers, spiedFunction))
     .plus(context)

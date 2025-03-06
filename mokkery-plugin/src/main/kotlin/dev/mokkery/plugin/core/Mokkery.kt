@@ -35,7 +35,7 @@ object Mokkery {
         val MokkerySuiteScope by dev_mokkery.klass
 
         val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
-        val MokkeryInstance by dev_mokkery_internal.klass
+        val MokkeryInstanceScope by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
         val SuiteName by dev_mokkery_internal_context.klass
@@ -57,20 +57,20 @@ object Mokkery {
     }
 
     object Function {
-        val autofillConstructor by dev_mokkery_internal.function
-        val MokkeryInstance by dev_mokkery_internal.function
         val internalEvery by dev_mokkery_internal.function
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function
         val internalVerifySuspend by dev_mokkery_internal.function
         val callIgnoringClassCastException by dev_mokkery_internal.function
+        val TemplatingScope by dev_mokkery_internal_calls.function
+        val MokkerySuiteScope by dev_mokkery.function
+        val MokkeryInstanceScope by dev_mokkery_internal.function
+        val createMokkeryInstanceContext by dev_mokkery_internal.function
+        val invokeMockInstantiationCallbacks by dev_mokkery_internal_context.function
+        val autofillConstructor by dev_mokkery_internal.function
+        val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
         val createMokkerySuspendCallScope by dev_mokkery_internal.function
-        val createMokkeryInstanceContext by dev_mokkery_internal.function
-        val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
-        val TemplatingScope by dev_mokkery_internal_calls.function
-        val invokeMockInstantiationCallbacks by dev_mokkery_internal_context.function
-        val MokkerySuiteScope by dev_mokkery.function
     }
 
     object Property {

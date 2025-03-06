@@ -3,37 +3,37 @@
 package dev.mokkery.internal.utils
 
 import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.MokkeryInstance
+import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.reverseResolveInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mockId
 
 internal interface MocksContainer {
 
-    val map: Map<String, MokkeryInstance>
+    val map: Map<String, MokkeryInstanceScope>
 }
 
 internal interface MutableMocksContainer : MocksContainer {
 
-    override val map: MutableMap<String, MokkeryInstance>
+    override val map: MutableMap<String, MokkeryInstanceScope>
 }
 
-internal fun List<MokkeryInstance>.toMocksContainer(): MocksContainer = toMutableMocksContainer()
+internal fun List<MokkeryInstanceScope>.toMocksContainer(): MocksContainer = toMutableMocksContainer()
 
-internal fun List<MokkeryInstance>.toMutableMocksContainer(): MutableMocksContainer {
+internal fun List<MokkeryInstanceScope>.toMutableMocksContainer(): MutableMocksContainer {
     return MutableMocksContainer(this)
 }
 
-internal fun MocksContainer(values: List<MokkeryInstance> = emptyList()): MocksContainer {
+internal fun MocksContainer(values: List<MokkeryInstanceScope> = emptyList()): MocksContainer {
     return MutableMocksContainerImpl(values)
 }
 
-internal fun MutableMocksContainer(values: List<MokkeryInstance> = emptyList()): MutableMocksContainer {
+internal fun MutableMocksContainer(values: List<MokkeryInstanceScope> = emptyList()): MutableMocksContainer {
     return MutableMocksContainerImpl(values)
 }
 internal inline fun MocksContainer?.orEmpty(): MocksContainer = this ?: MocksContainer()
 
-internal inline val MocksContainer.instances: Collection<MokkeryInstance>
+internal inline val MocksContainer.instances: Collection<MokkeryInstanceScope>
     get() = map.values
 
 internal val MocksContainer.reverseResolvedInstances: List<Any>
@@ -42,26 +42,26 @@ internal val MocksContainer.reverseResolvedInstances: List<Any>
         return instances.map(tools::reverseResolveInstance)
     }
 
-internal operator fun MocksContainer.get(id: String): MokkeryInstance? = map[id]
+internal operator fun MocksContainer.get(id: String): MokkeryInstanceScope? = map[id]
 
-internal fun MocksContainer.getValue(id: String): MokkeryInstance = map.getValue(id)
+internal fun MocksContainer.getValue(id: String): MokkeryInstanceScope = map.getValue(id)
 
 internal operator fun MocksContainer.plus(other: MocksContainer): MocksContainer = MutableMocksContainer(map.values + other.map.values)
 
-internal fun MocksContainer.forEach(block: (MokkeryInstance) -> Unit) {
+internal fun MocksContainer.forEach(block: (MokkeryInstanceScope) -> Unit) {
     instances.forEach(block)
 }
 
-internal fun MocksContainer.first(predicate: (MokkeryInstance) -> Boolean = { true }) = instances.first(predicate)
+internal fun MocksContainer.first(predicate: (MokkeryInstanceScope) -> Boolean = { true }) = instances.first(predicate)
 
-internal fun MutableMocksContainer.upsert(mock: MokkeryInstance) {
+internal fun MutableMocksContainer.upsert(mock: MokkeryInstanceScope) {
     map[mock.mockId] = mock
 }
 
 internal inline fun MutableMocksContainer.clear() = map.clear()
 
 private class MutableMocksContainerImpl(
-    initial: List<MokkeryInstance>
+    initial: List<MokkeryInstanceScope>
 ) : MutableMocksContainer {
 
     override val map = LinkedHashMap(initial.associateBy { it.mockId })

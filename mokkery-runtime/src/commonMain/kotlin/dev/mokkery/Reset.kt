@@ -1,9 +1,7 @@
 package dev.mokkery
 
 import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.ObjectNotMockedException
-import dev.mokkery.internal.context.resolveMockInstance
-import dev.mokkery.internal.context.resolveMockInstanceOrNull
+import dev.mokkery.internal.context.resolveInstanceScope
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mokkeryMockInterceptor
 
@@ -12,8 +10,8 @@ import dev.mokkery.internal.mokkeryMockInterceptor
  */
 public fun resetAnswers(vararg mocks: Any) {
     mocks.forEach {
-        val instance = GlobalMokkeryScope.tools.resolveMockInstance(it)
-        instance.mokkeryMockInterceptor.answering.reset()
+        val instanceScope = GlobalMokkeryScope.tools.resolveInstanceScope(it)
+        instanceScope.mokkeryMockInterceptor.answering.reset()
     }
 }
 
@@ -22,7 +20,7 @@ public fun resetAnswers(vararg mocks: Any) {
  */
 public fun resetCalls(vararg mocks: Any) {
     mocks.forEach {
-        val instance = GlobalMokkeryScope.tools.resolveMockInstance(it)
-        instance.mokkeryMockInterceptor.callTracing.reset()
+        val instanceScope = GlobalMokkeryScope.tools.resolveInstanceScope(it)
+        instanceScope.mokkeryMockInterceptor.callTracing.reset()
     }
 }

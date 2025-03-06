@@ -77,7 +77,7 @@ fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
     classToMock: IrClass,
 ): IrClass {
-    val mokkeryMockInstanceClass = getClass(Mokkery.Class.MokkeryInstance)
+    val instanceScopeClass = getClass(Mokkery.Class.MokkeryInstanceScope)
     val mockedClass = pluginContext
         .irFactory
         .buildClass { name = classToMock.name.createUniqueMockName(mokkeryKind.name) }
@@ -85,7 +85,7 @@ fun TransformerScope.buildMockClass(
     val typedClassToMock = classToMock.symbol.typeWithParameters(mockedClass.typeParameters)
     mockedClass.superTypes = listOfNotNull(
         typedClassToMock,
-        mokkeryMockInstanceClass.defaultType,
+        instanceScopeClass.defaultType,
         if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
     )
     mockedClass.createParameterDeclarations()
@@ -94,7 +94,7 @@ fun TransformerScope.buildMockClass(
         transformer = this,
         typeName = classToMock.kotlinFqName.asString(),
         mokkeryKind = mokkeryKind,
-        mokkeryInstanceClass = mokkeryMockInstanceClass,
+        scopeInstanceClass = instanceScopeClass,
         classesToIntercept = listOf(classToMock),
     )
     val spyDelegateField = mockedClass.getField(Mokkery.Fields.SpyDelegate)
@@ -112,7 +112,7 @@ fun TransformerScope.buildMockClass(
 
 fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val manyMocksMarkerClass = getClass(Mokkery.Class.mockMany(classesToMock.size))
-    val mokkeryInstanceClass = getClass(Mokkery.Class.MokkeryInstance)
+    val mokkeryInstanceClass = getClass(Mokkery.Class.MokkeryInstanceScope)
     val mockedClass = pluginContext.irFactory
         .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
@@ -128,7 +128,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     )
     mockedClass.addMockClassConstructor(
         transformer = this,
-        mokkeryInstanceClass = mokkeryInstanceClass,
+        scopeInstanceClass = mokkeryInstanceClass,
         mokkeryKind = IrMokkeryKind.Mock,
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
@@ -181,7 +181,7 @@ private fun IrBlockBodyBuilder.mockBody(
 
 private fun IrClass.addMockClassConstructor(
     transformer: TransformerScope,
-    mokkeryInstanceClass: IrClass,
+    scopeInstanceClass: IrClass,
     mokkeryKind: IrMokkeryKind,
     typeName: String,
     classesToIntercept: List<IrClass>,
@@ -192,8 +192,8 @@ private fun IrClass.addMockClassConstructor(
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
     val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeMockInstantiationCallbacks)
-    val interceptor = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("mokkeryInterceptor"))
-    val contextProperty = overridePropertyBackingField(context, mokkeryInstanceClass.getProperty("mokkeryContext"))
+    val interceptor = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryInterceptor"))
+    val contextProperty = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryContext"))
     addConstructor {
         isPrimary = true
     }.apply {
