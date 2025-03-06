@@ -1,9 +1,9 @@
 package dev.mokkery.internal.context
 
-import dev.mokkery.MokkeryScope
 import dev.mokkery.context.forEach
+import dev.mokkery.internal.MokkeryInstanceScope
 
-internal fun MokkeryScope.invokeMockInstantiationCallbacks() {
+internal fun MokkeryInstanceScope.invokeMockInstantiationCallbacks() {
     mokkeryContext.forEach {
         if (it is MockInstantiationListener) it.onMockInstantiation(this)
     }
@@ -11,5 +11,5 @@ internal fun MokkeryScope.invokeMockInstantiationCallbacks() {
 
 internal fun interface MockInstantiationListener {
 
-    fun onMockInstantiation(scope: MokkeryScope)
+    fun onMockInstantiation(scope: MokkeryInstanceScope)
 }

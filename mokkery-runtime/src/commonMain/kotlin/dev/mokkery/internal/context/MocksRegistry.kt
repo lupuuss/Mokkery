@@ -1,12 +1,10 @@
 package dev.mokkery.internal.context
 
-import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.utils.MocksContainer
 import dev.mokkery.internal.utils.MutableMocksContainer
 import dev.mokkery.internal.utils.instances
-import dev.mokkery.internal.utils.toMutableMocksContainer
 import dev.mokkery.internal.utils.upsert
 import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -38,10 +36,7 @@ private class MocksRegistryImpl(mocks: List<MokkeryInstanceScope>) : MocksRegist
         lock.withLock { _mocks.upsert(mock) }
     }
 
-    override fun onMockInstantiation(scope: MokkeryScope) {
-        if (scope !is MokkeryInstanceScope) return
-        register(scope)
-    }
+    override fun onMockInstantiation(scope: MokkeryInstanceScope) = register(scope)
 
     override fun toString(): String = "MocksRegistry { ${mocks.instances.joinToString()} }"
 }
