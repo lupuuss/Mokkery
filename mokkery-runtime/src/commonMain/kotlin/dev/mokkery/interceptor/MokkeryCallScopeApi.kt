@@ -8,6 +8,7 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.reverseResolveInstance
+import dev.mokkery.internal.context.reverseResolveInstanceOrNull
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.nextInterceptor
 import kotlin.reflect.KClass

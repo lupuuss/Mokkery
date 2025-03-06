@@ -35,7 +35,7 @@ private class MocksRegistryImpl(mocks: Set<Any>) : MocksRegistry, MockInstantiat
 
     override fun onMockInstantiation(scope: MokkeryScope) {
         if (scope !is MokkeryInstance) return
-        register(scope.tools.reverseResolveInstance(scope)!!)
+        register(scope.tools.reverseResolveInstance(scope))
     }
 
     override fun toString(): String = "MocksRegistry { ${mocks.joinToString()} }"

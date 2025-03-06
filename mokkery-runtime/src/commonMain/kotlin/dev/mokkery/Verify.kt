@@ -7,6 +7,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.context.resolveMockInstance
+import dev.mokkery.internal.context.resolveMockInstanceOrNull
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
@@ -76,8 +77,8 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     mocks.forEach { mock ->
         val tracing = mock
             .let { tools.resolveMockInstance(it) }
-            ?.mokkeryInterceptor
-            ?.callTracing ?: throw ObjectNotMockedException(mock)
+            .mokkeryInterceptor
+            .callTracing
         if (tracing.unverified.isNotEmpty()) {
             failAssertion {
                 val renderer = PointListRenderer<CallTrace>()
