@@ -106,7 +106,7 @@ private fun IrBuilderWithScope.irCallMokkeryMockInstance(
     modeArg: IrExpression,
     kind: IrMokkeryKind,
 ): IrExpression {
-    val mokkeryMockInstanceFun = transformer.getFunction(Mokkery.Function.MokkeryMockInstance)
+    val mokkeryMockInstanceFun = transformer.getFunction(Mokkery.Function.MokkeryInstance)
     return irCall(mokkeryMockInstanceFun) {
         putValueArgument(0, parentScope)
         putValueArgument(1, modeArg)

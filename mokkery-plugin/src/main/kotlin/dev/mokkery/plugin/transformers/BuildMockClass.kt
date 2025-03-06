@@ -77,7 +77,7 @@ fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
     classToMock: IrClass,
 ): IrClass {
-    val mokkeryMockInstanceClass = getClass(Mokkery.Class.MokkeryMockInstance)
+    val mokkeryMockInstanceClass = getClass(Mokkery.Class.MokkeryInstance)
     val mockedClass = pluginContext
         .irFactory
         .buildClass { name = classToMock.name.createUniqueMockName(mokkeryKind.name) }
@@ -112,7 +112,7 @@ fun TransformerScope.buildMockClass(
 
 fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val manyMocksMarkerClass = getClass(Mokkery.Class.mockMany(classesToMock.size))
-    val mokkeryMockInstanceClass = getClass(Mokkery.Class.MokkeryMockInstance)
+    val mokkeryInstanceClass = getClass(Mokkery.Class.MokkeryInstance)
     val mockedClass = pluginContext.irFactory
         .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
@@ -122,13 +122,13 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mockedTypes = classesToMock.typeWith(parameterMap)
     val manyMocksMarkerType = manyMocksMarkerClass.symbol.typeWith(mockedTypes)
     mockedClass.superTypes = mockedTypes + listOfNotNull(
-        mokkeryMockInstanceClass.defaultType,
+        mokkeryInstanceClass.defaultType,
         if (classesToMock.all(IrClass::isInterface)) pluginContext.irBuiltIns.anyType else null,
         manyMocksMarkerType
     )
     mockedClass.addMockClassConstructor(
         transformer = this,
-        mokkeryInstanceClass = mokkeryMockInstanceClass,
+        mokkeryInstanceClass = mokkeryInstanceClass,
         mokkeryKind = IrMokkeryKind.Mock,
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,

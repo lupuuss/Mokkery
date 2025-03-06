@@ -36,7 +36,6 @@ object Mokkery {
 
         val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
         val MokkeryInstance by dev_mokkery_internal.klass
-        val MokkeryMockInstance by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
         val SuiteName by dev_mokkery_internal_context.klass
@@ -59,7 +58,7 @@ object Mokkery {
 
     object Function {
         val autofillConstructor by dev_mokkery_internal.function
-        val MokkeryMockInstance by dev_mokkery_internal.function
+        val MokkeryInstance by dev_mokkery_internal.function
         val internalEvery by dev_mokkery_internal.function
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function

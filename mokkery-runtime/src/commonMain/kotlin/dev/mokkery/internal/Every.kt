@@ -30,7 +30,7 @@ internal fun <T> internalEvery(
     return try {
         val template = scope.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
         val mock = scope.mocks.getValue(template.receiver)
-        UnifiedAnsweringScope(mock.mokkeryInterceptor.answering, template)
+        UnifiedAnsweringScope(mock.mokkeryMockInterceptor.answering, template)
     } finally {
         scope.release()
     }

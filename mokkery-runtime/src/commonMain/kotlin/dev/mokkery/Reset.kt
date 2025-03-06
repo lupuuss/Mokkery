@@ -5,6 +5,7 @@ import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.context.resolveMockInstance
 import dev.mokkery.internal.context.resolveMockInstanceOrNull
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.mokkeryMockInterceptor
 
 /**
  * Removes all answers configured for given [mocks].
@@ -12,7 +13,7 @@ import dev.mokkery.internal.context.tools
 public fun resetAnswers(vararg mocks: Any) {
     mocks.forEach {
         val instance = GlobalMokkeryScope.tools.resolveMockInstance(it)
-        instance.mokkeryInterceptor.answering.reset()
+        instance.mokkeryMockInterceptor.answering.reset()
     }
 }
 
@@ -22,6 +23,6 @@ public fun resetAnswers(vararg mocks: Any) {
 public fun resetCalls(vararg mocks: Any) {
     mocks.forEach {
         val instance = GlobalMokkeryScope.tools.resolveMockInstance(it)
-        instance.mokkeryInterceptor.callTracing.reset()
+        instance.mokkeryMockInterceptor.callTracing.reset()
     }
 }

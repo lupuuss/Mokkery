@@ -7,7 +7,6 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MokkeryInstance
 import dev.mokkery.internal.MokkeryInstanceLookup
-import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.ObjectNotMockedException
 import dev.mokkery.internal.calls.ArgMatchersComposer
@@ -128,8 +127,8 @@ internal class MokkeryTools(
     }
 }
 
-internal fun MokkeryTools.resolveMockInstance(obj: Any?): MokkeryMockInstance {
-    return instanceLookup.resolve(obj) as? MokkeryMockInstance ?: throw ObjectNotMockedException(obj)
+internal fun MokkeryTools.resolveMockInstance(obj: Any?): MokkeryInstance {
+    return instanceLookup.resolve(obj) ?: throw ObjectNotMockedException(obj)
 }
 
 internal fun MokkeryTools.reverseResolveInstance(instance: MokkeryInstance): Any {
@@ -137,8 +136,8 @@ internal fun MokkeryTools.reverseResolveInstance(instance: MokkeryInstance): Any
 }
 
 
-internal fun MokkeryTools.resolveMockInstanceOrNull(obj: Any?): MokkeryMockInstance? {
-    return instanceLookup.resolve(obj) as? MokkeryMockInstance
+internal fun MokkeryTools.resolveMockInstanceOrNull(obj: Any?): MokkeryInstance? {
+    return instanceLookup.resolve(obj)
 }
 
 internal fun MokkeryTools.reverseResolveInstanceOrNull(instance: MokkeryInstance): Any? {
