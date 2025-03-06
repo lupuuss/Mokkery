@@ -7,22 +7,26 @@ import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.SignatureGenerator
+import dev.mokkery.internal.utils.MocksContainer
+import dev.mokkery.internal.utils.MutableMocksContainer
 import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.utils.clear
+import dev.mokkery.internal.utils.forEach
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.subListAfter
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.internal.utils.unsafeCast
+import dev.mokkery.internal.utils.upsert
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
 import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
 
-    val mocks: Set<MokkeryMockInstance>
+    val mocks: MocksContainer
     val templates: List<CallTemplate>
     val currentGenericReturnTypeHint: KClass<*>?
 
@@ -53,7 +57,7 @@ private class TemplatingScopeImpl(
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    override val mocks = mutableSetOf<MokkeryMockInstance>()
+    override val mocks = MutableMocksContainer()
     override val templates = mutableListOf<CallTemplate>()
     override val currentGenericReturnTypeHint: KClass<*>?
         get() = binder.firstProperlyBoundedData().genericReturnTypeHint
@@ -68,7 +72,7 @@ private class TemplatingScopeImpl(
             templating.isEnabledWith(this) -> return
             templating.isEnabled -> throw ConcurrentTemplatingException()
             else -> {
-                mocks.add(scope)
+                mocks.upsert(scope)
                 templating.start(this)
             }
         }

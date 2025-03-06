@@ -34,8 +34,8 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     )
 }
 
-internal val MokkeryInstance.mockId get() =
-    mokkeryContext.require(CurrentMockContext).id
+internal val MokkeryInstance.mockId
+    get() = mokkeryContext.require(CurrentMockContext).id
 
 internal interface MokkeryMockInstance : MokkeryInstance {
 
