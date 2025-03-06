@@ -43,7 +43,7 @@ class MokkerySuiteScopeGenerationTest : MokkerySuiteScope {
 
     @Test
     fun testContainsAllMocks() {
-        val expectedMocks = setOf(mockA, mockB)
+        val expectedMocks = listOf(mockA, mockB)
         assertEquals(expectedMocks, mocks)
     }
 

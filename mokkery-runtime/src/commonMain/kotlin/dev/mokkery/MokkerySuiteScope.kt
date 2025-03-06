@@ -5,12 +5,17 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkerySuiteScopeNotImplementedException
 import dev.mokkery.internal.context.MocksRegistry
+import dev.mokkery.internal.utils.reverseResolvedInstances
 
 /**
  * Returns all mocks from this [MokkerySuiteScope].
  */
-public val MokkerySuiteScope.mocks: Set<Any>
-    get() = mokkeryContext.require(MocksRegistry).mocks
+public val MokkerySuiteScope.mocks: List<Any>
+    get() = mokkeryContext
+        .require(MocksRegistry)
+        .mocks
+        .reverseResolvedInstances
+        .toList()
 
 /**
  * A scope for a test suite that uses Mokkery mocks. It enables automation and strict exhaustiveness checks.

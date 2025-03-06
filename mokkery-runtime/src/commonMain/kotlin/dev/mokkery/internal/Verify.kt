@@ -8,6 +8,10 @@ import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
+import dev.mokkery.internal.utils.getValue
+import dev.mokkery.internal.utils.instances
+import dev.mokkery.internal.utils.orEmpty
+import dev.mokkery.internal.utils.plus
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
@@ -30,16 +34,10 @@ internal fun MokkerySuiteScope.internalVerify(
         templating.release()
         throw exception
     }
-    val instanceLookup = tools.instanceLookup
-    val allMokkeryInstances = mokkeryContext[MocksRegistry]
-        ?.mocks
-        ?.mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
-        .orEmpty()
-        .plus(templating.mocks)
-    val spyInterceptors = allMokkeryInstances.associate { it.mockId to it.mokkeryInterceptor }
-    val calls = spyInterceptors
-        .values
-        .map { it.callTracing.unverified }
+    val mocks = mokkeryContext[MocksRegistry]?.mocks.orEmpty() + templating.mocks
+    val calls = mocks
+        .instances
+        .map { it.mokkeryInterceptor.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
     val shortener = tools.createGroupMockReceiverShortener()
@@ -48,7 +46,7 @@ internal fun MokkerySuiteScope.internalVerify(
         verifier
             .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(templating.templates))
             .map(shortener::getOriginalTrace)
-            .forEach { spyInterceptors.getValue(it.receiver).callTracing.markVerified(it) }
+            .forEach { mocks.getValue(it.receiver).mokkeryInterceptor.callTracing.markVerified(it) }
     } finally {
         templating.release()
     }

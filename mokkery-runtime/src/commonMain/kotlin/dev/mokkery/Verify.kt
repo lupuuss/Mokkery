@@ -2,6 +2,8 @@
 
 package dev.mokkery
 
+import dev.mokkery.context.require
+import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.ObjectNotMockedException
@@ -12,6 +14,7 @@ import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.utils.failAssertion
+import dev.mokkery.internal.utils.instances
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -66,28 +69,32 @@ public fun MokkerySuiteScope.verifySuspend(
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
-    MokkerySuiteScope(MocksRegistry(mocks = mocks.toSet())).verifyNoMoreCalls()
+    val tools = GlobalMokkeryScope.tools
+    val instances = mocks.map(tools::resolveMockInstance)
+    MokkerySuiteScope(MocksRegistry(mocks = instances)).verifyNoMoreCalls()
 }
 
 /**
  * Asserts that all mocks from given [MokkerySuiteScope] have no unverified calls.
  */
 public fun MokkerySuiteScope.verifyNoMoreCalls() {
-    val tools = this.tools
-    mocks.forEach { mock ->
-        val tracing = mock
-            .let { tools.resolveMockInstance(it) }
-            .mokkeryInterceptor
-            .callTracing
-        if (tracing.unverified.isNotEmpty()) {
-            failAssertion {
-                val renderer = PointListRenderer<CallTrace>()
-                val shortener = tools.createGroupMockReceiverShortener()
-                shortener.prepare(tracing.unverified, emptyList())
-                val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
-                appendLine("Unverified calls for $mock:")
-                append(renderer.render(unverifiedCalls))
+    mokkeryContext
+        .require(MocksRegistry)
+        .mocks
+        .instances
+        .forEach { mock ->
+            val tracing = mock
+                .mokkeryInterceptor
+                .callTracing
+            if (tracing.unverified.isNotEmpty()) {
+                failAssertion {
+                    val renderer = PointListRenderer<CallTrace>()
+                    val shortener = tools.createGroupMockReceiverShortener()
+                    shortener.prepare(tracing.unverified, emptyList())
+                    val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
+                    appendLine("Unverified calls for $mock:")
+                    append(renderer.render(unverifiedCalls))
+                }
             }
         }
-    }
 }

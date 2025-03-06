@@ -1,15 +1,15 @@
 package dev.mokkery.test
 
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.MokkeryMockInstance
+import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.context.CallArgument
+import dev.mokkery.internal.utils.MocksContainer
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 internal class TestTemplatingScope(
-    override val mocks: Set<MokkeryMockInstance> = emptySet(),
+    override val mocks: MocksContainer = MocksContainer(),
     override val templates: List<CallTemplate> = emptyList(),
 ) : TemplatingScope {
 
