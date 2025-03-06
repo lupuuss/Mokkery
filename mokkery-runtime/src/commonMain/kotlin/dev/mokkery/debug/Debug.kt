@@ -4,7 +4,7 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.context.resolveInstanceScopeOrNull
+import dev.mokkery.internal.context.resolveScopeOrNull
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
@@ -16,7 +16,7 @@ import dev.mokkery.internal.mokkeryMockInterceptor
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val scope = GlobalMokkeryScope.tools.resolveInstanceScopeOrNull(obj)) {
+    return when (val scope = GlobalMokkeryScope.tools.resolveScopeOrNull(obj)) {
         null -> "Not a mock/spy -> $obj"
         else -> when (scope.currentMockContext.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(scope)

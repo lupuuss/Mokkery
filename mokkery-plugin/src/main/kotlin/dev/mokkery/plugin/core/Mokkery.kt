@@ -41,7 +41,7 @@ object Mokkery {
         val SuiteName by dev_mokkery_internal_context.klass
 
         val TemplatingScope by dev_mokkery_internal_calls.klass
-        val MokkeryInstanceLookup by dev_mokkery_internal.klass
+        val MokkeryScopeLookup by dev_mokkery_internal.klass
         val GlobalMokkeryScope by dev_mokkery_internal.klass
 
         fun mockMany(value: Int): ClassResolver {
@@ -75,7 +75,7 @@ object Mokkery {
 
     object Property {
 
-        val GlobalMokkeryInstanceLookup by dev_mokkery_internal.property
+        val GlobalMokkeryScopeLookup by dev_mokkery_internal.property
         val mockId by dev_mokkery_internal.property
     }
 

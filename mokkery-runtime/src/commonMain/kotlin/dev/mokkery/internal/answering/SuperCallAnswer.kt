@@ -4,7 +4,6 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.utils.description
-import dev.mokkery.internal.MokkeryInstanceLookup
 import dev.mokkery.internal.utils.unsafeCast
 
 

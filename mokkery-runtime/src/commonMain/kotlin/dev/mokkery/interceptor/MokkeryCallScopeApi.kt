@@ -7,8 +7,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.context.reverseResolveInstance
-import dev.mokkery.internal.context.reverseResolveInstanceOrNull
+import dev.mokkery.internal.context.resolveInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.nextInterceptor
 import kotlin.reflect.KClass
@@ -48,7 +47,7 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any?
-    get() = tools.reverseResolveInstance(currentMockContext.self)
+    get() = tools.resolveInstance(currentMockContext.self)
 
 /**
  * Returns current call.

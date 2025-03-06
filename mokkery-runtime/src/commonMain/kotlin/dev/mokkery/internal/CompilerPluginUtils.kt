@@ -39,8 +39,8 @@ internal fun MokkeryScope.createMokkerySuspendCallScope(
     spyDelegate: kotlin.Function<Any?>? = null
 ) = MokkerySuspendCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
 
-internal val GlobalMokkeryInstanceLookup
-    get() = GlobalMokkeryScope.tools.instanceLookup
+internal val GlobalMokkeryScopeLookup
+    get() = GlobalMokkeryScope.tools.scopeLookup
 
 private fun MokkeryScope.createMokkeryCallContext(
     name: String,

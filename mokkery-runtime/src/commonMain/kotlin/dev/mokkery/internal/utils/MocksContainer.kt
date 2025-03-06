@@ -4,7 +4,7 @@ package dev.mokkery.internal.utils
 
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.context.reverseResolveInstance
+import dev.mokkery.internal.context.resolveInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mockId
 
@@ -39,7 +39,7 @@ internal inline val MocksContainer.instances: Collection<MokkeryInstanceScope>
 internal val MocksContainer.reverseResolvedInstances: List<Any>
     get() {
         val tools = GlobalMokkeryScope.tools
-        return instances.map(tools::reverseResolveInstance)
+        return instances.map(tools::resolveInstance)
     }
 
 internal operator fun MocksContainer.get(id: String): MokkeryInstanceScope? = map[id]
