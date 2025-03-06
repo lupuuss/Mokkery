@@ -10,7 +10,6 @@ import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.mokkeryRuntimeError
@@ -64,7 +63,7 @@ private class TemplatingScopeImpl(
         val scope = binder.bind(token, obj) ?: return
         // filters out unimplemented KClasses on K/N
         binder.getDataFor(token)?.genericReturnTypeHint = genericReturnTypeHint?.takeIfImplementedOrAny()
-        val templating = scope.interceptor.templating
+        val templating = scope.mokkeryInterceptor.templating
         when {
             templating.isEnabledWith(this) -> return
             templating.isEnabled -> throw ConcurrentTemplatingException()
@@ -77,7 +76,7 @@ private class TemplatingScopeImpl(
 
     override fun release() {
         isReleased = true
-        mocks.forEach { it.interceptor.templating.stop() }
+        mocks.forEach { it.mokkeryInterceptor.templating.stop() }
         mocks.clear()
     }
 

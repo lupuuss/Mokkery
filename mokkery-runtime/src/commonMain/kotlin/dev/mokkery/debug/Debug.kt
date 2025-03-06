@@ -6,11 +6,10 @@ import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.context.currentMockContext
 import dev.mokkery.internal.context.resolveMockInstance
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.id
-import dev.mokkery.internal.interceptor
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MokkeryKind
+import dev.mokkery.internal.mockId
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
@@ -35,10 +34,10 @@ public fun printMokkeryDebug(obj: Any) {
 private fun mokkeryDebugMock(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("mock") {
-            value("id", instance.id)
+            value("id", instance.mockId)
             value("mode", instance.currentMockContext.mode.name)
-            answersSection(instance.interceptor.answering)
-            callsSection(instance.interceptor.callTracing)
+            answersSection(instance.mokkeryInterceptor.answering)
+            callsSection(instance.mokkeryInterceptor.callTracing)
         }
     }
 }
@@ -46,9 +45,9 @@ private fun mokkeryDebugMock(instance: MokkeryMockInstance): String {
 private fun mokkeryDebugSpy(instance: MokkeryMockInstance): String {
     return buildHierarchicalString {
         section("spy") {
-            value("id", instance.id)
-            answersSection(instance.interceptor.answering)
-            callsSection(instance.interceptor.callTracing)
+            value("id", instance.mockId)
+            answersSection(instance.mokkeryInterceptor.answering)
+            callsSection(instance.mokkeryInterceptor.callTracing)
         }
     }
 }

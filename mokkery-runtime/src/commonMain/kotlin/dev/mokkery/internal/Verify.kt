@@ -36,7 +36,7 @@ internal fun MokkerySuiteScope.internalVerify(
         ?.mapNotNull { instanceLookup.resolve(it) as? MokkeryMockInstance }
         .orEmpty()
         .plus(templating.mocks)
-    val spyInterceptors = allMokkeryInstances.associate { it.id to it.interceptor }
+    val spyInterceptors = allMokkeryInstances.associate { it.mockId to it.mokkeryInterceptor }
     val calls = spyInterceptors
         .values
         .map { it.callTracing.unverified }

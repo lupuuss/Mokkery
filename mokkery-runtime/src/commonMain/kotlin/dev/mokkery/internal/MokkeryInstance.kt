@@ -34,22 +34,6 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     )
 }
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.id
-    get() = mokkeryContext.require(CurrentMockContext).id
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.interceptor
-    get() = mokkeryInterceptor
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.interceptedTypes
-    get() = mokkeryContext.require(CurrentMockContext).interceptedTypes
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryMockInstance.interceptor
-    get() = mokkeryInterceptor
-
 internal val MokkeryInstance.mockId get() =
     mokkeryContext.require(CurrentMockContext).id
 
