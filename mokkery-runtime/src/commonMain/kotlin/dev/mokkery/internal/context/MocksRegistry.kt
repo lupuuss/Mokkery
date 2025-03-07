@@ -2,10 +2,8 @@ package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.utils.MocksContainer
-import dev.mokkery.internal.utils.MutableMocksContainer
-import dev.mokkery.internal.utils.instances
-import dev.mokkery.internal.utils.upsert
+import dev.mokkery.internal.utils.MocksCollection
+import dev.mokkery.internal.utils.MutableMocksCollection
 import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.withLock
 
@@ -13,7 +11,7 @@ internal interface MocksRegistry : MokkeryContext.Element {
 
     override val key get() = Key
 
-    val mocks: MocksContainer
+    val mocks: MocksCollection
 
     fun register(mock: MokkeryInstanceScope)
 
@@ -26,14 +24,14 @@ internal fun MocksRegistry(mocks: List<MokkeryInstanceScope> = emptyList()): Moc
 
 private class MocksRegistryImpl(mocks: List<MokkeryInstanceScope>) : MocksRegistry, MockInstantiationListener {
 
-    private val _mocks = MutableMocksContainer(mocks)
+    private val _mocks = MutableMocksCollection(mocks)
     private val lock = ReentrantLock()
 
-    override val mocks: MocksContainer get() = lock.withLock { _mocks }
+    override val mocks: MocksCollection get() = lock.withLock { _mocks }
 
-    override fun register(mock: MokkeryInstanceScope) = lock.withLock { _mocks.upsert(mock) }
+    override fun register(mock: MokkeryInstanceScope) = lock.withLock { _mocks.upsertScope(mock) }
 
     override fun onMockInstantiation(obj: Any, scope: MokkeryInstanceScope) = register(scope)
 
-    override fun toString(): String = "MocksRegistry { ${mocks.instances.joinToString()} }"
+    override fun toString(): String = "MocksRegistry { ${mocks.scopes.joinToString()} }"
 }

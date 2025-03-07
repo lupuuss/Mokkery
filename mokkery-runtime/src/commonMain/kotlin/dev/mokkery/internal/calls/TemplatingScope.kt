@@ -11,23 +11,21 @@ import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mokkeryMockInterceptor
 import dev.mokkery.internal.names.SignatureGenerator
-import dev.mokkery.internal.utils.MocksContainer
-import dev.mokkery.internal.utils.MutableMocksContainer
+import dev.mokkery.internal.utils.MocksCollection
+import dev.mokkery.internal.utils.MutableMocksCollection
 import dev.mokkery.internal.utils.asListOrNull
-import dev.mokkery.internal.utils.clear
-import dev.mokkery.internal.utils.forEach
+import dev.mokkery.internal.utils.forEachScope
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.subListAfter
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.internal.utils.unsafeCast
-import dev.mokkery.internal.utils.upsert
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
 import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
 
-    val mocks: MocksContainer
+    val mocks: MocksCollection
     val templates: List<CallTemplate>
     val currentGenericReturnTypeHint: KClass<*>?
 
@@ -58,7 +56,7 @@ private class TemplatingScopeImpl(
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    override val mocks = MutableMocksContainer()
+    override val mocks = MutableMocksCollection()
     override val templates = mutableListOf<CallTemplate>()
     override val currentGenericReturnTypeHint: KClass<*>?
         get() = binder.firstProperlyBoundedData().genericReturnTypeHint
@@ -73,7 +71,7 @@ private class TemplatingScopeImpl(
             templating.isEnabledWith(this) -> return
             templating.isEnabled -> throw ConcurrentTemplatingException()
             else -> {
-                mocks.upsert(scope)
+                mocks.upsertScope(scope)
                 templating.start(this)
             }
         }
@@ -81,7 +79,7 @@ private class TemplatingScopeImpl(
 
     override fun release() {
         isReleased = true
-        mocks.forEach { it.mokkeryMockInterceptor.templating.stop() }
+        mocks.forEachScope { it.mokkeryMockInterceptor.templating.stop() }
         mocks.clear()
     }
 

@@ -13,7 +13,6 @@ import dev.mokkery.internal.mokkeryMockInterceptor
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.utils.failAssertion
-import dev.mokkery.internal.utils.instances
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -80,7 +79,7 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     mokkeryContext
         .require(MocksRegistry)
         .mocks
-        .instances
+        .scopes
         .forEach { mock ->
             val tracing = mock
                 .mokkeryMockInterceptor

@@ -5,7 +5,7 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkerySuiteScopeNotImplementedException
 import dev.mokkery.internal.context.MocksRegistry
-import dev.mokkery.internal.utils.reverseResolvedInstances
+import dev.mokkery.internal.utils.instances
 
 /**
  * Returns all mocks from this [MokkerySuiteScope].
@@ -14,7 +14,7 @@ public val MokkerySuiteScope.mocks: List<Any>
     get() = mokkeryContext
         .require(MocksRegistry)
         .mocks
-        .reverseResolvedInstances
+        .instances
         .toList()
 
 /**
