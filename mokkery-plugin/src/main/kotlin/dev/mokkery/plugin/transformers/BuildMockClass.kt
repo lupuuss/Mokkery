@@ -191,7 +191,7 @@ private fun IrClass.addMockClassConstructor(
     val mokkeryScopeClass = transformer.getClass(Mokkery.Class.MokkeryScope)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
-    val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeMockInstantiationCallbacks)
+    val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)
     val interceptor = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryInterceptor"))
     val contextProperty = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryContext"))
     addConstructor {
@@ -250,6 +250,7 @@ private fun IrClass.addMockClassConstructor(
             }
             +irCall(invokeInstantiationCallbacksFun) {
                 extensionReceiver = irGet(thisReceiver!!)
+                putValueArgument(0, irGet(thisReceiver!!))
             }
             +irInvokeIfNotNull(irGet(valueParameters[2]), false, irGet(thisReceiver!!))
         }

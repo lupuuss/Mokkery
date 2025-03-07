@@ -27,7 +27,6 @@ import dev.mokkery.internal.verify.VerifierFactory
 internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
 
-
 internal class MokkeryTools(
     instanceLookup: MokkeryScopeLookup? = null,
     namesShortener: NameShortener? = null,
@@ -40,7 +39,7 @@ internal class MokkeryTools(
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
     verifierFactory: VerifierFactory? = null,
-) : MokkeryContext.Element {
+) : MokkeryContext.Element, MockInstantiationListener {
 
     private val _scopeLookup: MokkeryScopeLookup? = instanceLookup
     private val _namesShortener: NameShortener? = namesShortener
@@ -77,6 +76,10 @@ internal class MokkeryTools(
     val verifierFactory: VerifierFactory
         get() = _verifierFactory ?: mokkeryRuntimeError("VerifierFactory not present in tools!")
 
+    override val key = Key
+
+    override fun onMockInstantiation(obj: Any, scope: MokkeryInstanceScope) = scopeLookup.registerScope(obj, scope)
+
     fun copy(
         instanceLookup: MokkeryScopeLookup? = _scopeLookup,
         namesShortener: NameShortener? = _namesShortener,
@@ -102,8 +105,6 @@ internal class MokkeryTools(
         autofillProvider = autofillProvider,
         verifierFactory = verifierFactory
     )
-
-    override val key = Key
 
     companion object Key : MokkeryContext.Key<MokkeryTools> {
 

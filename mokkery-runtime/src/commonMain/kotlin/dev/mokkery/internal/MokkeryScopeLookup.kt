@@ -23,9 +23,7 @@ internal expect fun MokkeryScopeLookup(): MokkeryScopeLookup
 
 internal object StaticMokkeryScopeLookup : MokkeryScopeLookup {
 
-    override fun registerScope(obj: Any?, scope: MokkeryInstanceScope): Nothing {
-        mokkeryRuntimeError("Registering MokkeryInstance on non-JS platforms is not supported!")
-    }
+    override fun registerScope(obj: Any?, scope: MokkeryInstanceScope) = Unit
 
     override fun resolveScopeOrNull(obj: Any?): MokkeryInstanceScope? = obj as? MokkeryInstanceScope
 

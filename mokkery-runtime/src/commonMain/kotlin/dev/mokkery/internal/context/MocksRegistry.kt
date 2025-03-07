@@ -29,14 +29,11 @@ private class MocksRegistryImpl(mocks: List<MokkeryInstanceScope>) : MocksRegist
     private val _mocks = MutableMocksContainer(mocks)
     private val lock = ReentrantLock()
 
-    override val mocks: MocksContainer
-        get() = lock.withLock { _mocks }
+    override val mocks: MocksContainer get() = lock.withLock { _mocks }
 
-    override fun register(mock: MokkeryInstanceScope) {
-        lock.withLock { _mocks.upsert(mock) }
-    }
+    override fun register(mock: MokkeryInstanceScope) = lock.withLock { _mocks.upsert(mock) }
 
-    override fun onMockInstantiation(scope: MokkeryInstanceScope) = register(scope)
+    override fun onMockInstantiation(obj: Any, scope: MokkeryInstanceScope) = register(scope)
 
     override fun toString(): String = "MocksRegistry { ${mocks.instances.joinToString()} }"
 }

@@ -6,7 +6,6 @@ import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
-import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
@@ -71,9 +70,9 @@ fun TransformerScope.buildMockJsFunction(
                 +irReturn(irInterceptCall(transformer, irGet(instanceVar), it, mapTypeToClass, irSpyCall))
             }
             val lambdaVar = createTmpVariable(lambda)
-            +irCallRegisterScope(transformer, irGet(instanceVar), irGet(lambdaVar))
-            +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationCallbacks)) {
+            +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)) {
                 this.extensionReceiver = irGet(instanceVar)
+                putValueArgument(0, irGet(lambdaVar))
             }
             val block = expression.valueArguments.getOrNull(1)
             if (block != null) {
@@ -115,22 +114,6 @@ private fun IrBuilderWithScope.irCallMokkeryMockInstance(
         putValueArgument(4, kClassReference(typeToMock))
     }
 }
-
-private fun IrBuilderWithScope.irCallRegisterScope(
-    transformer: TransformerScope,
-    mokkeryInstance: IrExpression,
-    obj: IrExpression
-): IrCall {
-    val instanceLookupCall = irCall(transformer.getProperty(Mokkery.Property.GlobalMokkeryScopeLookup).getter!!)
-    val lookUpClass = transformer.getClass(Mokkery.Class.MokkeryScopeLookup)
-    val registerCall = irCall(lookUpClass.getSimpleFunction("registerScope")!!) {
-        dispatchReceiver = instanceLookupCall
-        putValueArgument(0, obj)
-        putValueArgument(1, mokkeryInstance)
-    }
-    return registerCall
-}
-
 
 private fun IrBlockBodyBuilder.irLambdaInvokeSpy(
     transformer: TransformerScope,

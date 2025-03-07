@@ -41,7 +41,6 @@ object Mokkery {
         val SuiteName by dev_mokkery_internal_context.klass
 
         val TemplatingScope by dev_mokkery_internal_calls.klass
-        val MokkeryScopeLookup by dev_mokkery_internal.klass
         val GlobalMokkeryScope by dev_mokkery_internal.klass
 
         fun mockMany(value: Int): ClassResolver {
@@ -66,7 +65,7 @@ object Mokkery {
         val MokkerySuiteScope by dev_mokkery.function
         val MokkeryInstanceScope by dev_mokkery_internal.function
         val createMokkeryInstanceContext by dev_mokkery_internal.function
-        val invokeMockInstantiationCallbacks by dev_mokkery_internal_context.function
+        val invokeMockInstantiationListener by dev_mokkery_internal_context.function
         val autofillConstructor by dev_mokkery_internal.function
         val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
@@ -75,7 +74,6 @@ object Mokkery {
 
     object Property {
 
-        val GlobalMokkeryScopeLookup by dev_mokkery_internal.property
         val mockId by dev_mokkery_internal.property
     }
 
