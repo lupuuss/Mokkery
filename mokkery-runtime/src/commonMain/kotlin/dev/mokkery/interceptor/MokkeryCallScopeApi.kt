@@ -43,6 +43,11 @@ public val MokkeryCallScope.self: Any?
     get() = resolveInstance(mockContext.thisInstanceScope)
 
 /**
+ * Returns [MokkeryCallScope.self] as [T].
+ */
+public inline fun <reified T> MokkeryCallScope.self(): T = self as T
+
+/**
  * Returns current call.
  */
 public val MokkeryCallScope.call: FunctionCall

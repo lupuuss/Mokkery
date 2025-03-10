@@ -5,6 +5,7 @@ import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MockId
+import dev.mokkery.context.FunctionCall
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
@@ -54,3 +55,14 @@ internal fun fakeCallTrace(
     args = args,
     orderStamp = orderStamp,
 )
+
+internal fun fakeFunctionCall(
+    functionName: String = "fakeFunction",
+    returnType: KClass<*> = Unit::class,
+    args: List<CallArgument> = emptyList()
+): FunctionCall {
+    return  FunctionCall(
+        function = Function(functionName, args.map(CallArgument::parameter), returnType),
+        args = args
+    )
+}
