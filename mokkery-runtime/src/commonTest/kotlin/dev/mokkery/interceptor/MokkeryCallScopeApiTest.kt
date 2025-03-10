@@ -2,6 +2,7 @@ package dev.mokkery.interceptor
 
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.context.MokkeryTools
+import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
