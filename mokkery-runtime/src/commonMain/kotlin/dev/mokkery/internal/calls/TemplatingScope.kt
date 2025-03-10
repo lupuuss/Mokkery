@@ -7,12 +7,14 @@ import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.MokkeryMockInstance
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.interceptor
+import dev.mokkery.internal.mokkeryMockInterceptor
 import dev.mokkery.internal.names.SignatureGenerator
+import dev.mokkery.internal.utils.MocksCollection
+import dev.mokkery.internal.utils.MutableMocksCollection
 import dev.mokkery.internal.utils.asListOrNull
+import dev.mokkery.internal.utils.forEachScope
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.subListAfter
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
@@ -23,7 +25,7 @@ import kotlin.reflect.KClass
 
 internal interface TemplatingScope : ArgMatchersScope {
 
-    val mocks: Set<MokkeryMockInstance>
+    val mocks: MocksCollection
     val templates: List<CallTemplate>
     val currentGenericReturnTypeHint: KClass<*>?
 
@@ -41,7 +43,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(scope: MokkeryScope = GlobalMokkeryScope): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = scope.tools.signatureGenerator,
     composer = scope.tools.argMatchersComposer,
-    binder = TemplatingScopeDataBinder(scope.tools.instanceLookup),
+    binder = TemplatingScopeDataBinder(scope.tools.scopeLookup),
     autofill = scope.tools.autofillProvider
 )
 
@@ -54,7 +56,7 @@ private class TemplatingScopeImpl(
     private var isReleased = false
     private val currentArgMatchers = mutableListOf<ArgMatcher<Any?>>()
 
-    override val mocks = mutableSetOf<MokkeryMockInstance>()
+    override val mocks = MutableMocksCollection()
     override val templates = mutableListOf<CallTemplate>()
     override val currentGenericReturnTypeHint: KClass<*>?
         get() = binder.firstProperlyBoundedData().genericReturnTypeHint
@@ -64,12 +66,12 @@ private class TemplatingScopeImpl(
         val scope = binder.bind(token, obj) ?: return
         // filters out unimplemented KClasses on K/N
         binder.getDataFor(token)?.genericReturnTypeHint = genericReturnTypeHint?.takeIfImplementedOrAny()
-        val templating = scope.interceptor.templating
+        val templating = scope.mokkeryMockInterceptor.templating
         when {
             templating.isEnabledWith(this) -> return
             templating.isEnabled -> throw ConcurrentTemplatingException()
             else -> {
-                mocks.add(scope)
+                mocks.upsertScope(scope)
                 templating.start(this)
             }
         }
@@ -77,7 +79,7 @@ private class TemplatingScopeImpl(
 
     override fun release() {
         isReleased = true
-        mocks.forEach { it.interceptor.templating.stop() }
+        mocks.forEachScope { it.mokkeryMockInterceptor.templating.stop() }
         mocks.clear()
     }
 

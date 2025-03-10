@@ -17,8 +17,8 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.ScopeCapturingAnswer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallTraceReceiverShortener
-import dev.mokkery.test.TestMokkeryInstance
-import dev.mokkery.test.TestMokkeryInstanceLookup
+import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -37,7 +37,7 @@ class AnsweringInterceptorTest {
     private val tools = MokkeryTools(
         callMatcher = callMatcher,
         callTraceReceiverShortener = TestCallTraceReceiverShortener(),
-        instanceLookup = TestMokkeryInstanceLookup()
+        instanceLookup = TestMokkeryScopeLookup()
     )
     private val context = tools + currentMockContext(MockMode.strict)
     private val answering = AnsweringInterceptor()
@@ -96,7 +96,7 @@ class AnsweringInterceptorTest {
 
     @Test
     fun testCallsOriginalOnInterceptCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
+        val lookUp = TestMokkeryScopeLookup { TestMokkeryInstanceScope(interceptedTypes = listOf(Unit::class)) }
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
             context = context + tools.copy(instanceLookup = lookUp) + currentMockContext(original)
@@ -106,7 +106,7 @@ class AnsweringInterceptorTest {
 
     @Test
     fun testCallsOriginalOnInterceptSuspendCallWhenInterceptedTypeSuperCallPresentForMockModeOriginal() = runTest {
-        val lookUp = TestMokkeryInstanceLookup { TestMokkeryInstance(interceptedTypes = listOf(Unit::class)) }
+        val lookUp = TestMokkeryScopeLookup { TestMokkeryInstanceScope(interceptedTypes = listOf(Unit::class)) }
         val suspendSuper: suspend (List<Any?>) -> Any? = { 11 }
         val scope = testSuspendCallScope<Int>(
             supers = mapOf(Unit::class to suspendSuper.unsafeCast()),
@@ -265,5 +265,5 @@ class AnsweringInterceptorTest {
         assertEquals(scope.supers, answer.capturedScope!!.supers)
     }
 
-    private fun currentMockContext(mode: MockMode) = TestMokkeryInstance(mode = mode).currentMockContext
+    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).currentMockContext
 }

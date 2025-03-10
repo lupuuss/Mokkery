@@ -7,6 +7,7 @@ import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.calls.TemplatingScope
+import dev.mokkery.internal.utils.getScope
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatchersScope
 
@@ -27,8 +28,8 @@ internal fun <T> internalEvery(
     }
     return try {
         val template = scope.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-        val mock = scope.mocks.first { it.id == template.receiver }
-        UnifiedAnsweringScope(mock.interceptor.answering, template)
+        val mock = scope.mocks.getScope(template.receiver)
+        UnifiedAnsweringScope(mock.mokkeryMockInterceptor.answering, template)
     } finally {
         scope.release()
     }

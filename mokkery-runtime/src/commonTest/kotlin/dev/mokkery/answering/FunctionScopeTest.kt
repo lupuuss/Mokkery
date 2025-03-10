@@ -3,8 +3,6 @@ package dev.mokkery.answering
 
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.test.TestMokkeryInstance
-import dev.mokkery.test.TestMokkeryInstanceLookup
 import dev.mokkery.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.Test

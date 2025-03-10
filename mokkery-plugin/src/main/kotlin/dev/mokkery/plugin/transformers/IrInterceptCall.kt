@@ -80,12 +80,12 @@ fun IrBlockBodyBuilder.irInterceptCall(
     irCallSpyLambda: IrExpression? = null
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
-    val mokkeryInstanceClass = transformer.getClass(Mokkery.Class.MokkeryInstance)
+    val instanceScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstanceScope)
     val interceptFun = interceptorClass
         .functions
         .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
     return irCall(interceptFun) {
-        dispatchReceiver = mokkeryInstanceClass
+        dispatchReceiver = instanceScopeClass
             .getPropertyGetter("mokkeryInterceptor")!!
             .let(::irCall)
             .apply { dispatchReceiver = mokkeryInstance }

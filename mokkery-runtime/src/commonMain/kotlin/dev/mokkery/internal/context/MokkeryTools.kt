@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package dev.mokkery.internal.context
 
 import dev.mokkery.MokkeryScope
@@ -5,9 +7,8 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
-import dev.mokkery.internal.MokkeryInstance
-import dev.mokkery.internal.MokkeryInstanceLookup
-import dev.mokkery.internal.MokkeryMockInstance
+import dev.mokkery.internal.MokkeryInstanceScope
+import dev.mokkery.internal.MokkeryScopeLookup
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.calls.ArgMatchersComposer
 import dev.mokkery.internal.calls.CallMatcher
@@ -18,15 +19,16 @@ import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
+import dev.mokkery.internal.resolveInstance
+import dev.mokkery.internal.resolveScope
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.verify.VerifierFactory
 
 internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
 
-
 internal class MokkeryTools(
-    instanceLookup: MokkeryInstanceLookup? = null,
+    instanceLookup: MokkeryScopeLookup? = null,
     namesShortener: NameShortener? = null,
     instanceIdGenerator: MokkeryInstanceIdGenerator? = null,
     signatureGenerator: SignatureGenerator? = null,
@@ -37,9 +39,9 @@ internal class MokkeryTools(
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
     verifierFactory: VerifierFactory? = null,
-) : MokkeryContext.Element {
+) : MokkeryContext.Element, MockInstantiationListener {
 
-    private val _instanceLookup: MokkeryInstanceLookup? = instanceLookup
+    private val _scopeLookup: MokkeryScopeLookup? = instanceLookup
     private val _namesShortener: NameShortener? = namesShortener
     private val _instanceIdGenerator: MokkeryInstanceIdGenerator? = instanceIdGenerator
     private val _signatureGenerator: SignatureGenerator? = signatureGenerator
@@ -51,8 +53,8 @@ internal class MokkeryTools(
     private val _autofillProvider = autofillProvider
     private val _verifierFactory = verifierFactory
 
-    val instanceLookup: MokkeryInstanceLookup
-        get() = _instanceLookup ?: mokkeryRuntimeError("MokkeryInstanceLookup not present in the tools!")
+    val scopeLookup: MokkeryScopeLookup
+        get() = _scopeLookup ?: mokkeryRuntimeError("MokkeryScopeLookup not present in the tools!")
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
     val instanceIdGenerator: MokkeryInstanceIdGenerator
@@ -74,8 +76,12 @@ internal class MokkeryTools(
     val verifierFactory: VerifierFactory
         get() = _verifierFactory ?: mokkeryRuntimeError("VerifierFactory not present in tools!")
 
+    override val key = Key
+
+    override fun onMockInstantiation(obj: Any, scope: MokkeryInstanceScope) = scopeLookup.registerScope(obj, scope)
+
     fun copy(
-        instanceLookup: MokkeryInstanceLookup? = _instanceLookup,
+        instanceLookup: MokkeryScopeLookup? = _scopeLookup,
         namesShortener: NameShortener? = _namesShortener,
         instanceIdGenerator: MokkeryInstanceIdGenerator? = _instanceIdGenerator,
         signatureGenerator: SignatureGenerator? = _signatureGenerator,
@@ -100,8 +106,6 @@ internal class MokkeryTools(
         verifierFactory = verifierFactory
     )
 
-    override val key = Key
-
     companion object Key : MokkeryContext.Key<MokkeryTools> {
 
         fun default(): MokkeryTools {
@@ -111,7 +115,7 @@ internal class MokkeryTools(
             val signatureGenerator = SignatureGenerator()
             val callMatcher = CallMatcher(signatureGenerator)
             return MokkeryTools(
-                instanceLookup = MokkeryInstanceLookup(),
+                instanceLookup = MokkeryScopeLookup(),
                 namesShortener = namesShortener,
                 instanceIdGenerator = instanceIdGenerator,
                 signatureGenerator = signatureGenerator,
@@ -127,10 +131,8 @@ internal class MokkeryTools(
     }
 }
 
-internal fun MokkeryTools.resolveMockInstance(obj: Any?): MokkeryMockInstance? {
-    return instanceLookup.resolve(obj) as? MokkeryMockInstance
-}
+internal inline fun MokkeryTools.resolveScope(obj: Any?) = scopeLookup.resolveScope(obj)
 
-internal fun MokkeryTools.reverseResolveInstance(instance: MokkeryInstance): Any? {
-    return instanceLookup.reverseResolve(instance)
-}
+internal inline fun MokkeryTools.resolveInstance(instance: MokkeryInstanceScope) = scopeLookup.resolveInstance(instance)
+
+internal inline fun MokkeryTools.resolveScopeOrNull(obj: Any?) = scopeLookup.resolveScopeOrNull(obj)

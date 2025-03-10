@@ -13,7 +13,7 @@ import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.interceptor.MokkeryMockInterceptor
 import kotlin.reflect.KClass
 
-internal interface MokkeryInstance : MokkeryScope {
+internal interface MokkeryInstanceScope : MokkeryScope {
 
     val mokkeryInterceptor: MokkeryCallInterceptor
 }
@@ -23,7 +23,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     mode: MockMode,
     kind: MokkeryKind,
     interceptedTypes: List<KClass<*>>,
-    instance: MokkeryInstance,
+    instance: MokkeryInstanceScope,
 ): MokkeryContext {
     return mokkeryContext + CurrentMockContext(
         id = tools.instanceIdGenerator.generate(typeName),
@@ -34,47 +34,29 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     )
 }
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.id
+internal val MokkeryInstanceScope.mockId
     get() = mokkeryContext.require(CurrentMockContext).id
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.interceptor
-    get() = mokkeryInterceptor
+internal val MokkeryInstanceScope.mokkeryMockInterceptor: MokkeryMockInterceptor
+    get() = mokkeryInterceptor as MokkeryMockInterceptor
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryInstance.interceptedTypes
-    get() = mokkeryContext.require(CurrentMockContext).interceptedTypes
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline val MokkeryMockInstance.interceptor
-    get() = mokkeryInterceptor
-
-internal val MokkeryInstance.mockId get() =
-    mokkeryContext.require(CurrentMockContext).id
-
-internal interface MokkeryMockInstance : MokkeryInstance {
-
-    override val mokkeryInterceptor: MokkeryMockInterceptor
-}
-
-internal fun MokkeryMockInstance(
+internal fun MokkeryInstanceScope(
     parent: MokkeryScope,
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
     mockedType: KClass<*>
-): MokkeryMockInstance {
-    return DynamicMokkeryMockInstance(parent, mode, kind, typeName, listOf(mockedType))
+): MokkeryInstanceScope {
+    return DynamicMokkeryInstanceScope(parent, mode, kind, typeName, listOf(mockedType))
 }
 
-private class DynamicMokkeryMockInstance(
+private class DynamicMokkeryInstanceScope(
     parent: MokkeryScope,
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
     interceptedTypes: List<KClass<*>>,
-) : MokkeryMockInstance {
+) : MokkeryInstanceScope {
 
     override val mokkeryInterceptor = MokkeryMockInterceptor()
 

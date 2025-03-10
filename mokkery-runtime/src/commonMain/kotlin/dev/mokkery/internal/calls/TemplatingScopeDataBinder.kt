@@ -1,13 +1,13 @@
 package dev.mokkery.internal.calls
 
-import dev.mokkery.internal.MokkeryMockInstance
-import dev.mokkery.internal.MokkeryInstanceLookup
+import dev.mokkery.internal.MokkeryInstanceScope
+import dev.mokkery.internal.MokkeryScopeLookup
 
 internal interface TemplatingScopeDataBinder {
 
     fun getDataFor(token: Int): RawTemplateData?
 
-    fun bind(token: Int, obj: Any?): MokkeryMockInstance?
+    fun bind(token: Int, obj: Any?): MokkeryInstanceScope?
 
     fun firstProperlyBoundedData(): RawTemplateData
 
@@ -16,11 +16,11 @@ internal interface TemplatingScopeDataBinder {
 
 
 internal fun TemplatingScopeDataBinder(
-    lookup: MokkeryInstanceLookup
+    lookup: MokkeryScopeLookup
 ): TemplatingScopeDataBinder = TemplatingScopeDataBinderImpl(lookup)
 
 private class TemplatingScopeDataBinderImpl(
-    private val lookup: MokkeryInstanceLookup
+    private val lookup: MokkeryScopeLookup
 ) : TemplatingScopeDataBinder {
 
     private val data = mutableMapOf<Int, RawTemplateData>()
@@ -28,14 +28,14 @@ private class TemplatingScopeDataBinderImpl(
 
     override fun getDataFor(token: Int): RawTemplateData? {
         val binding = bindings[token]
-        if (binding != null && lookup.resolve(binding) == null) return null
+        if (binding != null && lookup.resolveScopeOrNull(binding) == null) return null
         return data.getOrPut(token) { RawTemplateData() }
     }
 
-    override fun bind(token: Int, obj: Any?): MokkeryMockInstance? {
+    override fun bind(token: Int, obj: Any?): MokkeryInstanceScope? {
         obj ?: return null
         bindings[token] = obj
-        val scope = lookup.resolve(obj) as? MokkeryMockInstance
+        val scope = lookup.resolveScopeOrNull(obj)
         if (scope != null) getDataFor(token)
         return scope
     }

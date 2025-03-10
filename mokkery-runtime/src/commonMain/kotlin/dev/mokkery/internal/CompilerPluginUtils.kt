@@ -16,14 +16,13 @@ import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.asAutofillProvided
 import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.AssociatedFunctions
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
-internal fun MokkeryScope.createMokkeryBlockingCallScope(
+internal fun MokkeryInstanceScope.createMokkeryBlockingCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
@@ -31,7 +30,7 @@ internal fun MokkeryScope.createMokkeryBlockingCallScope(
     spyDelegate: kotlin.Function<Any?>? = null
 ) = MokkeryBlockingCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
 
-internal fun MokkeryScope.createMokkerySuspendCallScope(
+internal fun MokkeryInstanceScope.createMokkerySuspendCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
@@ -39,10 +38,7 @@ internal fun MokkeryScope.createMokkerySuspendCallScope(
     spyDelegate: kotlin.Function<Any?>? = null
 ) = MokkerySuspendCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
 
-internal val GlobalMokkeryInstanceLookup
-    get() = GlobalMokkeryScope.tools.instanceLookup
-
-private fun MokkeryScope.createMokkeryCallContext(
+private fun MokkeryInstanceScope.createMokkeryCallContext(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
