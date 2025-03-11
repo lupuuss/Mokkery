@@ -20,3 +20,9 @@ public class FunctionCall internal constructor(
  * Returns [CallArgument.value] of argument at [index] from [FunctionCall.args] and expects that it is an instance of type [T].
  */
 public inline fun <reified T> FunctionCall.argValue(index: Int): T = args[index].value as T
+
+/**
+ * Return values of all [FunctionCall.args].
+ */
+public val FunctionCall.argValues: List<Any?>
+    get() = args.map(CallArgument::value)
