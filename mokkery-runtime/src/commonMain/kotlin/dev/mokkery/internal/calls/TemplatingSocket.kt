@@ -1,36 +1,48 @@
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal.calls
 
-import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkeryCallInterceptor
+import dev.mokkery.MokkeryScope
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.atomic
+import kotlin.reflect.KClass
 
-internal interface TemplatingInterceptor : MokkeryCallInterceptor {
+internal interface TemplatingSocket : MokkeryContext.Element {
 
+    override val key: MokkeryContext.Key<*> get() = Key
+    
     val isEnabled: Boolean
+
+    val currentGenericHint: KClass<*>?
 
     fun isEnabledWith(scope: TemplatingScope): Boolean
 
     fun start(scope: TemplatingScope)
 
     fun stop()
+
+    fun saveTemplate(scope: MokkeryCallScope)
+    
+    companion object Key : MokkeryContext.Key<TemplatingSocket>
 }
 
-internal fun TemplatingInterceptor(): TemplatingInterceptor = TemplatingInterceptorImpl()
+internal val MokkeryScope.templating: TemplatingSocket
+    get() = mokkeryContext.require(TemplatingSocket)
 
-private class TemplatingInterceptorImpl : TemplatingInterceptor {
+internal fun TemplatingSocket(): TemplatingSocket = TemplatingSocketImpl()
 
+private class TemplatingSocketImpl : TemplatingSocket {
+    
     private var _isEnabled by atomic(false)
     private var templatingScope by atomic<TemplatingScope?>(null)
     override val isEnabled: Boolean get() = _isEnabled
+
+    override val currentGenericHint: KClass<*>?
+        get() = templatingScope?.currentGenericReturnTypeHint
+
     override fun isEnabledWith(scope: TemplatingScope): Boolean = templatingScope == scope
 
     override fun start(scope: TemplatingScope) {
@@ -45,17 +57,10 @@ private class TemplatingInterceptorImpl : TemplatingInterceptor {
         templatingScope = null
     }
 
-    override fun intercept(scope: MokkeryBlockingCallScope) = intercept(scope) { scope.nextIntercept() }
-
-    override suspend fun intercept(scope: MokkerySuspendCallScope) = intercept(scope) { scope.nextIntercept() }
-
-    private inline fun intercept(scope: MokkeryCallScope, nextIntercept: () -> Any?): Any? {
-        if (!_isEnabled) return nextIntercept()
-        val hint = templatingScope?.currentGenericReturnTypeHint
+    override fun saveTemplate(scope: MokkeryCallScope) {
         val call = scope.call
         templatingScope
             ?.saveTemplate(scope.currentMockContext.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
-        return scope.tools.autofillProvider.provideValue(hint ?: call.function.returnType)
     }
 }

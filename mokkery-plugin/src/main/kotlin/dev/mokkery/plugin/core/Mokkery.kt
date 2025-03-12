@@ -67,7 +67,7 @@ object Mokkery {
         val createMokkeryInstanceContext by dev_mokkery_internal.function
         val invokeMockInstantiationListener by dev_mokkery_internal_context.function
         val autofillConstructor by dev_mokkery_internal.function
-        val MokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
+        val mokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
         val createMokkerySuspendCallScope by dev_mokkery_internal.function
     }

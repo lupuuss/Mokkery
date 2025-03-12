@@ -187,7 +187,7 @@ private fun IrClass.addMockClassConstructor(
     classesToIntercept: List<IrClass>,
 ) {
     val context = transformer.pluginContext
-    val mokkeryMockInterceptorFun = transformer.getFunction(Mokkery.Function.MokkeryMockInterceptor)
+    val mokkeryMockInterceptorFun = transformer.getFunction(Mokkery.Function.mokkeryMockInterceptor)
     val mokkeryScopeClass = transformer.getClass(Mokkery.Class.MokkeryScope)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)

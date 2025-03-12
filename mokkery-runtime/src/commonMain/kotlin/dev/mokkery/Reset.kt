@@ -1,9 +1,10 @@
 package dev.mokkery
 
 import dev.mokkery.internal.GlobalMokkeryScope
+import dev.mokkery.internal.answering.answering
+import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.resolveScope
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.mokkeryMockInterceptor
 
 /**
  * Removes all answers configured for given [mocks].
@@ -11,7 +12,7 @@ import dev.mokkery.internal.mokkeryMockInterceptor
 public fun resetAnswers(vararg mocks: Any) {
     mocks.forEach {
         val instanceScope = GlobalMokkeryScope.tools.resolveScope(it)
-        instanceScope.mokkeryMockInterceptor.answering.reset()
+        instanceScope.answering.reset()
     }
 }
 
@@ -21,6 +22,6 @@ public fun resetAnswers(vararg mocks: Any) {
 public fun resetCalls(vararg mocks: Any) {
     mocks.forEach {
         val instanceScope = GlobalMokkeryScope.tools.resolveScope(it)
-        instanceScope.mokkeryMockInterceptor.callTracing.reset()
+        instanceScope.callTracing.reset()
     }
 }

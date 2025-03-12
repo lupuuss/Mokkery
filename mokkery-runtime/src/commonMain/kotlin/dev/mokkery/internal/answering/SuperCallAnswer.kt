@@ -1,12 +1,13 @@
 package dev.mokkery.internal.answering
 
+import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.utils.description
 import dev.mokkery.internal.utils.unsafeCast
 
-
+@Poko
 internal class SuperCallAnswer<T>(
     private val call: SuperCall,
 ) : Answer<T> {

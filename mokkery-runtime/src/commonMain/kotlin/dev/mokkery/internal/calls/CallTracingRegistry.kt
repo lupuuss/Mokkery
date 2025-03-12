@@ -1,17 +1,17 @@
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal.calls
 
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkeryCallInterceptor
+import dev.mokkery.MokkeryScope
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 
-internal interface CallTracingInterceptor : MokkeryCallInterceptor {
+internal interface CallTracingRegistry : MokkeryContext.Element {
+
+    override val key: MokkeryContext.Key<*> get() = Key
 
     val unverified: List<CallTrace>
 
@@ -20,18 +20,25 @@ internal interface CallTracingInterceptor : MokkeryCallInterceptor {
     fun reset()
 
     fun markVerified(trace: CallTrace)
+
+    fun trace(scope: MokkeryCallScope)
+
+    companion object Key : MokkeryContext.Key<CallTracingRegistry>
 }
 
-internal fun CallTracingInterceptor(): CallTracingInterceptor = CallTracingInterceptorImpl()
+internal val MokkeryScope.callTracing: CallTracingRegistry
+    get() = mokkeryContext.require(CallTracingRegistry)
 
-private class CallTracingInterceptorImpl() : CallTracingInterceptor {
+internal fun CallTracingRegistry(): CallTracingRegistry = CallTracingRegistryImpl()
+
+private class CallTracingRegistryImpl : CallTracingRegistry {
 
     private val verified = mutableListOf<CallTrace>()
     private val _all = mutableListOf<CallTrace>()
-
     private val lock = reentrantLock()
 
     override val unverified: List<CallTrace> get() = lock.withLock { _all - verified.toSet() }
+
     override val all: List<CallTrace> get() = lock.withLock { _all.toMutableList() }
 
     override fun reset() = lock.withLock {
@@ -43,16 +50,7 @@ private class CallTracingInterceptorImpl() : CallTracingInterceptor {
         lock.withLock { verified += trace }
     }
 
-    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
-        traceCallOf(scope)
-        return scope.nextIntercept()
-    }
-
-    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
-        traceCallOf(scope)
-        return scope.nextIntercept()
-    }
-    private fun traceCallOf(scope: MokkeryCallScope) {
+    override fun trace(scope: MokkeryCallScope) {
         val counter = scope.tools.callsCounter
         lock.withLock { _all += scope.toCallTrace(counter.next()) }
     }

@@ -1,20 +1,18 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.toFunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.answering.DelegateAnswer
-import dev.mokkery.internal.answering.SuperCallAnswer
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
@@ -26,21 +24,32 @@ import dev.mokkery.internal.names.shortToString
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
 
-internal interface AnsweringInterceptor : MokkeryCallInterceptor {
+internal interface AnsweringRegistry : MokkeryContext.Element {
+
+    override val key: MokkeryContext.Key<*>
+        get() = Key
 
     val answers: Map<CallTemplate, Answer<*>>
+
+    fun resolveAnswer(scope: MokkeryCallScope): Answer<*>
 
     fun setup(template: CallTemplate, answer: Answer<*>)
 
     fun reset()
+
+    companion object Key : MokkeryContext.Key<AnsweringRegistry>
 }
 
-internal fun AnsweringInterceptor(): AnsweringInterceptor = AnsweringInterceptorImpl()
+internal val MokkeryScope.answering: AnsweringRegistry
+    get() = mokkeryContext.require(AnsweringRegistry)
 
-private class AnsweringInterceptorImpl() : AnsweringInterceptor {
+internal fun AnsweringRegistry(): AnsweringRegistry = AnsweringRegistryImpl()
+
+private class AnsweringRegistryImpl : AnsweringRegistry {
 
     private val modifiers = atomic(0)
     private val _answers = linkedMapOf<CallTemplate, Answer<*>>()
+
     override val answers: Map<CallTemplate, Answer<*>> get() = _answers.toMutableMap()
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
@@ -55,17 +64,8 @@ private class AnsweringInterceptorImpl() : AnsweringInterceptor {
         }
     }
 
-    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
-        checkIfIsModified()
-        return findAnswerFor(scope).call(scope.toFunctionScope())
-    }
-
-    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
-        checkIfIsModified()
-        return findAnswerFor(scope).callSuspend(scope.toFunctionScope())
-    }
-
-    private fun findAnswerFor(scope: MokkeryCallScope): Answer<*> {
+    override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
+        if (modifiers.value > 0) throw ConcurrentTemplatingException()
         val trace = scope.toCallTrace(0)
         val answers = this._answers
         val callMatcher = scope.tools.callMatcher
@@ -100,10 +100,6 @@ private class AnsweringInterceptorImpl() : AnsweringInterceptor {
             val argValue = trace.args.find { it.parameter.name == name }?.value
             capture.capture(argValue)
         }
-    }
-
-    private inline fun checkIfIsModified() {
-        if (modifiers.value > 0) throw ConcurrentTemplatingException()
     }
 
     private inline fun modify(block: () -> Unit) {
