@@ -1,6 +1,5 @@
 package dev.mokkery.test.answers
 
-import dev.mokkery.answering.SuperCall
 import dev.mokkery.answering.SuperCall.Companion.original
 import dev.mokkery.answering.SuperCall.Companion.originalWith
 import dev.mokkery.answering.SuperCall.Companion.superOf

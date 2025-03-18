@@ -8,13 +8,12 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.test.AbstractClassLevel1
-import dev.mokkery.test.AbstractClassLevel2
 import dev.mokkery.test.ComplexType
 import dev.mokkery.verify
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-abstract class MocksAbstractClassTest {
+class MocksAbstractClassTest {
 
     private val mock = mock<AbstractClassLevel1>()
 
@@ -41,8 +40,8 @@ abstract class MocksAbstractClassTest {
 
     @Test
     fun testCallPrimitiveSuper() {
-        every { mock.callPrimitive(any()) } calls superOf<AbstractClassLevel2>()
-        assertEquals(5, mock.callPrimitive(4))
+        every { mock.callPrimitive(any()) } calls superOf<AbstractClassLevel1>()
+        assertEquals(4, mock.callPrimitive(4))
         verify { mock.callPrimitive(4) }
     }
 
