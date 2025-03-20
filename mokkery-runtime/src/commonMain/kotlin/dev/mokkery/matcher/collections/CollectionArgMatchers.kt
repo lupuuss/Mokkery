@@ -1,6 +1,5 @@
 package dev.mokkery.matcher.collections
 
-import dev.drewhamilton.poko.ArrayContentBased
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.asListOrNull
@@ -51,7 +50,7 @@ public object CollectionArgMatchers {
      */
     @Poko
     public class ContentDeepEquals<T>(
-        @ArrayContentBased public val array: Array<T>
+        @Poko.ReadArrayContent public val array: Array<T>
     ): ArgMatcher<Array<T>> {
 
         override fun matches(arg: Array<T>): Boolean = arg contentDeepEquals array
