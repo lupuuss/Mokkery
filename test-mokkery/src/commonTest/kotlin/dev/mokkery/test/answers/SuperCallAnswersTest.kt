@@ -1,5 +1,6 @@
 package dev.mokkery.test.answers
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.SuperCall.Companion.original
 import dev.mokkery.answering.SuperCall.Companion.originalWith
 import dev.mokkery.answering.SuperCall.Companion.superOf
@@ -15,6 +16,7 @@ import dev.mokkery.test.DefaultsInterfaceLevel2
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class SuperCallAnswersTest {
 
@@ -146,4 +148,17 @@ class SuperCallAnswersTest {
         everySuspend { mock.callSuspend(any(), any()) } calls superWith<DefaultsInterfaceLevel1<Int>>(5, ComplexType)
         assertEquals(ComplexType("5"), mock.callSuspend(1))
     }
+
+    @Test
+    fun testCallsSuperFailsOnIndirectSuperType() {
+        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
+        assertFailsWith<MokkeryRuntimeException> { mock.call(1) }
+    }
+
+    @Test
+    fun testCallsSuperSuspendFailsOnIndirectSuperType() = runTest {
+        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
+        assertFailsWith<MokkeryRuntimeException> { mock.callSuspend(1) }
+    }
+
 }

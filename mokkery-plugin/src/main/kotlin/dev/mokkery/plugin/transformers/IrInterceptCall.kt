@@ -2,7 +2,6 @@ package dev.mokkery.plugin.transformers
 
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
-import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.ir.defaultTypeErased
@@ -14,7 +13,7 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irLambda
-import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
+import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.nonDispatchParametersCompat
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
@@ -123,10 +122,8 @@ private fun IrBuilderWithScope.irCallArgsList(
 }
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {
-    val allowIndirectSuperCalls = transformer.allowIndirectSuperCalls
-    val defaultMode = transformer.pluginContext.languageVersionSettings.getFlag(JvmAnalysisFlags.jvmDefaultMode)
     val supers = function.overriddenSymbols
-        .filter { it.owner.isJvmBinarySafeSuperCall(function, defaultMode, allowIndirectSuperCalls) }
+        .filter { it.owner.isSuperCallFor(function) }
         .takeIf { it.isNotEmpty() }
         ?.map { it.owner }
         ?: return null

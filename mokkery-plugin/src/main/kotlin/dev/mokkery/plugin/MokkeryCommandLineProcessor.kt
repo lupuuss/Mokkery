@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
 val MOCK_MODE_KEY = CompilerConfigurationKey<List<MockMode>>("mockMode")
 val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
-val ALLOW_INDIRECT_SUPER_CALLS = CompilerConfigurationKey<List<Boolean>>("allowIndirectSuperCalls")
 val IGNORE_INLINE_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreInlineMembers")
 val IGNORE_FINAL_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreFinalMembers")
 
@@ -38,13 +37,6 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             allowMultipleOccurrences = false
         ),
         CliOption(
-            optionName = ALLOW_INDIRECT_SUPER_CALLS.toString(),
-            valueDescription = "Boolean",
-            description = "Dictates if super calls to indirect types should be allowed whenever possible.",
-            required = true,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
             optionName = IGNORE_INLINE_MEMBERS.toString(),
             valueDescription = "Boolean",
             description = "Ignores inline members of mocked class if raised.",
@@ -64,7 +56,6 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
         return when (option.optionName) {
             MOCK_MODE_KEY.toString() -> configuration.add(MOCK_MODE_KEY, MockMode.valueOf(value))
             VERIFY_MODE_KEY.toString() -> configuration.add(VERIFY_MODE_KEY, VerifyModeSerializer.deserialize(value))
-            ALLOW_INDIRECT_SUPER_CALLS.toString() -> configuration.add(ALLOW_INDIRECT_SUPER_CALLS, value.toBoolean())
             IGNORE_INLINE_MEMBERS.toString() -> configuration.add(IGNORE_INLINE_MEMBERS, value.toBoolean())
             IGNORE_FINAL_MEMBERS.toString() -> configuration.add(IGNORE_FINAL_MEMBERS, value.toBoolean())
             else -> error("Unknown config option: $option")
