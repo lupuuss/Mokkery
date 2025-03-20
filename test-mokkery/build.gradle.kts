@@ -1,5 +1,4 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
-@file:Suppress("DEPRECATION")
 
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -18,8 +17,6 @@ allOpen {
 val mokkeryAllowIndirectSuperCalls: String by project
 
 mokkery {
-    @Suppress("DEPRECATION_ERROR")
-    allowIndirectSuperCalls.set(mokkeryAllowIndirectSuperCalls.toBoolean())
     ignoreFinalMembers.set(true)
 }
 
