@@ -1,7 +1,7 @@
 package dev.mokkery.internal.answering
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.test.TestAnsweringInterceptor
+import dev.mokkery.test.TestAnsweringRegistry
 import dev.mokkery.test.fakeCallTemplate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,9 +9,8 @@ import kotlin.test.assertEquals
 class UnifiedAnsweringScopeTest {
 
     private val template = fakeCallTemplate()
-    private val answering = TestAnsweringInterceptor()
+    private val answering = TestAnsweringRegistry()
     private val scope = UnifiedAnsweringScope<Int>(answering, template)
-
 
     @Test
     fun testAddsAnswerForGivenTemplate() {

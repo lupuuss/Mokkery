@@ -5,10 +5,9 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.interceptor.AnsweringInterceptor
 
 internal class UnifiedAnsweringScope<T>(
-    private val answering: AnsweringInterceptor,
+    private val answering: AnsweringRegistry,
     private val template: CallTemplate,
 ) : SuspendAnsweringScope<T>, BlockingAnsweringScope<T> {
 

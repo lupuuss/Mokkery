@@ -7,9 +7,9 @@ import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.resolveScope
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.mokkeryMockInterceptor
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.utils.failAssertion
@@ -81,9 +81,7 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
         .mocks
         .scopes
         .forEach { mock ->
-            val tracing = mock
-                .mokkeryMockInterceptor
-                .callTracing
+            val tracing = mock.callTracing
             if (tracing.unverified.isNotEmpty()) {
                 failAssertion {
                     val renderer = PointListRenderer<CallTrace>()

@@ -7,10 +7,13 @@ import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallInterceptor
+import dev.mokkery.internal.answering.AnsweringRegistry
+import dev.mokkery.internal.calls.CallTracingRegistry
+import dev.mokkery.internal.calls.TemplatingSocket
 import dev.mokkery.internal.context.CurrentMockContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.MokkeryKind
-import dev.mokkery.internal.interceptor.MokkeryMockInterceptor
+import dev.mokkery.internal.interceptor.mokkeryMockInterceptor
 import kotlin.reflect.KClass
 
 internal interface MokkeryInstanceScope : MokkeryScope {
@@ -25,20 +28,23 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     interceptedTypes: List<KClass<*>>,
     instance: MokkeryInstanceScope,
 ): MokkeryContext {
-    return mokkeryContext + CurrentMockContext(
-        id = tools.instanceIdGenerator.generate(typeName),
-        mode = mode,
-        kind = kind,
-        interceptedTypes = interceptedTypes,
-        self = instance
-    )
+    return mokkeryContext
+        .plus(CallTracingRegistry())
+        .plus(AnsweringRegistry())
+        .plus(TemplatingSocket())
+        .plus(
+            CurrentMockContext(
+                id = tools.instanceIdGenerator.generate(typeName),
+                mode = mode,
+                kind = kind,
+                interceptedTypes = interceptedTypes,
+                self = instance
+            )
+        )
 }
 
 internal val MokkeryInstanceScope.mockId
     get() = mokkeryContext.require(CurrentMockContext).id
-
-internal val MokkeryInstanceScope.mokkeryMockInterceptor: MokkeryMockInterceptor
-    get() = mokkeryInterceptor as MokkeryMockInterceptor
 
 internal fun MokkeryInstanceScope(
     parent: MokkeryScope,
@@ -58,7 +64,7 @@ private class DynamicMokkeryInstanceScope(
     interceptedTypes: List<KClass<*>>,
 ) : MokkeryInstanceScope {
 
-    override val mokkeryInterceptor = MokkeryMockInterceptor()
+    override val mokkeryInterceptor = mokkeryMockInterceptor()
 
     override val mokkeryContext = parent.createMokkeryInstanceContext(
         typeName = typeName,

@@ -9,14 +9,12 @@ import dev.mokkery.plugin.core.getFunction
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
-import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
@@ -102,7 +100,7 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
                     val provideCall = irCall(autofillFun) {
                         type = it.type
                         putTypeArgument(0, it.type)
-                        putValueArgument(0, kClassReference(it.type.eraseTypeParameters()))
+                        putValueArgument(0, kClassReference(it.type.eraseTypeParametersCompat()))
                     }
                     putArgument(it, provideCall)
                 }
@@ -178,7 +176,7 @@ fun IrBuilderWithScope.irInvoke(
 }
 
 inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
-    return irCall(symbol).apply(block)
+    return irCallCompat(symbol, symbol.owner.returnType).apply(block)
 }
 
 inline fun IrBuilderWithScope.irCall(
@@ -186,7 +184,7 @@ inline fun IrBuilderWithScope.irCall(
     type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCall(func.symbol, type).apply(block)
+    return irCallCompat(func.symbol, type).apply(block)
 }
 
 fun IrBuilderWithScope.irCall(
