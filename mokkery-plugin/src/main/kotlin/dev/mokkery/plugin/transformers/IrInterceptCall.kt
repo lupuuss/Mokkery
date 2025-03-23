@@ -1,9 +1,11 @@
 package dev.mokkery.plugin.transformers
 
+import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.eraseTypeParametersCompat
 import dev.mokkery.plugin.ir.getField
@@ -12,11 +14,11 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irCallMapOf
+import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.nonDispatchParametersCompat
-import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irAs
@@ -31,6 +33,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
@@ -48,14 +51,14 @@ import org.jetbrains.kotlin.ir.util.substitute
 fun IrBlockBodyBuilder.irInterceptMethod(
     transformer: TransformerScope,
     function: IrSimpleFunction,
-    irCallSpyLambda: IrExpression? = null,
+    mokkeryKind: IrMokkeryKind,
 ): IrCall {
     val parentClass = function.parentAsClass
     return irInterceptCall(
         transformer = transformer,
         mokkeryInstance = irGet(function.dispatchReceiverParameter!!),
         function = function,
-        irCallSpyLambda = irCallSpyLambda,
+        mokkeryKind = mokkeryKind,
         typeToKClassMapper = {
             val index = it.indexIfParameterOrNull(parentClass)
             if (index != null) {
@@ -74,11 +77,12 @@ fun IrBlockBodyBuilder.irInterceptCall(
     transformer: TransformerScope,
     mokkeryInstance: IrExpression,
     function: IrSimpleFunction,
+    mokkeryKind: IrMokkeryKind,
     typeToKClassMapper: IrBuilderWithScope.(IrType) -> IrExpression,
-    irCallSpyLambda: IrExpression? = null
 ): IrCall {
     val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
     val instanceScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstanceScope)
+    val getSpiedObject = transformer.getProperty(Mokkery.Property.spiedObject).getter!!
     val interceptFun = interceptorClass
         .functions
         .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
@@ -97,7 +101,16 @@ fun IrBlockBodyBuilder.irInterceptCall(
             putValueArgument(1, typeToKClassMapper(function.returnType))
             putValueArgument(2, irCallArgsList(transformer, function.nonDispatchParametersCompat, typeToKClassMapper))
             putValueArgument(3, irCallSupersMap(transformer, function))
-            if (irCallSpyLambda != null) putValueArgument(4, irCallSpyLambda)
+            if (mokkeryKind == IrMokkeryKind.Spy) {
+                val spiedObjectGet = irCall(getSpiedObject) { extensionReceiver = mokkeryInstance }
+                // js function does not have a dispatch parameter
+                val spyLambda = if (function.dispatchReceiverParameter == null) {
+                    irLambdaSpyFunctionCall(transformer, spiedObjectGet, function)
+                } else {
+                    irLambdaSpyMethodCall(transformer, spiedObjectGet, function)
+                }
+                putValueArgument(4, spyLambda)
+            }
         }
         putValueArgument(0, scopeCreationCall)
     }
@@ -173,5 +186,68 @@ private fun IrBuilderWithScope.createSuperCallLambda(
             }
         }
         +irReturn(superCall)
+    }
+}
+
+
+private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
+    transformer: TransformerScope,
+    spyObjectDelegate: IrExpression,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val spyFun = function.overriddenSymbols.first().owner
+        val typesMap = makeTypeParameterSubstitutionMap(spyFun, function)
+        val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
+            dispatchReceiver = spyObjectDelegate
+            function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
+            spyFun.nonDispatchParametersCompat.forEachIndexed { index, irValueParameter ->
+                putArgument(
+                    parameter = irValueParameter,
+                    argument = irAs(
+                        argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                            dispatchReceiver = irGet(lambda.valueParameters[0])
+                            putValueArgument(0, irInt(index))
+                        },
+                        type = irValueParameter.type.substitute(typesMap)
+                    )
+                )
+            }
+        }
+        +irReturn(spyCall)
+    }
+}
+
+private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
+    transformer: TransformerScope,
+    delegateLambda: IrExpression,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val args = Array(function.valueParameters.size) {
+            irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                dispatchReceiver = irGet(lambda.valueParameters[0])
+                putValueArgument(0, irInt(it))
+            }
+        }
+        +irReturn(irInvoke(function = delegateLambda, isSuspend = lambda.isSuspend, args = args))
     }
 }

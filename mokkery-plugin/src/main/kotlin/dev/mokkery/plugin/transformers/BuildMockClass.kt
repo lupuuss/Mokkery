@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irInt
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
@@ -97,15 +98,14 @@ fun TransformerScope.buildMockClass(
         scopeInstanceClass = instanceScopeClass,
         classesToIntercept = listOf(classToMock),
     )
-    val spyDelegateField = mockedClass.getField(Mokkery.Fields.SpyDelegate)
     mockedClass.overrideAllOverridableFunctions(pluginContext, classToMock) {
-        mockBody(this@buildMockClass, it, spyDelegateField)
+        mockBody(this@buildMockClass, it, mokkeryKind)
     }
     mockedClass.overrideAllOverridableProperties(
         context = pluginContext,
         superClass = classToMock,
-        getterBlock = { mockBody(this@buildMockClass, it, spyDelegateField) },
-        setterBlock = { mockBody(this@buildMockClass, it, spyDelegateField) }
+        getterBlock = { mockBody(this@buildMockClass, it, mokkeryKind) },
+        setterBlock = { mockBody(this@buildMockClass, it, mokkeryKind) }
     )
     return mockedClass
 }
@@ -137,7 +137,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
         .groupBy { it.signatureString(true) }
         .map { (_, functions) ->
             mockedClass.addOverridingMethod(pluginContext, functions, parameterMap) {
-                mockBody(this@buildManyMockClass, it, null)
+                mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock)
             }
         }
     classesToMock.flatMap { it.overridableProperties }
@@ -147,8 +147,8 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
                 context = pluginContext,
                 properties = properties,
                 parameterMap = parameterMap,
-                getterBlock = { mockBody(this@buildManyMockClass, it, null) },
-                setterBlock = { mockBody(this@buildManyMockClass, it, null) }
+                getterBlock = { mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock) },
+                setterBlock = { mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock) }
             )
         }
     return mockedClass
@@ -173,10 +173,9 @@ private fun List<IrClass>.typeWith(parameterMap: Map<IrTypeParameter, IrTypePara
 private fun IrBlockBodyBuilder.mockBody(
     transformer: TransformerScope,
     function: IrSimpleFunction,
-    spyDelegateField: IrField?,
+    mokkeryKind: IrMokkeryKind,
 ) {
-    val superCallLambda = spyDelegateField?.let { irLambdaSpyCall(transformer, it, function) }
-    +irReturn(irInterceptMethod(transformer, function, superCallLambda))
+    +irReturn(irInterceptMethod(transformer, function, mokkeryKind))
 }
 
 private fun IrClass.addMockClassConstructor(
@@ -232,15 +231,9 @@ private fun IrClass.addMockClassConstructor(
                         )
                     )
                     putValueArgument(4, irGet(thisReceiver!!))
+                    putValueArgument(5, spyParam?.let(::irGet) ?: irNull())
                 }
             )
-            if (spyParam != null) {
-                +irSetField(
-                    receiver = irGet(thisReceiver!!),
-                    field = addField(fieldName = Mokkery.Fields.SpyDelegate, fieldType = spyParam.type),
-                    value = irGet(spyParam)
-                )
-            }
             typeKClassParameters.forEachIndexed { index, it ->
                 +irSetField(
                     receiver = irGet(thisReceiver!!),
@@ -265,43 +258,6 @@ private fun IrClass.addMockClassConstructor(
 private fun IrConstructor.addSpyParameter(classesToIntercept: List<IrClass>): IrValueParameter {
     val classToSpy = classesToIntercept.singleOrNull() ?: error("Spy is not supported for intercepting multiple types!")
     return addValueParameter("obj", classToSpy.symbol.typeWithParameters(parentAsClass.typeParameters))
-}
-
-private fun IrBlockBodyBuilder.irLambdaSpyCall(
-    transformer: TransformerScope,
-    delegateField: IrField,
-    function: IrSimpleFunction,
-): IrFunctionExpression {
-    val pluginContext = transformer.pluginContext
-    val lambdaType = pluginContext
-        .irBuiltIns
-        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
-        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
-    return irLambda(
-        returnType = function.returnType,
-        lambdaType = lambdaType,
-        parent = parent,
-    ) { lambda ->
-        val spyFun = function.overriddenSymbols.first().owner
-        val typesMap = makeTypeParameterSubstitutionMap(spyFun, function)
-        val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
-            dispatchReceiver = irGetField(irGet(function.dispatchReceiverParameter!!), delegateField)
-            function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            spyFun.nonDispatchParametersCompat.forEachIndexed { index, irValueParameter ->
-                putArgument(
-                    parameter = irValueParameter,
-                    argument = irAs(
-                        argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
-                            dispatchReceiver = irGet(lambda.valueParameters[0])
-                            putValueArgument(0, irInt(index))
-                        },
-                        type = irValueParameter.type.substitute(typesMap)
-                    )
-                )
-            }
-        }
-        +irReturn(spyCall)
-    }
 }
 
 private fun Name.createUniqueMockName(type: String) = asString()

@@ -20,6 +20,7 @@ internal class CurrentMockContext(
     val kind: MokkeryKind,
     val interceptedTypes: List<KClass<*>>,
     val self: MokkeryInstanceScope,
+    val spiedObject: Any?,
 ) : MokkeryContext.Element {
 
     override fun toString(): String {

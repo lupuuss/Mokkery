@@ -75,6 +75,7 @@ object Mokkery {
     object Property {
 
         val mockId by dev_mokkery_internal.property
+        val spiedObject by dev_mokkery_internal.property
     }
 
     object Name {
@@ -152,8 +153,6 @@ object Mokkery {
     }
 
     object Fields {
-
-        const val SpyDelegate = "_mokkerySpyDelegate"
 
         fun typeArg(index: Int) = "_mokkeryTypeArg$index"
     }

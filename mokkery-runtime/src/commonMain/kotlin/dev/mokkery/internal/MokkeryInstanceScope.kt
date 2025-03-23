@@ -27,6 +27,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     kind: MokkeryKind,
     interceptedTypes: List<KClass<*>>,
     instance: MokkeryInstanceScope,
+    spiedObject: Any?
 ): MokkeryContext {
     return mokkeryContext
         .plus(CallTracingRegistry())
@@ -38,7 +39,8 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
                 mode = mode,
                 kind = kind,
                 interceptedTypes = interceptedTypes,
-                self = instance
+                self = instance,
+                spiedObject = spiedObject
             )
         )
 }
@@ -46,14 +48,18 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
 internal val MokkeryInstanceScope.mockId
     get() = mokkeryContext.require(CurrentMockContext).id
 
+internal val MokkeryInstanceScope.spiedObject
+    get() = mokkeryContext.require(CurrentMockContext).spiedObject
+
 internal fun MokkeryInstanceScope(
     parent: MokkeryScope,
     mode: MockMode,
     kind: MokkeryKind,
     typeName: String,
-    mockedType: KClass<*>
+    mockedType: KClass<*>,
+    spiedObject: Any?
 ): MokkeryInstanceScope {
-    return DynamicMokkeryInstanceScope(parent, mode, kind, typeName, listOf(mockedType))
+    return DynamicMokkeryInstanceScope(parent, mode, kind, typeName, listOf(mockedType), spiedObject)
 }
 
 private class DynamicMokkeryInstanceScope(
@@ -62,6 +68,7 @@ private class DynamicMokkeryInstanceScope(
     kind: MokkeryKind,
     typeName: String,
     interceptedTypes: List<KClass<*>>,
+    spiedObject: Any?,
 ) : MokkeryInstanceScope {
 
     override val mokkeryInterceptor = mokkeryMockInterceptor()
@@ -71,6 +78,7 @@ private class DynamicMokkeryInstanceScope(
         mode = mode,
         kind = kind,
         interceptedTypes = interceptedTypes,
-        instance = this
+        instance = this,
+        spiedObject = spiedObject
     )
 }
