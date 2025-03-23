@@ -8,8 +8,8 @@ import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.ir.eraseTypeParametersCompat
-import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
@@ -27,10 +27,11 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 fun TransformerScope.buildMockJsFunction(
     expression: IrCall,
@@ -55,17 +56,27 @@ fun TransformerScope.buildMockJsFunction(
                 putValueArgument(2, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
                 putValueArgument(3, irString(typeToMock.classFqName!!.asString()))
                 putValueArgument(4, kClassReference(typeToMock))
-                putValueArgument(5, if (kind == IrMokkeryKind.Spy) expression.valueArguments[0]!! else irNull())
+                putValueArgument(
+                    index = 5,
+                    valueArgument = irCallListOf(
+                        transformerScope = transformer,
+                        type = context.irBuiltIns.kClassClass.starProjectedType,
+                        expressions = typeArguments.memoryOptimizedMap { kClassReference(it) }
+                    )
+                )
+                putValueArgument(6, if (kind == IrMokkeryKind.Spy) expression.valueArguments[0]!! else irNull())
             }
             val instanceVar = createTmpVariable(mokkeryInstanceCall)
             val lambda = irLambda(returnType, typeToMock, currentFile) {
-                val parentClass = typeToMock.classOrFail.owner
-                val mapTypeToClass: IrBuilderWithScope.(IrType) -> IrExpression = {
-                    val index = it.indexIfParameterOrNull(parentClass)
-                    if (index != null) kClassReference(typeArguments[index])
-                    else kClassReference(it)
-                }
-                +irReturn(irInterceptCall(transformer, irGet(instanceVar), it, kind, mapTypeToClass))
+                +irReturn(
+                    irInterceptCall(
+                        transformer = transformer,
+                        mokkeryKind = kind,
+                        mokkeryInstance = irGet(instanceVar),
+                        typeParamsContainer = typeToMock.classOrFail.owner,
+                        function = it
+                    )
+                )
             }
             val lambdaVar = createTmpVariable(lambda)
             +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)) {

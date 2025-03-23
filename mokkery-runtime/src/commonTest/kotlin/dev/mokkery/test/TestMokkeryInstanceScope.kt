@@ -13,6 +13,7 @@ internal class TestMokkeryInstanceScope(
     kind: MokkeryKind = MokkeryKind.Mock,
     interceptedTypes: List<KClass<*>> = listOf(Unit::class),
     override val mokkeryInterceptor: TestMokkeryCallInterceptor = TestMokkeryCallInterceptor(),
+    typeArguments: List<KClass<*>> = emptyList(),
     spiedObject: Any? = null
 ) : MokkeryInstanceScope {
 
@@ -21,6 +22,7 @@ internal class TestMokkeryInstanceScope(
         mode = mode,
         kind = kind,
         interceptedTypes = interceptedTypes,
+        typeArguments = typeArguments,
         self = this,
         spiedObject = spiedObject
     )

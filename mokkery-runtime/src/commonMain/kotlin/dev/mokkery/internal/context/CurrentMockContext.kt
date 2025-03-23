@@ -19,6 +19,7 @@ internal class CurrentMockContext(
     val mode: MockMode,
     val kind: MokkeryKind,
     val interceptedTypes: List<KClass<*>>,
+    val typeArguments: List<KClass<*>>,
     val self: MokkeryInstanceScope,
     val spiedObject: Any?,
 ) : MokkeryContext.Element {

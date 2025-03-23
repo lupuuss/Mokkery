@@ -9,17 +9,14 @@ import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.getField
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irDelegatingDefaultConstructorOrAny
 import dev.mokkery.plugin.ir.irInvokeIfNotNull
-import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.irMokkeryKindValue
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.nonDispatchParametersCompat
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
@@ -29,29 +26,19 @@ import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
-import org.jetbrains.kotlin.ir.builders.declarations.addField
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
-import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetField
-import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
-import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
-import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
@@ -59,13 +46,10 @@ import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createParameterDeclarations
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
-import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
@@ -99,13 +83,13 @@ fun TransformerScope.buildMockClass(
         classesToIntercept = listOf(classToMock),
     )
     mockedClass.overrideAllOverridableFunctions(pluginContext, classToMock) {
-        mockBody(this@buildMockClass, it, mokkeryKind)
+        mockBody(this@buildMockClass, mokkeryKind, it)
     }
     mockedClass.overrideAllOverridableProperties(
         context = pluginContext,
         superClass = classToMock,
-        getterBlock = { mockBody(this@buildMockClass, it, mokkeryKind) },
-        setterBlock = { mockBody(this@buildMockClass, it, mokkeryKind) }
+        getterBlock = { mockBody(this@buildMockClass, mokkeryKind, it) },
+        setterBlock = { mockBody(this@buildMockClass, mokkeryKind, it) }
     )
     return mockedClass
 }
@@ -137,7 +121,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
         .groupBy { it.signatureString(true) }
         .map { (_, functions) ->
             mockedClass.addOverridingMethod(pluginContext, functions, parameterMap) {
-                mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock)
+                mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it)
             }
         }
     classesToMock.flatMap { it.overridableProperties }
@@ -147,8 +131,8 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
                 context = pluginContext,
                 properties = properties,
                 parameterMap = parameterMap,
-                getterBlock = { mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock) },
-                setterBlock = { mockBody(this@buildManyMockClass, it, IrMokkeryKind.Mock) }
+                getterBlock = { mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it) },
+                setterBlock = { mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it) }
             )
         }
     return mockedClass
@@ -172,10 +156,10 @@ private fun List<IrClass>.typeWith(parameterMap: Map<IrTypeParameter, IrTypePara
 
 private fun IrBlockBodyBuilder.mockBody(
     transformer: TransformerScope,
-    function: IrSimpleFunction,
     mokkeryKind: IrMokkeryKind,
+    function: IrSimpleFunction,
 ) {
-    +irReturn(irInterceptMethod(transformer, function, mokkeryKind))
+    +irReturn(irInterceptMethod(transformer, mokkeryKind, function))
 }
 
 private fun IrClass.addMockClassConstructor(
@@ -230,17 +214,18 @@ private fun IrClass.addMockClassConstructor(
                             expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
                         )
                     )
-                    putValueArgument(4, irGet(thisReceiver!!))
-                    putValueArgument(5, spyParam?.let(::irGet) ?: irNull())
+                    putValueArgument(
+                        index = 4,
+                        valueArgument = irCallListOf(
+                            transformerScope = transformer,
+                            type = context.irBuiltIns.kClassClass.starProjectedType,
+                            expressions = typeKClassParameters.memoryOptimizedMap { irGet(it) }
+                        )
+                    )
+                    putValueArgument(5, irGet(thisReceiver!!))
+                    putValueArgument(6, spyParam?.let(::irGet) ?: irNull())
                 }
             )
-            typeKClassParameters.forEachIndexed { index, it ->
-                +irSetField(
-                    receiver = irGet(thisReceiver!!),
-                    field = addField(fieldName = Mokkery.Fields.typeArg(index), fieldType = it.type),
-                    value = irGet(it)
-                )
-            }
             +irCall(invokeInstantiationCallbacksFun) {
                 extensionReceiver = irGet(thisReceiver!!)
                 putValueArgument(0, irGet(thisReceiver!!))

@@ -65,6 +65,7 @@ object Mokkery {
         val MokkerySuiteScope by dev_mokkery.function
         val MokkeryInstanceScope by dev_mokkery_internal.function
         val createMokkeryInstanceContext by dev_mokkery_internal.function
+        val typeArgumentAt by dev_mokkery_internal.function
         val invokeMockInstantiationListener by dev_mokkery_internal_context.function
         val autofillConstructor by dev_mokkery_internal.function
         val mokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
@@ -150,11 +151,6 @@ object Mokkery {
             typeName: String,
             functionName: String
         ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
-    }
-
-    object Fields {
-
-        fun typeArg(index: Int) = "_mokkeryTypeArg$index"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

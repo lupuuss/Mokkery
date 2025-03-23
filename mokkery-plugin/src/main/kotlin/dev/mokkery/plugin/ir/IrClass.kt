@@ -115,8 +115,6 @@ fun IrType.indexIfParameterOrNull(parent: IrTypeParametersContainer): Int? {
     return param.index.takeIf { parent.typeParameters.getOrNull(param.index) == param }
 }
 
-fun IrClass.getField(name: String) = fields.find { it.name.asString() == name }
-
 fun IrClass.overrideAllOverridableProperties(
     context: IrGeneratorContext,
     superClass: IrClass,
