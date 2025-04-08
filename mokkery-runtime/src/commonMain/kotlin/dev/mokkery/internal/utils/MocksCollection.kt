@@ -4,9 +4,9 @@ package dev.mokkery.internal.utils
 
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.context.resolveInstance
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mockId
+import dev.mokkery.internal.resolveInstance
 
 internal interface MocksCollection {
 
@@ -39,8 +39,8 @@ internal inline fun MocksCollection.getScope(id: String): MokkeryInstanceScope =
 
 internal val MocksCollection.instances: List<Any>
     get() {
-        val tools = GlobalMokkeryScope.tools
-        return scopes.map(tools::resolveInstance)
+        val scopeLookup = GlobalMokkeryScope.tools.scopeLookup
+        return scopes.map(scopeLookup::resolveInstance)
     }
 
 internal operator fun MocksCollection.plus(other: MocksCollection): MocksCollection = MutableMocksCollection(scopes + other.scopes)

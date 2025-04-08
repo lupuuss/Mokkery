@@ -27,6 +27,14 @@ import dev.mokkery.internal.verify.VerifierFactory
 internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
 
+internal inline fun MokkeryScope.resolveScope(obj: Any?) = tools.scopeLookup.resolveScope(obj)
+
+internal inline fun MokkeryScope.resolveScopeOrNull(obj: Any?) = tools.scopeLookup.resolveScopeOrNull(obj)
+
+internal inline fun MokkeryScope.resolveInstance(instance: MokkeryInstanceScope) = tools
+    .scopeLookup
+    .resolveInstance(instance)
+
 internal class MokkeryTools(
     instanceLookup: MokkeryScopeLookup? = null,
     namesShortener: NameShortener? = null,
@@ -130,9 +138,3 @@ internal class MokkeryTools(
         }
     }
 }
-
-internal inline fun MokkeryTools.resolveScope(obj: Any?) = scopeLookup.resolveScope(obj)
-
-internal inline fun MokkeryTools.resolveInstance(instance: MokkeryInstanceScope) = scopeLookup.resolveInstance(instance)
-
-internal inline fun MokkeryTools.resolveScopeOrNull(obj: Any?) = scopeLookup.resolveScopeOrNull(obj)
