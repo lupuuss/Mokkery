@@ -7,7 +7,6 @@ import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.withContext
 
 internal fun combine(vararg interceptors: MokkeryCallInterceptor): MokkeryCallInterceptor {
     return RecursiveNextCallInterceptor(0, interceptors)

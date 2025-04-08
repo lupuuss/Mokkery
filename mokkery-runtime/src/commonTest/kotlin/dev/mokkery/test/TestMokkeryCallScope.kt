@@ -4,8 +4,8 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.internal.interceptor.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
 import kotlin.reflect.KClass
 

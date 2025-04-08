@@ -2,60 +2,16 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.getIfProvided
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.context.CallArgument
-import dev.mokkery.context.Function
-import dev.mokkery.context.FunctionCall
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.asAutofillProvided
 import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.context.AssociatedFunctions
-import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
-
-internal fun MokkeryInstanceScope.createMokkeryBlockingCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-) = MokkeryBlockingCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
-
-internal fun MokkeryInstanceScope.createMokkerySuspendCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-) = MokkerySuspendCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
-
-private fun MokkeryInstanceScope.createMokkeryCallContext(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>>,
-    spyDelegate: kotlin.Function<Any?>?
-): MokkeryContext {
-    val safeArgs = args.copyWithReplacedKClasses()
-    val call = FunctionCall(
-        function = Function(
-            name = name,
-            parameters = args.map(CallArgument::parameter),
-            returnType = returnType.takeIfImplementedOrAny()
-        ),
-        args = safeArgs
-    )
-    return mokkeryContext + call + AssociatedFunctions(supers, spyDelegate)
-}
 
 internal fun <T> autofillConstructor(type: KClass<*>): T = autofillConstructorProvider
     .provideValue(type.takeIfImplementedOrAny())
