@@ -34,7 +34,6 @@ object Mokkery {
 
         val MokkerySuiteScope by dev_mokkery.klass
 
-        val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
         val MokkeryInstanceScope by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
@@ -68,7 +67,6 @@ object Mokkery {
         val typeArgumentAt by dev_mokkery_internal.function
         val autofillConstructor by dev_mokkery_internal.function
         val invokeMockInstantiationListener by dev_mokkery_internal_context.function
-        val mokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal_interceptor.function
         val createMokkerySuspendCallScope by dev_mokkery_internal_interceptor.function
     }
@@ -77,6 +75,7 @@ object Mokkery {
 
         val mockId by dev_mokkery_internal.property
         val spiedObject by dev_mokkery_internal.property
+        val interceptor by dev_mokkery_internal.property
     }
 
     object Name {

@@ -170,12 +170,10 @@ private fun IrClass.addMockClassConstructor(
     classesToIntercept: List<IrClass>,
 ) {
     val context = transformer.pluginContext
-    val mokkeryMockInterceptorFun = transformer.getFunction(Mokkery.Function.mokkeryMockInterceptor)
     val mokkeryScopeClass = transformer.getClass(Mokkery.Class.MokkeryScope)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
     val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)
-    val interceptor = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryInterceptor"))
     val contextProperty = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryContext"))
     addConstructor {
         isPrimary = true
@@ -193,11 +191,6 @@ private fun IrClass.addMockClassConstructor(
             .memoryOptimizedMapIndexed { index, it -> addValueParameter("type$index", kClassType) }
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
             +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
-            +irSetPropertyField(
-                thisParam = thisReceiver!!,
-                property = interceptor,
-                value = irCall(mokkeryMockInterceptorFun)
-            )
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = contextProperty,

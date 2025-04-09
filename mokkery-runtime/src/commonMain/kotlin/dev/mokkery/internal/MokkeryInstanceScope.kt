@@ -17,10 +17,7 @@ import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.interceptor.mokkeryMockInterceptor
 import kotlin.reflect.KClass
 
-internal interface MokkeryInstanceScope : MokkeryScope {
-
-    val mokkeryInterceptor: MokkeryCallInterceptor
-}
+internal interface MokkeryInstanceScope : MokkeryScope
 
 internal fun MokkeryScope.createMokkeryInstanceContext(
     typeName: String,
@@ -43,16 +40,20 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
                 interceptedTypes = interceptedTypes,
                 typeArguments = typeArguments,
                 self = instance,
-                spiedObject = spiedObject
+                spiedObject = spiedObject,
+                interceptor = mokkeryMockInterceptor()
             )
         )
 }
 
 internal val MokkeryInstanceScope.mockId
-    get() = mokkeryContext.require(CurrentMockContext).id
+    get() = currentMockContext.id
 
 internal val MokkeryInstanceScope.spiedObject
-    get() = mokkeryContext.require(CurrentMockContext).spiedObject
+    get() = currentMockContext.spiedObject
+
+internal val MokkeryInstanceScope.interceptor: MokkeryCallInterceptor
+    get() = currentMockContext.interceptor
 
 internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = currentMockContext
     .typeArguments
@@ -85,8 +86,6 @@ private class DynamicMokkeryInstanceScope(
     typeArguments: List<KClass<*>> = emptyList(),
     spiedObject: Any?,
 ) : MokkeryInstanceScope {
-
-    override val mokkeryInterceptor = mokkeryMockInterceptor()
 
     override val mokkeryContext = parent.createMokkeryInstanceContext(
         typeName = typeName,
