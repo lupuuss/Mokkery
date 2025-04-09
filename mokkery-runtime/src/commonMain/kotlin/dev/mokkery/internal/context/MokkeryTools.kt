@@ -19,21 +19,11 @@ import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.SignatureGenerator
 import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
-import dev.mokkery.internal.resolveInstance
-import dev.mokkery.internal.resolveScope
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.verify.VerifierFactory
 
 internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
-
-internal inline fun MokkeryScope.resolveScope(obj: Any?) = tools.scopeLookup.resolveScope(obj)
-
-internal inline fun MokkeryScope.resolveScopeOrNull(obj: Any?) = tools.scopeLookup.resolveScopeOrNull(obj)
-
-internal inline fun MokkeryScope.resolveInstance(instance: MokkeryInstanceScope) = tools
-    .scopeLookup
-    .resolveInstance(instance)
 
 internal class MokkeryTools(
     instanceLookup: MokkeryScopeLookup? = null,

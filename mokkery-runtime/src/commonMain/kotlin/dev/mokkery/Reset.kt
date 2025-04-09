@@ -3,7 +3,7 @@ package dev.mokkery
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.callTracing
-import dev.mokkery.internal.context.resolveScope
+import dev.mokkery.internal.resolveScope
 
 /**
  * Removes all answers configured for given [mocks].

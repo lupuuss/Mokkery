@@ -7,9 +7,9 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockContext
-import dev.mokkery.internal.context.resolveInstance
 import dev.mokkery.internal.interceptor.mockInterceptor
 import dev.mokkery.internal.interceptor.withContext
+import dev.mokkery.internal.resolveInstance
 import kotlin.reflect.KClass
 
 /**
