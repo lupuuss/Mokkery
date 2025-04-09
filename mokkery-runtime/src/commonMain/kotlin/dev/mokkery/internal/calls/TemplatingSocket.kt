@@ -63,4 +63,6 @@ private class TemplatingSocketImpl : TemplatingSocket {
             ?.saveTemplate(scope.mockContext.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
     }
+
+    override fun toString(): String = "TemplatingSocket@${hashCode()}"
 }

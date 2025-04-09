@@ -114,6 +114,8 @@ internal class MokkeryTools(
         verifierFactory = verifierFactory
     )
 
+    override fun toString(): String = "MokkeryTools@${hashCode()}"
+
     companion object Key : MokkeryContext.Key<MokkeryTools> {
 
         fun default(): MokkeryTools {

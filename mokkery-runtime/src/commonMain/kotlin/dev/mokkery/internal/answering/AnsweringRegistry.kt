@@ -104,4 +104,6 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         block()
         modifiers.decrementAndGet()
     }
+
+    override fun toString(): String = "AnsweringRegistry@${hashCode()}"
 }

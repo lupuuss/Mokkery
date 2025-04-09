@@ -6,6 +6,7 @@ import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.interceptor.MokkeryKind
+import dev.mokkery.internal.utils.bestName
 import kotlin.reflect.KClass
 
 internal val MokkeryCallScope.mockContext: MockContext
@@ -30,8 +31,8 @@ internal class MockContext(
             "id='$id', " +
             "mode=$mode, " +
             "kind=$kind, " +
-            "interceptedTypes=$interceptedTypes, " +
-            "typeArguments=$typeArguments, " +
+            "interceptedTypes=[${interceptedTypes.joinToString { it.bestName() }}], " +
+            "typeArguments=[${typeArguments.joinToString { it.bestName() }}], " +
             "spiedObject=${spiedObject?.let { "hash(${it.hashCode()})" }}, " +
             "thisInstanceScope=hash(${thisInstanceScope.hashCode()}))"
 

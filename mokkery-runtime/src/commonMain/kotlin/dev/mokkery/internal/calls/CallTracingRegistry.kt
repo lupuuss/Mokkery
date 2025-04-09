@@ -54,4 +54,6 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
         val counter = scope.tools.callsCounter
         lock.withLock { _all += scope.toCallTrace(counter.next()) }
     }
+
+    override fun toString(): String = "CallTracingRegistry@${hashCode()}"
 }
