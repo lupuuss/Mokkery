@@ -11,7 +11,7 @@ import dev.mokkery.test.testSuspendCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CombineTest {
+class MokkeryMockInterceptorTest {
 
     private val interceptCalls = mutableListOf<MokkeryCallInterceptor>()
     private val interceptSuspendCalls = mutableListOf<MokkeryCallInterceptor>()
@@ -21,7 +21,7 @@ class CombineTest {
         val a = interceptor { it.nextIntercept() }
         val b = interceptor { it.nextIntercept() }
         val c = interceptor { 1 }
-        val interceptor = combine(a, b, c)
+        val interceptor = MockInterceptor(a, b, c)
         assertEquals(1, interceptor.intercept(MokkeryBlockingCallScope()))
         assertEquals(listOf(a, b, c), interceptCalls)
     }
@@ -31,7 +31,7 @@ class CombineTest {
         val a = interceptorSuspend { it.nextIntercept() }
         val b = interceptorSuspend { it.nextIntercept() }
         val c = interceptorSuspend { 2 }
-        val interceptor = combine(a, b, c)
+        val interceptor = MockInterceptor(a, b, c)
         assertEquals(2, interceptor.intercept(MokkerySuspendCallScope()))
         assertEquals(listOf(a, b, c), interceptSuspendCalls)
     }
@@ -41,7 +41,7 @@ class CombineTest {
         val a = interceptor { it.nextIntercept() }
         val b = interceptor { it.nextIntercept() as Int + 3 }
         val c = interceptor { 2 }
-        val interceptor = combine(a, b, c)
+        val interceptor = MockInterceptor(a, b, c)
         assertEquals(5, interceptor.intercept(MokkeryBlockingCallScope()))
         assertEquals(listOf(a, b, c), interceptCalls)
     }
@@ -51,7 +51,7 @@ class CombineTest {
         val a = interceptorSuspend { it.nextIntercept() }
         val b = interceptorSuspend { it.nextIntercept() as Int + 4 }
         val c = interceptorSuspend { 3 }
-        val interceptor = combine(a, b, c)
+        val interceptor = MockInterceptor(a, b, c)
         assertEquals(7, interceptor.intercept(MokkerySuspendCallScope()))
         assertEquals(listOf(a, b, c), interceptSuspendCalls)
     }
@@ -61,7 +61,7 @@ class CombineTest {
         val a = interceptor { it.nextIntercept() }
         val b = interceptor { it.nextIntercept(TestMokkeryContext(10)) }
         val c = interceptor { it.mokkeryContext[TestMokkeryContext]?.value }
-        val result = combine(a, b, c)
+        val result = MockInterceptor(a, b, c)
             .intercept(MokkeryBlockingCallScope(TestMokkeryContext(2)))
         assertEquals(10, result)
     }
@@ -71,7 +71,7 @@ class CombineTest {
         val a = interceptorSuspend { it.nextIntercept() }
         val b = interceptorSuspend { it.nextIntercept(TestMokkeryContext(11)) }
         val c = interceptorSuspend { it.mokkeryContext[TestMokkeryContext]?.value }
-        val result = combine(a, b, c)
+        val result = MockInterceptor(a, b, c)
             .intercept(MokkerySuspendCallScope(TestMokkeryContext(3)))
         assertEquals(11, result)
     }
@@ -81,7 +81,7 @@ class CombineTest {
         val a = interceptor { it.nextIntercept() }
         val b = interceptor { 10 }
         val c = interceptor { 11 }
-        val result = combine(a, b, c).intercept(testBlockingCallScope<Unit>())
+        val result = MockInterceptor(a, b, c).intercept(testBlockingCallScope<Unit>())
         assertEquals(10, result)
     }
 
@@ -90,7 +90,7 @@ class CombineTest {
         val a = interceptorSuspend { it.nextIntercept() }
         val b = interceptorSuspend { 11 }
         val c = interceptorSuspend { 12 }
-        val result = combine(a, b, c).intercept(testSuspendCallScope<Unit>())
+        val result = MockInterceptor(a, b, c).intercept(testSuspendCallScope<Unit>())
         assertEquals(11, result)
     }
 

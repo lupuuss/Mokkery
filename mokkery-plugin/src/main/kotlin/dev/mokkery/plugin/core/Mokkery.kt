@@ -14,7 +14,6 @@ object Mokkery {
 
     val dev_mokkery by fqName
     val dev_mokkery_context by fqName
-    val dev_mokkery_interceptor by fqName
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_context by fqName
     val dev_mokkery_internal_calls by fqName
@@ -75,7 +74,7 @@ object Mokkery {
 
         val mockId by dev_mokkery_internal.property
         val spiedObject by dev_mokkery_internal.property
-        val interceptor by dev_mokkery_internal.property
+        val mockInterceptor by dev_mokkery_internal_interceptor.property
     }
 
     object Name {

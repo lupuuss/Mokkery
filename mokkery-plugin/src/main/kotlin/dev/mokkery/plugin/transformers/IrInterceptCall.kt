@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
@@ -66,7 +65,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
     typeParamsContainer: IrTypeParametersContainer,
     function: IrSimpleFunction,
 ): IrCall {
-    val interceptorProperty = transformer.getProperty(Mokkery.Property.interceptor).getter!!
+    val interceptorProperty = transformer.getProperty(Mokkery.Property.mockInterceptor).getter!!
     val interceptorClass = interceptorProperty.returnType.classOrFail
     val getSpiedObject = transformer.getProperty(Mokkery.Property.spiedObject).getter!!
     val interceptFun = interceptorClass

@@ -13,19 +13,7 @@ import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.calls.templating
 import dev.mokkery.internal.context.tools
 
-internal enum class MokkeryKind {
-    Spy, Mock
-}
-
-@Suppress("unused")
-internal fun mokkeryMockInterceptor(): MokkeryCallInterceptor = combine(
-    TemplatingInterceptor,
-    CallTracingInterceptor,
-    MokkeryCallHooks.beforeAnswering,
-    AnsweringInterceptor
-)
-
-private object CallTracingInterceptor : MokkeryCallInterceptor {
+internal object CallTracingInterceptor : MokkeryCallInterceptor {
 
     @DelicateMokkeryApi
     override fun intercept(scope: MokkeryBlockingCallScope): Any? {
@@ -40,7 +28,7 @@ private object CallTracingInterceptor : MokkeryCallInterceptor {
     }
 }
 
-private object AnsweringInterceptor : MokkeryCallInterceptor {
+internal object AnsweringInterceptor : MokkeryCallInterceptor {
 
     @DelicateMokkeryApi
     override fun intercept(scope: MokkeryBlockingCallScope): Any? = scope
@@ -55,7 +43,7 @@ private object AnsweringInterceptor : MokkeryCallInterceptor {
         .callSuspend(scope.toFunctionScope())
 }
 
-private object TemplatingInterceptor : MokkeryCallInterceptor {
+internal object TemplatingInterceptor : MokkeryCallInterceptor {
 
     @DelicateMokkeryApi
     override fun intercept(scope: MokkeryBlockingCallScope): Any? {

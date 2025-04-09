@@ -1,38 +1,37 @@
 package dev.mokkery.internal.interceptor
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.MokkeryContext.Empty
 import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 
-internal fun combine(vararg interceptors: MokkeryCallInterceptor): MokkeryCallInterceptor {
-    return RecursiveNextCallInterceptor(0, interceptors)
-}
+internal inline val MokkeryScope.mockInterceptor: MokkeryCallInterceptor
+    get() = mokkeryContext.require(MockInterceptor)
 
-internal fun List<MokkeryCallInterceptor>.combined(): MokkeryCallInterceptor {
-    return RecursiveNextCallInterceptor(0, this.toTypedArray())
-}
-
-internal inline val MokkeryCallScope.nextInterceptor: MokkeryCallInterceptor
-    get() = mokkeryContext.require(NextCallInterceptor)
-
-internal interface NextCallInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
+internal interface MockInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
 
     override val key get() = Key
 
-    companion object Key : MokkeryContext.Key<NextCallInterceptor>
+    companion object Key : MokkeryContext.Key<MockInterceptor>
 }
 
-private class RecursiveNextCallInterceptor(
+internal fun MockInterceptor(interceptors: List<MokkeryCallInterceptor>): MockInterceptor {
+    return RecursiveMockInterceptor(0, interceptors.toTypedArray())
+}
+internal fun MockInterceptor(vararg interceptors: MokkeryCallInterceptor): MockInterceptor {
+    return RecursiveMockInterceptor(0, interceptors)
+}
+
+private class RecursiveMockInterceptor(
     private val index: Int,
     private val interceptors: Array<out MokkeryCallInterceptor>,
-) : NextCallInterceptor {
+) : MockInterceptor {
 
     private val next = if (index + 1 < interceptors.size) {
-        RecursiveNextCallInterceptor(index + 1, interceptors)
+        RecursiveMockInterceptor(index + 1, interceptors)
     } else {
         Empty
     }
@@ -44,4 +43,6 @@ private class RecursiveNextCallInterceptor(
     override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
         return interceptors[index].intercept(scope.withContext(next))
     }
+
+    override fun toString(): String = "RecursiveMockInterceptor(index=$index)"
 }
