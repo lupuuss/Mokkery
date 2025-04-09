@@ -10,7 +10,7 @@ import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.mockContext
 import dev.mokkery.internal.resolveScopeOrNull
 import dev.mokkery.internal.interceptor.MokkeryKind
-import dev.mokkery.internal.mockId
+import dev.mokkery.internal.mockIdString
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
@@ -35,7 +35,7 @@ public fun printMokkeryDebug(obj: Any) {
 private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("mock") {
-            value("id", instance.mockId)
+            value("id", instance.mockIdString)
             value("mode", instance.mockContext.mode.name)
             answersSection(instance.answering)
             callsSection(instance.callTracing)
@@ -46,7 +46,7 @@ private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
 private fun mokkeryDebugSpy(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("spy") {
-            value("id", instance.mockId)
+            value("id", instance.mockIdString)
             answersSection(instance.answering)
             callsSection(instance.callTracing)
         }
@@ -60,7 +60,7 @@ private fun HierarchicalStringBuilder.callsSection(callTracing: CallTracingRegis
             line("")
             return@section
         }
-        calls.forEach { line(it.toStringNoReceiver()) }
+        calls.forEach { line(it.toStringNoMockId()) }
     }
 }
 
@@ -70,7 +70,7 @@ private fun HierarchicalStringBuilder.answersSection(answering: AnsweringRegistr
             line("")
         } else {
             answering.answers.forEach { (template, answer) ->
-                line("${template.toStringNoReceiver()} ${answer.debug()}")
+                line("${template.toStringNoMockId()} ${answer.debug()}")
             }
         }
     }

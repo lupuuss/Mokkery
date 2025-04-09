@@ -3,6 +3,7 @@
 package dev.mokkery.internal.utils
 
 import dev.mokkery.internal.GlobalMokkeryScope
+import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mockId
@@ -10,11 +11,11 @@ import dev.mokkery.internal.resolveInstance
 
 internal interface MocksCollection {
 
-    val ids: Set<String>
+    val ids: Set<MockId>
 
     val scopes: Collection<MokkeryInstanceScope>
 
-    fun getScopeOrNull(id: String): MokkeryInstanceScope?
+    fun getScopeOrNull(id: MockId): MokkeryInstanceScope?
 }
 
 internal interface MutableMocksCollection : MocksCollection {
@@ -34,7 +35,7 @@ internal fun MutableMocksCollection(values: List<MokkeryInstanceScope> = emptyLi
 
 internal inline fun MocksCollection?.orEmpty(): MocksCollection = this ?: MocksCollection()
 
-internal inline fun MocksCollection.getScope(id: String): MokkeryInstanceScope = getScopeOrNull(id)
+internal inline fun MocksCollection.getScope(id: MockId): MokkeryInstanceScope = getScopeOrNull(id)
     ?: mokkeryRuntimeError("Failed to find mock with $id!")
 
 internal val MocksCollection.instances: List<Any>
@@ -55,9 +56,9 @@ private class MocksCollectionImpl(
 
     private val map = LinkedHashMap(initial.associateBy { it.mockId })
 
-    override val ids: Set<String> get() = map.keys
+    override val ids: Set<MockId> get() = map.keys
 
-    override fun getScopeOrNull(id: String): MokkeryInstanceScope? = map[id]
+    override fun getScopeOrNull(id: MockId): MokkeryInstanceScope? = map[id]
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

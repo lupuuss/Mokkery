@@ -43,7 +43,7 @@ class NotVerifierTest {
             verifier.verify(listOf(trace1), listOf(template1))
         }
         val expectedMessage = """
-            Calls to mock@1.call1() were not expected, but occurred:
+            Calls to mock(1).call1() were not expected, but occurred:
             RENDERER_STUB
         """.trimIndent()
         assertEquals(expectedMessage, error.message)

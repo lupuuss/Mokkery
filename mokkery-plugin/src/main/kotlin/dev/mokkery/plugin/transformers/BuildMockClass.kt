@@ -227,7 +227,7 @@ private fun IrClass.addMockClassConstructor(
         }
     }
     addOverridingMethod(context, context.irBuiltIns.memberToString.owner) {
-        +irReturn(irCall(transformer.getProperty(Mokkery.Property.mockId).getter!!.symbol) {
+        +irReturn(irCall(transformer.getProperty(Mokkery.Property.mockIdString).getter!!.symbol) {
             extensionReceiver = irGet(it.dispatchReceiverParameter!!)
         })
     }

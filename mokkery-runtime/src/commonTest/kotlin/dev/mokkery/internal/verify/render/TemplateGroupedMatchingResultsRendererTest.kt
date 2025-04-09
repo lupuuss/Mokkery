@@ -26,7 +26,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyMatchingGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.Matching to traces)) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Matching calls:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -39,7 +39,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyFailingMatchersGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiverMethodSignature to traces)) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Calls to the same method with failing matchers:
                RENDERER_TRACE
                   RENDERER_MATCHERS
@@ -56,7 +56,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyOverloadsGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiverMethodOverload to traces)) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Calls to the same overload:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -69,7 +69,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyOtherCallsGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiver to traces)) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Other calls to this mock:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -90,7 +90,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Matching calls:
                RENDERER_TRACE
             # Calls to the same method with failing matchers:
@@ -118,7 +118,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # Matching calls:
                RENDERER_TRACE
             # Calls to the same overload:
@@ -140,7 +140,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock@1:
+            Results for mock(1):
             # No calls to this mock!
             
             """.trimIndent()

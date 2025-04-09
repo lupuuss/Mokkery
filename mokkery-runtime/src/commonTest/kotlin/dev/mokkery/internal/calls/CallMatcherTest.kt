@@ -20,7 +20,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsMatchingForFullyMatchingCall() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -28,7 +28,7 @@ class CallMatcherTest {
             )
         )
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
@@ -38,7 +38,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsNotMatchingForNotMatchingMethodNames() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -47,7 +47,7 @@ class CallMatcherTest {
         )
         generator.returns("calle(i: kotlin.Int)")
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "calle",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
@@ -57,7 +57,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsSameReceiverMethodOverloadForNotMatchingSignature() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int, j: kotlin.Int)",
             matchers = mapOf(
@@ -66,7 +66,7 @@ class CallMatcherTest {
             )
         )
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
@@ -76,7 +76,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsSameReceiverMethodSignatureForNotMatchingArgsToSignature() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -84,7 +84,7 @@ class CallMatcherTest {
             )
         )
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = ""))
         )
@@ -94,7 +94,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsNotMatchingForNotMatchingReceivers() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -102,7 +102,7 @@ class CallMatcherTest {
             )
         )
         val call = fakeCallTrace(
-            receiver = "mock@2",
+            id = 2,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
@@ -112,7 +112,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsSameReceiverMethodSignatureForNotSatisfiedMatcher() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -120,7 +120,7 @@ class CallMatcherTest {
             )
         )
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
@@ -130,7 +130,7 @@ class CallMatcherTest {
     @Test
     fun testReturnsSameReceiverMethodOverloadForNotMatchingArgNames() {
         val template = fakeCallTemplate(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             signature = "call(i: kotlin.Int)",
             matchers = mapOf(
@@ -140,7 +140,7 @@ class CallMatcherTest {
         )
         generator.returns("call(j: kotlin.Int)")
         val call = fakeCallTrace(
-            receiver = "mock@1",
+            id = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )

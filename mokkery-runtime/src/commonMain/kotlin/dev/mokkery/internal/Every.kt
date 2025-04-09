@@ -29,7 +29,7 @@ internal fun <T> internalEvery(
     }
     return try {
         val template = scope.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-        val mock = scope.mocks.getScope(template.receiver)
+        val mock = scope.mocks.getScope(template.mockId)
         UnifiedAnsweringScope(mock.answering, template)
     } finally {
         scope.release()

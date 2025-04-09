@@ -33,7 +33,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     return mokkeryContext
         .plus(
             MockContext(
-                id = tools.instanceIdGenerator.generate(typeName),
+                id = MockId(typeName, tools.mocksCounter.next()),
                 mode = mode,
                 kind = kind,
                 interceptedTypes = interceptedTypes,
@@ -56,6 +56,8 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
 }
 
 internal val MokkeryInstanceScope.mockId get() = mockContext.id
+
+internal val MokkeryInstanceScope.mockIdString get() = mockContext.id.toString()
 
 internal val MokkeryInstanceScope.spiedObject get() = mockContext.spiedObject
 

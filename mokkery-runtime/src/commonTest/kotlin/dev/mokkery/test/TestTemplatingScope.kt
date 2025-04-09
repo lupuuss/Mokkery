@@ -2,6 +2,7 @@ package dev.mokkery.test
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.context.CallArgument
+import dev.mokkery.internal.MockId
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.utils.MocksCollection
@@ -27,8 +28,8 @@ internal class TestTemplatingScope(
 
     override fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T = pluginMethodError()
 
-    override fun saveTemplate(receiver: String, name: String, args: List<CallArgument>) {
-        _recordedSaveCalls.add(TemplateParams(receiver, name, args))
+    override fun saveTemplate(id: MockId, name: String, args: List<CallArgument>) {
+        _recordedSaveCalls.add(TemplateParams(id, name, args))
     }
 
     override fun release() {
@@ -44,6 +45,6 @@ internal class TestTemplatingScope(
         error("This call is only for compiler plugin and it should not be called from runtime code!")
 
     data class TemplateParams(
-        val receiver: String, val name: String, val args: List<CallArgument>
+        val id: MockId, val name: String, val args: List<CallArgument>
     )
 }

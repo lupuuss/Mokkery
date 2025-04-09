@@ -96,7 +96,7 @@ class OrderVerifierTest {
             verifier.verify(traces, templates)
         }
         val expectedMessage = """
-            Expected calls in specified order but not satisfied! Failed at 3. mock@1.call1()!
+            Expected calls in specified order but not satisfied! Failed at 3. mock(1).call1()!
             RENDERER_RESULTS
         """.trimIndent()
         assertEquals(expectedMessage, error.message)

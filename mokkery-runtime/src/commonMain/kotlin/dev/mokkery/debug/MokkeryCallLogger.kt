@@ -4,6 +4,7 @@ import dev.mokkery.interceptor.MokkeryCallListener
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.self
+import dev.mokkery.internal.context.mockContext
 import dev.mokkery.internal.context.suiteName
 import dev.mokkery.internal.utils.callToString
 
@@ -31,7 +32,7 @@ public class MokkeryCallLogger(
         scope.suiteName
             ?.let { "[$it] " }
             .orEmpty()
-            .plus(callToString(scope.self.toString(), scope.call.function.name, scope.call.args))
+            .plus(callToString(scope.mockContext.id, scope.call.function.name, scope.call.args))
             .let(lineTransformer)
             .let(loggingFunction)
     }

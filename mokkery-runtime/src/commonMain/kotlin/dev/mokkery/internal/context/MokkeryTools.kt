@@ -13,11 +13,9 @@ import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.calls.ArgMatchersComposer
 import dev.mokkery.internal.calls.CallMatcher
 import dev.mokkery.internal.names.CallTraceReceiverShortener
-import dev.mokkery.internal.names.MokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.SignatureGenerator
-import dev.mokkery.internal.names.UniqueMokkeryInstanceIdGenerator
 import dev.mokkery.internal.names.withTypeArgumentsSupport
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.verify.VerifierFactory
@@ -28,7 +26,6 @@ internal val MokkeryScope.tools: MokkeryTools
 internal class MokkeryTools(
     instanceLookup: MokkeryScopeLookup? = null,
     namesShortener: NameShortener? = null,
-    instanceIdGenerator: MokkeryInstanceIdGenerator? = null,
     signatureGenerator: SignatureGenerator? = null,
     callTraceReceiverShortener: CallTraceReceiverShortener? = null,
     callMatcher: CallMatcher? = null,
@@ -41,7 +38,6 @@ internal class MokkeryTools(
 
     private val _scopeLookup: MokkeryScopeLookup? = instanceLookup
     private val _namesShortener: NameShortener? = namesShortener
-    private val _instanceIdGenerator: MokkeryInstanceIdGenerator? = instanceIdGenerator
     private val _signatureGenerator: SignatureGenerator? = signatureGenerator
     private val _callTraceReceiverShortener: CallTraceReceiverShortener? = callTraceReceiverShortener
     private val _callMatcher = callMatcher
@@ -55,8 +51,6 @@ internal class MokkeryTools(
         get() = _scopeLookup ?: mokkeryRuntimeError("MokkeryScopeLookup not present in the tools!")
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
-    val instanceIdGenerator: MokkeryInstanceIdGenerator
-        get() = _instanceIdGenerator ?: mokkeryRuntimeError("MokkeryInstanceIdGenerator not present in the tools!")
     val signatureGenerator: SignatureGenerator
         get() = _signatureGenerator ?: mokkeryRuntimeError("SignatureGenerator not present in the tools!")
     val callTraceReceiverShortener: CallTraceReceiverShortener
@@ -81,7 +75,6 @@ internal class MokkeryTools(
     fun copy(
         instanceLookup: MokkeryScopeLookup? = _scopeLookup,
         namesShortener: NameShortener? = _namesShortener,
-        instanceIdGenerator: MokkeryInstanceIdGenerator? = _instanceIdGenerator,
         signatureGenerator: SignatureGenerator? = _signatureGenerator,
         callTraceReceiverShortener: CallTraceReceiverShortener? = _callTraceReceiverShortener,
         callMatcher: CallMatcher? = _callMatcher,
@@ -93,7 +86,6 @@ internal class MokkeryTools(
     ) = MokkeryTools(
         instanceLookup = instanceLookup,
         namesShortener = namesShortener,
-        instanceIdGenerator = instanceIdGenerator,
         signatureGenerator = signatureGenerator,
         callTraceReceiverShortener = callTraceReceiverShortener,
         callMatcher = callMatcher,
@@ -110,16 +102,14 @@ internal class MokkeryTools(
 
         fun default(): MokkeryTools {
             val mocksCounter = MonotonicCounter(1)
-            val instanceIdGenerator = UniqueMokkeryInstanceIdGenerator(mocksCounter)
             val namesShortener = ReverseDomainNameShortener.withTypeArgumentsSupport()
             val signatureGenerator = SignatureGenerator()
             val callMatcher = CallMatcher(signatureGenerator)
             return MokkeryTools(
                 instanceLookup = MokkeryScopeLookup(),
                 namesShortener = namesShortener,
-                instanceIdGenerator = instanceIdGenerator,
                 signatureGenerator = signatureGenerator,
-                callTraceReceiverShortener = CallTraceReceiverShortener(instanceIdGenerator, namesShortener),
+                callTraceReceiverShortener = CallTraceReceiverShortener(namesShortener),
                 callMatcher = callMatcher,
                 argMatchersComposer = ArgMatchersComposer(),
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),

@@ -4,6 +4,7 @@ import dev.mokkery.MockMode
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.utils.bestName
@@ -16,7 +17,7 @@ internal val MokkeryInstanceScope.mockContext: MockContext
     get() = mokkeryContext.require(MockContext)
 
 internal class MockContext(
-    val id: String,
+    val id: MockId,
     val mode: MockMode,
     val kind: MokkeryKind,
     val interceptedTypes: List<KClass<*>>,

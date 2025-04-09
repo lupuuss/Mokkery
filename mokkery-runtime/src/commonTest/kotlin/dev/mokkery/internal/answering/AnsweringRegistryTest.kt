@@ -113,14 +113,14 @@ class AnsweringRegistryTest {
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
         val scope = testBlockingCallScope<Int>(
-            selfId = "mock@1",
+            typeName = "mock",
+            sequence = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "1", value = 1)),
             context = context
         )
         answering.resolveAnswer(scope)
         val expectedTrace = fakeCallTrace(
-            receiver = "mock@1",
             name = "call",
             args = listOf(fakeCallArg(name = "1", value = 1)),
             orderStamp = 0
