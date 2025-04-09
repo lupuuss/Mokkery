@@ -5,13 +5,12 @@ package dev.mokkery.internal
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.TemplatingSocket
-import dev.mokkery.internal.context.CurrentMockContext
-import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.MockContext
+import dev.mokkery.internal.context.mockContext
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.interceptor.mokkeryMockInterceptor
@@ -25,7 +24,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     kind: MokkeryKind,
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<KClass<*>>,
-    instance: MokkeryInstanceScope,
+    scope: MokkeryInstanceScope,
     spiedObject: Any?
 ): MokkeryContext {
     return mokkeryContext
@@ -33,29 +32,29 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
         .plus(AnsweringRegistry())
         .plus(TemplatingSocket())
         .plus(
-            CurrentMockContext(
+            MockContext(
                 id = tools.instanceIdGenerator.generate(typeName),
                 mode = mode,
                 kind = kind,
                 interceptedTypes = interceptedTypes,
                 typeArguments = typeArguments,
-                self = instance,
                 spiedObject = spiedObject,
+                thisInstanceScope = scope,
                 interceptor = mokkeryMockInterceptor()
             )
         )
 }
 
 internal val MokkeryInstanceScope.mockId
-    get() = currentMockContext.id
+    get() = mockContext.id
 
 internal val MokkeryInstanceScope.spiedObject
-    get() = currentMockContext.spiedObject
+    get() = mockContext.spiedObject
 
 internal val MokkeryInstanceScope.interceptor: MokkeryCallInterceptor
-    get() = currentMockContext.interceptor
+    get() = mockContext.interceptor
 
-internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = currentMockContext
+internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = mockContext
     .typeArguments
     .getOrNull(index)
 
@@ -93,7 +92,7 @@ private class DynamicMokkeryInstanceScope(
         kind = kind,
         interceptedTypes = interceptedTypes,
         typeArguments = typeArguments,
-        instance = this,
+        scope = this,
         spiedObject = spiedObject
     )
 }

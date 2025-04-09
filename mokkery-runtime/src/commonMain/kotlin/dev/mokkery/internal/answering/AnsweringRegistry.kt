@@ -6,18 +6,15 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.toFunctionScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.mockContext
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.shortToString
@@ -80,7 +77,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
         val spyDelegate = scope.associatedFunctions.spiedFunction
-        val mockMode = scope.currentMockContext.mode
+        val mockMode = scope.mockContext.mode
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill

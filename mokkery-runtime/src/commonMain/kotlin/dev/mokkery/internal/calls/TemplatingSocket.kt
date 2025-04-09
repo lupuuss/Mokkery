@@ -6,7 +6,7 @@ import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.mockContext
 import kotlinx.atomicfu.atomic
 import kotlin.reflect.KClass
 
@@ -60,7 +60,7 @@ private class TemplatingSocketImpl : TemplatingSocket {
     override fun saveTemplate(scope: MokkeryCallScope) {
         val call = scope.call
         templatingScope
-            ?.saveTemplate(scope.currentMockContext.id, call.function.name, call.args)
+            ?.saveTemplate(scope.mockContext.id, call.function.name, call.args)
             ?: throw ConcurrentTemplatingException()
     }
 }

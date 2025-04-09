@@ -7,7 +7,7 @@ import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.callTracing
-import dev.mokkery.internal.context.currentMockContext
+import dev.mokkery.internal.context.mockContext
 import dev.mokkery.internal.context.resolveScopeOrNull
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.mockId
@@ -18,7 +18,7 @@ import dev.mokkery.internal.mockId
 public fun mokkeryDebugString(obj: Any): String {
     return when (val scope = GlobalMokkeryScope.resolveScopeOrNull(obj)) {
         null -> "Not a mock/spy -> $obj"
-        else -> when (scope.currentMockContext.kind) {
+        else -> when (scope.mockContext.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(scope)
             MokkeryKind.Mock ->  mokkeryDebugMock(scope)
         }
@@ -36,7 +36,7 @@ private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("mock") {
             value("id", instance.mockId)
-            value("mode", instance.currentMockContext.mode.name)
+            value("mode", instance.mockContext.mode.name)
             answersSection(instance.answering)
             callsSection(instance.callTracing)
         }

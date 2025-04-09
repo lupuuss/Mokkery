@@ -7,7 +7,7 @@ import dev.mokkery.internal.calls.CallTrace
 internal fun MokkeryCallScope.toCallTrace(orderStamp: Long): CallTrace {
     val call = call
     return CallTrace(
-        receiver = currentMockContext.id,
+        receiver = mockContext.id,
         name = call.function.name,
         args = call.args,
         orderStamp = orderStamp

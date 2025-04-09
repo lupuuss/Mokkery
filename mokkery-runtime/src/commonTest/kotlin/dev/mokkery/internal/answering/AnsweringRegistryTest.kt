@@ -3,13 +3,9 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.self
-import dev.mokkery.interceptor.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.utils.unsafeCast
+import dev.mokkery.internal.context.mockContext
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallTraceReceiverShortener
@@ -18,13 +14,10 @@ import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
-import dev.mokkery.test.runTest
 import dev.mokkery.test.testBlockingCallScope
-import dev.mokkery.test.testSuspendCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
 
 class AnsweringRegistryTest {
 
@@ -136,5 +129,5 @@ class AnsweringRegistryTest {
         assertEquals(listOf(expectedTrace), callMatcher.recordedCalls.map { it.first })
     }
 
-    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).currentMockContext
+    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).mockContext
 }
