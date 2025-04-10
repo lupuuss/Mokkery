@@ -74,7 +74,7 @@ object Mokkery {
 
         val mockIdString by dev_mokkery_internal.property
         val spiedObject by dev_mokkery_internal.property
-        val mockInterceptor by dev_mokkery_internal_interceptor.property
+        val callInterceptor by dev_mokkery_internal_context.property
     }
 
     object Name {

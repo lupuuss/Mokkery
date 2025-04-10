@@ -2,7 +2,7 @@ package dev.mokkery.internal.interceptor
 
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.test.TestMokkeryCallInterceptor
-import dev.mokkery.test.TestMockInterceptor
+import dev.mokkery.test.TestContextCallInterceptor
 import dev.mokkery.test.runTest
 import dev.mokkery.test.testBlockingCallScope
 import dev.mokkery.test.testSuspendCallScope
@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
 class HookCallInterceptorTest {
 
     private val hookCallInterceptor = HookCallInterceptor()
-    private val nextInterceptor = TestMockInterceptor(
+    private val nextInterceptor = TestContextCallInterceptor(
         interceptBlock = { -10 },
         interceptSuspendBlock = { -12 }
     )

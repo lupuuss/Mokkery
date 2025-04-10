@@ -1,4 +1,4 @@
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal.context
 
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
@@ -7,31 +7,32 @@ import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.internal.interceptor.withContext
 
-internal inline val MokkeryScope.mockInterceptor: MokkeryCallInterceptor
-    get() = mokkeryContext.require(MockInterceptor)
+internal inline val MokkeryScope.callInterceptor: MokkeryCallInterceptor
+    get() = mokkeryContext.require(ContextCallInterceptor)
 
-internal interface MockInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
+internal interface ContextCallInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
 
     override val key get() = Key
 
-    companion object Key : MokkeryContext.Key<MockInterceptor>
+    companion object Key : MokkeryContext.Key<ContextCallInterceptor>
 }
 
-internal fun MockInterceptor(interceptors: List<MokkeryCallInterceptor>): MockInterceptor {
-    return RecursiveMockInterceptor(0, interceptors.toTypedArray())
+internal fun ContextCallInterceptor(interceptors: List<MokkeryCallInterceptor>): ContextCallInterceptor {
+    return RecursiveContextCallInterceptor(0, interceptors.toTypedArray())
 }
-internal fun MockInterceptor(vararg interceptors: MokkeryCallInterceptor): MockInterceptor {
-    return RecursiveMockInterceptor(0, interceptors)
+internal fun ContextCallInterceptor(vararg interceptors: MokkeryCallInterceptor): ContextCallInterceptor {
+    return RecursiveContextCallInterceptor(0, interceptors)
 }
 
-private class RecursiveMockInterceptor(
+private class RecursiveContextCallInterceptor(
     private val index: Int,
     private val interceptors: Array<out MokkeryCallInterceptor>,
-) : MockInterceptor {
+) : ContextCallInterceptor {
 
     private val next = if (index + 1 < interceptors.size) {
-        RecursiveMockInterceptor(index + 1, interceptors)
+        RecursiveContextCallInterceptor(index + 1, interceptors)
     } else {
         Empty
     }
