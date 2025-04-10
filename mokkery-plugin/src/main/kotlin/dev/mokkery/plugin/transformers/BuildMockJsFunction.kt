@@ -79,7 +79,7 @@ fun TransformerScope.buildMockJsFunction(
                 )
             }
             val lambdaVar = createTmpVariable(lambda)
-            +irCall(transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)) {
+            +irCall(transformer.getFunction(Mokkery.Function.invokeInstantiationListener)) {
                 this.extensionReceiver = irGet(instanceVar)
                 putValueArgument(0, irGet(lambdaVar))
             }

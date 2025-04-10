@@ -173,7 +173,7 @@ private fun IrClass.addMockClassConstructor(
     val mokkeryScopeClass = transformer.getClass(Mokkery.Class.MokkeryScope)
     val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
     val mokkeryKindClass = transformer.getClass(Mokkery.Class.MokkeryKind)
-    val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeMockInstantiationListener)
+    val invokeInstantiationCallbacksFun = transformer.getFunction(Mokkery.Function.invokeInstantiationListener)
     val contextProperty = overridePropertyBackingField(context, scopeInstanceClass.getProperty("mokkeryContext"))
     addConstructor {
         isPrimary = true
