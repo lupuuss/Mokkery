@@ -6,7 +6,7 @@ import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.mockContext
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.interceptor.withContext
 import dev.mokkery.internal.resolveInstance
@@ -40,7 +40,7 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any?
-    get() = resolveInstance(mockContext.thisInstanceScope)
+    get() = resolveInstance(mockSpec.thisInstanceScope)
 
 /**
  * Returns [MokkeryCallScope.self] as [T].
@@ -70,6 +70,6 @@ public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
         args = call.args.map(CallArgument::value),
         self = self,
         supers = supers,
-        classSupertypes = mockContext.interceptedTypes
+        classSupertypes = mockSpec.interceptedTypes
     )
 }

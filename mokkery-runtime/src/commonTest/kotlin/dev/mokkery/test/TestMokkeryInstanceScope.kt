@@ -4,7 +4,7 @@ import dev.mokkery.MockMode
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.context.MockContext
+import dev.mokkery.internal.context.MockSpec
 import dev.mokkery.internal.interceptor.MokkeryKind
 import kotlin.reflect.KClass
 
@@ -19,7 +19,7 @@ internal class TestMokkeryInstanceScope(
     interceptor: TestContextCallInterceptor = TestContextCallInterceptor(),
 ) : MokkeryInstanceScope {
 
-    override val mokkeryContext: MokkeryContext = MockContext(
+    override val mokkeryContext: MokkeryContext = MockSpec(
         id = MockId(typeName, sequence),
         mode = mode,
         kind = kind,

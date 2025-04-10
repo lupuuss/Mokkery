@@ -5,7 +5,7 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.context.mockContext
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallTraceReceiverShortener
@@ -129,5 +129,5 @@ class AnsweringRegistryTest {
         assertEquals(listOf(expectedTrace), callMatcher.recordedCalls.map { it.first })
     }
 
-    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).mockContext
+    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).mockSpec
 }

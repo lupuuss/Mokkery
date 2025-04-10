@@ -14,7 +14,7 @@ import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.isMatching
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.mockContext
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.shortToString
@@ -77,7 +77,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
         val spyDelegate = scope.associatedFunctions.spiedFunction
-        val mockMode = scope.mockContext.mode
+        val mockMode = scope.mockSpec.mode
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill

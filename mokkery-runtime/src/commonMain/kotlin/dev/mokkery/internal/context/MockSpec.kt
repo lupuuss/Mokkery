@@ -10,13 +10,13 @@ import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.utils.bestName
 import kotlin.reflect.KClass
 
-internal val MokkeryCallScope.mockContext: MockContext
-    get() = mokkeryContext.require(MockContext)
+internal val MokkeryCallScope.mockSpec: MockSpec
+    get() = mokkeryContext.require(MockSpec)
 
-internal val MokkeryInstanceScope.mockContext: MockContext
-    get() = mokkeryContext.require(MockContext)
+internal val MokkeryInstanceScope.mockSpec: MockSpec
+    get() = mokkeryContext.require(MockSpec)
 
-internal class MockContext(
+internal class MockSpec(
     val id: MockId,
     val mode: MockMode,
     val kind: MokkeryKind,
@@ -28,14 +28,14 @@ internal class MockContext(
 
     override val key = Key
 
-    override fun toString(): String = "MockContext(" +
+    override fun toString(): String = "MockSpec(" +
             "id='$id', " +
             "mode=$mode, " +
             "kind=$kind, " +
             "interceptedTypes=[${interceptedTypes.joinToString { it.bestName() }}], " +
             "typeArguments=[${typeArguments.joinToString { it.bestName() }}], " +
             "spiedObject=${spiedObject?.let { "hash(${it.hashCode()})" }}, " +
-            "thisInstanceScope=hash(${thisInstanceScope.hashCode()}))"
+            "thisInstanceScope=...)"
 
-    companion object Key : MokkeryContext.Key<MockContext>
+    companion object Key : MokkeryContext.Key<MockSpec>
 }
