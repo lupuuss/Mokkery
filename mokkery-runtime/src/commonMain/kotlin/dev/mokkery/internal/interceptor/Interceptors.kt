@@ -8,10 +8,42 @@ import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.interceptor.toFunctionScope
+import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.calls.templating
+import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
+
+internal object MocksRegisteringListener : MokkeryInstantiationListener {
+
+    override fun onInstantiation(scope: MokkeryInstanceScope, mock: Any) {
+        scope.tools.scopeLookup.registerScope(mock, scope)
+        scope.mokkeryContext[MocksRegistry]?.register(scope)
+    }
+}
+
+
+internal object TemplatingInterceptor : MokkeryCallInterceptor {
+
+    @DelicateMokkeryApi
+    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
+        val templating = scope.templating
+        if (!templating.isEnabled) return scope.nextIntercept()
+        val hint = templating.currentGenericHint
+        templating.saveTemplate(scope)
+        return scope.tools.autofillProvider.provideValue(hint ?: scope.call.function.returnType)
+    }
+
+    @DelicateMokkeryApi
+    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
+        val templating = scope.templating
+        if (!templating.isEnabled) return scope.nextIntercept()
+        val hint = templating.currentGenericHint
+        templating.saveTemplate(scope)
+        return scope.tools.autofillProvider.provideValue(hint ?: scope.call.function.returnType)
+    }
+}
 
 internal object CallTracingInterceptor : MokkeryCallInterceptor {
 
@@ -41,25 +73,4 @@ internal object AnsweringInterceptor : MokkeryCallInterceptor {
         .answering
         .resolveAnswer(scope)
         .callSuspend(scope.toFunctionScope())
-}
-
-internal object TemplatingInterceptor : MokkeryCallInterceptor {
-
-    @DelicateMokkeryApi
-    override fun intercept(scope: MokkeryBlockingCallScope): Any? {
-        val templating = scope.templating
-        if (!templating.isEnabled) return scope.nextIntercept()
-        val hint = templating.currentGenericHint
-        templating.saveTemplate(scope)
-        return scope.tools.autofillProvider.provideValue(hint ?: scope.call.function.returnType)
-    }
-
-    @DelicateMokkeryApi
-    override suspend fun intercept(scope: MokkerySuspendCallScope): Any? {
-        val templating = scope.templating
-        if (!templating.isEnabled) return scope.nextIntercept()
-        val hint = templating.currentGenericHint
-        templating.saveTemplate(scope)
-        return scope.tools.autofillProvider.provideValue(hint ?: scope.call.function.returnType)
-    }
 }

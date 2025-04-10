@@ -14,6 +14,8 @@ import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.context.ContextCallInterceptor
+import dev.mokkery.internal.context.ContextInstantiationListener
+import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.interceptor.TemplatingInterceptor
@@ -31,6 +33,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     spiedObject: Any?
 ): MokkeryContext {
     return mokkeryContext
+        .plus(ContextInstantiationListener(MocksRegisteringListener))
         .plus(
             MockContext(
                 id = MockId(typeName, tools.mocksCounter.next()),
