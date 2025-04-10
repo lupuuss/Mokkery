@@ -7,7 +7,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockContext
-import dev.mokkery.internal.interceptor.mockInterceptor
+import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.interceptor.withContext
 import dev.mokkery.internal.resolveInstance
 import kotlin.reflect.KClass
@@ -15,25 +15,25 @@ import kotlin.reflect.KClass
 /**
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  */
-public fun MokkeryBlockingCallScope.nextIntercept(): Any? = mockInterceptor.intercept(this)
+public fun MokkeryBlockingCallScope.nextIntercept(): Any? = callInterceptor.intercept(this)
 
 /**
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  */
-public suspend fun MokkerySuspendCallScope.nextIntercept(): Any? = mockInterceptor.intercept(this)
+public suspend fun MokkerySuspendCallScope.nextIntercept(): Any? = callInterceptor.intercept(this)
 
 /**
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext): Any? = mockInterceptor
+public fun MokkeryBlockingCallScope.nextIntercept(context: MokkeryContext): Any? = callInterceptor
     .intercept(withContext(context))
 
 /**
  * Calls [MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
  * Adds [context] to the next pipeline context.
  */
-public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext): Any? = mockInterceptor
+public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext): Any? = callInterceptor
     .intercept(withContext(context))
 
 /**

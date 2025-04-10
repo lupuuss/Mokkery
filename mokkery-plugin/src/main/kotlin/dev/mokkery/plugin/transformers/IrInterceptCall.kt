@@ -65,7 +65,7 @@ fun IrBlockBodyBuilder.irInterceptCall(
     typeParamsContainer: IrTypeParametersContainer,
     function: IrSimpleFunction,
 ): IrCall {
-    val interceptorProperty = transformer.getProperty(Mokkery.Property.mockInterceptor).getter!!
+    val interceptorProperty = transformer.getProperty(Mokkery.Property.callInterceptor).getter!!
     val interceptorClass = interceptorProperty.returnType.classOrFail
     val getSpiedObject = transformer.getProperty(Mokkery.Property.spiedObject).getter!!
     val interceptFun = interceptorClass

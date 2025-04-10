@@ -1,9 +1,9 @@
 package dev.mokkery.test
 
 import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.internal.interceptor.MockInterceptor
+import dev.mokkery.internal.context.ContextCallInterceptor
 
-internal class TestMockInterceptor(
+internal class TestContextCallInterceptor(
     interceptBlock: (MokkeryCallScope) -> Any? = { null },
     interceptSuspendBlock: suspend (MokkeryCallScope) -> Any? = { null }
-) : TestMokkeryCallInterceptor(interceptBlock, interceptSuspendBlock), MockInterceptor
+) : TestMokkeryCallInterceptor(interceptBlock, interceptSuspendBlock), ContextCallInterceptor
