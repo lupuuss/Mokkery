@@ -3,7 +3,7 @@ package dev.mokkery.interceptor
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.internal.context.mockContext
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
@@ -43,7 +43,7 @@ public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args:
 private val MokkeryCallScope.methodOriginType: KClass<*>
     get() {
         val supers = this.supers
-        val interceptedTypes = mockContext.interceptedTypes
+        val interceptedTypes = mockSpec.interceptedTypes
         val superCandidates = interceptedTypes.filter(supers::contains)
         if (superCandidates.isEmpty()) throw MissingSuperMethodException(interceptedTypes)
         val superType = superCandidates

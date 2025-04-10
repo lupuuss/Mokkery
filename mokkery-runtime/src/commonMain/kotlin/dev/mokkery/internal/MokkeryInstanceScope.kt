@@ -8,8 +8,8 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.TemplatingSocket
-import dev.mokkery.internal.context.MockContext
-import dev.mokkery.internal.context.mockContext
+import dev.mokkery.internal.context.MockSpec
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
@@ -35,7 +35,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     return mokkeryContext
         .plus(ContextInstantiationListener(MocksRegisteringListener))
         .plus(
-            MockContext(
+            MockSpec(
                 id = MockId(typeName, tools.mocksCounter.next()),
                 mode = mode,
                 kind = kind,
@@ -58,13 +58,13 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
         )
 }
 
-internal val MokkeryInstanceScope.mockId get() = mockContext.id
+internal val MokkeryInstanceScope.mockId get() = mockSpec.id
 
-internal val MokkeryInstanceScope.mockIdString get() = mockContext.id.toString()
+internal val MokkeryInstanceScope.mockIdString get() = mockSpec.id.toString()
 
-internal val MokkeryInstanceScope.spiedObject get() = mockContext.spiedObject
+internal val MokkeryInstanceScope.spiedObject get() = mockSpec.spiedObject
 
-internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = mockContext.typeArguments.getOrNull(index)
+internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = mockSpec.typeArguments.getOrNull(index)
 
 internal fun MokkeryInstanceScope(
     parent: MokkeryScope,
