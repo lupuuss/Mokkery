@@ -1,6 +1,7 @@
 package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.toList
 
 internal class CombinedContext(
     private val left: MokkeryContext,
@@ -35,13 +36,6 @@ internal class CombinedContext(
         }
     }
 
-    override fun toString() = buildString {
-        append("[")
-        val content = this@CombinedContext.fold("") { acc, element ->
-            if (acc.isEmpty()) element.toString() else "$acc, $element"
-        }
-        append(content)
-        append("]")
-    }
+    override fun toString() = toList().toString()
 }
 
