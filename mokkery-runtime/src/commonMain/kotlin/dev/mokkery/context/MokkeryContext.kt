@@ -71,3 +71,10 @@ internal fun MokkeryContext.toMap(): Map<MokkeryContext.Key<*>, MokkeryContext.E
     forEach { map[it.key] = it }
     return map
 }
+
+internal fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toCollection(collection: T): T {
+    forEach(collection::add)
+    return collection
+}
+
+internal fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())
