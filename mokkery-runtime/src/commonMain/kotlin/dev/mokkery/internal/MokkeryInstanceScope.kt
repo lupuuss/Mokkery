@@ -15,6 +15,7 @@ import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
+import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
 import dev.mokkery.internal.interceptor.MokkeryKind
@@ -31,32 +32,31 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     typeArguments: List<KClass<*>>,
     scope: MokkeryInstanceScope,
     spiedObject: Any?
-): MokkeryContext {
-    return mokkeryContext
-        .plus(ContextInstantiationListener(MocksRegisteringListener))
-        .plus(
-            MockSpec(
-                id = MockId(typeName, tools.mocksCounter.next()),
-                mode = mode,
-                kind = kind,
-                interceptedTypes = interceptedTypes,
-                typeArguments = typeArguments,
-                spiedObject = spiedObject,
-                thisInstanceScope = scope
-            )
+): MokkeryContext = mokkeryContext
+    .plus(ContextInstantiationListener(MocksRegisteringListener))
+    .plus(
+        MockSpec(
+            id = MockId(typeName, tools.mocksCounter.next()),
+            mode = mode,
+            kind = kind,
+            interceptedTypes = interceptedTypes,
+            typeArguments = typeArguments,
+            spiedObject = spiedObject,
+            thisInstanceScope = scope
         )
-        .plus(CallTracingRegistry())
-        .plus(AnsweringRegistry())
-        .plus(TemplatingSocket())
-        .plus(
-            ContextCallInterceptor(
-                TemplatingInterceptor,
-                CallTracingInterceptor,
-                MokkeryCallHooks.beforeAnswering,
-                AnsweringInterceptor
-            )
+    )
+    .plus(CallTracingRegistry())
+    .plus(AnsweringRegistry())
+    .plus(TemplatingSocket())
+    .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
+    .plus(
+        ContextCallInterceptor(
+            TemplatingInterceptor,
+            CallTracingInterceptor,
+            MokkeryCallHooks.beforeAnswering,
+            AnsweringInterceptor
         )
-}
+    )
 
 internal val MokkeryInstanceScope.mockId get() = mockSpec.id
 
