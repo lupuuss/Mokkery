@@ -17,8 +17,12 @@ internal class ObjectNotMockedException(obj: Any?) : MokkeryRuntimeException("$o
 internal class NotSingleCallInEveryBlockException :
     MokkeryRuntimeException("Each 'every' block requires single mock call!")
 
-internal class SuspendingFunctionBlockingCallException : MokkeryRuntimeException(
-    message = "Regular function was mocked with suspending call!"
+internal class SuspendingAnswerBlockingCallException : MokkeryRuntimeException(
+    message = "Regular function was mocked with answer that is for suspending functions only!"
+)
+
+internal class BlockingAnswerSuspendingCallException : MokkeryRuntimeException(
+    message = "Suspend function was mocked with answer that is for blocking functions only!"
 )
 
 internal class ConcurrentTemplatingException : MokkeryRuntimeException(

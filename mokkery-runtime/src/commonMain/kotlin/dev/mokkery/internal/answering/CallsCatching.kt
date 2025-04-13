@@ -4,14 +4,18 @@ import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.BlockingCallDefinitionScope
 import dev.mokkery.answering.CallArgs
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuspendCallDefinitionScope
+import dev.mokkery.context.argValues
+import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.interceptor.call
 
 internal class CallsCatchingAnswer<T>(
     private val block: BlockingCallDefinitionScope<Result<T>>.(CallArgs) -> T
-) : Answer<Result<T>> {
-    override fun call(scope: FunctionScope) = runCatchingSkippingMokkery {
-        block(BlockingCallDefinitionScope(scope), CallArgs(scope.args))
+) : Answer.Blocking<Result<T>> {
+
+    override fun call(scope: MokkeryBlockingCallScope) = runCatchingSkippingMokkery {
+        block(BlockingCallDefinitionScope(scope), CallArgs(scope.call.argValues))
     }
 
     override fun description() = "callsCatching {...}"
@@ -21,8 +25,8 @@ internal class CallsCatchingSuspendAnswer<T>(
     private val block: suspend SuspendCallDefinitionScope<Result<T>>.(CallArgs) -> T
 ) : Answer.Suspending<Result<T>> {
 
-    override suspend fun callSuspend(scope: FunctionScope): Result<T> = runCatchingSkippingMokkery {
-        block(SuspendCallDefinitionScope(scope), CallArgs(scope.args))
+    override suspend fun call(scope: MokkerySuspendCallScope): Result<T> = runCatchingSkippingMokkery {
+        block(SuspendCallDefinitionScope(scope), CallArgs(scope.call.argValues))
     }
 
     override fun description() = "callsCatching {...}"

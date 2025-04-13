@@ -1,6 +1,7 @@
 package dev.mokkery.answering
 
-import dev.mokkery.test.fakeFunctionScope
+import dev.mokkery.test.callBlocking
+import dev.mokkery.test.callSuspend
 import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,11 +12,11 @@ class ConstAnswerTest {
 
     @Test
     fun testCallReturnsConstant() {
-        assertEquals(3, answer.call(fakeFunctionScope()))
+        assertEquals(3, answer.callBlocking())
     }
 
     @Test
     fun testCallSuspendReturnsConstant() = runTest {
-        assertEquals(3, answer.callSuspend(fakeFunctionScope()))
+        assertEquals(3, answer.callSuspend())
     }
 }

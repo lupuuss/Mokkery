@@ -1,6 +1,5 @@
 package dev.mokkery.test
 
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.internal.calls.CallTemplate
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
@@ -9,20 +8,6 @@ import dev.mokkery.context.FunctionCall
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
-
-fun fakeFunctionScope(
-    returnType: KClass<*> = Unit::class,
-    self: Any? = Unit,
-    supers: Map<KClass<*>, (List<Any?>) -> Any?> = emptyMap(),
-    args: List<Any?> = emptyList(),
-    classSupertypes: List<KClass<*>> = listOf(Unit::class)
-) = FunctionScope(
-    returnType = returnType,
-    args = args,
-    self = self,
-    supers = supers,
-    classSupertypes = classSupertypes
-)
 
 internal fun fakeCallTemplate(
     typeName: String = "mock",

@@ -2,7 +2,8 @@ package dev.mokkery.internal.answering
 
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.Answer.Const
-import dev.mokkery.test.fakeFunctionScope
+import dev.mokkery.test.callBlocking
+import dev.mokkery.test.callSuspend
 import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,10 +26,10 @@ class UnifiedRepeatTest {
         }
         val sequential = builder.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
-        assertEquals(1, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
+        assertEquals(1, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
+        assertEquals(1, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
     }
 
     @Test
@@ -41,10 +42,10 @@ class UnifiedRepeatTest {
         }
         val sequential = builder.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(1, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
+        assertEquals(1, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
+        assertEquals(1, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
     }
 
     @Test
@@ -66,10 +67,10 @@ class UnifiedRepeatTest {
         }
         val sequential = builder.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
+        assertEquals(1, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
     }
 
     @Test
@@ -84,10 +85,10 @@ class UnifiedRepeatTest {
         }
         val sequential = builder.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
+        assertEquals(1, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
     }
 
     @Test

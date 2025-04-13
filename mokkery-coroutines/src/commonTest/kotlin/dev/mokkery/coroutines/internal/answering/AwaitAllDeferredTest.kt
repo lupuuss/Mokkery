@@ -1,6 +1,6 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.coroutines.fakeFunctionScope
+import dev.mokkery.coroutines.await
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -22,6 +22,6 @@ class AwaitAllDeferredTest {
 
     @Test
     fun testReturnsDeferredResultsList() = runTest {
-        assertEquals(listOf(1, 2), awaitable.await(fakeFunctionScope()))
+        assertEquals(listOf(1, 2), awaitable.await())
     }
 }

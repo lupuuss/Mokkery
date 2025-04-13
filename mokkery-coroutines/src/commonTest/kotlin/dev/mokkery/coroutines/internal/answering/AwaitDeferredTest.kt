@@ -1,7 +1,8 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.answering.FunctionScope
-import dev.mokkery.coroutines.fakeFunctionScope
+import dev.mokkery.coroutines.await
+import dev.mokkery.coroutines.createMokkerySuspendCallScope
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.test.runTest
@@ -12,7 +13,7 @@ import kotlin.test.assertSame
 class AwaitDeferredTest {
 
     private var description = "description"
-    private var deferred: (FunctionScope) -> Deferred<Int> = { CompletableDeferred(1) }
+    private var deferred: (MokkerySuspendCallScope) -> Deferred<Int> = { CompletableDeferred(1) }
     private val awaitable = AwaitDeferred(
         description = { description },
         deferred = { deferred(it) }
@@ -27,18 +28,18 @@ class AwaitDeferredTest {
 
     @Test
     fun testAwaitsProvidedDeferredOnEachCall() = runTest {
-        assertEquals(1, awaitable.await(fakeFunctionScope()))
+        assertEquals(1, awaitable.await())
         deferred = { CompletableDeferred(2) }
-        assertEquals(2, awaitable.await(fakeFunctionScope()))
+        assertEquals(2, awaitable.await())
         deferred = { CompletableDeferred(3) }
-        assertEquals(3, awaitable.await(fakeFunctionScope()))
+        assertEquals(3, awaitable.await())
     }
 
     @Test
     fun testPassesCorrectScopeToDeferredProvider() = runTest {
-        var passedScope: FunctionScope? = null
-        deferred = { passedScope = it ; CompletableDeferred(1) }
-        val scope = fakeFunctionScope()
+        var passedScope: MokkerySuspendCallScope? = null
+        deferred = { passedScope = it; CompletableDeferred(1) }
+        val scope = createMokkerySuspendCallScope()
         awaitable.await(scope)
         assertSame(scope, passedScope)
     }

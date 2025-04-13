@@ -3,7 +3,7 @@ package dev.mokkery.internal.coroutines
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.IllegalSuspensionException
 import dev.mokkery.internal.utils.runSuspension
-import dev.mokkery.test.fakeFunctionScope
+import dev.mokkery.test.callSuspend
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,5 +52,5 @@ class RunSuspensionTest {
         }
     }
 
-    private suspend fun noActualSuspensionFun(): Int = Answer.Const(1).callSuspend(fakeFunctionScope())
+    private suspend fun noActualSuspensionFun(): Int = Answer.Const(1).callSuspend()
 }

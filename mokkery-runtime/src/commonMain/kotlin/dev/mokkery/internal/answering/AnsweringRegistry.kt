@@ -8,6 +8,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.interceptor.MokkeryCallScope
 import dev.mokkery.interceptor.call
+import dev.mokkery.interceptor.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.CallTemplate
@@ -81,9 +82,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         return when {
             spyDelegate != null -> DelegateAnswer(spyDelegate)
             mockMode == MockMode.autofill -> Answer.Autofill
-            mockMode == MockMode.original && scope.associatedFunctions.supers.isNotEmpty() -> {
-                SuperCallAnswer<Any?>(SuperCall.original)
-            }
+            mockMode == MockMode.original && scope.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original)
             mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
             else -> throw CallNotMockedException(scope.tools.callTraceReceiverShortener.shortToString(trace))
         }

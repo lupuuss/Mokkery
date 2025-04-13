@@ -1,17 +1,17 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.drewhamilton.poko.Poko
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.coroutines.answering.Awaitable
+import dev.mokkery.interceptor.MokkerySuspendCallScope
 import kotlinx.coroutines.Deferred
 
 @Poko
 internal class AwaitDeferred<T>(
     private val description: () -> String = { "{...}" },
-    private val deferred: (scope: FunctionScope) -> Deferred<T>,
+    private val deferred: (scope: MokkerySuspendCallScope) -> Deferred<T>,
 ) : Awaitable<T> {
 
-    override suspend fun await(scope: FunctionScope): T = deferred(scope).await()
+    override suspend fun await(scope: MokkerySuspendCallScope): T = deferred(scope).await()
 
     override fun description(): String = description.invoke()
 }

@@ -1,6 +1,6 @@
 package dev.mokkery.interceptor
 
-import dev.mokkery.answering.FunctionScope
+import dev.mokkery.answering.AnswerDeprecationMessage
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
@@ -60,12 +60,14 @@ public val MokkeryCallScope.supers: Map<KClass<*>, Function<Any?>>
     get() = associatedFunctions.supers
 
 /**
- * Creates [FunctionScope] from this [MokkeryCallScope]
+ * Creates [dev.mokkery.answering.FunctionScope] from this [MokkeryCallScope]
  */
-public fun MokkeryCallScope.toFunctionScope(): FunctionScope {
+@Deprecated(AnswerDeprecationMessage)
+@Suppress("DEPRECATION")
+public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionScope {
     val call = call
     val function = call.function
-    return FunctionScope(
+    return dev.mokkery.answering.FunctionScope(
         returnType = function.returnType,
         args = call.args.map(CallArgument::value),
         self = self,

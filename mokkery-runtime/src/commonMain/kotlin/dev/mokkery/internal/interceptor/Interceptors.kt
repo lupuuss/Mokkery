@@ -66,11 +66,11 @@ internal object AnsweringInterceptor : MokkeryCallInterceptor {
     override fun intercept(scope: MokkeryBlockingCallScope): Any? = scope
         .answering
         .resolveAnswer(scope)
-        .call(scope.toFunctionScope())
+        .call(scope)
 
     @DelicateMokkeryApi
     override suspend fun intercept(scope: MokkerySuspendCallScope): Any? = scope
         .answering
         .resolveAnswer(scope)
-        .callSuspend(scope.toFunctionScope())
+        .call(scope)
 }
