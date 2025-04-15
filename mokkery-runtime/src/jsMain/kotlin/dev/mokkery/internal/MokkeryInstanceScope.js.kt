@@ -6,6 +6,7 @@ internal actual val Any.mokkeryScope: MokkeryInstanceScope?
 @Suppress("unused")
 internal fun MokkeryInstanceScope.initializeInJsFunctionMock(function: Any) {
     function.jsFunctionMokkeryScope = this
+    function.asDynamic().toString = this::toString
 }
 
 internal inline var Any.jsFunctionMokkeryScope: MokkeryInstanceScope?
