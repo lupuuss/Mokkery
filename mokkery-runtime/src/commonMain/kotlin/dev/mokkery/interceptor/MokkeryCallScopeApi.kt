@@ -9,7 +9,6 @@ import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.interceptor.withContext
-import dev.mokkery.internal.resolveInstance
 import kotlin.reflect.KClass
 
 /**
@@ -39,8 +38,8 @@ public suspend fun MokkerySuspendCallScope.nextIntercept(context: MokkeryContext
 /**
  * Equivalent of `this` in the scope of currently called function.
  */
-public val MokkeryCallScope.self: Any?
-    get() = resolveInstance(mockSpec.thisInstanceScope)
+public val MokkeryCallScope.self: Any
+    get() = mockSpec.thisRef
 
 /**
  * Returns [MokkeryCallScope.self] as [T].

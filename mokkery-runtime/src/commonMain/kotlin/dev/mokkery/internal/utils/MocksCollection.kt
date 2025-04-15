@@ -2,12 +2,10 @@
 
 package dev.mokkery.internal.utils
 
-import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.mockId
-import dev.mokkery.internal.resolveInstance
+import dev.mokkery.internal.requireInstanceScope
 
 internal interface MocksCollection {
 
@@ -39,10 +37,7 @@ internal inline fun MocksCollection.getScope(id: MockId): MokkeryInstanceScope =
     ?: mokkeryRuntimeError("Failed to find mock with $id!")
 
 internal val MocksCollection.instances: List<Any>
-    get() {
-        val scopeLookup = GlobalMokkeryScope.tools.scopeLookup
-        return scopes.map(scopeLookup::resolveInstance)
-    }
+    get() = scopes.map(MokkeryInstanceScope::requireInstanceScope)
 
 internal operator fun MocksCollection.plus(other: MocksCollection): MocksCollection = MutableMocksCollection(scopes + other.scopes)
 

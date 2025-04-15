@@ -43,7 +43,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(scope: MokkeryScope = GlobalMokkeryScope): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = scope.tools.signatureGenerator,
     composer = scope.tools.argMatchersComposer,
-    binder = TemplatingScopeDataBinder(scope.tools.scopeLookup),
+    binder = TemplatingScopeDataBinder(),
     autofill = scope.tools.autofillProvider
 )
 

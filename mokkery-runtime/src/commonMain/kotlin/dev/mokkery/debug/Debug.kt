@@ -1,14 +1,13 @@
 package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.mockSpec
-import dev.mokkery.internal.resolveScopeOrNull
+import dev.mokkery.internal.mokkeryScope
 import dev.mokkery.internal.interceptor.MokkeryKind
 import dev.mokkery.internal.mockIdString
 
@@ -16,7 +15,7 @@ import dev.mokkery.internal.mockIdString
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val scope = GlobalMokkeryScope.resolveScopeOrNull(obj)) {
+    return when (val scope = obj.mokkeryScope) {
         null -> "Not a mock/spy -> $obj"
         else -> when (scope.mockSpec.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(scope)

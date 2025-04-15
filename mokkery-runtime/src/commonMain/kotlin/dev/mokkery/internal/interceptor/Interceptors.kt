@@ -7,7 +7,6 @@ import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkerySuspendCallScope
 import dev.mokkery.interceptor.call
 import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.interceptor.toFunctionScope
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.callTracing
@@ -18,11 +17,9 @@ import dev.mokkery.internal.context.tools
 internal object MocksRegisteringListener : MokkeryInstantiationListener {
 
     override fun onInstantiation(scope: MokkeryInstanceScope, mock: Any) {
-        scope.tools.scopeLookup.registerScope(mock, scope)
         scope.mokkeryContext[MocksRegistry]?.register(scope)
     }
 }
-
 
 internal object TemplatingInterceptor : MokkeryCallInterceptor {
 

@@ -30,7 +30,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     kind: MokkeryKind,
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<KClass<*>>,
-    scope: MokkeryInstanceScope,
+    thisRef: Any,
     spiedObject: Any?
 ): MokkeryContext = mokkeryContext
     .plus(ContextInstantiationListener(MocksRegisteringListener))
@@ -42,7 +42,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
             interceptedTypes = interceptedTypes,
             typeArguments = typeArguments,
             spiedObject = spiedObject,
-            thisInstanceScope = scope
+            thisRef = thisRef
         )
     )
     .plus(CallTracingRegistry())
@@ -66,6 +66,10 @@ internal val MokkeryInstanceScope.spiedObject get() = mockSpec.spiedObject
 
 internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = mockSpec.typeArguments.getOrNull(index)
 
+internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: throw ObjectNotMockedException(this)
+
+internal expect val Any.mokkeryScope: MokkeryInstanceScope?
+
 internal fun MokkeryInstanceScope(
     parent: MokkeryScope,
     mode: MockMode,
@@ -73,6 +77,7 @@ internal fun MokkeryInstanceScope(
     typeName: String,
     mockedType: KClass<*>,
     typeArguments: List<KClass<*>> = emptyList(),
+    thisRef: Any,
     spiedObject: Any?
 ): MokkeryInstanceScope = DynamicMokkeryInstanceScope(
     parent = parent,
@@ -81,6 +86,7 @@ internal fun MokkeryInstanceScope(
     typeName = typeName,
     interceptedTypes = listOf(mockedType),
     typeArguments = typeArguments,
+    thisRef = thisRef,
     spiedObject = spiedObject
 )
 
@@ -91,6 +97,7 @@ private class DynamicMokkeryInstanceScope(
     typeName: String,
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<KClass<*>> = emptyList(),
+    thisRef: Any,
     spiedObject: Any?,
 ) : MokkeryInstanceScope {
 
@@ -100,7 +107,9 @@ private class DynamicMokkeryInstanceScope(
         kind = kind,
         interceptedTypes = interceptedTypes,
         typeArguments = typeArguments,
-        scope = this,
+        thisRef = thisRef,
         spiedObject = spiedObject
     )
+
+    override fun toString(): String = mockIdString
 }

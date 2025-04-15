@@ -7,8 +7,6 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
-import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.MokkeryScopeLookup
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.calls.ArgMatchersComposer
 import dev.mokkery.internal.calls.CallMatcher
@@ -24,7 +22,6 @@ internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
 
 internal class MokkeryTools(
-    instanceLookup: MokkeryScopeLookup? = null,
     namesShortener: NameShortener? = null,
     signatureGenerator: SignatureGenerator? = null,
     callTraceReceiverShortener: CallTraceReceiverShortener? = null,
@@ -36,7 +33,6 @@ internal class MokkeryTools(
     verifierFactory: VerifierFactory? = null,
 ) : MokkeryContext.Element {
 
-    private val _scopeLookup: MokkeryScopeLookup? = instanceLookup
     private val _namesShortener: NameShortener? = namesShortener
     private val _signatureGenerator: SignatureGenerator? = signatureGenerator
     private val _callTraceReceiverShortener: CallTraceReceiverShortener? = callTraceReceiverShortener
@@ -47,8 +43,6 @@ internal class MokkeryTools(
     private val _autofillProvider = autofillProvider
     private val _verifierFactory = verifierFactory
 
-    val scopeLookup: MokkeryScopeLookup
-        get() = _scopeLookup ?: mokkeryRuntimeError("MokkeryScopeLookup not present in the tools!")
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
     val signatureGenerator: SignatureGenerator
@@ -71,7 +65,6 @@ internal class MokkeryTools(
     override val key = Key
 
     fun copy(
-        instanceLookup: MokkeryScopeLookup? = _scopeLookup,
         namesShortener: NameShortener? = _namesShortener,
         signatureGenerator: SignatureGenerator? = _signatureGenerator,
         callTraceReceiverShortener: CallTraceReceiverShortener? = _callTraceReceiverShortener,
@@ -82,7 +75,6 @@ internal class MokkeryTools(
         autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
         verifierFactory: VerifierFactory? = _verifierFactory
     ) = MokkeryTools(
-        instanceLookup = instanceLookup,
         namesShortener = namesShortener,
         signatureGenerator = signatureGenerator,
         callTraceReceiverShortener = callTraceReceiverShortener,
@@ -104,7 +96,6 @@ internal class MokkeryTools(
             val signatureGenerator = SignatureGenerator()
             val callMatcher = CallMatcher(signatureGenerator)
             return MokkeryTools(
-                instanceLookup = MokkeryScopeLookup(),
                 namesShortener = namesShortener,
                 signatureGenerator = signatureGenerator,
                 callTraceReceiverShortener = CallTraceReceiverShortener(namesShortener),

@@ -10,7 +10,6 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallTraceReceiverShortener
 import dev.mokkery.test.TestMokkeryInstanceScope
-import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -24,8 +23,7 @@ class AnsweringRegistryTest {
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(
         callMatcher = callMatcher,
-        callTraceReceiverShortener = TestCallTraceReceiverShortener(),
-        instanceLookup = TestMokkeryScopeLookup()
+        callTraceReceiverShortener = TestCallTraceReceiverShortener()
     )
     private val context = tools + currentMockContext(MockMode.strict)
     private val answering = AnsweringRegistry()
@@ -62,10 +60,9 @@ class AnsweringRegistryTest {
 
     @Test
     fun testResolveAnswerReturnsSuperCallAnswerWithOriginalWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookUp = TestMokkeryScopeLookup { TestMokkeryInstanceScope(interceptedTypes = listOf(Unit::class)) }
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context + tools.copy(instanceLookup = lookUp) + currentMockContext(MockMode.original)
+            context = context + tools + currentMockContext(MockMode.original)
         )
         assertEquals(SuperCallAnswer<Any?>(SuperCall.original), answering.resolveAnswer(scope))
     }

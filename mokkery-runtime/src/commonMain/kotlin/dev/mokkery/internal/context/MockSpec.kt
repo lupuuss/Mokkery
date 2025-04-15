@@ -22,8 +22,8 @@ internal class MockSpec(
     val kind: MokkeryKind,
     val interceptedTypes: List<KClass<*>>,
     val typeArguments: List<KClass<*>>,
+    val thisRef: Any,
     val spiedObject: Any?,
-    val thisInstanceScope: MokkeryInstanceScope,
 ) : MokkeryContext.Element {
 
     override val key = Key
@@ -34,8 +34,8 @@ internal class MockSpec(
             "kind=$kind, " +
             "interceptedTypes=[${interceptedTypes.joinToString { it.bestName() }}], " +
             "typeArguments=[${typeArguments.joinToString { it.bestName() }}], " +
-            "spiedObject=${spiedObject?.let { "hash(${it.hashCode()})" }}, " +
-            "thisInstanceScope=...)"
+            "thisRef={...}, " +
+            "spiedObject=${spiedObject?.let { "hash(${it.hashCode()})" }})"
 
     companion object Key : MokkeryContext.Key<MockSpec>
 }

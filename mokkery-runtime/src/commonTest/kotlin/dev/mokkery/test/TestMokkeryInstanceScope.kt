@@ -25,7 +25,7 @@ internal class TestMokkeryInstanceScope(
         kind = kind,
         interceptedTypes = interceptedTypes,
         typeArguments = typeArguments,
-        thisInstanceScope = this,
+        thisRef = this,
         spiedObject = spiedObject,
     ) + interceptor
 }

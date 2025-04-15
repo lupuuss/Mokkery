@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSet
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -50,7 +51,26 @@ fun TransformerScope.buildMockJsFunction(
                 .extensionReceiver
                 ?: irGetObject(transformer.getClass(Mokkery.Class.GlobalMokkeryScope).symbol)
             val instanceScopeFun = transformer.getFunction(Mokkery.Function.MokkeryInstanceScope)
-            val mokkeryInstanceCall = irCall(instanceScopeFun) {
+            // initialized later to properly pass js function reference to mokkery context and context back to function
+            val instanceVar = createTmpVariable(
+                irExpression = irNull(),
+                irType = instanceScopeFun.returnType,
+                isMutable = true
+            )
+            val lambdaVar = createTmpVariable(
+                irLambda(returnType, typeToMock, currentFile) {
+                    +irReturn(
+                        irInterceptCall(
+                            transformer = transformer,
+                            mokkeryKind = kind,
+                            mokkeryInstance = irGet(instanceVar),
+                            typeParamsContainer = typeToMock.classOrFail.owner,
+                            function = it
+                        )
+                    )
+                }
+            )
+            +irSet(instanceVar, irCall(instanceScopeFun) {
                 putValueArgument(0, parentScope)
                 putValueArgument(1, modeArg)
                 putValueArgument(2, irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind))
@@ -64,23 +84,15 @@ fun TransformerScope.buildMockJsFunction(
                         expressions = typeArguments.memoryOptimizedMap { kClassReference(it) }
                     )
                 )
-                putValueArgument(6, if (kind == IrMokkeryKind.Spy) expression.valueArguments[0]!! else irNull())
+                putValueArgument(6, irGet(lambdaVar))
+                putValueArgument(7, if (kind == IrMokkeryKind.Spy) expression.valueArguments[0]!! else irNull())
+            })
+            +irCall(transformer.getFunction(Mokkery.Function.initializeInJsFunctionMock)) {
+                extensionReceiver = irGet(instanceVar)
+                putValueArgument(0, irGet(lambdaVar))
             }
-            val instanceVar = createTmpVariable(mokkeryInstanceCall)
-            val lambda = irLambda(returnType, typeToMock, currentFile) {
-                +irReturn(
-                    irInterceptCall(
-                        transformer = transformer,
-                        mokkeryKind = kind,
-                        mokkeryInstance = irGet(instanceVar),
-                        typeParamsContainer = typeToMock.classOrFail.owner,
-                        function = it
-                    )
-                )
-            }
-            val lambdaVar = createTmpVariable(lambda)
             +irCall(transformer.getFunction(Mokkery.Function.invokeInstantiationListener)) {
-                this.extensionReceiver = irGet(instanceVar)
+                extensionReceiver = irGet(instanceVar)
                 putValueArgument(0, irGet(lambdaVar))
             }
             val block = expression.valueArguments.getOrNull(1)
