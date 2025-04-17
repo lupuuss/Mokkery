@@ -42,7 +42,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
-import org.jetbrains.kotlin.ir.expressions.putArgument
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
@@ -53,6 +52,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -96,13 +96,12 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
                 ?: irClass.constructors.firstOrNull()
                 ?: error("No constructor found for ${irClass.kotlinFqName.asString()}!")
             irDelegatingConstructorCall(constructor).apply {
-                constructor.valueParameters.forEach {
-                    val provideCall = irCall(autofillFun) {
+                constructor.parameters.forEach {
+                    arguments[it] = irCall(autofillFun) {
                         type = it.type
-                        putTypeArgument(0, it.type)
-                        putValueArgument(0, kClassReference(it.type.eraseTypeParametersCompat()))
+                        typeArguments[0] = it.type
+                        arguments[0] = kClassReference(it.type.eraseTypeParameters())
                     }
-                    putArgument(it, provideCall)
                 }
             }
         }
@@ -134,7 +133,7 @@ fun IrBuilderWithScope.irLambda(
     }.apply {
         val bodyBuilder = DeclarationIrBuilder(context, symbol, startOffset, endOffset)
         this.copyTypeParametersFrom(func)
-        this.copyParametersFrom(func)
+        this.copyNonDispatchParametersWithoutDefaultsFrom(func)
         this.parent = parent
         body = bodyBuilder.irBlockBody {
             block(this@apply)
@@ -168,15 +167,15 @@ fun IrBuilderWithScope.irInvoke(
     val functionClass =
         context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
     return irCall(functionClass.invokeFun!!) {
-        dispatchReceiver = function
+        arguments[0] = function
         args.forEachIndexed { index, arg ->
-            putValueArgument(index, arg)
+            arguments[index + 1] = arg
         }
     }
 }
 
 inline fun IrBuilderWithScope.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
-    return irCallCompat(symbol, symbol.owner.returnType).apply(block)
+    return irCall(symbol, symbol.owner.returnType).apply(block)
 }
 
 inline fun IrBuilderWithScope.irCall(
@@ -184,7 +183,7 @@ inline fun IrBuilderWithScope.irCall(
     type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCallCompat(func.symbol, type).apply(block)
+    return irCall(func.symbol, type).apply(block)
 }
 
 fun IrBuilderWithScope.irCall(
@@ -224,21 +223,19 @@ fun IrBuilderWithScope.irCallListOf(
     type: IrType,
     expressions: List<IrExpression>
 ): IrCall {
-    val args = irVararg(
-        elementType = type,
-        values = expressions
-    )
-    val listOf = transformerScope.pluginContext.referenceFunctions(Kotlin.Name.listOf).first {
-        it.owner.valueParameters.firstOrNull()?.isVararg == true
-    }
+    val listOf = transformerScope
+        .pluginContext
+        .referenceFunctions(Kotlin.Name.listOf)
+        .first { it.owner.parameters.firstOrNull()?.isVararg == true }
     return irCall(listOf) {
-        putValueArgument(0, args)
+        arguments[0] = irVararg(elementType = type, values = expressions)
     }
 }
 
-fun IrBuilderWithScope.irMokkeryKindValue(enumClass: IrClass, kind: IrMokkeryKind): IrExpression {
-    return irGetEnumEntry(enumClass, kind.name)
-}
+fun IrBuilderWithScope.irMokkeryKindValue(
+    enumClass: IrClass,
+    kind: IrMokkeryKind
+): IrExpression = irGetEnumEntry(enumClass, kind.name)
 
 fun IrBuilderWithScope.irCallMapOf(
     transformer: TransformerScope,
@@ -246,13 +243,13 @@ fun IrBuilderWithScope.irCallMapOf(
 ): IrCall {
     val mapOf = transformer.pluginContext
         .referenceFunctions(Kotlin.Name.mapOf)
-        .first { it.owner.valueParameters.firstOrNull()?.isVararg == true }
+        .first { it.owner.parameters.firstOrNull()?.isVararg == true }
     return irCall(mapOf) {
         val varargs = irVararg(
             elementType = transformer.getClass(Kotlin.Class.Pair).defaultType,
             values = pairs.map { irCreatePair(transformer, it.first, it.second) }
         )
-        putValueArgument(0, varargs)
+        arguments[0] = varargs
     }
 }
 
@@ -262,7 +259,7 @@ private fun IrBuilderWithScope.irCreatePair(
     second: IrExpression
 ): IrExpression {
     return irCall(transformer.getFunction(Kotlin.Function.to)) {
-        extensionReceiver = first
-        putValueArgument(0, second)
+        arguments[0] = first
+        arguments[1] = second
     }
 }

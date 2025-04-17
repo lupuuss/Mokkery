@@ -22,11 +22,9 @@ import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.isPlatformDependent
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridePropertyBackingField
-import dev.mokkery.plugin.ir.typeArgumentsCompat
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -40,6 +38,7 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -122,11 +121,11 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             irBlockBody {
                 val testScopeFun = getFunction(Mokkery.Function.MokkerySuiteScope)
                 val getContext = irCall(baseProperty.getter!!) {
-                    dispatchReceiver = irCall(testScopeFun) {
+                    arguments[0] = irCall(testScopeFun) {
                         val testsScopeName = irCallConstructor(suiteNameClass.primaryConstructor!!) {
-                            putValueArgument(0, irString(irClass.kotlinFqName.asString()))
+                            arguments[0] = irString(irClass.kotlinFqName.asString())
                         }
-                        putValueArgument(0, testsScopeName)
+                        arguments[0] = testsScopeName
                     }
                 }
                 +irSetField(irGet(irClass.thisReceiver!!), newProperty.backingField!!, getContext)
@@ -136,7 +135,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     private fun replaceWithMock(call: IrCall): IrExpression {
-        val typeToMock = call.typeArgumentsCompat.firstOrNull() ?: return call
+        val typeToMock = call.typeArguments.firstOrNull() ?: return call
         val classToMock = typeToMock.getClass() ?: return call
         if (platform.isJs() && classToMock.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock)
         val mockedClass = mockCache.getOrPut(classToMock) {
@@ -144,65 +143,68 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
-                val modeArg = call.valueArguments.getOrNull(0)
-                    ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
-                val block = call.valueArguments.getOrNull(1)
-                putValueArgument(0, call.extensionReceiver ?: irGetObject(globalMokkeryScopeSymbol))
-                putValueArgument(1, modeArg)
-                putValueArgument(2, block ?: irNull())
+                val calledFun = call.symbol.owner
+                val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
+                val regularParams = calledFun.parameters - extensionParam
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
+                arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
                 val anyType = context.irBuiltIns.anyType
                 typeToMock.forEachIndexedTypeArgument { index, it ->
-                    putValueArgument(3 + index, kClassReference(it ?: anyType))
+                    arguments[3 + index] = kClassReference(it ?: anyType)
                 }
             }
         }
     }
 
     private fun replaceWithMockMany(call: IrCall): IrExpression {
-        val classes = call.typeArgumentsCompat.mapNotNullTo(mutableSetOf()) { it?.getClass() }
+        val classes = call.typeArguments.mapNotNullTo(mutableSetOf()) { it?.getClass() }
         if (classes.isEmpty()) return call
         val mockedClass = mockManyCache.getOrPut(classes) {
             buildManyMockClass(classes.toList()).also(currentFile::addChild)
         }
         return declarationIrBuilder(call) {
             irCallConstructor(mockedClass.primaryConstructor!!) {
-                val modeArg = call.valueArguments.getOrNull(0)
-                    ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
-                putValueArgument(0, call.extensionReceiver ?: irGetObject(globalMokkeryScopeSymbol))
-                putValueArgument(1, modeArg)
-                putValueArgument(2, call.valueArguments.getOrNull(1) ?: irNull())
+                val calledFun = call.symbol.owner
+                val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
+                val regularParams = calledFun.parameters - extensionParam
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
+                arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
                 val anyType = context.irBuiltIns.anyType
-                call.typeArgumentsCompat
+                call.typeArguments
                     .filterNotNull()
                     .forEachIndexedTypeArgument { index, it ->
-                        putValueArgument(3 + index, kClassReference(it ?: anyType))
+                        arguments[3 + index] = kClassReference(it ?: anyType)
                     }
             }
         }
     }
 
     private fun replaceWithSpy(call: IrCall): IrExpression {
-        val typeToMock = call.typeArgumentsCompat.firstOrNull() ?: return call
+        val typeToMock = call.typeArguments.firstOrNull() ?: return call
         val klass = typeToMock.getClass() ?: return call
         if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy)
         val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass).also(currentFile::addChild) }
         return declarationIrBuilder(call) {
             irCallConstructor(spiedClass.primaryConstructor!!) {
-                val block = call.valueArguments.getOrNull(1) ?: irNull()
-                putValueArgument(0, call.extensionReceiver ?: irGetObject(globalMokkeryScopeSymbol))
-                putValueArgument(1, irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict"))
-                putValueArgument(2, block)
-                putValueArgument(3, call.valueArguments[0])
+                val calledFun = call.symbol.owner
+                val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
+                val regularParams = calledFun.parameters - extensionParam
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[1] = irGetEnumEntry(getClass(Mokkery.Class.MockMode), "strict")
+                arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
+                arguments[3] = call.arguments[regularParams[0]!!]
                 val anyType = context.irBuiltIns.anyType
                 typeToMock.forEachIndexedTypeArgument { index, it ->
-                    putValueArgument(4 + index, kClassReference(it ?: anyType))
+                    arguments[4 + index] = kClassReference(it ?: anyType)
                 }
             }
         }
     }
 
     private fun replaceWithInternalEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
-        val block = expression.getValueArgument(0)!!
+        val block = expression.arguments[0]!!
         return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
@@ -213,19 +215,23 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                     block as IrFunctionExpression
                     // make return type nullable to avoid runtime checks for primitive types (required by Wasm-JS)
                     if (block.function.returnType.isPlatformDependent()) {
-                        putTypeArgument(0, getTypeArgument(0)?.makeNullable())
+                        typeArguments[0] = typeArguments[0]?.makeNullable()
                         block.function.returnType = block.function.returnType.makeNullable()
                     }
-                    putValueArgument(0, irGet(variable))
-                    putValueArgument(1, block)
+                    arguments[0] = irGet(variable)
+                    arguments[1] = block
                 }
             }
         }
     }
 
     private fun replaceWithInternalVerify(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
-        val mode = expression.getValueArgument(0)
-        val block = expression.getValueArgument(1)!!
+        val mokkeryScopeParam = expression.symbol.owner
+            .parameters
+            .find { it.kind == IrParameterKind.ExtensionReceiver }
+        val regularParams = expression.symbol.owner.parameters - mokkeryScopeParam
+        val mode = expression.arguments[regularParams[0]!!]
+        val block = expression.arguments[regularParams[1]!!]!!
         return declarationIrBuilder(expression) {
             irBlock {
                 val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
@@ -236,10 +242,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 transformer.currentFile = currentFile
                 block.transformChildren(transformer, null)
                 +irCall(function) {
-                    extensionReceiver = expression.extensionReceiver ?: irGetObject(globalMokkeryScopeSymbol)
-                    putValueArgument(0, irGet(variable))
-                    putValueArgument(1, mode ?: irGetVerifyMode(verifyMode))
-                    putValueArgument(2, block)
+                    arguments[0] = mokkeryScopeParam
+                        ?.let(expression.arguments::get)
+                        ?: irGetObject(globalMokkeryScopeSymbol)
+                    arguments[1] = irGet(variable)
+                    arguments[2] = mode ?: irGetVerifyMode(verifyMode)
+                    arguments[3] = block
                 }
             }
         }
@@ -248,8 +256,8 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private fun IrBuilderWithScope.irGetVerifyMode(verifyMode: VerifyMode): IrExpression {
         val expression = when (verifyMode) {
             is SoftVerifyMode -> irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!) {
-                putValueArgument(0, irInt(verifyMode.atLeast))
-                putValueArgument(1, irInt(verifyMode.atMost))
+                arguments[0] = irInt(verifyMode.atLeast)
+                arguments[1] = irInt(verifyMode.atMost)
             }
             else -> irGetObject(getIrClassOf(verifyMode::class).symbol)
         }
