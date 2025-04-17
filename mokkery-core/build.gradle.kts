@@ -12,7 +12,7 @@ buildConfig {
     buildConfigField("String", "RUNTIME", str("mokkery-runtime"))
     buildConfigField("String", "PLUGIN_ID", str(rootProject.ext["pluginId"]))
     buildConfigField("String", "PLUGIN_ARTIFACT_ID", str(pluginProject.name))
-    buildConfigField("String", "MINIMUM_KOTLIN_VERSION", str("2.1.0"))
+    buildConfigField("String", "MINIMUM_KOTLIN_VERSION", str("2.1.20"))
     buildConfigField("String", "COMPILED_KOTLIN_VERSION", str(libs.versions.kotlin.get()))
 }
 

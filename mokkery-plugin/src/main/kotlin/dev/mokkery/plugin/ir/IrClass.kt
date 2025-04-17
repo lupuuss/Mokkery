@@ -25,9 +25,9 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
-import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameter
+import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.fields
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
@@ -50,13 +50,13 @@ fun IrType.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     (this as? IrSimpleType)
         ?.arguments
         ?.forEachIndexed { index, it ->
-            block(index, it.typeOrNull?.eraseTypeParametersCompat())
+            block(index, it.typeOrNull?.eraseTypeParameters())
         }
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
-        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParametersCompat()) }
+        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
 }
 
 fun IrClass.addOverridingMethod(
@@ -82,12 +82,11 @@ fun IrClass.addOverridingMethod(
     }.apply {
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
         metadata = function.metadata
-        createDispatchReceiverParameter()
         copyTypeParametersFrom(function, parameterMap = parameterMap)
         copyAnnotationsFrom(function)
         copyReturnTypeFrom(function, parameterMap)
-        copyParametersFrom(function, parameterMap)
-        contextReceiverParametersCount = function.contextReceiverParametersCount
+        parameters = listOf(createDispatchReceiverParameterWithClassParent())
+        copyNonDispatchParametersWithoutDefaultsFrom(function, parameterMap)
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
     }
@@ -164,11 +163,10 @@ fun IrClass.addOverridingProperty(
             getter.overriddenSymbols = properties
                 .memoryOptimizedFlatMap { it.getter?.overriddenSymbols.orEmpty() + listOfNotNull(it.getter?.symbol) }
             getter.metadata = baseGetter.metadata
-            getter.createDispatchReceiverParameter()
-            getter.contextReceiverParametersCount = baseGetter.contextReceiverParametersCount
             getter.copyTypeParametersFrom(baseGetter, parameterMap = parameterMap)
             getter.copyReturnTypeFrom(baseGetter, parameterMap)
-            getter.copyParametersFrom(baseGetter, parameterMap)
+            getter.parameters = listOf(getter.createDispatchReceiverParameterWithClassParent())
+            getter.copyNonDispatchParametersWithoutDefaultsFrom(baseGetter, parameterMap)
             getter.copyAnnotationsFrom(baseGetter)
             getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
@@ -176,11 +174,10 @@ fun IrClass.addOverridingProperty(
         if (baseSetter != null) {
             val setter = addSetter()
             setter.metadata = baseSetter.metadata
-            setter.createDispatchReceiverParameter()
-            setter.contextReceiverParametersCount = baseSetter.contextReceiverParametersCount
             setter.copyTypeParametersFrom(baseSetter, parameterMap = parameterMap)
             setter.copyReturnTypeFrom(baseSetter, parameterMap)
-            setter.copyParametersFrom(baseSetter, parameterMap)
+            setter.parameters = listOf(setter.createDispatchReceiverParameterWithClassParent())
+            setter.copyNonDispatchParametersWithoutDefaultsFrom(baseSetter, parameterMap)
             setter.copyAnnotationsFrom(baseSetter)
             setter.overriddenSymbols = properties
                 .memoryOptimizedFlatMap { it.setter?.overriddenSymbols.orEmpty() + listOfNotNull(it.setter?.symbol) }
@@ -206,9 +203,9 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
             this.returnType = returnType
             origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
         }.apply {
-            createDispatchReceiverParameter()
+            createDispatchReceiverParameterWithClassParent()
             body = DeclarationIrBuilder(context, symbol).irBlockBody {
-                +irReturn(irGetField(irGet(dispatchReceiverParameter!!), backingField!!))
+                +irReturn(irGetField(irGet(parameters[0]), backingField!!))
             }
         }
         getter?.overriddenSymbols = listOf(property.getter!!.symbol)
@@ -221,4 +218,4 @@ val IrClass.overridableFunctions
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridable }
 
-val IrClass.defaultTypeErased get() = defaultType.eraseTypeParametersCompat()
+val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()

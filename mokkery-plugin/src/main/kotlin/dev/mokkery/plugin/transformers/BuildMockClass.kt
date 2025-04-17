@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
-import org.jetbrains.kotlin.ir.util.createParameterDeclarations
+import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
@@ -56,7 +56,7 @@ import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
-import java.util.*
+import java.util.UUID
 
 fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
@@ -73,7 +73,7 @@ fun TransformerScope.buildMockClass(
         instanceScopeClass.defaultType,
         if (classToMock.isInterface) pluginContext.irBuiltIns.anyType else null
     )
-    mockedClass.createParameterDeclarations()
+    mockedClass.createThisReceiverParameter()
     mockedClass.origin = Mokkery.Origin
     mockedClass.addMockClassConstructor(
         transformer = this,
@@ -100,7 +100,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mockedClass = pluginContext.irFactory
         .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
-    mockedClass.createParameterDeclarations()
+    mockedClass.createThisReceiverParameter()
     mockedClass.origin = Mokkery.Origin
     val parameterMap = classesToMock.createParametersMapTo(mockedClass)
     val mockedTypes = classesToMock.typeWith(parameterMap)
@@ -195,40 +195,34 @@ private fun IrClass.addMockClassConstructor(
                 thisParam = thisReceiver!!,
                 property = contextProperty,
                 value = irCall(transformer.getFunction(Mokkery.Function.createMokkeryInstanceContext)) {
-                    extensionReceiver = irGet(valueParameters[0])
-                    putValueArgument(0, irString(typeName))
-                    putValueArgument(1, irGet(valueParameters[1]))
-                    putValueArgument(2, irMokkeryKindValue(mokkeryKindClass, mokkeryKind))
-                    putValueArgument(
-                        index = 3,
-                        valueArgument = irCallListOf(
-                            transformerScope = transformer,
-                            type = context.irBuiltIns.kClassClass.starProjectedType,
-                            expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
-                        )
+                    arguments[0] = irGet(parameters[0])
+                    arguments[1] = irString(typeName)
+                    arguments[2] = irGet(parameters[1])
+                    arguments[3] = irMokkeryKindValue(mokkeryKindClass, mokkeryKind)
+                    arguments[4] = irCallListOf(
+                        transformerScope = transformer,
+                        type = context.irBuiltIns.kClassClass.starProjectedType,
+                        expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
                     )
-                    putValueArgument(
-                        index = 4,
-                        valueArgument = irCallListOf(
-                            transformerScope = transformer,
-                            type = context.irBuiltIns.kClassClass.starProjectedType,
-                            expressions = typeKClassParameters.memoryOptimizedMap { irGet(it) }
-                        )
+                    arguments[5] = irCallListOf(
+                        transformerScope = transformer,
+                        type = context.irBuiltIns.kClassClass.starProjectedType,
+                        expressions = typeKClassParameters.memoryOptimizedMap { irGet(it) }
                     )
-                    putValueArgument(5, irGet(thisReceiver!!))
-                    putValueArgument(6, spyParam?.let(::irGet) ?: irNull())
+                    arguments[6] = irGet(thisReceiver!!)
+                    arguments[7] = spyParam?.let(::irGet) ?: irNull()
                 }
             )
             +irCall(invokeInstantiationCallbacksFun) {
-                extensionReceiver = irGet(thisReceiver!!)
-                putValueArgument(0, irGet(thisReceiver!!))
+                arguments[0] = irGet(thisReceiver!!)
+                arguments[1] = irGet(thisReceiver!!)
             }
-            +irInvokeIfNotNull(irGet(valueParameters[2]), false, irGet(thisReceiver!!))
+            +irInvokeIfNotNull(irGet(parameters[2]), false, irGet(thisReceiver!!))
         }
     }
     addOverridingMethod(context, context.irBuiltIns.memberToString.owner) {
         +irReturn(irCall(transformer.getProperty(Mokkery.Property.mockIdString).getter!!.symbol) {
-            extensionReceiver = irGet(it.dispatchReceiverParameter!!)
+            arguments[0] = irGet(it.parameters[0])
         })
     }
 }
