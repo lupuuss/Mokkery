@@ -53,7 +53,7 @@ fun IrBlockBodyBuilder.irInterceptMethod(
 ): IrCall = irInterceptCall(
     transformer = transformer,
     mokkeryKind = mokkeryKind,
-    mokkeryInstance = irGet(function.dispatchReceiverParameter!!),
+    mokkeryInstance = irGet(function.parameters[0]),
     typeParamsContainer = function.parentAsClass,
     function = function
 )
