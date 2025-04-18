@@ -203,7 +203,7 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
             this.returnType = returnType
             origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
         }.apply {
-            createDispatchReceiverParameterWithClassParent()
+            parameters = listOf(createDispatchReceiverParameterWithClassParent())
             body = DeclarationIrBuilder(context, symbol).irBlockBody {
                 +irReturn(irGetField(irGet(parameters[0]), backingField!!))
             }
