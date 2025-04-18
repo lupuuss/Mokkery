@@ -8,6 +8,7 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
+import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
@@ -23,7 +24,9 @@ import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr.signatureString
+import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
+import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
+import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -35,6 +38,7 @@ import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -118,14 +122,14 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
         classesToIntercept = classesToMock,
     )
     classesToMock.flatMap { it.overridableFunctions }
-        .groupBy { it.signatureString(true) }
+        .groupBy(IrDeclaration::computeSignature)
         .map { (_, functions) ->
             mockedClass.addOverridingMethod(pluginContext, functions, parameterMap) {
                 mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it)
             }
         }
     classesToMock.flatMap { it.overridableProperties }
-        .groupBy { it.signatureString(true) }
+        .groupBy(IrDeclaration::computeSignature)
         .map { (_, properties) ->
             mockedClass.addOverridingProperty(
                 context = pluginContext,
