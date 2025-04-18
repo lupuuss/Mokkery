@@ -9,9 +9,9 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambda
+import dev.mokkery.plugin.ir.isValueClassType
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.jvm.ir.isValueClassType
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
