@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isSuspend
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.usesDefaultArguments
 import org.jetbrains.kotlin.platform.konan.isNative
 
@@ -111,7 +112,7 @@ class TemplatingScopeCallsTransformer(
     }
 
     private fun interceptAllArgsOf(expression: IrCall) {
-        val parameters = expression.symbol.owner.parameters
+        val parameters = expression.symbol.owner.nonDispatchParameters
         for (param in parameters) {
             val arg = expression.arguments[param] ?: continue
             if (arg is IrGetValue && arg.interceptArgInitializer(param)) continue
