@@ -2,7 +2,7 @@ package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.utils.bestName
 import kotlin.reflect.KClass
 

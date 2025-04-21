@@ -1,8 +1,8 @@
 package dev.mokkery.debug
 
 import dev.mokkery.interceptor.MokkeryCallListener
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.suiteName
 import dev.mokkery.internal.utils.callToString

@@ -1,11 +1,11 @@
 package dev.mokkery.internal.context
 
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.internal.interceptor.MokkerySuspendCallScope
+import dev.mokkery.internal.MokkeryBlockingCallScope
+import dev.mokkery.internal.MokkerySuspendCallScope
 import dev.mokkery.test.TestMokkeryContext
 import dev.mokkery.test.runTest
 import dev.mokkery.test.testBlockingCallScope

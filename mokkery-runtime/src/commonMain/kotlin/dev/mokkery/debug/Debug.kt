@@ -8,7 +8,7 @@ import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.mokkeryScope
-import dev.mokkery.internal.interceptor.MokkeryKind
+import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.mockIdString
 
 /**

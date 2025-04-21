@@ -4,10 +4,10 @@ import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.MokkeryContext.Empty
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.internal.interceptor.withContext
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.internal.withContext
 
 internal inline val MokkeryScope.callInterceptor: MokkeryCallInterceptor
     get() = mokkeryContext.require(ContextCallInterceptor)

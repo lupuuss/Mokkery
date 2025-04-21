@@ -1,7 +1,7 @@
 package dev.mokkery.coroutines
 
 import dev.mokkery.coroutines.answering.Awaitable
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 
 class TestAwaitable<T>(
     var await: suspend (MokkerySuspendCallScope) -> T,

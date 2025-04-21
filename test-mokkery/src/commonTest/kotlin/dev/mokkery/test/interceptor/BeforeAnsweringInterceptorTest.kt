@@ -1,11 +1,10 @@
 package dev.mokkery.test.interceptor
 
-import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.call
+import dev.mokkery.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType

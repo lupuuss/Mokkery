@@ -1,6 +1,6 @@
 package dev.mokkery.answering
 
-import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.internal.MokkeryBlockingCallScope
 import dev.mokkery.internal.answering.ByFunctionAnswer
 import dev.mokkery.test.callBlocking
 import dev.mokkery.test.callSuspend

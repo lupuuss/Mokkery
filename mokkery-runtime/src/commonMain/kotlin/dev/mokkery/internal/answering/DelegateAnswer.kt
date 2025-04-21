@@ -2,9 +2,9 @@ package dev.mokkery.internal.answering
 
 import dev.mokkery.answering.Answer
 import dev.mokkery.context.argValues
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
 import dev.mokkery.internal.utils.unsafeCast
 
 internal class DelegateAnswer(private val delegate: Function<Any?>) : Answer<Any?> {

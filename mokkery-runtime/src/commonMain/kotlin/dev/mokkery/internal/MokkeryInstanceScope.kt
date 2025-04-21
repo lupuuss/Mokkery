@@ -18,7 +18,7 @@ import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
-import dev.mokkery.internal.interceptor.MokkeryKind
+import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.interceptor.TemplatingInterceptor
 import kotlin.reflect.KClass
 

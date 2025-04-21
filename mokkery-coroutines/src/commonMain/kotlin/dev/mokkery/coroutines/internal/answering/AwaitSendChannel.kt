@@ -2,7 +2,7 @@ package dev.mokkery.coroutines.internal.answering
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.coroutines.answering.Awaitable
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.channels.SendChannel
 
 @Poko

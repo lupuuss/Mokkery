@@ -2,10 +2,10 @@ package dev.mokkery.internal.interceptor
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.answering

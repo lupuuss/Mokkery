@@ -3,7 +3,7 @@ package dev.mokkery.coroutines.internal.answering
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.Answer
 import dev.mokkery.coroutines.answering.Awaitable
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 
 @Poko
 internal class AwaitAnswer<T>(

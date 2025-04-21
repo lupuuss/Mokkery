@@ -1,7 +1,7 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.mokkery.coroutines.answering.Awaitable
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.awaitCancellation
 
 internal data object AwaitCancellation : Awaitable<Nothing> {

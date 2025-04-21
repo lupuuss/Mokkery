@@ -5,16 +5,15 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.context.argValues
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.supers
-import dev.mokkery.interceptor.callOriginal
-import dev.mokkery.interceptor.callSuper
-import dev.mokkery.interceptor.self
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
+import dev.mokkery.self
 import dev.mokkery.context.argValue
-import dev.mokkery.interceptor.toFunctionScope
+import dev.mokkery.toFunctionScope
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
@@ -54,10 +53,10 @@ import kotlinx.atomicfu.locks.withLock
  * | [FunctionScope.arg]                | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValue]                                  |
  * | [FunctionScope.supers]             | [MokkeryCallScope.supers]                                                                              |
  * | [FunctionScope.self]               | [MokkeryCallScope.self]                                                                                |
- * | [FunctionScope.callOriginal]       | [MokkeryBlockingCallScope.callOriginal]                                                                |
- * | [FunctionScope.callSuspendOriginal]| [MokkerySuspendCallScope.callOriginal]                                                                 |
- * | [FunctionScope.callSuper]          | [MokkeryBlockingCallScope.callSuper]                                                                   |
- * | [FunctionScope.callSuspendSuper]   | [MokkerySuspendCallScope.callSuper]
+ * | [FunctionScope.callOriginal]       | [callOriginal]                                                                |
+ * | [FunctionScope.callSuspendOriginal]| [callOriginal]                                                                 |
+ * | [FunctionScope.callSuper]          | [callSuper]                                                                   |
+ * | [FunctionScope.callSuspendSuper]   | [callSuper]
  */
 @DelicateMokkeryApi
 public interface Answer<out T> {

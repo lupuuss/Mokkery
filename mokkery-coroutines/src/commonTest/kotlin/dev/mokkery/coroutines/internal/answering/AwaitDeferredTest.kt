@@ -2,7 +2,7 @@ package dev.mokkery.coroutines.internal.answering
 
 import dev.mokkery.coroutines.await
 import dev.mokkery.coroutines.createMokkerySuspendCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.test.runTest

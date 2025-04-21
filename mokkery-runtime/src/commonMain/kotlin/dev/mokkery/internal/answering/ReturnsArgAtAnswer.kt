@@ -2,8 +2,8 @@ package dev.mokkery.internal.answering
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.Answer
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
 import dev.mokkery.internal.utils.unsafeCast
 
 @Poko

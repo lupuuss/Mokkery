@@ -1,12 +1,41 @@
-package dev.mokkery.interceptor
+package dev.mokkery
 
+import dev.mokkery.answering.AnswerDeprecationMessage
+import dev.mokkery.context.CallArgument
+import dev.mokkery.context.FunctionCall
+import dev.mokkery.context.require
 import dev.mokkery.internal.MissingArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
+import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
+
+/**
+ * Equivalent of `this` in the scope of currently called function.
+ */
+public val MokkeryCallScope.self: Any
+    get() = mockSpec.thisRef
+
+/**
+ * Returns [MokkeryCallScope.self] as [T].
+ */
+public inline fun <reified T> MokkeryCallScope.self(): T = self as T
+
+/**
+ * Returns current call.
+ */
+public val MokkeryCallScope.call: FunctionCall
+    get() = mokkeryContext.require(FunctionCall)
+
+/**
+ * Returns a map of available super calls for currently called function.
+ */
+public val MokkeryCallScope.supers: Map<KClass<*>, Function<Any?>>
+    get() = associatedFunctions.supers
+
 
 /**
  * Calls original method implementation with given [args].
@@ -38,6 +67,23 @@ public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args:
         .let { it ?: throw MissingSuperMethodException(superType) }
         .unsafeCast<suspend (List<Any?>) -> Any?>()
         .invoke(args)
+}
+
+/**
+ * Creates [dev.mokkery.answering.FunctionScope] from this [MokkeryCallScope]
+ */
+@Deprecated(AnswerDeprecationMessage)
+@Suppress("DEPRECATION")
+public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionScope {
+    val call = call
+    val function = call.function
+    return dev.mokkery.answering.FunctionScope(
+        returnType = function.returnType,
+        args = call.args.map(CallArgument::value),
+        self = self,
+        supers = supers,
+        classSupertypes = mockSpec.interceptedTypes
+    )
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>

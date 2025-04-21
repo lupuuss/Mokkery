@@ -2,11 +2,13 @@
 
 package dev.mokkery.interceptor
 
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.context.AssociatedFunctions
-import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.internal.interceptor.MokkerySuspendCallScope
+import dev.mokkery.internal.MokkeryBlockingCallScope
+import dev.mokkery.internal.MokkerySuspendCallScope
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeFunctionCall

@@ -6,9 +6,9 @@ import dev.mokkery.answering.BlockingCallDefinitionScope
 import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendCallDefinitionScope
 import dev.mokkery.context.argValues
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
 
 internal class CallsCatchingAnswer<T>(
     private val block: BlockingCallDefinitionScope<Result<T>>.(CallArgs) -> T

@@ -14,8 +14,6 @@ allOpen {
     annotation("dev.mokkery.test.OpenForMokkery")
 }
 
-val mokkeryAllowIndirectSuperCalls: String by project
-
 mokkery {
     ignoreFinalMembers.set(true)
 }

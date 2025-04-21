@@ -1,14 +1,13 @@
 @file:Suppress("unused")
 
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal
 
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.internal.MokkeryInstanceScope
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.takeIfImplementedOrAny

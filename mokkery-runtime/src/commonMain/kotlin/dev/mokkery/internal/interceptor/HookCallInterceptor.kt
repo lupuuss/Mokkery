@@ -1,10 +1,10 @@
 package dev.mokkery.internal.interceptor
 
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.interceptor.MokkeryHook
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.callInterceptor
 import kotlinx.atomicfu.atomic

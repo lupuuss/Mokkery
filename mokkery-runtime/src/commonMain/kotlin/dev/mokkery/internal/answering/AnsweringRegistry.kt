@@ -6,9 +6,9 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.supers
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
+import dev.mokkery.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.calls.CallTemplate

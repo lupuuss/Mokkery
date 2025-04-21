@@ -5,7 +5,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.MockSpec
-import dev.mokkery.internal.interceptor.MokkeryKind
+import dev.mokkery.internal.MokkeryKind
 import kotlin.reflect.KClass
 
 internal class TestMokkeryInstanceScope(

@@ -17,14 +17,13 @@ object Mokkery {
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_context by fqName
     val dev_mokkery_internal_calls by fqName
-    val dev_mokkery_internal_interceptor by fqName
     val dev_mokkery_matcher by fqName
 
     object Class {
 
         val MockMode by dev_mokkery.klass
         val MokkeryScope by dev_mokkery.klass
-        val MokkeryKind by dev_mokkery_internal_interceptor.klass
+        val MokkeryKind by dev_mokkery_internal.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
@@ -67,8 +66,8 @@ object Mokkery {
         val typeArgumentAt by dev_mokkery_internal.function
         val autofillConstructor by dev_mokkery_internal.function
         val invokeInstantiationListener by dev_mokkery_internal_context.function
-        val createMokkeryBlockingCallScope by dev_mokkery_internal_interceptor.function
-        val createMokkerySuspendCallScope by dev_mokkery_internal_interceptor.function
+        val createMokkeryBlockingCallScope by dev_mokkery_internal.function
+        val createMokkerySuspendCallScope by dev_mokkery_internal.function
     }
 
     object Property {

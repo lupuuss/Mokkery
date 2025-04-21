@@ -1,7 +1,7 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.mokkery.coroutines.await
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.advanceTimeBy

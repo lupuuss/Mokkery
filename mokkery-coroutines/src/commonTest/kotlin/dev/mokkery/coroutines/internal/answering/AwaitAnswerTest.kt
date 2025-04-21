@@ -3,7 +3,7 @@ package dev.mokkery.coroutines.internal.answering
 import dev.mokkery.coroutines.TestAwaitable
 import dev.mokkery.coroutines.createMokkeryBlockingCallScope
 import dev.mokkery.coroutines.createMokkerySuspendCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

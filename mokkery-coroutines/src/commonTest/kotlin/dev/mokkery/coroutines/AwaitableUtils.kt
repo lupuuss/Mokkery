@@ -3,10 +3,10 @@ package dev.mokkery.coroutines
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.coroutines.answering.Awaitable
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.internal.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.internal.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.internal.MokkeryBlockingCallScope
+import dev.mokkery.internal.MokkerySuspendCallScope
 
 
 suspend fun <T> Awaitable<T>.await(context: MokkeryContext = MokkeryContext.Empty): T {

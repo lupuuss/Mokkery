@@ -4,11 +4,11 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.context.argValues
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.callOriginal
-import dev.mokkery.interceptor.callSuper
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
 import dev.mokkery.internal.utils.description
 import dev.mokkery.internal.utils.unsafeCast
 

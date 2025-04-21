@@ -8,9 +8,9 @@ import dev.mokkery.coroutines.internal.answering.AwaitCancellation
 import dev.mokkery.coroutines.internal.answering.AwaitDelayed
 import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.toFunctionScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.toFunctionScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel

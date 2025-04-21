@@ -1,4 +1,4 @@
-package dev.mokkery.internal.interceptor
+package dev.mokkery.internal
 
 internal enum class MokkeryKind {
     Spy, Mock

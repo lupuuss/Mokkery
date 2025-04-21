@@ -3,8 +3,8 @@ package dev.mokkery.internal.calls
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.context.mockSpec
 import kotlinx.atomicfu.atomic

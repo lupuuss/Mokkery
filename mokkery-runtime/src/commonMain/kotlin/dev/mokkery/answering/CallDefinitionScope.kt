@@ -1,12 +1,12 @@
 package dev.mokkery.answering
 
 import dev.mokkery.context.argValues
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.callOriginal
-import dev.mokkery.interceptor.callSuper
-import dev.mokkery.interceptor.self
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
+import dev.mokkery.self
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 

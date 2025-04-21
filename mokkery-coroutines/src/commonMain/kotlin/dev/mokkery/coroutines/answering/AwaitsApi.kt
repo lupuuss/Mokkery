@@ -6,7 +6,7 @@ import dev.mokkery.answering.SuspendCallDefinitionScope
 import dev.mokkery.context.argValues
 import dev.mokkery.coroutines.internal.answering.AwaitAnswer
 import dev.mokkery.coroutines.internal.answering.AwaitDeferred
-import dev.mokkery.interceptor.call
+import dev.mokkery.call
 import kotlinx.coroutines.Deferred
 
 /**
