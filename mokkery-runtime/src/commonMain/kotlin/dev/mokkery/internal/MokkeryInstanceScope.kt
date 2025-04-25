@@ -8,17 +8,16 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.TemplatingSocket
+import dev.mokkery.internal.context.ContextCallInterceptor
+import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MockSpec
+import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
-import dev.mokkery.internal.context.ContextCallInterceptor
-import dev.mokkery.internal.context.ContextInstantiationListener
-import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
-import dev.mokkery.internal.MokkeryKind
 import dev.mokkery.internal.interceptor.TemplatingInterceptor
 import kotlin.reflect.KClass
 

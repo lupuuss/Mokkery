@@ -24,9 +24,6 @@ import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
-import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
-import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerIr.signatureString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -60,7 +57,7 @@ import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
-import java.util.UUID
+import java.util.*
 
 fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
