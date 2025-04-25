@@ -1,9 +1,7 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package dev.mokkery.interceptor
+package dev.mokkery
 
-import dev.mokkery.callOriginal
-import dev.mokkery.callSuper
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.context.AssociatedFunctions

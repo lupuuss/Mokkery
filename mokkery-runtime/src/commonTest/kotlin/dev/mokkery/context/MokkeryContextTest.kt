@@ -1,8 +1,5 @@
-package dev.mokkery.internal.context
+package dev.mokkery.context
 
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.forEach
-import dev.mokkery.context.require
 import dev.mokkery.test.TestContextElement
 import dev.mokkery.test.assertContainsExactly
 import kotlin.test.Test

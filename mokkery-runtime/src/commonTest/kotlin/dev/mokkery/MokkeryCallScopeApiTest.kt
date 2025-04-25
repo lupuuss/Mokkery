@@ -1,10 +1,7 @@
-package dev.mokkery.interceptor
+package dev.mokkery
 
-import dev.mokkery.call
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.MokkeryBlockingCallScope
-import dev.mokkery.self
-import dev.mokkery.supers
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeFunctionCall
