@@ -47,7 +47,7 @@ public interface MokkeryCallInterceptor {
  */
 public fun MokkeryBlockingCallScope.nextIntercept(
     context: MokkeryContext = MokkeryContext.Empty
-) = callInterceptor.intercept(withContext(context))
+): Any? = callInterceptor.intercept(withContext(context))
 
 /**
  * Calls [dev.mokkery.interceptor.MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
@@ -55,5 +55,5 @@ public fun MokkeryBlockingCallScope.nextIntercept(
  */
 public suspend fun MokkerySuspendCallScope.nextIntercept(
     context: MokkeryContext = MokkeryContext.Empty
-) = callInterceptor.intercept(withContext(context))
+): Any? = callInterceptor.intercept(withContext(context))
 
