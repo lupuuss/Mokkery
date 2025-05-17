@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
 }
 
+kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
 
 kotlin.sourceSets.all {
     languageSettings.apply {

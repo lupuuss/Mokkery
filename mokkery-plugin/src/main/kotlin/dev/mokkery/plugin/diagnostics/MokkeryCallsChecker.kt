@@ -3,7 +3,7 @@ package dev.mokkery.plugin.diagnostics
 import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
 import dev.mokkery.plugin.core.validationMode
-import dev.mokkery.plugin.fir.constructors
+import dev.mokkery.plugin.fir.declaredMembers
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
+import org.jetbrains.kotlin.fir.declarations.constructors
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isInterface
@@ -60,7 +61,8 @@ class MokkeryCallsChecker(
 
     private val validationMode = configuration.validationMode
 
-    override fun check(expression: FirFunctionCall, context: CheckerContext, reporter: DiagnosticReporter) {
+    context(context: CheckerContext, reporter: DiagnosticReporter)
+    override fun check(expression: FirFunctionCall) {
         val callee = expression.calleeReference as? FirResolvedNamedReference ?: return
         val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return
         val scope = MokkeryScopedCallsChecker(
@@ -210,7 +212,7 @@ private class MokkeryScopedCallsChecker(
         source: AbstractKtSourceElement?,
         classSymbol: FirRegularClassSymbol
     ): Boolean {
-        val constructors = classSymbol.constructors
+        val constructors = classSymbol.constructors(session)
         if (constructors.none { it.visibility.isPublicAPI }) {
             reporter.reportOn(
                 source = source,
@@ -225,9 +227,9 @@ private class MokkeryScopedCallsChecker(
             .resolvedSuperTypes
             .asSequence()
             .mapNotNull { it.toRegularClassSymbol(session) }
-            .flatMap { it.declarationSymbols }
+            .flatMap { it.declaredMembers(session) }
         val allDeclarationSymbols = classSymbol
-            .declarationSymbols
+            .declaredMembers(session)
             .asSequence()
             .plus(inheritedSymbols)
         val finalDeclarations = allDeclarationSymbols
