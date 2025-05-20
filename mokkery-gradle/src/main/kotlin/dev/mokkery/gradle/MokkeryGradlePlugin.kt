@@ -72,12 +72,24 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
         if (kotlinCompilation.target is KotlinMetadataTarget) return true
-        return  kotlinCompilation
-            .project
-            .mokkery
-            .rule
-            .get()
-            .isApplicable(kotlinCompilation.defaultSourceSet)
+        val project = kotlinCompilation.target.project
+        val sourceSet = runCatching { kotlinCompilation.defaultSourceSet }
+            .getOrNull()
+            ?: return run {
+                val unsupportedCompilationWarning = project
+                    .findProperty("dev.mokkery.unsupportedCompilationWarnings")
+                    .toString()
+                    .toBooleanStrictOrNull()
+                    ?: true
+                if (unsupportedCompilationWarning) {
+                    val log = "w: Compilation {} might not support compiler plugins (e.g. known issue with Android test fixtures compilations)!" +
+                            " Mokkery might not work correctly in associated source set!" +
+                            " To hide this message, add 'dev.mokkery.unsupportedCompilationWarnings=false' to the Gradle properties."
+                    project.logger.warn(log, kotlinCompilation.name)
+                }
+                false
+            }
+        return project.mokkery.rule.get().isApplicable(sourceSet)
     }
 
     private fun Project.checkKotlinSetup() {
