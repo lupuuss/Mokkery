@@ -1,2 +1,2 @@
-export const kotlinVersion = "2.1.20"
-export const mokkeryVersion = "2.7.2"
+export const kotlinVersion = "2.1.21"
+export const mokkeryVersion = "2.8.0"
