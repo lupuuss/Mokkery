@@ -3,36 +3,27 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MockMode
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
-import dev.mokkery.interceptor.call
-import dev.mokkery.interceptor.self
-import dev.mokkery.interceptor.supers
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.utils.unsafeCast
+import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallTraceReceiverShortener
 import dev.mokkery.test.TestMokkeryInstanceScope
-import dev.mokkery.test.TestMokkeryScopeLookup
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
-import dev.mokkery.test.runTest
 import dev.mokkery.test.testBlockingCallScope
-import dev.mokkery.test.testSuspendCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
 
 class AnsweringRegistryTest {
 
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(
         callMatcher = callMatcher,
-        callTraceReceiverShortener = TestCallTraceReceiverShortener(),
-        instanceLookup = TestMokkeryScopeLookup()
+        callTraceReceiverShortener = TestCallTraceReceiverShortener()
     )
     private val context = tools + currentMockContext(MockMode.strict)
     private val answering = AnsweringRegistry()
@@ -69,10 +60,9 @@ class AnsweringRegistryTest {
 
     @Test
     fun testResolveAnswerReturnsSuperCallAnswerWithOriginalWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
-        val lookUp = TestMokkeryScopeLookup { TestMokkeryInstanceScope(interceptedTypes = listOf(Unit::class)) }
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context + tools.copy(instanceLookup = lookUp) + currentMockContext(MockMode.original)
+            context = context + tools + currentMockContext(MockMode.original)
         )
         assertEquals(SuperCallAnswer<Any?>(SuperCall.original), answering.resolveAnswer(scope))
     }
@@ -120,14 +110,14 @@ class AnsweringRegistryTest {
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
         val scope = testBlockingCallScope<Int>(
-            selfId = "mock@1",
+            typeName = "mock",
+            sequence = 1,
             name = "call",
             args = listOf(fakeCallArg(name = "1", value = 1)),
             context = context
         )
         answering.resolveAnswer(scope)
         val expectedTrace = fakeCallTrace(
-            receiver = "mock@1",
             name = "call",
             args = listOf(fakeCallArg(name = "1", value = 1)),
             orderStamp = 0
@@ -136,5 +126,5 @@ class AnsweringRegistryTest {
         assertEquals(listOf(expectedTrace), callMatcher.recordedCalls.map { it.first })
     }
 
-    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).currentMockContext
+    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).mockSpec
 }

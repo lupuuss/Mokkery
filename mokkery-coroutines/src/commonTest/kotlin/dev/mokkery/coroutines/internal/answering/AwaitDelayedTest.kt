@@ -1,7 +1,7 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.answering.FunctionScope
-import dev.mokkery.coroutines.fakeFunctionScope
+import dev.mokkery.coroutines.await
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.advanceTimeBy
@@ -15,7 +15,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class AwaitDelayedTest {
 
-    private var value: suspend (FunctionScope) -> Int = { 1 }
+    private var value: suspend (MokkerySuspendCallScope) -> Int = { 1 }
     private var description: String = "value=1"
     private val awaitable = AwaitDelayed(
         duration = 1.seconds,
@@ -25,7 +25,7 @@ class AwaitDelayedTest {
 
     @Test
     fun testReturnsProvidedValueAfterTheDelay() = runTest {
-        val result = async { awaitable.await(fakeFunctionScope()) }
+        val result = async { awaitable.await() }
         advanceTimeBy(500)
         assertFalse(result.isCompleted)
         advanceTimeBy(501)

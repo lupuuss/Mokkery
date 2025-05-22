@@ -1,22 +1,23 @@
 package dev.mokkery.internal.calls
 
+import dev.mokkery.internal.MockId
 import dev.mokkery.internal.utils.PropertyDescriptor
 import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
-    val receiver: String,
+    val mockId: MockId,
     val name: String,
     val signature: String,
     val matchers: Map<String, ArgMatcher<Any?>>
 ) {
 
     override fun toString(): String = buildString {
-        append(receiver)
+        append(mockId.toString())
         append(".")
-        append(toStringNoReceiver())
+        append(toStringNoMockId())
     }
 
-    fun toStringNoReceiver(): String = PropertyDescriptor.fromNameOrNull(name)
+    fun toStringNoMockId(): String = PropertyDescriptor.fromNameOrNull(name)
         ?.toCallString(matchers.values.map(ArgMatcher<Any?>::toString))
         ?: buildString {
             append(name)

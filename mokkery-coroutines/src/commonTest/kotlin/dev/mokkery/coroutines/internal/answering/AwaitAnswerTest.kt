@@ -1,8 +1,9 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.coroutines.TestAwaitable
-import dev.mokkery.coroutines.fakeFunctionScope
+import dev.mokkery.coroutines.createMokkeryBlockingCallScope
+import dev.mokkery.coroutines.createMokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,22 +26,21 @@ class AwaitAnswerTest {
 
     @Test
     fun testCallsAwaitOnEachCall() = runTest {
-        val scope = fakeFunctionScope()
-        assertEquals(1, answer.callSuspend(scope))
-        assertEquals(2, answer.callSuspend(scope))
+        assertEquals(1, answer.call(createMokkerySuspendCallScope()))
+        assertEquals(2, answer.call(createMokkerySuspendCallScope()))
     }
 
     @Test
     fun testPassesCorrectFunctionScopeToAwaitable() = runTest {
-        var passedScope: FunctionScope? = null
+        var passedScope: MokkerySuspendCallScope? = null
         awaitable.await = { passedScope = it; awaitValue }
-        val scope = fakeFunctionScope()
-        answer.callSuspend(scope)
+        val scope = createMokkerySuspendCallScope()
+        answer.call(scope)
         assertSame(scope, passedScope)
     }
 
     @Test
     fun testFailsOnRegularCall() {
-        assertFails { answer.call(fakeFunctionScope()) }
+        assertFails { answer.call(createMokkeryBlockingCallScope()) }
     }
 }

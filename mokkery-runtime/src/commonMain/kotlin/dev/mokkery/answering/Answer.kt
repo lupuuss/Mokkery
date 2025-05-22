@@ -2,32 +2,93 @@ package dev.mokkery.answering
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.answering.Answer.Suspending
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
+import dev.mokkery.context.argValues
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
+import dev.mokkery.self
+import dev.mokkery.context.argValue
+import dev.mokkery.toFunctionScope
+import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
-import dev.mokkery.internal.SuspendingFunctionBlockingCallException
+import dev.mokkery.internal.SuspendingAnswerBlockingCallException
 import dev.mokkery.internal.utils.description
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 
 /**
- * An answer for a function call. For blocking answers only [call] implementation is required. For suspending answers
- * [callSuspend] should be implemented and [call] implementation should throw an exception. Use [Suspending] for convenience.
+ * An answer for a function call.
  *
+ * * [call] with [MokkeryBlockingCallScope] is invoked on blocking function call.
+ * * [call] with [MokkerySuspendCallScope] is invoked on suspending function call.
+ *
+ * Tips for providing correct implementation:
+ * * If you want to provide the same implementation for both blocking and suspending call, implement [Answer.Unified] instead.
+ * * If you want your answer to support only blocking or suspending calls, implement [Answer.Blocking] or [Answer.Suspending].
+ * * Implement pure [Answer] if you want implement both methods separately.
+ * * Answers should not be used directly. It's a good practice to provide extension based API.
+ *
+ * Check existing answers implementations for samples.
+ *
+ * ### Migrations from [FunctionScope] to [MokkeryCallScope]:
+ * * If your answer overrides both [call] and [callSuspend] with [FunctionScope], migrate to [call]
+ *   with [MokkeryBlockingCallScope] and [call] with [MokkerySuspendCallScope].
+ * * If your answer overrides only [call] with [FunctionScope], it means that it was possible to call this answer in
+ *   both blocking and suspending context. In this case you need to change the base type from [Answer] to [Answer.Unified].
+ *   Now, override [call] with [MokkeryCallScope].
+ * * If your answer overrides [Answer.Suspending] simply migrate from [callSuspend] to [call] with [MokkerySuspendCallScope].
+ *
+ * [FunctionScope] API mappings to [MokkeryCallScope] API:
+ *
+ * | [FunctionScope] member function    | [MokkeryCallScope] extensions                                                                          |
+ * |------------------------------------|---------------------------------------------------------------------------------------------------------|
+ * | [FunctionScope.returnType]         | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.function] -> [dev.mokkery.context.Function.returnType] |
+ * | [FunctionScope.args]               | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValues]                                 |
+ * | [FunctionScope.arg]                | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValue]                                  |
+ * | [FunctionScope.supers]             | [MokkeryCallScope.supers]                                                                              |
+ * | [FunctionScope.self]               | [MokkeryCallScope.self]                                                                                |
+ * | [FunctionScope.callOriginal]       | [callOriginal]                                                                |
+ * | [FunctionScope.callSuspendOriginal]| [callOriginal]                                                                 |
+ * | [FunctionScope.callSuper]          | [callSuper]                                                                   |
+ * | [FunctionScope.callSuspendSuper]   | [callSuper]
  */
 @DelicateMokkeryApi
 public interface Answer<out T> {
 
     /**
-     * Provides a return value for a function call with given [scope].
+     * Provides a return value for a blocking function call with given [scope].
      */
-    public fun call(scope: FunctionScope): T
+    public fun call(scope: MokkeryBlockingCallScope): T {
+        @Suppress("DEPRECATION")
+        return call(scope.toFunctionScope())
+    }
 
     /**
-     * Just like [call] but suspends. By default, it calls [call].
+     * Provides a return value for a suspend function call with given [scope].
      */
+    public suspend fun call(scope: MokkerySuspendCallScope): T {
+        @Suppress("DEPRECATION")
+        return callSuspend(scope.toFunctionScope())
+    }
+
+    /**
+     * **DEPRECATED:** Use [call] with [MokkeryBlockingCallScope] instead!
+     */
+    @Deprecated(AnswerDeprecationMessage)
+    @Suppress("DEPRECATION")
+    public fun call(scope: FunctionScope): T = throw NotImplementedError()
+
+    /**
+     * **DEPRECATED:** Use [call] with [MokkerySuspendCallScope] instead!
+     */
+    @Deprecated(AnswerDeprecationMessage)
+    @Suppress("DEPRECATION")
     public suspend fun callSuspend(scope: FunctionScope): T = call(scope)
 
     /**
@@ -37,23 +98,46 @@ public interface Answer<out T> {
     public fun description(): String = "answers $this"
 
     /**
-     * Convenience interface for custom suspending answers. By default, it throws runtime exception on [call].
+     * Convenience interface for blocking only answers. By default, it throws runtime exception on suspending [call].
+     */
+    public interface Blocking<T> : Answer<T> {
+
+        /**
+         * By default, it throws runtime exception.
+         */
+        override suspend fun call(scope: MokkerySuspendCallScope): Nothing = throw BlockingAnswerSuspendingCallException()
+    }
+
+    /**
+     * Convenience interface for suspend only answers. By default, it throws runtime exception on blocking [call].
      */
     public interface Suspending<T> : Answer<T> {
 
         /**
          * By default, it throws runtime exception.
          */
-        override fun call(scope: FunctionScope): Nothing = throw SuspendingFunctionBlockingCallException()
+        override fun call(scope: MokkeryBlockingCallScope): Nothing = throw SuspendingAnswerBlockingCallException()
+    }
+
+    /**
+     * Convenience interface for answers with identical implementation for both blocking and suspending call.
+     */
+    public interface Unified<T> : Answer<T> {
+
+        public fun call(scope: MokkeryCallScope): T
+
+        override fun call(scope: MokkeryBlockingCallScope): T = call(scope as MokkeryCallScope)
+
+        override suspend fun call(scope: MokkerySuspendCallScope): T = call(scope as MokkeryCallScope)
     }
 
     /**
      * Returns [value] on [call] and [callSuspend].
      */
     @Poko
-    public class Const<T>(public val value: T) : Answer<T> {
+    public class Const<T>(public val value: T) : Unified<T> {
 
-        override fun call(scope: FunctionScope): T = value
+        override fun call(scope: MokkeryCallScope): T = value
 
         override fun description(): String = "returns ${value.description()}"
     }
@@ -62,9 +146,12 @@ public interface Answer<out T> {
      * Calls [block] on [call] and [callSuspend].
      */
     @Poko
-    public class Block<T>(public val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Answer<T> {
+    public class Block<T>(public val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Blocking<T> {
 
-        override fun call(scope: FunctionScope): T = block(BlockingCallDefinitionScope(scope), CallArgs(scope.args))
+        override fun call(scope: MokkeryBlockingCallScope): T = block(
+            BlockingCallDefinitionScope(scope),
+            CallArgs(scope.call.argValues)
+        )
 
         override fun description(): String = "calls {...}"
     }
@@ -73,9 +160,9 @@ public interface Answer<out T> {
      * Throws [throwable] on [call] and [callSuspend]
      */
     @Poko
-    public class Throws(public val throwable: Throwable) : Answer<Nothing> {
+    public class Throws(public val throwable: Throwable) : Unified<Nothing> {
 
-        override fun call(scope: FunctionScope): Nothing = throw throwable
+        override fun call(scope: MokkeryCallScope): Nothing = throw throwable
 
         override fun description(): String = "throws $throwable"
     }
@@ -86,9 +173,10 @@ public interface Answer<out T> {
     @Poko
     public class BlockSuspend<T>(public val block: suspend SuspendCallDefinitionScope<T>.(CallArgs) -> T) : Suspending<T> {
 
-        override suspend fun callSuspend(scope: FunctionScope): T {
-            return block(SuspendCallDefinitionScope(scope), CallArgs(scope.args))
-        }
+        override suspend fun call(scope: MokkerySuspendCallScope): T = block(
+            SuspendCallDefinitionScope(scope),
+            CallArgs(scope.call.argValues)
+        )
 
         override fun description(): String = "calls {...}"
     }
@@ -97,9 +185,11 @@ public interface Answer<out T> {
      * Used whenever there is no defined answer for a call to mock that is in [dev.mokkery.MockMode.autofill].
      * Refer to [AutofillProvider.forMockMode] to read more about returned values.
      */
-    public object Autofill : Answer<Any?> {
+    public object Autofill : Unified<Any?> {
 
-        override fun call(scope: FunctionScope): Any? = AutofillProvider.forMockMode.provideValue(scope.returnType)
+        override fun call(scope: MokkeryCallScope): Any? = AutofillProvider
+            .forMockMode
+            .provideValue(scope.call.function.returnType)
     }
 
     /**
@@ -125,9 +215,9 @@ public interface Answer<out T> {
 
         override fun hasNext(): Boolean = lock.withLock { iterator.hasNext() || (nestedSequential?.hasNext() == true) }
 
-        override fun call(scope: FunctionScope): T = getCurrent().call(scope)
+        override fun call(scope: MokkeryBlockingCallScope): T = getCurrent().call(scope)
 
-        override suspend fun callSuspend(scope: FunctionScope): T = getCurrent().callSuspend(scope)
+        override suspend fun call(scope: MokkerySuspendCallScope): T = getCurrent().call(scope)
 
         override fun description(): String = "sequentially {...}"
 
@@ -144,3 +234,5 @@ public interface Answer<out T> {
         }
     }
 }
+
+internal const val AnswerDeprecationMessage = "Migrate to new `Answer.call` overloads. Read `Answer` documentation for migration guide."

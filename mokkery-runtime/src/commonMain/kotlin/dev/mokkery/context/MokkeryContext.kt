@@ -65,3 +65,16 @@ internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryCon
 internal inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
     fold(Unit) { _, element -> block(element) }
 }
+
+internal fun MokkeryContext.toMap(): Map<MokkeryContext.Key<*>, MokkeryContext.Element> {
+    val map = LinkedHashMap<MokkeryContext.Key<*>, MokkeryContext.Element>()
+    forEach { map[it.key] = it }
+    return map
+}
+
+internal fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toCollection(collection: T): T {
+    forEach(collection::add)
+    return collection
+}
+
+internal fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())

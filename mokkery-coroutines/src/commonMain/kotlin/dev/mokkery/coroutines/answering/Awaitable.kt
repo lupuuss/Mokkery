@@ -1,13 +1,16 @@
 package dev.mokkery.coroutines.answering
 
 import dev.mokkery.answering.CallArgs
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuspendCallDefinitionScope
+import dev.mokkery.context.argValues
 import dev.mokkery.coroutines.internal.answering.AwaitAllDeferred
 import dev.mokkery.coroutines.internal.answering.AwaitCancellation
 import dev.mokkery.coroutines.internal.answering.AwaitDelayed
 import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.toFunctionScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -23,7 +26,17 @@ public interface Awaitable<out T> {
     /**
      * Suspends current function call until the awaited result is available.
      */
-    public suspend fun await(scope: FunctionScope): T
+    public suspend fun await(scope: MokkerySuspendCallScope): T {
+        @Suppress("DEPRECATION")
+        return await(scope.toFunctionScope())
+    }
+
+    /**
+     * **DEPRECATED: Use [await] with [MokkerySuspendCallScope] instead!**
+     */
+    @Deprecated(AnswerDeprecationMessage)
+    @Suppress("DEPRECATION")
+    public suspend fun await(scope: dev.mokkery.answering.FunctionScope): T = throw NotImplementedError()
 
     /**
      * Provides a description of the awaitable action.
@@ -61,7 +74,7 @@ public interface Awaitable<out T> {
         ): Awaitable<Unit> {
             return AwaitSendChannel(
                 toChannel = to,
-                element = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.args)) },
+                element = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.call.argValues)) },
                 elementDescription = { "valueProvider={...}" }
             )
         }
@@ -90,8 +103,10 @@ public interface Awaitable<out T> {
             return AwaitDelayed(
                 duration = by,
                 valueDescription = { "valueProvider={...}" },
-                value = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.args)) }
+                value = { valueProvider(SuspendCallDefinitionScope(it), CallArgs(it.call.argValues)) }
             )
         }
     }
 }
+
+internal const val AnswerDeprecationMessage = "Migrate to new `await` overload. Read `Answer` documentation for migration guide."

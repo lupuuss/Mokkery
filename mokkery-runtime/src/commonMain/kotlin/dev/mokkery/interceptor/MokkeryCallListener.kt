@@ -1,5 +1,8 @@
 package dev.mokkery.interceptor
 
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 
 /**
@@ -13,7 +16,7 @@ public interface MokkeryCallListener : MokkeryCallInterceptor {
     /**
      * **Do not override this method to keep [MokkeryCallListener] behaviour as intended.**
      *
-     * Calls [onIntercept] and then [MokkeryBlockingCallScope.nextIntercept]
+     * Calls [onIntercept] and then [nextIntercept]
      */
     @DelicateMokkeryApi
     override fun intercept(scope: MokkeryBlockingCallScope): Any? {

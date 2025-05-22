@@ -2,6 +2,7 @@ package dev.mokkery.internal.utils
 
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.CallArgument
+import dev.mokkery.internal.MockId
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
@@ -15,11 +16,11 @@ internal inline fun <T> Any?.unsafeCastOrNull(): T? = this as? T
 internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
 internal fun callToString(
-    receiver: String,
+    id: MockId,
     name: String,
     args: List<CallArgument>,
 ) = buildString {
-    append(receiver)
+    append(id)
     append(".")
     append(callFunctionToString(name, args))
 }

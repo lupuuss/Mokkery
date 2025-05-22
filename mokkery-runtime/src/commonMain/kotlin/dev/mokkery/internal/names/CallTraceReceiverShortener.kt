@@ -8,15 +8,13 @@ internal interface CallTraceReceiverShortener {
 }
 
 internal fun CallTraceReceiverShortener(
-    receiversGenerator: MokkeryInstanceIdGenerator,
     namesShortener: NameShortener,
 ): CallTraceReceiverShortener {
     return object : CallTraceReceiverShortener {
         override fun shorten(callTrace: CallTrace): CallTrace {
-            val noIdReceiver = receiversGenerator.extractType(callTrace.receiver)
-            val id = callTrace.receiver.removePrefix(noIdReceiver)
-            val names = namesShortener.shorten(setOf(noIdReceiver))
-            return callTrace.copy(receiver = "${names.getValue(noIdReceiver)}$id")
+            val id = callTrace.mockId
+            val names = namesShortener.shorten(setOf(id.typeName))
+            return callTrace.copy(mockId = id.copy(typeName = names.getValue(id.typeName)))
         }
     }
 }

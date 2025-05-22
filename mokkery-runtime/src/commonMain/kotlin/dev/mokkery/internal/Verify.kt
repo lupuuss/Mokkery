@@ -46,7 +46,7 @@ internal fun MokkerySuiteScope.internalVerify(
         verifier
             .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(templating.templates))
             .map(shortener::getOriginalTrace)
-            .forEach { mocks.getScope(it.receiver).callTracing.markVerified(it) }
+            .forEach { mocks.getScope(it.mockId).callTracing.markVerified(it) }
     } finally {
         templating.release()
     }

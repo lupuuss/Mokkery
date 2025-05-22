@@ -1,5 +1,12 @@
 package dev.mokkery.answering
 
+import dev.mokkery.context.argValues
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
+import dev.mokkery.self
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
@@ -52,8 +59,14 @@ public interface BlockingCallDefinitionScope<out R> : CallDefinitionScope<R> {
 }
 
 public fun <T> BlockingCallDefinitionScope(
-    scope: FunctionScope
+    scope: MokkeryBlockingCallScope
 ): BlockingCallDefinitionScope<T> = BlockingCallDefinitionScopeImpl(scope)
+
+@Deprecated(AnswerDeprecationMessage)
+@Suppress("DEPRECATION")
+public fun <T> BlockingCallDefinitionScope(
+    scope: FunctionScope
+): BlockingCallDefinitionScope<T> = DeprecatedBlockingCallDefinitionScopeImpl(scope)
 
 /**
  * Provides a set of operation for [SuspendAnsweringScope.calls].
@@ -83,16 +96,63 @@ public interface SuspendCallDefinitionScope<out R> : CallDefinitionScope<R> {
 }
 
 public fun <T> SuspendCallDefinitionScope(
-    scope: FunctionScope
+    scope: MokkerySuspendCallScope
 ): SuspendCallDefinitionScope<T> = SuspendCallDefinitionScopeImpl(scope)
 
+@Deprecated(AnswerDeprecationMessage)
+@Suppress("DEPRECATION")
+public fun <T> SuspendCallDefinitionScope(
+    scope: FunctionScope
+): SuspendCallDefinitionScope<T> = DeprecatedSuspendCallDefinitionScopeImpl(scope)
+
 private class BlockingCallDefinitionScopeImpl<R>(
+    private val scope: MokkeryBlockingCallScope
+) : BlockingCallDefinitionScope<R> {
+
+    override val returnType: KClass<*>
+        get() = scope.call.function.returnType
+    override val self: Any?
+        get() = scope.self
+
+    override fun callOriginal(): R = scope.callOriginal(scope.call.argValues).unsafeCast()
+
+    override fun callOriginalWith(vararg args: Any?): R = scope.callOriginal(args.toList()).unsafeCast()
+
+    override fun callSuper(type: KClass<*>): R  = scope.callSuper(type, scope.call.argValues).unsafeCast()
+
+    override fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope.callSuper(type, args.toList()).unsafeCast()
+}
+
+private class SuspendCallDefinitionScopeImpl<R>(
+    private val scope: MokkerySuspendCallScope
+) : SuspendCallDefinitionScope<R> {
+
+    override val returnType: KClass<*>
+        get() = scope.call.function.returnType
+    override val self: Any?
+        get() = scope.self
+
+    override suspend fun callOriginal(): R = scope.callOriginal(scope.call.argValues).unsafeCast()
+
+    override suspend fun callOriginalWith(vararg args: Any?): R = scope.callOriginal(args.toList()).unsafeCast()
+
+    override suspend fun callSuper(type: KClass<*>): R = scope.callSuper(type, scope.call.argValues).unsafeCast()
+
+    override suspend fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope
+        .callSuper(type, args.toList())
+        .unsafeCast()
+}
+
+
+@Suppress("DEPRECATION")
+private class DeprecatedBlockingCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : BlockingCallDefinitionScope<R> {
 
-    override val returnType: KClass<*> get() = scope.returnType
-    override val self: Any? get() = scope.self
-
+    override val returnType: KClass<*>
+        get() = scope.returnType
+    override val self: Any?
+        get() = scope.self
 
     override fun callOriginal(): R = scope.callOriginal(scope.args).unsafeCast()
 
@@ -103,12 +163,15 @@ private class BlockingCallDefinitionScopeImpl<R>(
     override fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope.callSuper(type, args.toList()).unsafeCast()
 }
 
-private class SuspendCallDefinitionScopeImpl<R>(
+@Suppress("DEPRECATION")
+private class DeprecatedSuspendCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : SuspendCallDefinitionScope<R> {
 
-    override val returnType: KClass<*> get() = scope.returnType
-    override val self: Any? get() = scope.self
+    override val returnType: KClass<*>
+        get() = scope.returnType
+    override val self: Any?
+        get() = scope.self
 
     override suspend fun callOriginal(): R = scope.callSuspendOriginal(scope.args).unsafeCast()
 

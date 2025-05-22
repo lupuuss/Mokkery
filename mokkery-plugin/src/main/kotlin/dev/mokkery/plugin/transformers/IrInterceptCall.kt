@@ -1,132 +1,138 @@
 package dev.mokkery.plugin.transformers
 
+import dev.mokkery.plugin.core.IrMokkeryKind
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
-import dev.mokkery.plugin.core.allowIndirectSuperCalls
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.eraseTypeParametersCompat
-import dev.mokkery.plugin.ir.getField
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irCallMapOf
+import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
-import dev.mokkery.plugin.ir.isJvmBinarySafeSuperCall
+import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.nonDispatchParametersCompat
-import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.builders.parent
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.putArgument
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
 
 fun IrBlockBodyBuilder.irInterceptMethod(
     transformer: TransformerScope,
+    mokkeryKind: IrMokkeryKind,
     function: IrSimpleFunction,
-    irCallSpyLambda: IrExpression? = null,
-): IrCall {
-    val parentClass = function.parentAsClass
-    return irInterceptCall(
-        transformer = transformer,
-        mokkeryInstance = irGet(function.dispatchReceiverParameter!!),
-        function = function,
-        irCallSpyLambda = irCallSpyLambda,
-        typeToKClassMapper = {
-            val index = it.indexIfParameterOrNull(parentClass)
-            if (index != null) {
-                irGetField(
-                    receiver = irGet(function.dispatchReceiverParameter!!),
-                    field = parentClass.getField(Mokkery.Fields.typeArg(index))!!
-                )
-            } else {
-                kClassReference(it.eraseTypeParametersCompat())
-            }
-        }
-    )
-}
+): IrCall = irInterceptCall(
+    transformer = transformer,
+    mokkeryKind = mokkeryKind,
+    mokkeryInstance = irGet(function.parameters[0]),
+    typeParamsContainer = function.parentAsClass,
+    function = function
+)
 
 fun IrBlockBodyBuilder.irInterceptCall(
     transformer: TransformerScope,
+    mokkeryKind: IrMokkeryKind,
     mokkeryInstance: IrExpression,
+    typeParamsContainer: IrTypeParametersContainer,
     function: IrSimpleFunction,
-    typeToKClassMapper: IrBuilderWithScope.(IrType) -> IrExpression,
-    irCallSpyLambda: IrExpression? = null
 ): IrCall {
-    val interceptorClass = transformer.getClass(Mokkery.Class.MokkeryCallInterceptor).symbol
-    val instanceScopeClass = transformer.getClass(Mokkery.Class.MokkeryInstanceScope)
+    val interceptorProperty = transformer.getProperty(Mokkery.Property.callInterceptor).getter!!
+    val interceptorClass = interceptorProperty.returnType.classOrFail
+    val getSpiedObject = transformer.getProperty(Mokkery.Property.spiedObject).getter!!
     val interceptFun = interceptorClass
         .functions
         .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
     return irCall(interceptFun) {
-        dispatchReceiver = instanceScopeClass
-            .getPropertyGetter("mokkeryInterceptor")!!
+        arguments[0] = interceptorProperty
             .let(::irCall)
-            .apply { dispatchReceiver = mokkeryInstance }
+            .apply { arguments[0] = mokkeryInstance }
         val scopeCreationFun = when {
             function.isSuspend -> Mokkery.Function.createMokkerySuspendCallScope
             else -> Mokkery.Function.createMokkeryBlockingCallScope
         }
         val scopeCreationCall = irCall(transformer.getFunction(scopeCreationFun)) {
-            extensionReceiver = mokkeryInstance
-            putValueArgument(0, irString(function.name.asString()))
-            putValueArgument(1, typeToKClassMapper(function.returnType))
-            putValueArgument(2, irCallArgsList(transformer, function.nonDispatchParametersCompat, typeToKClassMapper))
-            putValueArgument(3, irCallSupersMap(transformer, function))
-            if (irCallSpyLambda != null) putValueArgument(4, irCallSpyLambda)
+            arguments[0] = mokkeryInstance
+            arguments[1] = irString(function.name.asString())
+            arguments[2] = kClassWithTypeSubstitution(
+                transformer = transformer,
+                mokkeryInstance = mokkeryInstance,
+                typeParamsContainer = typeParamsContainer,
+                type = function.returnType
+            )
+            arguments[3] = irCallArgsList(transformer, mokkeryInstance, function, typeParamsContainer)
+            arguments[4] = irCallSupersMap(transformer, function)
+            if (mokkeryKind == IrMokkeryKind.Spy) {
+                val spiedObjectGet = irCall(getSpiedObject) { arguments[0] = mokkeryInstance }
+                // js function does not have a dispatch parameter
+                val spyLambda = if (function.parameters.find { it.kind == IrParameterKind.DispatchReceiver } == null) {
+                    irLambdaSpyFunctionCall(transformer, spiedObjectGet, function)
+                } else {
+                    irLambdaSpyMethodCall(transformer, spiedObjectGet, function)
+                }
+                arguments[5] = spyLambda
+            }
         }
-        putValueArgument(0, scopeCreationCall)
+        arguments[1] = scopeCreationCall
     }
 }
 
 private fun IrBuilderWithScope.irCallArgsList(
     scope: TransformerScope,
-    parameters: List<IrValueParameter>,
-    typeToKClassExpressionMapper: IrBuilderWithScope.(IrType) -> IrExpression
+    mokkeryInstance: IrExpression,
+    function: IrSimpleFunction,
+    paramsContainer: IrTypeParametersContainer
 ): IrCall {
     val callArgClass = scope.getClass(Mokkery.Class.CallArgument)
-    val callArgs = parameters
+    val callArgs = function
+        .nonDispatchParameters
         .map {
             irCallConstructor(callArgClass.constructors.take(2).last()) {
-                putValueArgument(0, irGet(it))
-                putValueArgument(1, irString(it.name.asString()))
-                putValueArgument(2, typeToKClassExpressionMapper(it.type))
-                putValueArgument(3, irBoolean(it.isVararg))
+                arguments[0] = irGet(it)
+                arguments[1] = irString(it.name.asString())
+                arguments[2] = kClassWithTypeSubstitution(
+                    transformer = scope,
+                    mokkeryInstance = mokkeryInstance,
+                    typeParamsContainer = paramsContainer,
+                    type = it.type
+                )
+                arguments[3] = irBoolean(it.isVararg)
             }
         }
     return irCallListOf(scope, callArgClass.defaultType, callArgs)
 }
 
 private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, function: IrSimpleFunction): IrCall? {
-    val allowIndirectSuperCalls = transformer.allowIndirectSuperCalls
-    val defaultMode = transformer.pluginContext.languageVersionSettings.getFlag(JvmAnalysisFlags.jvmDefaultMode)
     val supers = function.overriddenSymbols
-        .filter { it.owner.isJvmBinarySafeSuperCall(function, defaultMode, allowIndirectSuperCalls) }
+        .filter { it.owner.isSuperCallFor(function) }
         .takeIf { it.isNotEmpty() }
         ?.map { it.owner }
         ?: return null
@@ -160,21 +166,91 @@ private fun IrBuilderWithScope.createSuperCallLambda(
             superQualifierSymbol = superFunction.parentAsClass.symbol,
             type = returnType,
         ) {
-            dispatchReceiver = irGet(function.dispatchReceiverParameter!!)
-            function.typeParameters.forEachIndexed { i, type -> putTypeArgument(i, type.defaultType) }
-            superFunction.nonDispatchParametersCompat.forEachIndexed { index, irValueParameter ->
-                putArgument(
-                    parameter = irValueParameter,
-                    argument = irAs(
-                        argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
-                            dispatchReceiver = irGet(lambda.valueParameters[0])
-                            putValueArgument(0, irInt(index))
-                        },
-                        type = irValueParameter.type.substitute(typesMap)
-                    )
+            arguments[0] = irGet(function.parameters[0])
+            function.typeParameters.forEachIndexed { i, type -> typeArguments[i] = type.defaultType }
+            superFunction.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
+                arguments[irValueParameter] = irAs(
+                    argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                        arguments[0] = irGet(lambda.parameters[0])
+                        arguments[1] = irInt(index)
+                    },
+                    type = irValueParameter.type.substitute(typesMap)
                 )
             }
         }
         +irReturn(superCall)
     }
 }
+
+private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
+    transformer: TransformerScope,
+    spyObjectDelegate: IrExpression,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val spyFun = function.overriddenSymbols.first().owner
+        val typesMap = makeTypeParameterSubstitutionMap(spyFun, function)
+        val spyCall = irCall(spyFun, spyFun.returnType.substitute(typesMap)) {
+            arguments[0] = spyObjectDelegate
+            function.typeParameters.forEachIndexed { i, type -> typeArguments[i] = type.defaultType }
+            spyFun.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
+                arguments[irValueParameter] =  irAs(
+                    argument = irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                        arguments[0] = irGet(lambda.parameters[0])
+                        arguments[1] = irInt(index)
+                    },
+                    type = irValueParameter.type.substitute(typesMap)
+                )
+            }
+        }
+        +irReturn(spyCall)
+    }
+}
+
+private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
+    transformer: TransformerScope,
+    delegateLambda: IrExpression,
+    function: IrSimpleFunction,
+): IrFunctionExpression {
+    val pluginContext = transformer.pluginContext
+    val lambdaType = pluginContext
+        .irBuiltIns
+        .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+        .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
+    return irLambda(
+        returnType = function.returnType,
+        lambdaType = lambdaType,
+        parent = parent,
+    ) { lambda ->
+        val args = Array(function.parameters.size) {
+            irCall(context.irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
+                arguments[0] = irGet(lambda.parameters[0])
+                arguments[1] = irInt(it)
+            }
+        }
+        +irReturn(irInvoke(function = delegateLambda, isSuspend = lambda.isSuspend, args = args))
+    }
+}
+
+private fun IrBuilderWithScope.kClassWithTypeSubstitution(
+    transformer: TransformerScope,
+    mokkeryInstance: IrExpression,
+    typeParamsContainer: IrTypeParametersContainer,
+    type: IrType
+): IrExpression = type
+    .indexIfParameterOrNull(typeParamsContainer)
+    ?.let { index ->
+        irCall(transformer.getFunction(Mokkery.Function.typeArgumentAt)) {
+            arguments[0] = mokkeryInstance
+            arguments[1] = irInt(index)
+        }
+    } ?: kClassReference(type.eraseTypeParameters())

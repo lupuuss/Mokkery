@@ -66,8 +66,8 @@ class MocksInterfaceWithDefaultsTest {
         every { mock.run { any<Int>().extProperty = any<Double>() } } calls original
         assertEquals(1.0, mock.run { 1.extProperty })
         mock.run { 1.extProperty = 2.0 }
-        every { mock.run { any<Int>().extProperty } } calls superOf<DefaultsInterfaceLevel2<*>>()
-        assertEquals(2.0, mock.run { 1.extProperty })
+        every { mock.run { any<Int>().extProperty } } calls superOf<DefaultsInterfaceLevel1<*>>()
+        assertEquals(1.0, mock.run { 1.extProperty })
         verify {
             mock.run {
                 1.extProperty
@@ -117,8 +117,8 @@ class MocksInterfaceWithDefaultsTest {
     fun testCallDefaults() {
         every { mock.call(any(), any()) } calls original
         assertEquals(ComplexType("1"), mock.call(1, ComplexType))
-        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel2<*>>()
-        assertEquals(ComplexType("2"), mock.call(1, ComplexType))
+        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel1<*>>()
+        assertEquals(ComplexType("1"), mock.call(1, ComplexType))
         verify { mock.call(1, ComplexType) }
     }
 
@@ -133,8 +133,8 @@ class MocksInterfaceWithDefaultsTest {
     fun testCallSuspendDefaults() = runTest {
         everySuspend { mock.callSuspend(any(), any()) } calls original
         assertEquals(ComplexType("1"), mock.callSuspend(1, ComplexType))
-        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel2<*>>()
-        assertEquals(ComplexType("2"), mock.callSuspend(1, ComplexType))
+        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel1<*>>()
+        assertEquals(ComplexType("1"), mock.callSuspend(1, ComplexType))
         verifySuspend { mock.callSuspend(1, ComplexType) }
     }
 
@@ -150,8 +150,8 @@ class MocksInterfaceWithDefaultsTest {
         ignoreOnJs("Calling supers of extension functions from IR is not supported on JS") {
             everySuspend { mock.run { any<Int>().callExtension(any()) } } calls original
             assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
-            everySuspend { mock.run { any<Int>().callExtension(any()) } } calls superOf<DefaultsInterfaceLevel2<*>>()
-            assertEquals(ComplexType("2"), mock.run { 1.callExtension(ComplexType) })
+            everySuspend { mock.run { any<Int>().callExtension(any()) } } calls superOf<DefaultsInterfaceLevel1<*>>()
+            assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
             verifySuspend { mock.run { 1.callExtension(ComplexType) } }
         }
     }

@@ -1,7 +1,8 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.answering.FunctionScope
-import dev.mokkery.coroutines.fakeFunctionScope
+import dev.mokkery.coroutines.await
+import dev.mokkery.coroutines.createMokkerySuspendCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -13,7 +14,7 @@ class AwaitSendChannelTest {
 
     private var elementDescription = "value=Unit"
     private val channel = Channel<Int>()
-    private var element: suspend (FunctionScope) -> Int = { 1 }
+    private var element: suspend (MokkerySuspendCallScope) -> Int = { 1 }
     private val awaitable = AwaitSendChannel(
         toChannel = channel,
         elementDescription = { elementDescription },
@@ -28,9 +29,9 @@ class AwaitSendChannelTest {
     @Test
     fun testSendsProvidedElementOnEachCall() = runTest {
         backgroundScope.launch {
-            awaitable.await(fakeFunctionScope())
+            awaitable.await()
             element = { 2 }
-            awaitable.await(fakeFunctionScope())
+            awaitable.await()
         }
         assertEquals(1, channel.receive())
         assertEquals(2, channel.receive())
@@ -39,9 +40,9 @@ class AwaitSendChannelTest {
     @Test
     fun testPassesCorrectScopeToDeferredProvider() = runTest {
         backgroundScope.launch { channel.receive() }
-        var passedScope: FunctionScope? = null
+        var passedScope: MokkerySuspendCallScope? = null
         element = { passedScope = it ; 1 }
-        val scope = fakeFunctionScope()
+        val scope = createMokkerySuspendCallScope()
         awaitable.await(scope)
         assertSame(scope, passedScope)
     }

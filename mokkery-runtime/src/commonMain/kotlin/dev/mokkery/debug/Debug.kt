@@ -1,25 +1,23 @@
 package dev.mokkery.debug
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.calls.CallTracingRegistry
 import dev.mokkery.internal.calls.callTracing
-import dev.mokkery.internal.context.currentMockContext
-import dev.mokkery.internal.context.resolveScopeOrNull
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.interceptor.MokkeryKind
-import dev.mokkery.internal.mockId
+import dev.mokkery.internal.context.mockSpec
+import dev.mokkery.internal.mokkeryScope
+import dev.mokkery.internal.MokkeryKind
+import dev.mokkery.internal.mockIdString
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
  */
 public fun mokkeryDebugString(obj: Any): String {
-    return when (val scope = GlobalMokkeryScope.tools.resolveScopeOrNull(obj)) {
+    return when (val scope = obj.mokkeryScope) {
         null -> "Not a mock/spy -> $obj"
-        else -> when (scope.currentMockContext.kind) {
+        else -> when (scope.mockSpec.kind) {
             MokkeryKind.Spy -> mokkeryDebugSpy(scope)
             MokkeryKind.Mock ->  mokkeryDebugMock(scope)
         }
@@ -36,8 +34,8 @@ public fun printMokkeryDebug(obj: Any) {
 private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("mock") {
-            value("id", instance.mockId)
-            value("mode", instance.currentMockContext.mode.name)
+            value("id", instance.mockIdString)
+            value("mode", instance.mockSpec.mode.name)
             answersSection(instance.answering)
             callsSection(instance.callTracing)
         }
@@ -47,7 +45,7 @@ private fun mokkeryDebugMock(instance: MokkeryInstanceScope): String {
 private fun mokkeryDebugSpy(instance: MokkeryInstanceScope): String {
     return buildHierarchicalString {
         section("spy") {
-            value("id", instance.mockId)
+            value("id", instance.mockIdString)
             answersSection(instance.answering)
             callsSection(instance.callTracing)
         }
@@ -61,7 +59,7 @@ private fun HierarchicalStringBuilder.callsSection(callTracing: CallTracingRegis
             line("")
             return@section
         }
-        calls.forEach { line(it.toStringNoReceiver()) }
+        calls.forEach { line(it.toStringNoMockId()) }
     }
 }
 
@@ -71,7 +69,7 @@ private fun HierarchicalStringBuilder.answersSection(answering: AnsweringRegistr
             line("")
         } else {
             answering.answers.forEach { (template, answer) ->
-                line("${template.toStringNoReceiver()} ${answer.debug()}")
+                line("${template.toStringNoMockId()} ${answer.debug()}")
             }
         }
     }

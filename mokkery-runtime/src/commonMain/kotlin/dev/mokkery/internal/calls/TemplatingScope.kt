@@ -7,6 +7,7 @@ import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.ConcurrentTemplatingException
 import dev.mokkery.internal.GlobalMokkeryScope
+import dev.mokkery.internal.MockId
 import dev.mokkery.internal.VarargsAmbiguityDetectedException
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.SignatureGenerator
@@ -34,7 +35,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 
     fun <T> interceptVarargElement(token: Int, arg: T, isSpread: Boolean): T
 
-    fun saveTemplate(receiver: String, name: String, args: List<CallArgument>)
+    fun saveTemplate(id: MockId, name: String, args: List<CallArgument>)
 
     fun release()
 }
@@ -42,7 +43,7 @@ internal interface TemplatingScope : ArgMatchersScope {
 internal fun TemplatingScope(scope: MokkeryScope = GlobalMokkeryScope): TemplatingScope = TemplatingScopeImpl(
     signatureGenerator = scope.tools.signatureGenerator,
     composer = scope.tools.argMatchersComposer,
-    binder = TemplatingScopeDataBinder(scope.tools.scopeLookup),
+    binder = TemplatingScopeDataBinder(),
     autofill = scope.tools.autofillProvider
 )
 
@@ -117,10 +118,10 @@ private class TemplatingScopeImpl(
         return arg
     }
 
-    override fun saveTemplate(receiver: String, name: String, args: List<CallArgument>) {
+    override fun saveTemplate(id: MockId, name: String, args: List<CallArgument>) {
         if (isReleased) return
         val matchers = flush(args)
-        templates += CallTemplate(receiver, name, signatureGenerator.generate(name, args), matchers.toMap())
+        templates += CallTemplate(id, name, signatureGenerator.generate(name, args), matchers.toMap())
     }
 
     private fun flush(args: List<CallArgument>): List<Pair<String, ArgMatcher<Any?>>> {

@@ -1,9 +1,9 @@
 package dev.mokkery.test
 
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.interceptor.MokkeryCallInterceptor
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkerySuspendCallScope
 
 internal open class TestMokkeryCallInterceptor(
     var interceptBlock: (MokkeryBlockingCallScope) -> Any? = { null },

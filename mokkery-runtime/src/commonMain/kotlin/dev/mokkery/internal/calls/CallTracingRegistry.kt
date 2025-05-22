@@ -3,7 +3,7 @@ package dev.mokkery.internal.calls
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.locks.reentrantLock
@@ -54,4 +54,6 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
         val counter = scope.tools.callsCounter
         lock.withLock { _all += scope.toCallTrace(counter.next()) }
     }
+
+    override fun toString(): String = "CallTracingRegistry@${hashCode()}"
 }

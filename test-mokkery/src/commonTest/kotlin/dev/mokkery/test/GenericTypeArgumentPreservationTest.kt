@@ -5,8 +5,8 @@ import dev.mokkery.context.Function
 import dev.mokkery.every
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallListener
-import dev.mokkery.interceptor.MokkeryCallScope
-import dev.mokkery.interceptor.call
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.mockMany

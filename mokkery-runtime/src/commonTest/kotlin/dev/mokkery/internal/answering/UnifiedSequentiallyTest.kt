@@ -3,7 +3,8 @@ package dev.mokkery.internal.answering
 import dev.mokkery.answering.Answer
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.test.TestAnsweringScope
-import dev.mokkery.test.fakeFunctionScope
+import dev.mokkery.test.callBlocking
+import dev.mokkery.test.callSuspend
 import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,7 +16,6 @@ class UnifiedSequentiallyTest {
 
     private val scope = TestAnsweringScope<Int>()
 
-
     @Test
     fun testRegisterSequentialAnswerThatOnCallReturnsResults() {
         scope.unifiedSequentially {
@@ -25,9 +25,9 @@ class UnifiedSequentiallyTest {
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.call(fakeFunctionScope()))
-        assertEquals(2, sequential.call(fakeFunctionScope()))
-        assertEquals(3, sequential.call(fakeFunctionScope()))
+        assertEquals(1, sequential.callBlocking())
+        assertEquals(2, sequential.callBlocking())
+        assertEquals(3, sequential.callBlocking())
     }
 
     @Test
@@ -39,9 +39,9 @@ class UnifiedSequentiallyTest {
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(2, sequential.callSuspend(fakeFunctionScope()))
-        assertEquals(3, sequential.callSuspend(fakeFunctionScope()))
+        assertEquals(1, sequential.callSuspend())
+        assertEquals(2, sequential.callSuspend())
+        assertEquals(3, sequential.callSuspend())
     }
 
     @Test
@@ -51,9 +51,9 @@ class UnifiedSequentiallyTest {
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        sequential.call(fakeFunctionScope())
+        sequential.callBlocking()
         assertFailsWith<NoMoreSequentialAnswersException> {
-            sequential.call(fakeFunctionScope())
+            sequential.callBlocking()
         }
     }
 
@@ -64,9 +64,9 @@ class UnifiedSequentiallyTest {
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        sequential.callSuspend(fakeFunctionScope())
+        sequential.callSuspend()
         assertFailsWith<NoMoreSequentialAnswersException> {
-            sequential.callSuspend(fakeFunctionScope())
+            sequential.callSuspend()
         }
     }
 
@@ -78,7 +78,7 @@ class UnifiedSequentiallyTest {
         }
         val sequential = scope.answers.single()
         assertIs<Answer.Sequential<Int>>(sequential)
-        assertEquals(1, sequential.call(fakeFunctionScope()))
+        assertEquals(1, sequential.callBlocking())
     }
 
     @Test

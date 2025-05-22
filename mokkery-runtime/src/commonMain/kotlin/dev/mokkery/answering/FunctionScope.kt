@@ -16,6 +16,7 @@ import kotlin.reflect.KClass
  */
 @DelicateMokkeryApi
 @Poko
+@Deprecated(AnswerDeprecationMessage)
 public class FunctionScope internal constructor(
     /**
      * Return type of mocked method.

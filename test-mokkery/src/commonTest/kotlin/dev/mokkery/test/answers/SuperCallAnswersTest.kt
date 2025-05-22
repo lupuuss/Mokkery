@@ -1,5 +1,6 @@
 package dev.mokkery.test.answers
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.SuperCall.Companion.original
 import dev.mokkery.answering.SuperCall.Companion.originalWith
 import dev.mokkery.answering.SuperCall.Companion.superOf
@@ -15,6 +16,7 @@ import dev.mokkery.test.DefaultsInterfaceLevel2
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class SuperCallAnswersTest {
 
@@ -56,34 +58,34 @@ class SuperCallAnswersTest {
     @Test
     fun testCallsSuperFromScope() {
         every { mock.call(any(), any()) } calls {
-            callSuper(DefaultsInterfaceLevel2::class)
+            callSuper(DefaultsInterfaceLevel1::class)
         }
-        assertEquals(ComplexType("2"), mock.call(1))
+        assertEquals(ComplexType("1"), mock.call(1))
     }
 
     @Test
     fun testCallsSuperSuspendFromScope() = runTest {
         everySuspend { mock.callSuspend(any(), any()) } calls {
-            callSuper(DefaultsInterfaceLevel2::class)
+            callSuper(DefaultsInterfaceLevel1::class)
         }
-        assertEquals(ComplexType("2"), mock.callSuspend(1))
+        assertEquals(ComplexType("1"), mock.callSuspend(1))
     }
 
 
     @Test
     fun testCallsSuperWithArgsFromScope() {
         every { mock.call(any(), any()) } calls {
-            callSuperWith(DefaultsInterfaceLevel2::class, 5, ComplexType)
+            callSuperWith(DefaultsInterfaceLevel1::class, 5, ComplexType)
         }
-        assertEquals(ComplexType("6"), mock.call(1))
+        assertEquals(ComplexType("5"), mock.call(1))
     }
 
     @Test
     fun testCallsSuperWithArgsSuspendFromScope() = runTest {
         everySuspend { mock.callSuspend(any(), any()) } calls {
-            callSuperWith(DefaultsInterfaceLevel2::class, 5, ComplexType)
+            callSuperWith(DefaultsInterfaceLevel1::class, 5, ComplexType)
         }
-        assertEquals(ComplexType("6"), mock.callSuspend(1))
+        assertEquals(ComplexType("5"), mock.callSuspend(1))
     }
 
     @Test
@@ -125,25 +127,38 @@ class SuperCallAnswersTest {
 
     @Test
     fun testCallsSuper() {
-        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
-        assertEquals(ComplexType("2"), mock.call(1))
+        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel1<Int>>()
+        assertEquals(ComplexType("1"), mock.call(1))
     }
 
     @Test
     fun testCallsSuperSuspend() = runTest {
-        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
-        assertEquals(ComplexType("2"), mock.callSuspend(1))
+        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel1<Int>>()
+        assertEquals(ComplexType("1"), mock.callSuspend(1))
     }
 
     @Test
     fun testCallsSuperWithArgs() {
-        every { mock.call(any(), any()) } calls superWith<DefaultsInterfaceLevel2<Int>>(5, ComplexType)
-        assertEquals(ComplexType("6"), mock.call(1))
+        every { mock.call(any(), any()) } calls superWith<DefaultsInterfaceLevel1<Int>>(5, ComplexType)
+        assertEquals(ComplexType("5"), mock.call(1))
     }
 
     @Test
     fun testCallsSuperWithArgsSuspend() = runTest {
-        everySuspend { mock.callSuspend(any(), any()) } calls superWith<DefaultsInterfaceLevel2<Int>>(5, ComplexType)
-        assertEquals(ComplexType("6"), mock.callSuspend(1))
+        everySuspend { mock.callSuspend(any(), any()) } calls superWith<DefaultsInterfaceLevel1<Int>>(5, ComplexType)
+        assertEquals(ComplexType("5"), mock.callSuspend(1))
     }
+
+    @Test
+    fun testCallsSuperFailsOnIndirectSuperType() {
+        every { mock.call(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
+        assertFailsWith<MokkeryRuntimeException> { mock.call(1) }
+    }
+
+    @Test
+    fun testCallsSuperSuspendFailsOnIndirectSuperType() = runTest {
+        everySuspend { mock.callSuspend(any(), any()) } calls superOf<DefaultsInterfaceLevel2<Int>>()
+        assertFailsWith<MokkeryRuntimeException> { mock.callSuspend(1) }
+    }
+
 }

@@ -1,7 +1,10 @@
 package dev.mokkery.answering
 
+import dev.mokkery.internal.MokkeryBlockingCallScope
 import dev.mokkery.internal.answering.ByFunctionAnswer
-import dev.mokkery.test.fakeFunctionScope
+import dev.mokkery.test.callBlocking
+import dev.mokkery.test.callSuspend
+import dev.mokkery.test.fakeFunctionCall
 import dev.mokkery.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,25 +24,25 @@ class ByFunctionAnswerTest {
 
     @Test
     fun testCallReturnsFunctionResult() {
-        assertEquals(0, answer.call(fakeFunctionScope()))
+        assertEquals(0, answer.call(MokkeryBlockingCallScope(fakeFunctionCall())))
     }
 
     @Test
     fun testRepeatingCallRepeatedlyCallsFunction() {
-        assertEquals(0, answer.call(fakeFunctionScope()))
-        assertEquals(1, answer.call(fakeFunctionScope()))
-        assertEquals(2, answer.call(fakeFunctionScope()))
+        assertEquals(0, answer.callBlocking())
+        assertEquals(1, answer.callBlocking())
+        assertEquals(2, answer.callBlocking())
     }
 
     @Test
     fun testCallSuspendReturnsFunctionResult() = runTest {
-        assertEquals(0, answer.callSuspend(fakeFunctionScope()))
+        assertEquals(0, answer.callSuspend())
     }
 
     @Test
     fun testRepeatingCallSuspendRepeatedlyCallsFunction() = runTest {
-        assertEquals(0, answer.callSuspend(fakeFunctionScope()))
-        assertEquals(1, answer.callSuspend(fakeFunctionScope()))
-        assertEquals(2, answer.callSuspend(fakeFunctionScope()))
+        assertEquals(0, answer.callSuspend())
+        assertEquals(1, answer.callSuspend())
+        assertEquals(2, answer.callSuspend())
     }
 }

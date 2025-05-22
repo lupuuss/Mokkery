@@ -19,7 +19,7 @@ internal class TemplateGroupedMatchingResultsRenderer(
 
     override fun render(value: TemplateGroupedMatchingResults): String = buildString {
         val (template, results) = value
-        appendLine("Results for ${value.template.receiver}:")
+        appendLine("Results for ${value.template.mockId}:")
         if (results.all { (_, value) -> value.isEmpty() }) {
             appendLine("# No calls to this mock!")
             return@buildString

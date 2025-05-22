@@ -1,7 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.answering.Answer
-import dev.mokkery.interceptor.MokkeryCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.calls.CallTemplate

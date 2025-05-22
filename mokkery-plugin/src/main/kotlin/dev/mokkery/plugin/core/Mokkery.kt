@@ -14,18 +14,16 @@ object Mokkery {
 
     val dev_mokkery by fqName
     val dev_mokkery_context by fqName
-    val dev_mokkery_interceptor by fqName
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_context by fqName
     val dev_mokkery_internal_calls by fqName
-    val dev_mokkery_internal_interceptor by fqName
     val dev_mokkery_matcher by fqName
 
     object Class {
 
         val MockMode by dev_mokkery.klass
         val MokkeryScope by dev_mokkery.klass
-        val MokkeryKind by dev_mokkery_internal_interceptor.klass
+        val MokkeryKind by dev_mokkery_internal.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
@@ -34,7 +32,6 @@ object Mokkery {
 
         val MokkerySuiteScope by dev_mokkery.klass
 
-        val MokkeryCallInterceptor by dev_mokkery_interceptor.klass
         val MokkeryInstanceScope by dev_mokkery_internal.klass
 
         val CallArgument by dev_mokkery_context.klass
@@ -65,16 +62,19 @@ object Mokkery {
         val MokkerySuiteScope by dev_mokkery.function
         val MokkeryInstanceScope by dev_mokkery_internal.function
         val createMokkeryInstanceContext by dev_mokkery_internal.function
-        val invokeMockInstantiationListener by dev_mokkery_internal_context.function
+        val initializeInJsFunctionMock by dev_mokkery_internal.function
+        val typeArgumentAt by dev_mokkery_internal.function
         val autofillConstructor by dev_mokkery_internal.function
-        val mokkeryMockInterceptor by dev_mokkery_internal_interceptor.function
+        val invokeInstantiationListener by dev_mokkery_internal_context.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
         val createMokkerySuspendCallScope by dev_mokkery_internal.function
     }
 
     object Property {
 
-        val mockId by dev_mokkery_internal.property
+        val mockIdString by dev_mokkery_internal.property
+        val spiedObject by dev_mokkery_internal.property
+        val callInterceptor by dev_mokkery_internal_context.property
     }
 
     object Name {
@@ -149,13 +149,6 @@ object Mokkery {
             typeName: String,
             functionName: String
         ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
-    }
-
-    object Fields {
-
-        const val SpyDelegate = "_mokkerySpyDelegate"
-
-        fun typeArg(index: Int) = "_mokkeryTypeArg$index"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

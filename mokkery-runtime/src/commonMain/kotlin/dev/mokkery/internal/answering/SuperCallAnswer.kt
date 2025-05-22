@@ -2,35 +2,40 @@ package dev.mokkery.internal.answering
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.answering.Answer
-import dev.mokkery.answering.FunctionScope
 import dev.mokkery.answering.SuperCall
+import dev.mokkery.context.argValues
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
+import dev.mokkery.callOriginal
+import dev.mokkery.callSuper
 import dev.mokkery.internal.utils.description
 import dev.mokkery.internal.utils.unsafeCast
 
 @Poko
 internal class SuperCallAnswer<T>(
-    private val call: SuperCall,
+    private val superCall: SuperCall,
 ) : Answer<T> {
 
-    override fun call(scope: FunctionScope): T = when (call) {
-        is SuperCall.OfType -> scope.callSuper(call.type, call.args ?: scope.args)
-        is SuperCall.Original -> scope.callOriginal(call.args ?: scope.args)
+    override fun call(scope: MokkeryBlockingCallScope): T = when (superCall) {
+        is SuperCall.OfType -> scope.callSuper(superCall.type, superCall.args ?: scope.call.argValues)
+        is SuperCall.Original -> scope.callOriginal(superCall.args ?: scope.call.argValues)
     }.unsafeCast()
 
-    override suspend fun callSuspend(scope: FunctionScope): T = when (call) {
-        is SuperCall.OfType -> scope.callSuspendSuper(call.type, call.args ?: scope.args)
-        is SuperCall.Original -> scope.callSuspendOriginal(call.args ?: scope.args)
+    override suspend fun call(scope: MokkerySuspendCallScope): T = when (superCall) {
+        is SuperCall.OfType -> scope.callSuper(superCall.type, superCall.args ?: scope.call.argValues)
+        is SuperCall.Original -> scope.callOriginal(superCall.args ?: scope.call.argValues)
     }.unsafeCast()
 
     override fun description(): String  {
-        val callDescription = when (call) {
-            is SuperCall.OfType -> when (call.args) {
-                null -> "superOf<${call.type.simpleName}>()"
-                else -> "superWith<${call.type.simpleName}>(${call.args.joinToString { it.description() }})"
+        val callDescription = when (superCall) {
+            is SuperCall.OfType -> when (superCall.args) {
+                null -> "superOf<${superCall.type.simpleName}>()"
+                else -> "superWith<${superCall.type.simpleName}>(${superCall.args.joinToString { it.description() }})"
             }
-            is SuperCall.Original -> when (call.args) {
+            is SuperCall.Original -> when (superCall.args) {
                 null -> "original"
-                else -> "originalWith(${call.args.joinToString { it.description() }})"
+                else -> "originalWith(${superCall.args.joinToString { it.description() }})"
             }
         }
         return "calls $callDescription"

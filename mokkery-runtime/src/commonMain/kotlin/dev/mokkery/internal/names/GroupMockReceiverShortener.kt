@@ -8,16 +8,11 @@ import kotlin.collections.getValue
 import kotlin.collections.map
 import kotlin.collections.mapTo
 import kotlin.collections.toList
-import kotlin.text.removePrefix
 
-internal fun MokkeryTools.createGroupMockReceiverShortener() = GroupMockReceiverShortener(
-    namesShortener,
-    instanceIdGenerator
-)
+internal fun MokkeryTools.createGroupMockReceiverShortener() = GroupMockReceiverShortener(namesShortener)
 
 internal class GroupMockReceiverShortener(
     private val namesShortener: NameShortener,
-    private val receiversGenerator: MokkeryInstanceIdGenerator
 ) {
 
     private lateinit var names: Map<String, String>
@@ -25,23 +20,21 @@ internal class GroupMockReceiverShortener(
 
     fun prepare(calls: List<CallTrace>, templates: List<CallTemplate>) {
         val names = mutableSetOf<String>()
-        calls.mapTo(names) { receiversGenerator.extractType(it.receiver) }
-        templates.mapTo(names) { receiversGenerator.extractType(it.receiver) }
+        calls.mapTo(names) { it.mockId.typeName }
+        templates.mapTo(names) { it.mockId.typeName }
         this.names = namesShortener.shorten(names)
     }
 
     fun shortenTemplates(templates: List<CallTemplate>): List<CallTemplate> = templates.map {
-        val noIdReceiver = receiversGenerator.extractType(it.receiver)
-        val id = it.receiver.removePrefix(noIdReceiver)
-        it.copy(receiver = "${names.getValue(noIdReceiver)}$id")
+        val id = it.mockId
+        it.copy(mockId = id.copy(typeName = names.getValue(id.typeName)))
     }
 
     fun shortenTraces(calls: List<CallTrace>): List<CallTrace> {
         val callsMapping = linkedMapOf<CallTrace, CallTrace>()
         calls.associateByTo(callsMapping) {
-            val noIdReceiver = receiversGenerator.extractType(it.receiver)
-            val id = it.receiver.removePrefix(noIdReceiver)
-            it.copy(receiver = "${names.getValue(noIdReceiver)}$id")
+            val id = it.mockId
+            it.copy(mockId = id.copy(typeName = names.getValue(id.typeName)))
         }
         this.callsMapping = callsMapping
         return callsMapping.keys.toList()

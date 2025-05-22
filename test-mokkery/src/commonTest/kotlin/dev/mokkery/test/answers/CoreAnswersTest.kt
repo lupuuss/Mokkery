@@ -1,5 +1,8 @@
 package dev.mokkery.test.answers
 
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.Answer
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.answering.returnsBy
@@ -92,4 +95,15 @@ class CoreAnswersTest {
         assertNotEquals(error1, error2)
     }
 
+    @Test
+    fun testCustomAnswer() {
+
+    }
+
+}
+
+@OptIn(DelicateMokkeryApi::class)
+private data class CustomAnswer<T>(val value: T) : Answer<T> {
+
+    override fun call(scope: MokkeryBlockingCallScope): T = value
 }

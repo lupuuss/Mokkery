@@ -3,8 +3,10 @@ package dev.mokkery.coroutines.answering
 import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.SuspendCallDefinitionScope
+import dev.mokkery.context.argValues
 import dev.mokkery.coroutines.internal.answering.AwaitAnswer
 import dev.mokkery.coroutines.internal.answering.AwaitDeferred
+import dev.mokkery.call
 import kotlinx.coroutines.Deferred
 
 /**
@@ -27,7 +29,7 @@ public infix fun <T> SuspendAnsweringScope<T>.awaits(deferred: Deferred<T>) {
 public infix fun <T> SuspendAnsweringScope<T>.awaits(provider: SuspendCallDefinitionScope<T>.(CallArgs) -> Deferred<T>) {
     val awaitable = AwaitDeferred(
         description = { "{...}" },
-        deferred = { provider(SuspendCallDefinitionScope<T>(it), CallArgs(it.args)) }
+        deferred = { provider(SuspendCallDefinitionScope<T>(it), CallArgs(it.call.argValues)) }
     )
     awaits(awaitable)
 }

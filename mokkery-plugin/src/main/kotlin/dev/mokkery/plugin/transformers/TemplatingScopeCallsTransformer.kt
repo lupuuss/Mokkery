@@ -9,11 +9,10 @@ import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mokkeryErrorAt
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambda
+import dev.mokkery.plugin.ir.isValueClassType
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.jvm.ir.isValueClassType
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.backend.js.utils.valueArguments
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
@@ -24,6 +23,7 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -42,6 +42,8 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isSuspend
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
+import org.jetbrains.kotlin.ir.util.usesDefaultArguments
 import org.jetbrains.kotlin.platform.konan.isNative
 
 class TemplatingScopeCallsTransformer(
@@ -61,7 +63,10 @@ class TemplatingScopeCallsTransformer(
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val receiver = expression.dispatchReceiver ?: return super.visitCall(expression)
+        if (expression.symbol.owner.parameters.getOrNull(0)?.kind != IrParameterKind.DispatchReceiver) {
+            return super.visitCall(expression)
+        }
+        val receiver = expression.arguments[0]!!
         val cls = receiver.type.getClass() ?: return super.visitCall(expression)
         if (cls.isFinalClass) return super.visitCall(expression)
         super.visitCall(expression)
@@ -74,10 +79,10 @@ class TemplatingScopeCallsTransformer(
                         returnType == expression.type -> irNull()
                         else ->  kClassReference(expression.type)
                     }
-                    dispatchReceiver = irGet(templatingScope)
-                    putValueArgument(0, irInt(token))
-                    putValueArgument(1, irGet(tmp))
-                    putValueArgument(2, genericReturnTypeHint)
+                    arguments[0] = irGet(templatingScope)
+                    arguments[1] = irInt(token)
+                    arguments[2] = irGet(tmp)
+                    arguments[3] = genericReturnTypeHint
                 }
                 +irGet(tmp)
             }
@@ -93,30 +98,25 @@ class TemplatingScopeCallsTransformer(
     private fun workaroundNativeChecks(expression: IrCall, returnType: IrType): IrCall {
         if (returnType.isPrimitiveType(nullable = false) || returnType.isNothing() || returnType.isValueClassType()) return expression
         expression.apply { type = pluginContext.irBuiltIns.anyNType }
-        if (!expression.isSuspend || expression.valueArguments.all { it != null }) return expression
+        if (!expression.isSuspend || !expression.usesDefaultArguments()) return expression
         val callIgnoringClassCastExceptionFun = getFunction(Mokkery.Function.callIgnoringClassCastException)
         return declarationIrBuilder(expression) {
             irCall(callIgnoringClassCastExceptionFun) {
-                val blockParamType = callIgnoringClassCastExceptionFun.valueParameters[1].type
+                val blockParamType = callIgnoringClassCastExceptionFun.parameters[1].type
                 val lambda = irLambda(pluginContext.irBuiltIns.anyNType, blockParamType, currentFile) { +expression }
-                putValueArgument(0, irGet(templatingScope))
-                putValueArgument(1, lambda)
-                putTypeArgument(0, pluginContext.irBuiltIns.anyNType)
+                typeArguments[0] = pluginContext.irBuiltIns.anyNType
+                arguments[0] = irGet(templatingScope)
+                arguments[1] = lambda
             }
         }
     }
 
     private fun interceptAllArgsOf(expression: IrCall) {
-        val extensionReceiver = expression.extensionReceiver
-        val extensionReceiverParam = expression.symbol.owner.extensionReceiverParameter
-        if (extensionReceiver != null && extensionReceiverParam != null) {
-            expression.extensionReceiver = interceptArg(expression.symbol, extensionReceiverParam, extensionReceiver)
-        }
-        for (index in expression.valueArguments.indices) {
-            val arg = expression.valueArguments[index] ?: continue
-            val param = expression.symbol.owner.valueParameters[index]
+        val parameters = expression.symbol.owner.nonDispatchParameters
+        for (param in parameters) {
+            val arg = expression.arguments[param] ?: continue
             if (arg is IrGetValue && arg.interceptArgInitializer(param)) continue
-            expression.putValueArgument(index, interceptArg(expression.symbol, param, arg))
+            expression.arguments[param] = interceptArg(expression.symbol, param, arg)
         }
     }
 
@@ -124,7 +124,7 @@ class TemplatingScopeCallsTransformer(
         if (variable.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) return
         val initializer = variable.initializer
         if (initializer !is IrCall) return
-        val types = listOfNotNull(initializer.dispatchReceiver?.type, initializer.extensionReceiver?.type)
+        val types = initializer.arguments.mapNotNull { it?.type }
         if (types.any { it == argMatchersScopeClass.defaultType }) {
             mokkeryErrorAt(initializer) { "Assigning matchers to variables is prohibited!" }
         }
@@ -137,11 +137,11 @@ class TemplatingScopeCallsTransformer(
     ): IrExpression = declarationIrBuilder(symbol) {
         irCall(templatingContextClass.getSimpleFunction("interceptArg")!!) {
             this.type = arg.type.makeNullable()
-            this.dispatchReceiver = irGet(templatingScope)
-            putTypeArgument(0, arg.type.makeNullable())
-            putValueArgument(0, irInt(token))
-            putValueArgument(1, irString(param.name.asString()))
-            putValueArgument(2, interceptArgVarargs(arg))
+            typeArguments[0] = arg.type.makeNullable()
+            arguments[0] = irGet(templatingScope)
+            arguments[1] = irInt(token)
+            arguments[2] = irString(param.name.asString())
+            arguments[3] = interceptArgVarargs(arg)
         }
     }
 
@@ -174,10 +174,10 @@ class TemplatingScopeCallsTransformer(
     private fun DeclarationIrBuilder.interceptVarargElement(expression: IrExpression, isSpread: Boolean): IrExpression {
         return irCall(templatingContextClass.getSimpleFunction("interceptVarargElement")!!) {
             this.type = expression.type
-            dispatchReceiver = irGet(templatingScope)
-            putValueArgument(0, irInt(token))
-            putValueArgument(1, expression)
-            putValueArgument(2, irBoolean(isSpread))
+            arguments[0] = irGet(templatingScope)
+            arguments[1] = irInt(token)
+            arguments[2] = expression
+            arguments[3] = irBoolean(isSpread)
         }
     }
 }

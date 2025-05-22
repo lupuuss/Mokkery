@@ -22,7 +22,7 @@ internal fun CallMatcher(signatureGenerator: SignatureGenerator): CallMatcher = 
 private class CallMatcherImpl(private val signatureGenerator: SignatureGenerator) : CallMatcher {
     override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult {
         return when {
-            trace.receiver != template.receiver -> CallMatchResult.NotMatching
+            trace.mockId != template.mockId -> CallMatchResult.NotMatching
             !trace.matchesSignatureOf(template) -> when (trace.name) {
                 template.name -> CallMatchResult.SameReceiverMethodOverload
                 else -> CallMatchResult.SameReceiver

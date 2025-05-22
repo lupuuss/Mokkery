@@ -4,13 +4,14 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.interceptor.MokkeryBlockingCallScope
-import dev.mokkery.interceptor.MokkerySuspendCallScope
+import dev.mokkery.internal.MokkeryBlockingCallScope
+import dev.mokkery.internal.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
 import kotlin.reflect.KClass
 
 internal inline fun <reified T> testBlockingCallScope(
-    selfId: String = "mock@1",
+    typeName: String = "mock",
+    sequence: Long = 1,
     name: String = "call",
     args: List<CallArgument> = emptyList(),
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
@@ -19,7 +20,8 @@ internal inline fun <reified T> testBlockingCallScope(
 ) = MokkeryBlockingCallScope(
     testCallContext(
         T::class,
-        selfId,
+        typeName,
+        sequence,
         name,
         args,
         supers,
@@ -29,7 +31,8 @@ internal inline fun <reified T> testBlockingCallScope(
 )
 
 internal inline fun <reified T> testSuspendCallScope(
-    selfId: String = "mock@1",
+    typeName: String = "mock",
+    sequence: Long = 1,
     name: String = "call",
     args: List<CallArgument> = emptyList(),
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
@@ -38,7 +41,8 @@ internal inline fun <reified T> testSuspendCallScope(
 ) = MokkerySuspendCallScope(
     testCallContext(
         T::class,
-        selfId,
+        typeName,
+        sequence,
         name,
         args,
         supers,
@@ -49,13 +53,14 @@ internal inline fun <reified T> testSuspendCallScope(
 
 internal fun testCallContext(
     returnType: KClass<*>,
-    selfId: String,
+    typeName: String,
+    sequence: Long,
     name: String,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>>,
     spiedFunction: kotlin.Function<Any?>?,
     context: MokkeryContext,
-) = TestMokkeryInstanceScope(selfId).mokkeryContext
+) = TestMokkeryInstanceScope(typeName, sequence).mokkeryContext
     .plus(FunctionCall(Function(name, args.map { it.parameter }, returnType), args))
     .plus(AssociatedFunctions(supers, spiedFunction))
     .plus(context)

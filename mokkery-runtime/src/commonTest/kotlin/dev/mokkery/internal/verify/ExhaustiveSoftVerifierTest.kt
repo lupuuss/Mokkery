@@ -79,7 +79,7 @@ class ExhaustiveSoftVerifierTest {
             verifier.verify(listOf(trace1), listOf(template1, template2))
         }
         val expectedError = """
-            No matching call for mock@1.call2()!
+            No matching call for mock(1).call2()!
             RENDERER_RESULTS
         """.trimIndent()
         assertEquals(expectedError, error.message)

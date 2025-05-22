@@ -3,15 +3,14 @@
 package dev.mokkery
 
 import dev.mokkery.context.require
-import dev.mokkery.internal.GlobalMokkeryScope
-import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.calls.callTracing
-import dev.mokkery.internal.context.resolveScope
+import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
+import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
@@ -67,8 +66,7 @@ public fun MokkerySuiteScope.verifySuspend(
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
-    val tools = GlobalMokkeryScope.tools
-    val instances = mocks.map(tools::resolveScope)
+    val instances = mocks.map(Any::requireInstanceScope)
     MokkerySuiteScope(MocksRegistry(mocks = instances)).verifyNoMoreCalls()
 }
 

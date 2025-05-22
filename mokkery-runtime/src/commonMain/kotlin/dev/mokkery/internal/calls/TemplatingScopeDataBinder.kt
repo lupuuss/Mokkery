@@ -1,7 +1,7 @@
 package dev.mokkery.internal.calls
 
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.MokkeryScopeLookup
+import dev.mokkery.internal.mokkeryScope
 
 internal interface TemplatingScopeDataBinder {
 
@@ -15,27 +15,23 @@ internal interface TemplatingScopeDataBinder {
 }
 
 
-internal fun TemplatingScopeDataBinder(
-    lookup: MokkeryScopeLookup
-): TemplatingScopeDataBinder = TemplatingScopeDataBinderImpl(lookup)
+internal fun TemplatingScopeDataBinder(): TemplatingScopeDataBinder = TemplatingScopeDataBinderImpl()
 
-private class TemplatingScopeDataBinderImpl(
-    private val lookup: MokkeryScopeLookup
-) : TemplatingScopeDataBinder {
+private class TemplatingScopeDataBinderImpl() : TemplatingScopeDataBinder {
 
     private val data = mutableMapOf<Int, RawTemplateData>()
     private val bindings = mutableMapOf<Int, Any>()
 
     override fun getDataFor(token: Int): RawTemplateData? {
         val binding = bindings[token]
-        if (binding != null && lookup.resolveScopeOrNull(binding) == null) return null
+        if (binding != null && binding.mokkeryScope == null) return null
         return data.getOrPut(token) { RawTemplateData() }
     }
 
     override fun bind(token: Int, obj: Any?): MokkeryInstanceScope? {
         obj ?: return null
         bindings[token] = obj
-        val scope = lookup.resolveScopeOrNull(obj)
+        val scope = obj.mokkeryScope
         if (scope != null) getDataFor(token)
         return scope
     }

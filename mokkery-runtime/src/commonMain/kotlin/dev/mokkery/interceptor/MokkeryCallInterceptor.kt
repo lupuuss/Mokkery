@@ -1,9 +1,12 @@
 package dev.mokkery.interceptor
 
-import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
+import dev.mokkery.internal.withContext
 
 /**
  * It's invoked on each mocked function call.
@@ -11,7 +14,7 @@ import dev.mokkery.internal.interceptor.MokkeryCallHooks
 public interface MokkeryCallInterceptor {
 
     /**
-     * Invoked on each regular mock call. To continue processing, call [MokkeryBlockingCallScope.nextIntercept].
+     * Invoked on each regular mock call. To continue processing, call [nextIntercept].
      * The behavior following this call depends on the hook used.
      *
      * For information on available hooks and their effects, refer to [MokkeryCallInterceptor.Companion].
@@ -20,7 +23,7 @@ public interface MokkeryCallInterceptor {
     public fun intercept(scope: MokkeryBlockingCallScope): Any?
 
     /**
-     * Invoked on each suspend mock call. To continue processing, call [MokkerySuspendCallScope.nextIntercept].
+     * Invoked on each suspend mock call. To continue processing, call [nextIntercept].
      * The behavior following this call depends on the hook used.
      *
      * For information on available hooks and their effects, refer to [MokkeryCallInterceptor.Companion].
@@ -39,52 +42,18 @@ public interface MokkeryCallInterceptor {
 }
 
 /**
- * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for both regular and suspend functions.
+ * Calls [dev.mokkery.interceptor.MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
+ * Adds [context] to the next pipeline context.
  */
-public interface MokkeryCallScope : MokkeryScope
+public fun MokkeryBlockingCallScope.nextIntercept(
+    context: MokkeryContext = MokkeryContext.Empty
+): Any? = callInterceptor.intercept(withContext(context))
 
 /**
- * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for regular functions only.
+ * Calls [dev.mokkery.interceptor.MokkeryCallInterceptor.intercept] on the next interceptor in the pipeline.
+ * Adds [context] to the next pipeline context.
  */
-public interface MokkeryBlockingCallScope : MokkeryCallScope
+public suspend fun MokkerySuspendCallScope.nextIntercept(
+    context: MokkeryContext = MokkeryContext.Empty
+): Any? = callInterceptor.intercept(withContext(context))
 
-/**
- * Provides a set of operations available in a [MokkeryCallInterceptor.intercept] for suspend functions only.
- */
-public interface MokkerySuspendCallScope : MokkeryCallScope
-
-internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryBlockingCallScope {
-
-    return object : MokkeryBlockingCallScope {
-        override val mokkeryContext = context
-
-        override fun toString(): String = "MokkeryBlockingCallScope($context)"
-    }
-}
-
-internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkerySuspendCallScope {
-
-    return object : MokkerySuspendCallScope {
-        override val mokkeryContext = context
-
-        override fun toString(): String = "MokkerySuspendCallScope($context)"
-    }
-}
-
-internal fun MokkeryBlockingCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkeryBlockingCallScope {
-    return when {
-        with === MokkeryContext.Empty -> this
-        else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
-    }
-}
-
-internal fun MokkerySuspendCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkerySuspendCallScope {
-    return when {
-        with === MokkeryContext.Empty -> this
-        else -> MokkerySuspendCallScope(this.mokkeryContext + with)
-    }
-}

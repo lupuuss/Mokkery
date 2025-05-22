@@ -13,7 +13,7 @@ public sealed interface SuperCall {
     /**
      * Call for a super method from [type] with given [args]. If interface is mocked, default implementation is called.
      *
-     * If [args] is null, args passed to mock ([FunctionScope.args]) are used.
+     * If [args] is null, args passed to mock ([dev.mokkery.context.FunctionCall.args]) are used.
      *
      * It is recommended to use [superOf] and [superWith] instead.
      */
@@ -24,7 +24,7 @@ public sealed interface SuperCall {
     /**
      * Call for an original method of mocked type. If interface is mocked, default implementation is called.
      *
-     * If [args] is null, args passed to mock ([FunctionScope.args]) are used.
+     * If [args] is null, args passed to mock ([dev.mokkery.context.FunctionCall.args]) are used.
      *
      * It is recommended to use [original] and [originalWith] instead.
      */
@@ -35,7 +35,7 @@ public sealed interface SuperCall {
     public companion object {
 
         /**
-         * Results in a super method call from type [T] with args passed to mock ([FunctionScope.args]).
+         * Results in a super method call from type [T] with args passed to mock ([dev.mokkery.context.FunctionCall.args]).
          * If interface is mocked, default implementation is called.
          */
         public inline fun <reified T> superOf(): SuperCall = OfType(T::class)
@@ -47,7 +47,7 @@ public sealed interface SuperCall {
         public inline fun <reified T> superWith(vararg args: Any?): SuperCall = OfType(T::class, args.toList())
 
         /**
-         * Results in an original method call from mocked type with args passed to mock ([FunctionScope.args]).
+         * Results in an original method call from mocked type with args passed to mock ([dev.mokkery.context.FunctionCall.args]).
          * If interface is mocked, default implementation is called.
          *
          * It is shorthand for `superOf<MockedType>()`.
