@@ -11,6 +11,7 @@ import dev.mokkery.internal.calls.TemplatingSocket
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MockSpec
+import dev.mokkery.internal.context.TypeSpec
 import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.tools
@@ -28,7 +29,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     mode: MockMode,
     kind: MokkeryKind,
     interceptedTypes: List<KClass<*>>,
-    typeArguments: List<KClass<*>>,
+    typeArguments: List<List<KClass<*>>>,
     thisRef: Any,
     spiedObject: Any?
 ): MokkeryContext = mokkeryContext
@@ -38,8 +39,7 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
             id = MockId(typeName, tools.mocksCounter.next()),
             mode = mode,
             kind = kind,
-            interceptedTypes = interceptedTypes,
-            typeArguments = typeArguments,
+            interceptedTypes = interceptedTypes.mapIndexed { index, it -> TypeSpec(it, typeArguments[index]) },
             spiedObject = spiedObject,
             thisRef = thisRef
         )
@@ -63,8 +63,13 @@ internal val MokkeryInstanceScope.mockIdString get() = mockSpec.id.toString()
 
 internal val MokkeryInstanceScope.spiedObject get() = mockSpec.spiedObject
 
-internal fun MokkeryInstanceScope.typeArgumentAt(index: Int): KClass<*>? = mockSpec.typeArguments.getOrNull(index)
-
+internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
+    var index = 0
+    for (type in mockSpec.interceptedTypes)
+        for (typeArgument in type.arguments)
+            if (totalIndex == index++) return typeArgument
+    return null
+}
 internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: throw ObjectNotMockedException(this)
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?
@@ -84,7 +89,7 @@ internal fun MokkeryInstanceScope(
     kind = kind,
     typeName = typeName,
     interceptedTypes = listOf(mockedType),
-    typeArguments = typeArguments,
+    typeArguments = listOf(typeArguments),
     thisRef = thisRef,
     spiedObject = spiedObject
 )
@@ -95,7 +100,7 @@ private class DynamicMokkeryInstanceScope(
     kind: MokkeryKind,
     typeName: String,
     interceptedTypes: List<KClass<*>>,
-    typeArguments: List<KClass<*>> = emptyList(),
+    typeArguments: List<List<KClass<*>>>,
     thisRef: Any,
     spiedObject: Any?,
 ) : MokkeryInstanceScope {

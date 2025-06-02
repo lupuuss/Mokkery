@@ -187,9 +187,17 @@ private fun IrClass.addMockClassConstructor(
             IrMokkeryKind.Mock -> null
         }
         val kClassType = context.irBuiltIns.kClassClass.starProjectedType
-        val typeKClassParameters = classesToIntercept
-            .memoryOptimizedFlatMap(IrClass::typeParameters)
-            .memoryOptimizedMapIndexed { index, it -> addValueParameter("type$index", kClassType) }
+        val typeParameters = classesToIntercept
+            .memoryOptimizedMap { it.typeParameters }
+            .let { classParams ->
+                var index = 0
+                classParams.memoryOptimizedMap {
+                    it.memoryOptimizedMap {
+                        addValueParameter("type${index++}", kClassType)
+                    }
+                }
+            }
+
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
             +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
@@ -202,13 +210,19 @@ private fun IrClass.addMockClassConstructor(
                     arguments[3] = irMokkeryKindValue(mokkeryKindClass, mokkeryKind)
                     arguments[4] = irCallListOf(
                         transformerScope = transformer,
-                        type = context.irBuiltIns.kClassClass.starProjectedType,
-                        expressions = classesToIntercept.map { kClassReference(it.defaultTypeErased) }
+                        type = kClassType,
+                        expressions = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
                     )
                     arguments[5] = irCallListOf(
                         transformerScope = transformer,
-                        type = context.irBuiltIns.kClassClass.starProjectedType,
-                        expressions = typeKClassParameters.memoryOptimizedMap { irGet(it) }
+                        type = context.irBuiltIns.listClass.typeWith(kClassType),
+                        expressions = typeParameters.memoryOptimizedMap { params ->
+                            irCallListOf(
+                                transformerScope = transformer,
+                                type = kClassType,
+                                expressions = params.memoryOptimizedMap { irGet(it) }
+                            )
+                        }
                     )
                     arguments[6] = irGet(thisReceiver!!)
                     arguments[7] = spyParam?.let(::irGet) ?: irNull()
