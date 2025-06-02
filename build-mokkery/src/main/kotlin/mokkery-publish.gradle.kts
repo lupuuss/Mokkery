@@ -17,7 +17,7 @@ mavenPublishing {
     if (gradle.startParameter.taskNames.any { it.contains("MavenCentral") }) {
         signAllPublications()
     }
-    publishToMavenCentral(SonatypeHost.S01, automaticRelease = false)
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
     pom {
         name.set(project.name)
         description.set(MokkeryAttributes.Description)
