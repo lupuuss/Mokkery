@@ -64,6 +64,7 @@ const config = {
             },
             navbar: {
                 title: 'Mokkery',
+                hideOnScroll: true,
                 logo: {
                     alt: 'Mokkery logo',
                     src: 'img/logo_purple.svg',
@@ -82,26 +83,33 @@ const config = {
                         position: 'left',
                         label: 'API',
                         'data-umami-event': 'header-api-reference-button'
-                },
-                {
-                    href: 'https://github.com/lupuuss/Mokkery/releases',
-                    position: 'left',
-                    label: 'Releases',
+                    },
+                    {
+                        href: 'https://github.com/lupuuss/Mokkery/releases',
+                        position: 'left',
+                        label: 'Releases',
                         'data-umami-event': 'header-github-releases-button'
-                },
-                {
-                    href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
-                    position: 'right',
-                    label: 'Ask a Question',
+                    },
+                    {
+                        href: 'https://github.com/lupuuss/Mokkery/discussions/categories/q-a',
+                        position: 'left',
+                        label: 'Ask a Question',
                         'data-umami-event': 'header-github-discussions-button'
                     },
                     {
-                        href: 'https://github.com/lupuuss/Mokkery',
+                        to: "https://ko-fi.com/R6R71FY0RZ",
                         position: 'right',
+                        label: "Support me",
+                        className: 'kofi-support-link'
+                    },
+                    {
+                        to: 'https://github.com/lupuuss/Mokkery',
+                        position: 'right',
+                        label: "Github",
                         className: 'header-github-link',
                         'data-umami-event': 'header-github-button'
-                },
-            ],
+                    }
+                ],
         },
         prism: {
             theme: prismThemes.oneLight,

@@ -20,8 +20,7 @@ internal class MockSpec(
     val id: MockId,
     val mode: MockMode,
     val kind: MokkeryKind,
-    val interceptedTypes: List<KClass<*>>,
-    val typeArguments: List<KClass<*>>,
+    val interceptedTypes: List<TypeSpec>,
     val thisRef: Any,
     val spiedObject: Any?,
 ) : MokkeryContext.Element {
@@ -32,10 +31,21 @@ internal class MockSpec(
             "id='$id', " +
             "mode=$mode, " +
             "kind=$kind, " +
-            "interceptedTypes=[${interceptedTypes.joinToString { it.bestName() }}], " +
-            "typeArguments=[${typeArguments.joinToString { it.bestName() }}], " +
+            "interceptedTypes=[${interceptedTypes.joinToString { it.toString() }}], " +
             "thisRef={...}, " +
             "spiedObject=${spiedObject?.let { "hash(${it.hashCode()})" }})"
 
     companion object Key : MokkeryContext.Key<MockSpec>
+}
+
+internal class TypeSpec(val type: KClass<*>, val arguments: List<KClass<*>>) {
+
+    override fun toString(): String = buildString {
+        append(type.bestName())
+        if (arguments.isNotEmpty()) {
+            append("<")
+            append(arguments.joinToString { it.bestName() })
+            append(">")
+        }
+    }
 }

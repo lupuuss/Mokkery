@@ -4,6 +4,8 @@ import MokkeryAttributes.GitHttpsUrl
 import MokkeryAttributes.GitIssuesUrl
 import MokkeryAttributes.WebsiteUrl
 import com.vanniktech.maven.publish.SonatypeHost
+import java.net.URI
+import java.net.URL
 
 plugins {
     id("com.vanniktech.maven.publish")
@@ -12,12 +14,20 @@ plugins {
 
 loadLocalProperties()
 
+dokka.dokkaSourceSets.configureEach {
+    sourceLink {
+        localDirectory = rootDir
+        remoteUrl = URI("${GitHttpsUrl}/tree/master")
+        remoteLineSuffix ="#L"
+    }
+}
+
 mavenPublishing {
     coordinates(project.group.toString(), project.name, project.version.toString())
     if (gradle.startParameter.taskNames.any { it.contains("MavenCentral") }) {
         signAllPublications()
     }
-    publishToMavenCentral(SonatypeHost.S01, automaticRelease = false)
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
     pom {
         name.set(project.name)
         description.set(MokkeryAttributes.Description)

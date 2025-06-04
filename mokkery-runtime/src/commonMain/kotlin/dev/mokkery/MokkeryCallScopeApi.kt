@@ -82,14 +82,14 @@ public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionSco
         args = call.args.map(CallArgument::value),
         self = self,
         supers = supers,
-        classSupertypes = mockSpec.interceptedTypes
+        classSupertypes = mockSpec.interceptedTypes.map { it.type }
     )
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>
     get() {
         val supers = this.supers
-        val interceptedTypes = mockSpec.interceptedTypes
+        val interceptedTypes = mockSpec.interceptedTypes.map { it.type }
         val superCandidates = interceptedTypes.filter(supers::contains)
         if (superCandidates.isEmpty()) throw MissingSuperMethodException(interceptedTypes)
         val superType = superCandidates

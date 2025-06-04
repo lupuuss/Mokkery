@@ -6,6 +6,7 @@ import dev.mokkery.internal.MockId
 import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.MockSpec
 import dev.mokkery.internal.MokkeryKind
+import dev.mokkery.internal.context.TypeSpec
 import kotlin.reflect.KClass
 
 internal class TestMokkeryInstanceScope(
@@ -14,7 +15,7 @@ internal class TestMokkeryInstanceScope(
     mode: MockMode = MockMode.strict,
     kind: MokkeryKind = MokkeryKind.Mock,
     interceptedTypes: List<KClass<*>> = listOf(Unit::class),
-    typeArguments: List<KClass<*>> = emptyList(),
+    typeArguments: List<List<KClass<*>>> = List(interceptedTypes.size) { emptyList() },
     spiedObject: Any? = null,
     interceptor: TestContextCallInterceptor = TestContextCallInterceptor(),
 ) : MokkeryInstanceScope {
@@ -23,8 +24,7 @@ internal class TestMokkeryInstanceScope(
         id = MockId(typeName, sequence),
         mode = mode,
         kind = kind,
-        interceptedTypes = interceptedTypes,
-        typeArguments = typeArguments,
+        interceptedTypes = interceptedTypes.mapIndexed { index, it -> TypeSpec(it, typeArguments[index]) },
         thisRef = this,
         spiedObject = spiedObject,
     ) + interceptor
