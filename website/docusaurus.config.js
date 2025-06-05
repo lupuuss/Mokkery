@@ -97,16 +97,14 @@ const config = {
                         'data-umami-event': 'header-github-discussions-button'
                     },
                     {
-                        to: "https://ko-fi.com/R6R71FY0RZ",
+                        to: "https://ko-fi.com/lupuuss",
                         position: 'right',
-                        label: "Support me",
-                        className: 'kofi-support-link'
+                        html: `<span class="header-kofi-link"><img class="header-kofi-link-icon" src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="" /> Support me</span>`
                     },
                     {
                         to: 'https://github.com/lupuuss/Mokkery',
                         position: 'right',
-                        label: "Github",
-                        className: 'header-github-link',
+                        html: `<span class="header-github-link"><span class="header-github-link-icon"></span> Github</span>`,
                         'data-umami-event': 'header-github-button'
                     }
                 ],
