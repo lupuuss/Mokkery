@@ -4,6 +4,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import CodeBlock from '@theme/CodeBlock';
 import Heading from '@theme/Heading';
+import React, {useEffect, useRef} from 'react';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import {kotlinVersion, mokkeryVersion} from "../versions";
@@ -87,11 +88,11 @@ function HomepageHeader() {
             <div className="main-page-description">
                 <div style={{display: "flex", flexDirection: "row", alignItems: "center", gap: "16px"}}>
                     <Logo width="100" height="100" className="logoTheme"/>
-                    <Heading as="h1" className="hero__title" style={{letterSpacing: "-2px", marginTop: "10px" }}>
+                    <Heading as="h1" className="hero__title" style={{letterSpacing: "-2px", marginTop: "10px"}}>
                         {siteConfig.title}
                     </Heading>
                 </div>
-                <p className="hero__subtitle" style={{lineHeight: "1.2", fontSize: '2rem' }}>{siteConfig.tagline}</p>
+                <p className="hero__subtitle" style={{lineHeight: "1.2", fontSize: '2rem'}}>{siteConfig.tagline}</p>
                 <div style={{
                     display: "flex",
                     flexDirection: "row",
@@ -125,15 +126,15 @@ function WhyMokkeryTabs() {
             <div style={{height: "2rem"}}/>
             <h2 style={{fontWeight: "400"}}>Why Mokkery?</h2>
             <div style={{minHeight: "500px"}}>
-                <Tabs>
-                    <TabItem value="simple" label="🌿&nbsp;Simple" data-umami-event="home-tabs" data-umami-event-tab="simple">
+                <TrackedTabs tabEventPrefix="home-tabs">
+                    <TabItem value="simple" label="🌿&nbsp;Simple">
                         <CodeBlock
                             language="kotlin"
                             showLineNumbers>
                             {simpleTabBlock}
                         </CodeBlock>
                     </TabItem>
-                    <TabItem value="setup" label="⌚&nbsp;Easy&nbsp;setup" data-umami-event="home-tabs" data-umami-event-tab="setup">
+                    <TabItem value="setup" label="⌚&nbsp;Easy&nbsp;setup">
                         <h3 style={{fontWeight: "400"}}>Just apply Gradle plugin and...</h3>
                         <Tabs
                             groupId="kotlinVersion"
@@ -147,22 +148,23 @@ function WhyMokkeryTabs() {
                                     language="kotlin"
                                     showLineNumbers>
                                     {setupTabBlockK1}
-                                    </CodeBlock>
+                                </CodeBlock>
                             </TabItem>
                             <TabItem value="k2">
                                 <CodeBlock
                                     language="kotlin"
                                     showLineNumbers>
                                     {setupTabBlockK2}
-                                    </CodeBlock>
+                                </CodeBlock>
                             </TabItem>
-                            </Tabs>
+                        </Tabs>
                         <h3 style={{fontWeight: "400"}}>...that's it!</h3>
                         <h3 style={{fontWeight: "400"}}>
-                            Please refer to the <Link to="../docs/Setup">setup section</Link>, as additional configuration may be required in some cases!
+                            Please refer to the <Link to="../docs/Setup">setup section</Link>, as additional
+                            configuration may be required in some cases!
                         </h3>
                     </TabItem>
-                    <TabItem value="multiplatform" label="🌍&nbsp;Multiplatform" data-umami-event="home-tabs" data-umami-event-tab="multiplatform">
+                    <TabItem value="multiplatform" label="🌍&nbsp;Multiplatform">
                         <div style={{fontSize: "1.4rem", fontWeight: "300", width: "100%"}}>
                             <div style={{height: "1rem"}}/>
                             <ul>
@@ -174,7 +176,7 @@ function WhyMokkeryTabs() {
                             </ul>
                         </div>
                     </TabItem>
-                    <TabItem value="customizable" label="🖌️&nbsp;Customizable" data-umami-event="home-tabs" data-umami-event-tab="customizable">
+                    <TabItem value="customizable" label="🖌️&nbsp;Customizable">
                         <h3 style={{fontWeight: "400"}}>Change Mokkery strictness globally...</h3>
                         <CodeBlock
                             title="build.gradle.kts"
@@ -190,7 +192,7 @@ function WhyMokkeryTabs() {
                             {customizableLocallyTabBlock}
                         </CodeBlock>
                     </TabItem>
-                    <TabItem value="extensible" label="🧩&nbsp;Extensible" data-umami-event="home-tabs" data-umami-event-tab="extensible">
+                    <TabItem value="extensible" label="🧩&nbsp;Extensible">
                         <h3 style={{fontWeight: "400"}}>Custom matchers!</h3>
                         <CodeBlock
                             language="kotlin"
@@ -204,8 +206,49 @@ function WhyMokkeryTabs() {
                             {extensilbeAnswersTabBlock}
                         </CodeBlock>
                     </TabItem>
-                </Tabs>
+                </TrackedTabs>
             </div>
         </div>
     )
 }
+
+const TrackedTabs = ({groupId, children, tabEventPrefix = 'tab-click', ...props}) => {
+    const tabsRef = useRef(null);
+    const labelToValueMap = React.useMemo(() => {
+            const map = {};
+            React.Children.forEach(children, (child) => {
+                if (React.isValidElement(child)) {
+                    const label = child.props.label?.trim();
+                    const value = child.props.value?.trim();
+                    if (label && value) {
+                        map[label] = value;
+                    }
+                }
+            });
+            return map;
+        }, [children]
+    );
+    useEffect(() => {
+        const container = tabsRef.current;
+        if (!container) return;
+        const handleClick = (e) => {
+            if (e.target.classList.contains('tabs__item')) {
+                if (window.umami !== undefined) {
+                    let value = labelToValueMap[e.target.textContent];
+                    window.umami.track(`${tabEventPrefix}-${value}`);
+                }
+            }
+        };
+
+        container.addEventListener('click', handleClick);
+        return () => container.removeEventListener('click', handleClick);
+    }, [tabEventPrefix]);
+
+    return (
+        <div ref={tabsRef}>
+            <Tabs groupId={groupId} {...props}>
+                {children}
+            </Tabs>
+        </div>
+    );
+};
