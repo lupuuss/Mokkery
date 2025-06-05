@@ -99,7 +99,8 @@ const config = {
                     {
                         to: "https://ko-fi.com/lupuuss",
                         position: 'right',
-                        html: `<span class="header-kofi-link"><img class="header-kofi-link-icon" src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="" /> Support me</span>`
+                        html: `<span class="header-kofi-link"><img class="header-kofi-link-icon" src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="" /> Support me</span>`,
+                        'data-umami-event': 'header-kofi-button'
                     },
                     {
                         to: 'https://github.com/lupuuss/Mokkery',
