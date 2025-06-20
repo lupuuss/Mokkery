@@ -11,18 +11,24 @@ import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
-fun IrSimpleFunction.copyReturnTypeFrom(
-    function: IrSimpleFunction,
+fun IrFunction.copyReturnTypeFrom(
+    function: IrFunction,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
     returnType = function.returnType.remapTypeParameters(function, this, parameterMap)
 }
 
-fun IrSimpleFunction.copyNonDispatchParametersWithoutDefaultsFrom(
-    function: IrSimpleFunction,
+fun IrFunction.copyNonDispatchParametersWithoutDefaultsFrom(
+    function: IrFunction,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
     parameters += function.nonDispatchParameters.memoryOptimizedMap { it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap) }
+}
+fun IrFunction.copyParametersWithoutDefaultsFrom(
+    function: IrFunction,
+    parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
+) {
+    parameters += function.parameters.memoryOptimizedMap { it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap) }
 }
 
 fun IrSimpleFunction.isSuperCallFor(originalFunction: IrFunction): Boolean {

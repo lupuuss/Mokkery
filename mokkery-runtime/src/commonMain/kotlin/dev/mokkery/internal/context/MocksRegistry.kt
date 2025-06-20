@@ -2,8 +2,8 @@ package dev.mokkery.internal.context
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.utils.MocksCollection
-import dev.mokkery.internal.utils.MutableMocksCollection
+import dev.mokkery.internal.MocksCollection
+import dev.mokkery.internal.MutableMocksCollection
 import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.withLock
 

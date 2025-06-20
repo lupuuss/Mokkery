@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
 
+import dev.mokkery.gradle.ApplicationRule
 import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -16,6 +17,7 @@ allOpen {
 
 mokkery {
     ignoreFinalMembers.set(true)
+    rule.set(ApplicationRule.All)
 }
 
 kotlin {
@@ -75,6 +77,7 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

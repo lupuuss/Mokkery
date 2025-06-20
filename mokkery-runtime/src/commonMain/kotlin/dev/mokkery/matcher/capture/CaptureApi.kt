@@ -1,36 +1,48 @@
-@file:Suppress("UNUSED_PARAMETER")
+@file:Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE", "FunctionName")
 
 package dev.mokkery.matcher.capture
 
+import dev.mokkery.annotations.Matcher
+import dev.mokkery.internal.utils.erasedMatcherCode
+import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.matcher._anyMokkeryMatcher
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.matches
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [capture].
  * Arguments are captured only if all other matchers match.
  */
-public inline fun <reified T> ArgMatchersScope.capture(
+public inline fun <T> ArgMatchersScope.capture(
     container: Capture<T>,
-    matcher: T = any()
-): T {
-    return matches(CaptureMatcher(container))
-}
+    @Matcher matcher: T = any()
+): T = erasedMatcherCode
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [list].
  * Arguments are captured only if all other matchers match.
  */
-public inline fun <reified T> ArgMatchersScope.capture(
+public inline fun <T> ArgMatchersScope.capture(
     list: MutableList<T>,
-    matcher: T = any()
-): T {
-    return matches(CaptureMatcher(list.asCapture()))
-}
+    @Matcher matcher: T = any()
+): T = erasedMatcherCode
 
 /**
  * Short for [capture] with [Capture.callback].
  */
-public inline fun <reified T> ArgMatchersScope.onArg(matcher: T = any(), noinline block: (T) -> Unit): T {
-    return capture(Capture.callback(callback = block), matcher = matcher)
-}
+public inline fun <T> ArgMatchersScope.onArg(@Matcher matcher: T = any(), noinline block: (T) -> Unit): T = erasedMatcherCode
+
+internal inline fun <T> ArgMatchersScope._captureMokkeryMatcher(
+    container: Capture<T>,
+    matcher: ArgMatcher<T> = _anyMokkeryMatcher()
+): ArgMatcher.Composite<T> = CaptureMatcher(container, matcher)
+
+internal inline fun <T> ArgMatchersScope._captureMokkeryMatcher(
+    list: MutableList<T>,
+    matcher: ArgMatcher<T> = _anyMokkeryMatcher()
+): ArgMatcher.Composite<T> = CaptureMatcher(list.asCapture(), matcher)
+
+internal inline fun <T> ArgMatchersScope._onArgMokkeryMatcher(
+    matcher: ArgMatcher<T> = _anyMokkeryMatcher(),
+    noinline block: (T) -> Unit
+): ArgMatcher.Composite<T> = CaptureMatcher(Capture.callback { block(it) }, matcher)

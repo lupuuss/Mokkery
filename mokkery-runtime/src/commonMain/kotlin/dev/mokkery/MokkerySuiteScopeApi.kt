@@ -2,7 +2,7 @@ package dev.mokkery
 
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.MocksRegistry
-import dev.mokkery.internal.utils.instances
+import dev.mokkery.internal.instances
 
 /**
  * Returns all mocks from this [MokkerySuiteScope].

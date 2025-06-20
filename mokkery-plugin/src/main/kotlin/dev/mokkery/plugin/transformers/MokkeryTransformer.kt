@@ -6,6 +6,7 @@ import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.IrMokkeryKind.Mock
 import dev.mokkery.plugin.core.IrMokkeryKind.Spy
 import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
@@ -18,15 +19,17 @@ import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
+import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isAnyFunction
-import dev.mokkery.plugin.ir.isPlatformDependent
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridePropertyBackingField
+import dev.mokkery.plugin.ir.removeReturnsTargeting
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
+import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
@@ -37,14 +40,16 @@ import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.makeNullable
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isClass
@@ -70,7 +75,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val globalMokkeryScopeSymbol = getClass(Mokkery.Class.GlobalMokkeryScope).symbol
     private val mokkerySuiteScopeClass = getClass(Mokkery.Class.MokkerySuiteScope)
     private val suiteNameClass = getClass(Mokkery.Class.SuiteName)
-
+    private val matchersCompiler = MatchersCompiler(compilerPluginScope)
 
     override fun visitClass(declaration: IrClass): IrStatement {
         overrideMokkeryTestsScopeIfNotOverridden(declaration)
@@ -97,7 +102,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         mockCache.clear()
         mockManyCache.clear()
         spyCache.clear()
-        return super.visitFile(declaration)
+        return super.visitFile(matchersCompiler.visitFile(declaration))
     }
 
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {
@@ -147,7 +152,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
                 val regularParams = calledFun.parameters - extensionParam
                 arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
-                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
+                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(
+                    getClass(Mokkery.Class.MockMode),
+                    mockMode.toString()
+                )
                 arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
                 val anyType = context.irBuiltIns.anyType
                 typeToMock.forEachIndexedTypeArgument { index, it ->
@@ -169,7 +177,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
                 val regularParams = calledFun.parameters - extensionParam
                 arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
-                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(getClass(Mokkery.Class.MockMode), mockMode.toString())
+                arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(
+                    getClass(Mokkery.Class.MockMode),
+                    mockMode.toString()
+                )
                 arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
                 val anyType = context.irBuiltIns.anyType
                 call.typeArguments
@@ -205,21 +216,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun replaceWithInternalEvery(expression: IrCall, function: IrSimpleFunctionSymbol): IrExpression {
         val block = expression.arguments[0]!!
-        return declarationIrBuilder(expression) {
+        block as IrFunctionExpression
+        return declarationIrBuilder(function) {
             irBlock {
-                val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
-                val transformer = TemplatingScopeCallsTransformer(this@MokkeryTransformer, variable)
-                transformer.currentFile = currentFile
-                block.transformChildren(transformer, null)
                 +irCall(function) {
-                    block as IrFunctionExpression
-                    // make return type nullable to avoid runtime checks for primitive types (required by Wasm-JS)
-                    if (block.function.returnType.isPlatformDependent()) {
-                        typeArguments[0] = typeArguments[0]?.makeNullable()
-                        block.function.returnType = block.function.returnType.makeNullable()
-                    }
-                    arguments[0] = irGet(variable)
-                    arguments[1] = block
+                    arguments[0] = createBlock(this@irBlock, block.function.isSuspend, block.function)
+                    typeArguments[0] = expression.typeArguments[0]
                 }
             }
         }
@@ -232,22 +234,15 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val regularParams = expression.symbol.owner.parameters - mokkeryScopeParam
         val mode = expression.arguments[regularParams[0]!!]
         val block = expression.arguments[regularParams[1]!!]!!
-        return declarationIrBuilder(expression) {
+        block as IrFunctionExpression
+        return declarationIrBuilder(function) {
             irBlock {
-                val variable = createTmpVariable(irCall(getFunction(Mokkery.Function.TemplatingScope)))
-                val transformer = TemplatingScopeCallsTransformer(
-                    compilerPluginScope = this@MokkeryTransformer,
-                    templatingScope = variable
-                )
-                transformer.currentFile = currentFile
-                block.transformChildren(transformer, null)
                 +irCall(function) {
                     arguments[0] = mokkeryScopeParam
                         ?.let(expression.arguments::get)
                         ?: irGetObject(globalMokkeryScopeSymbol)
-                    arguments[1] = irGet(variable)
-                    arguments[2] = mode ?: irGetVerifyMode(verifyMode)
-                    arguments[3] = block
+                    arguments[1] = mode ?: irGetVerifyMode(verifyMode)
+                    arguments[2] = createBlock(this@irBlock, block.function.isSuspend, block.function)
                 }
             }
         }
@@ -268,4 +263,43 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private fun getIrClassOf(cls: KClass<*>) = pluginContext
         .referenceClass(ClassId.fromString(cls.qualifiedName!!.replace(".", "/")))!!
         .owner
+
+    private fun TransformerScope.createBlock(
+        builder: IrBlockBuilder,
+        isSuspend: Boolean,
+        function: IrSimpleFunction
+    ): IrFunctionExpression {
+        val builtIns = pluginContext.irBuiltIns
+        val lambdaType = pluginContext
+            .irBuiltIns
+            .let { if (isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+            .typeWith(listOf(getClass(Mokkery.Class.TemplatingScopeImpl).defaultType, builtIns.unitType))
+        return builder.irLambda(lambdaType, function.parent) { func ->
+            val contextFunctionsInliner = ContextFunctionsInliner(this@createBlock)
+            val matchersInliner = MatchersInliner(
+                compilerPluginScope = this@createBlock,
+                argMatchersScopeParam = func.parameters[0],
+                compileIfMatcher = matchersCompiler::compileIfMatcher,
+                initialValueDeclarations = emptyList()
+            )
+            val templatingTransformer = TemplatingTransformer(
+                compilerPluginScope = this@createBlock,
+                templatingScopeParam = func.parameters[0],
+                parentFunc = func.parent
+            )
+            val templatingResultUnwrapper = TemplatingResultUnwrapper(this@createBlock)
+            templatingTransformer.currentFile = currentFile
+            matchersInliner.currentFile = currentFile
+            val newBody = function
+                .transform(contextFunctionsInliner, null)
+                .transform(matchersInliner, null)
+                .transform(templatingTransformer, null)
+                .removeReturnsTargeting(function.symbol)
+                .transform(templatingResultUnwrapper, null)
+                .let { it as IrFunction }
+                .moveBodyTo(func, mapOf(function.parameters[0] to func.parameters[0]))
+            newBody?.statements?.unaryPlus()
+        }
+    }
 }
+
