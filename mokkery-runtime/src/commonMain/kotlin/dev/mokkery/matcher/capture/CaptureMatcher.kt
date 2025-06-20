@@ -1,6 +1,5 @@
 package dev.mokkery.matcher.capture
 
-import dev.mokkery.internal.MissingMatchersForComposite
 import dev.mokkery.matcher.ArgMatcher
 
 /**
@@ -10,20 +9,10 @@ import dev.mokkery.matcher.ArgMatcher
  */
 public class CaptureMatcher<T>(
     private val capture: Capture<T>,
-    private val matcher: ArgMatcher<T>? = null,
+    private val matcher: ArgMatcher<T>
 ) : ArgMatcher.Composite<T> {
 
-    override fun matches(arg: T): Boolean = matcher!!.matches(arg)
-
-    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = CaptureMatcher(capture, matcher)
-
-    override fun isFilled(): Boolean = matcher != null
-
-    override fun assertFilled() {
-        if (matcher == null) {
-            throw MissingMatchersForComposite("capture", 1, listOfNotNull(matcher))
-        }
-    }
+    override fun matches(arg: T): Boolean = matcher.matches(arg)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -34,14 +23,12 @@ public class CaptureMatcher<T>(
         return matcher == other.matcher
     }
 
-    override fun hashCode(): Int {
-        return matcher?.hashCode() ?: 0
-    }
+    override fun hashCode(): Int = matcher.hashCode()
 
     override fun toString(): String = "capture($capture, $matcher)"
 
     override fun capture(value: T) {
         capture.capture(value)
-        listOfNotNull(matcher).propagateCapture(value)
+        matcher.propagateCapture(value)
     }
 }

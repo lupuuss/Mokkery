@@ -109,29 +109,14 @@ public fun interface ArgMatcher<in T> {
     }
 
     /**
-     * Arg matcher that must be composed with other matchers. Every composite matcher has to implement [Capture] to propagate it to its children.
+     * Arg matcher that must be composed with other matchers.
+     * Every composite matcher has to implement [Capture] to propagate it to its children.
      * Use [dev.mokkery.matcher.capture.propagateCapture] for convenience.
      *
-     * Check existing implementations to learn how to implement it correctly
+     * Any composite matcher must be composed using [matchesComposite].
      */
     @DelicateMokkeryApi
     public interface Composite<T> : ArgMatcher<T>, Capture<T> {
-
-        /**
-         * Returns new [Composite] with [matcher] merged. This method gets matchers in reversed order.
-         */
-        public fun compose(matcher: ArgMatcher<T>): Composite<T>
-
-        /**
-         * Returns true if it is merged with all required matchers and must not be merged anymore.
-         */
-        public fun isFilled(): Boolean
-
-        /**
-         * Checks if is it is properly filled and throws exception if it is not.
-         * It is called when composite is considered "final". It is often used to verify missing matchers.
-         */
-        public fun assertFilled()
 
         /**
          * Propagates [value] to children matchers.
