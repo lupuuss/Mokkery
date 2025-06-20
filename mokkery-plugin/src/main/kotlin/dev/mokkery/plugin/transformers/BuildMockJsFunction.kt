@@ -11,8 +11,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
-import dev.mokkery.plugin.ir.irLambda
-import dev.mokkery.plugin.ir.irMokkeryKindValue
+import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -41,9 +40,8 @@ fun TransformerScope.buildMockJsFunction(
     val typeArguments = typeToMock.let { it as IrSimpleType }
         .arguments
         .map { it.typeOrFail.eraseTypeParameters() }
-    val returnType = typeArguments.last()
     val transformer = this
-    return declarationIrBuilder(expression) {
+    return declarationIrBuilder {
         irBlock {
             val mockFun = expression.symbol.owner
             val extMockParam = mockFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
@@ -52,7 +50,7 @@ fun TransformerScope.buildMockJsFunction(
                 null -> irGetObject(transformer.getClass(Mokkery.Class.GlobalMokkeryScope).symbol)
                 else -> expression.arguments[extMockParam]!!
             }
-            val instanceScopeFun = transformer.getFunction(Mokkery.Function.MokkeryInstanceScope)
+            val instanceScopeFun = transformer.getFunction(Mokkery.Function.createInstanceScope)
             // initialized later to properly pass js function reference to mokkery context and context back to function
             val instanceVar = createTmpVariable(
                 irExpression = irNull(),
@@ -60,7 +58,7 @@ fun TransformerScope.buildMockJsFunction(
                 isMutable = true
             )
             val lambdaVar = createTmpVariable(
-                irLambda(returnType, typeToMock, currentFile) {
+                irLambdaOf(typeToMock) {
                     +irReturn(
                         irInterceptCall(
                             transformer = transformer,
@@ -75,22 +73,21 @@ fun TransformerScope.buildMockJsFunction(
             val mockModeClass = transformer.getClass(Mokkery.Class.MockMode)
             +irSet(instanceVar, irCall(instanceScopeFun) {
                 arguments[0] = parentScopeValue
-                arguments[1] =  when (kind) {
-                    IrMokkeryKind.Spy -> irGetEnumEntry(mockModeClass, "strict")
+                arguments[1] = irString(typeToMock.classFqName!!.asString())
+                arguments[2] = kClassReference(typeToMock)
+                arguments[3] = irCallListOf(
+                    transformerScope = transformer,
+                    type = context.irBuiltIns.kClassClass.starProjectedType,
+                    elements = typeArguments.memoryOptimizedMap { kClassReference(it) }
+                )
+                arguments[4] = irGet(lambdaVar)
+                arguments[5] =  when (kind) {
+                    IrMokkeryKind.Spy -> irNull()
                     IrMokkeryKind.Mock -> expression
                         .arguments[regularMockParams[0]!!]
                         ?: irGetEnumEntry(mockModeClass, transformer.mockMode.toString())
                 }
-                arguments[2] = irMokkeryKindValue(transformer.getClass(Mokkery.Class.MokkeryKind), kind)
-                arguments[3] = irString(typeToMock.classFqName!!.asString())
-                arguments[4] = kClassReference(typeToMock)
-                arguments[5] = irCallListOf(
-                    transformerScope = transformer,
-                    type = context.irBuiltIns.kClassClass.starProjectedType,
-                    expressions = typeArguments.memoryOptimizedMap { kClassReference(it) }
-                )
-                arguments[6] = irGet(lambdaVar)
-                arguments[7] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()
+                arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()
             })
             +irCall(transformer.getFunction(Mokkery.Function.initializeInJsFunctionMock)) {
                 arguments[0] = irGet(instanceVar)

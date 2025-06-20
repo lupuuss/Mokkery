@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.core
 
+import org.jetbrains.kotlin.backend.common.ScopeWithIr
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -10,7 +11,8 @@ import org.jetbrains.kotlin.name.ClassId
 
 interface TransformerScope : CompilerPluginScope {
 
-    val currentFile: IrFile
+    val currentFileValue: IrFile
+    val currentScopeValue: ScopeWithIr?
 
     val classes: MutableMap<ClassResolver, IrClass>
     val functions: MutableMap<FunctionResolver, IrSimpleFunction>
