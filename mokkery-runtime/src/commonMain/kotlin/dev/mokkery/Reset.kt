@@ -1,7 +1,7 @@
 package dev.mokkery
 
 import dev.mokkery.internal.answering.answering
-import dev.mokkery.internal.calls.callTracing
+import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.internal.requireInstanceScope
 
 /**

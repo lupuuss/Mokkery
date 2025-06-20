@@ -1,9 +1,9 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.calls.CallMatcher
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.calls.isMatching
+import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.utils.failAssertion
 

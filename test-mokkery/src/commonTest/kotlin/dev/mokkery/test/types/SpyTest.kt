@@ -5,11 +5,10 @@ import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.templating.ext
 import dev.mokkery.spy
 import dev.mokkery.test.ComplexType
-import dev.mokkery.test.ComplexType.Companion.invoke
 import dev.mokkery.test.SpyTestInterface
-import dev.mokkery.test.SpyTestInterface.Companion.invoke
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import kotlinx.coroutines.test.runTest
@@ -50,7 +49,7 @@ class SpyTest {
                 .let { assertEquals("1 - 2", it) }
         }
         verify {
-            spy.run {
+            spy.ext {
                 1.extProperty
                 1.extProperty = "2"
             }
@@ -68,7 +67,7 @@ class SpyTest {
 
     @Test
     fun testCallSuspendDelegatesToSpiedObject() = runTest {
-        assertEquals(33, spy.callSuspend<Int>(33))
+        assertEquals(33, spy.callSuspend(33))
         verifySuspend { spy.callSuspend(33) }
     }
 
@@ -104,15 +103,15 @@ class SpyTest {
 
     @Test
     fun testAllowsChangingExtPropertyBehavior() {
-        every { spy.run { any<Int>().extProperty } } returns "Hello!"
-        every { spy.run { any<Int>().extProperty = any<String>() } } throws ArithmeticException()
+        every { spy.ext { any<Int>().extProperty } } returns "Hello!"
+        every { spy.ext { any<Int>().extProperty = any<String>() } } throws ArithmeticException()
         assertEquals("Hello!", spy.run { 1.extProperty })
         assertFailsWith<ArithmeticException> { spy.run { 1.extProperty = "" } }
     }
 
     @Test
     fun testAllowsChangingCallExtensionBehavior() {
-        every { spy.run { any<Int>().callExtension() } } returns 3
+        every { spy.ext { any<Int>().callExtension() } } returns 3
         assertEquals(3, spy.run { 1.callExtension() })
     }
 
