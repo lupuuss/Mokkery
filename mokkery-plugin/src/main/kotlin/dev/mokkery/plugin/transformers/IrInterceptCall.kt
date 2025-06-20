@@ -16,6 +16,7 @@ import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambda
 import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
+import org.jetbrains.kotlin.fir.backend.utils.defaultTypeWithoutArguments
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irAs
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -141,7 +143,13 @@ private fun IrBuilderWithScope.irCallSupersMap(transformer: TransformerScope, fu
         val lambda = createSuperCallLambda(transformer, function, superFunction)
         kClass to lambda
     }
-    return irCallMapOf(transformer, superLambdas)
+    val builtIns = context.irBuiltIns
+    return irCallMapOf(
+        transformer = transformer,
+        pairs = superLambdas,
+        keyType = builtIns.kClassClass.starProjectedType,
+        valueType = builtIns.functionClass.typeWith(builtIns.anyNType)
+    )
 }
 
 private fun IrBuilderWithScope.createSuperCallLambda(
@@ -157,7 +165,6 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, returnType)
     return irLambda(
-        returnType = returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
@@ -193,7 +200,6 @@ private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
     return irLambda(
-        returnType = function.returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
@@ -227,7 +233,6 @@ private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
     return irLambda(
-        returnType = function.returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->

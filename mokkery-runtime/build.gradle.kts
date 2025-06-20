@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlinx.atomicfu)
 }
 
+kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
+
 dependencies {
     commonMainApi(project(":mokkery-core"))
     commonTestImplementation(kotlin("test"))

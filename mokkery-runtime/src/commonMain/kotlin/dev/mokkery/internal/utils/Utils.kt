@@ -2,8 +2,18 @@ package dev.mokkery.internal.utils
 
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.CallArgument
+import dev.mokkery.internal.ErasedMokkeryMatcherCalledException
 import dev.mokkery.internal.MockId
+import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal val toBeReplacedByCompilerPlugin: Nothing
+    get() = throw MokkeryPluginNotAppliedException()
+
+@PublishedApi
+internal val erasedMatcherCode: Nothing
+    get() = throw ErasedMokkeryMatcherCalledException()
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @PublishedApi
@@ -36,11 +46,6 @@ internal fun callFunctionToString(
         append(args.joinToString { "${it.parameter.name} = ${it.value.description()}" })
         append(")")
     }
-
-internal fun <T> List<T>.subListAfter(index: Int): List<T> {
-    if (index >= size) return emptyList()
-    return subList(index, size)
-}
 
 internal fun Any?.description(): String {
     if (this == null) return "null"

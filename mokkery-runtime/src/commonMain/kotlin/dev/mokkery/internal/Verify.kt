@@ -4,50 +4,40 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.calls.TemplatingScope
 import dev.mokkery.internal.calls.callTracing
 import dev.mokkery.internal.context.MocksRegistry
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.names.createGroupMockReceiverShortener
-import dev.mokkery.internal.utils.getScope
-import dev.mokkery.internal.utils.orEmpty
-import dev.mokkery.internal.utils.plus
+import dev.mokkery.internal.names.aliasTemplates
+import dev.mokkery.internal.names.aliasTraces
+import dev.mokkery.internal.names.withShorterNames
+import dev.mokkery.internal.templating.TemplatingScopeImpl
 import dev.mokkery.internal.utils.runSuspension
-import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.templating.TemplatingScope
 import dev.mokkery.verify.VerifyMode
 
 internal fun MokkerySuiteScope.internalVerifySuspend(
-    scope: TemplatingScope,
     mode: VerifyMode,
-    block: suspend ArgMatchersScope.() -> Unit
-) = internalVerify(scope, mode) { runSuspension { block() } }
+    block: suspend TemplatingScope.() -> Unit
+) = internalVerify(mode) { runSuspension { block() } }
 
 internal fun MokkerySuiteScope.internalVerify(
-    templating: TemplatingScope,
     mode: VerifyMode,
-    block: ArgMatchersScope.() -> Unit
+    block: TemplatingScope.() -> Unit
 ) {
-    val verifier = tools.verifierFactory.create(mode)
-    val result = runCatching { block(templating) }
-    val exception = result.exceptionOrNull()
-    if (exception != null && exception !is DefaultNothingException) {
-        templating.release()
-        throw exception
-    }
-    val mocks = mokkeryContext[MocksRegistry]?.mocks.orEmpty() + templating.mocks
+    val templating = TemplatingScopeImpl().apply(block)
+    val mocks = mokkeryContext[MocksRegistry]
+        ?.mocks
+        .orEmpty()
+        .plus(templating.mocks)
+        .withShorterNames(tools.namesShortener)
     val calls = mocks
         .scopes
         .map { it.callTracing.unverified }
         .flatten()
         .sortedBy(CallTrace::orderStamp)
-    val shortener = tools.createGroupMockReceiverShortener()
-    shortener.prepare(calls, templating.templates)
-    try {
-        verifier
-            .verify(shortener.shortenTraces(calls), shortener.shortenTemplates(templating.templates))
-            .map(shortener::getOriginalTrace)
-            .forEach { mocks.getScope(it.mockId).callTracing.markVerified(it) }
-    } finally {
-        templating.release()
-    }
+    tools
+        .verifierFactory
+        .create(mode, mocks)
+        .verify(mocks.aliasTraces(calls), mocks.aliasTemplates(templating.templates))
+        .forEach { mocks.getScope(it.mockId).callTracing.markVerified(it) }
 }
