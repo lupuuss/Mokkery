@@ -24,6 +24,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     useJUnitJupiter()
     targets.configureEach {
         testTask.configure {
+            testLogging.showStandardStreams = true
             mustRunAfter("test")
             listOf(
                 ":mokkery-runtime",

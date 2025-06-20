@@ -1,38 +1,31 @@
+@file:Suppress("NOTHING_TO_INLINE", "FunctionName", "UnusedReceiverParameter", "unused")
+
 package dev.mokkery.matcher.nullable
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.MissingMatchersForComposite
+import dev.mokkery.annotations.Matcher
+import dev.mokkery.internal.utils.erasedMatcherCode
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.matcher._anyMokkeryMatcher
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.propagateCapture
-import dev.mokkery.matcher.matches
 
 /**
  * Matches an argument that is not null and matches [matcher].
  */
 @Suppress("UNUSED_PARAMETER")
-public inline fun <reified T : Any> ArgMatchersScope.notNull(matcher: T = any()): T? = matches(NotNullMatcher())
+public inline fun <T : Any> ArgMatchersScope.notNull(@Matcher matcher: T = any()): T? = erasedMatcherCode
 
 /**
  * Matches an argument that is not null and matches [matcher].
  */
 @DelicateMokkeryApi
 @Poko
-public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) : ArgMatcher.Composite<T> {
+public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>) : ArgMatcher.Composite<T> {
 
-    override fun matches(arg: T): Boolean = arg?.let(matcher!!::matches) == true
-
-    override fun compose(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = NotNullMatcher(matcher = matcher)
-
-    override fun isFilled(): Boolean = matcher != null
-
-    override fun assertFilled() {
-        if (matcher == null) {
-            throw MissingMatchersForComposite("notNull", 1, listOfNotNull(matcher))
-        }
-    }
+    override fun matches(arg: T): Boolean = arg?.let(matcher::matches) == true
 
     override fun capture(value: T) {
         if (value != null) {
@@ -42,3 +35,7 @@ public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>? = null) 
 
     override fun toString(): String = "notNull($matcher)"
 }
+
+internal fun <T> ArgMatchersScope._notNullMokkeryMatcher(
+    matcher: ArgMatcher<T> = _anyMokkeryMatcher()
+): ArgMatcher.Composite<T> = NotNullMatcher(matcher)

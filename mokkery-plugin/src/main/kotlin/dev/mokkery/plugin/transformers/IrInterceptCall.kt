@@ -157,7 +157,6 @@ private fun IrBuilderWithScope.createSuperCallLambda(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, returnType)
     return irLambda(
-        returnType = returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
@@ -193,7 +192,6 @@ private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
     return irLambda(
-        returnType = function.returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->
@@ -227,7 +225,6 @@ private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(pluginContext.irBuiltIns.listClass.owner.defaultTypeErased, function.returnType)
     return irLambda(
-        returnType = function.returnType,
         lambdaType = lambdaType,
         parent = parent,
     ) { lambda ->

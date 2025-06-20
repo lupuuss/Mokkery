@@ -1,11 +1,14 @@
+@file:Suppress("NOTHING_TO_INLINE", "FunctionName", "UnusedReceiverParameter", "unused")
+
 package dev.mokkery.matcher.logical
 
+import dev.mokkery.annotations.Matcher
+import dev.mokkery.internal.utils.erasedMatcherCode
+import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.matches
 
 /**
  * Matches argument that satisfies all the matchers ([first], [second] and all from [moreMatchers]).
- * It must not receive literals. Only matchers allowed!
  *
  * Example:
  * ```kotlin
@@ -13,31 +16,43 @@ import dev.mokkery.matcher.matches
  * every { dependency.getForIndex(and(gte(1), lte(4))) }
  * ```
  */
-public inline fun <reified T> ArgMatchersScope.and(first: T, second: T, vararg moreMatchers: T): T {
-    val matchers = listOf(first, second) + moreMatchers
-    return matches(LogicalMatchers.And(matchers.size))
-}
-
+public inline fun <T> ArgMatchersScope.and(
+    @Matcher first: T,
+    @Matcher second: T,
+    @Matcher vararg moreMatchers: T
+): T = erasedMatcherCode
 
 /**
  * Matches argument that satisfies any matcher ([first], [second] or any from [moreMatchers]).
- * It must not receive literals. Only matchers allowed!
+
  *
  * ```kotlin
  * // matches every `getForIndex` with arg that is equal 2 or 4
  * every { dependency.getForIndex(or(eq(1), eq(4))) }
  * ```
  */
-public inline fun <reified T> ArgMatchersScope.or(first: T, second: T, vararg moreMatchers: T): T {
-    val matchers = listOf(first, second) + moreMatchers
-    return matches(LogicalMatchers.Or(matchers.size))
-}
-
+public inline fun <reified T> ArgMatchersScope.or(
+    @Matcher first: T,
+    @Matcher second: T,
+    @Matcher vararg moreMatchers: T
+): T = erasedMatcherCode
 /**
  * Matches argument that does not satisfy [matcher].
  * It must not receive literals. Only matchers allowed!
  */
-@Suppress("UNUSED_PARAMETER")
-public inline fun <reified T> ArgMatchersScope.not(matcher: T): T {
-    return matches(LogicalMatchers.Not())
-}
+public inline fun <reified T> ArgMatchersScope.not(@Matcher matcher: T): T = erasedMatcherCode
+
+internal inline fun <T> ArgMatchersScope._andMokkeryMatcher(
+    first: ArgMatcher<T>,
+    second: ArgMatcher<T>,
+    vararg moreMatchers: ArgMatcher<T>
+): ArgMatcher.Composite<T> = LogicalMatchers.And(listOf(first, second, *moreMatchers))
+
+internal inline fun <T> ArgMatchersScope._orMokkeryMatcher(
+    first: ArgMatcher<T>,
+    second: ArgMatcher<T>,
+    vararg moreMatchers: ArgMatcher<T>
+): ArgMatcher.Composite<T> = LogicalMatchers.Or(listOf(first, second, *moreMatchers))
+
+internal inline fun <T> ArgMatchersScope._notMokkeryMatcher(matcher: ArgMatcher<T>): ArgMatcher.Composite<T> = LogicalMatchers.Not(matcher)
+

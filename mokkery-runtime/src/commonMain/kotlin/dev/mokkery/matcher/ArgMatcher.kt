@@ -4,6 +4,7 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.matcher.capture.Capture
 import kotlin.reflect.KClass
 
@@ -116,22 +117,6 @@ public fun interface ArgMatcher<in T> {
      */
     @DelicateMokkeryApi
     public interface Composite<T> : ArgMatcher<T>, Capture<T> {
-
-        /**
-         * Returns new [Composite] with [matcher] merged. This method gets matchers in reversed order.
-         */
-        public fun compose(matcher: ArgMatcher<T>): Composite<T>
-
-        /**
-         * Returns true if it is merged with all required matchers and must not be merged anymore.
-         */
-        public fun isFilled(): Boolean
-
-        /**
-         * Checks if is it is properly filled and throws exception if it is not.
-         * It is called when composite is considered "final". It is often used to verify missing matchers.
-         */
-        public fun assertFilled()
 
         /**
          * Propagates [value] to children matchers.
