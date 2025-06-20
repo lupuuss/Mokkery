@@ -4,7 +4,7 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.answering.AnsweringRegistry
-import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.templating.CallTemplate
 
 internal class TestAnsweringRegistry : AnsweringRegistry {
 

@@ -28,6 +28,8 @@ interface SuspendMethodsInterface {
 
     suspend fun callComplexWithDefaults(complexInput: ComplexType = ComplexType, primitiveInput: Int = 1): ComplexType
 
+    suspend fun callWithDependantDefaults(complex: ComplexType, name: String = complex.toString()): String
+
     suspend fun Int.callPrimitiveExtension(): Int
 
     suspend fun ComplexType.callComplexExtension(): ComplexType
