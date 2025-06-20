@@ -12,6 +12,7 @@ import dev.mokkery.internal.names.createGroupMockReceiverShortener
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.failAssertion
+import dev.mokkery.internal.utils.generatedCode
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.verify.VerifyMode
 
@@ -26,7 +27,7 @@ import dev.mokkery.verify.VerifyMode
 public fun verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+): Unit = generatedCode
 
 /**
  * Just like [verify], but allows suspendable function calls.
@@ -34,7 +35,7 @@ public fun verify(
 public fun verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: suspend ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+): Unit = generatedCode
 
 
 /**
@@ -50,7 +51,7 @@ public fun verifySuspend(
 public fun MokkerySuiteScope.verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+): Unit = generatedCode
 
 /**
  * Just like [verify], but allows suspendable function calls.
@@ -60,7 +61,7 @@ public fun MokkerySuiteScope.verify(
 public fun MokkerySuiteScope.verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
     block: suspend ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+): Unit = generatedCode
 
 /**
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].

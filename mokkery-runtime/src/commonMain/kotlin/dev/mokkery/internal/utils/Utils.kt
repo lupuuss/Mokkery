@@ -3,7 +3,12 @@ package dev.mokkery.internal.utils
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.MockId
+import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal val generatedCode: Nothing
+    get() = throw MokkeryPluginNotAppliedException()
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @PublishedApi

@@ -1,96 +1,121 @@
+@file:Suppress("NOTHING_TO_INLINE", "FunctionName", "UnusedReceiverParameter", "unused")
+
 package dev.mokkery.matcher
 
+import dev.mokkery.internal.utils.generatedCode
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gte
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lte
-import kotlin.reflect.KClass
 import kotlin.reflect.KFunction1
 
 /**
  * Matches any argument.
  */
-public inline fun <reified T> ArgMatchersScope.any(): T = matches(ArgMatcher.Any)
+public inline fun <T> ArgMatchersScope.any(): T = generatedCode
 
 /**
  * Matches an argument that is equal to [value]. It can be replaced with [value] literal.
  */
-public inline fun <reified T> ArgMatchersScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
+public inline fun <reified T> ArgMatchersScope.eq(value: T): T = generatedCode
 
 /**
  * Matches an argument that is not equal to [value].
  */
-public inline fun <reified T> ArgMatchersScope.neq(value: T): T = matches(ArgMatcher.NotEqual(value))
+public inline fun <reified T> ArgMatchersScope.neq(value: T): T = generatedCode
 
 /**
  * Matches an argument whose reference is equal to [value]'s reference.
  */
-public inline fun <reified T> ArgMatchersScope.eqRef(value: T): T = matches(ArgMatcher.EqualsRef(value))
+public inline fun <T> ArgMatchersScope.eqRef(value: T): T = generatedCode
 
 /**
  * Matches an argument whose reference is not equal to [value]'s reference.
  */
-public inline fun <reified T> ArgMatchersScope.neqRef(value: T): T = matches(ArgMatcher.NotEqualRef(value))
+public inline fun <T> ArgMatchersScope.neqRef(value: T): T = generatedCode
 
 /**
  * Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toString].
  */
-public inline fun <reified T> ArgMatchersScope.matching(
+public inline fun <T> ArgMatchersScope.matching(
     noinline toString: () -> String = { "matching(...)" },
     noinline predicate: (T) -> Boolean,
-): T = matching(T::class, predicate, toString)
+): T = generatedCode
 
 /**
  * Matches an argument by calling given [function]. Also, it returns function name on [Any.toString].
  */
-public inline fun <reified T> ArgMatchersScope.matchingBy(
+public inline fun <T> ArgMatchersScope.matchingBy(
     function: KFunction1<T, Boolean>
-): T = matchingBy(T::class, function)
+): T = generatedCode
+
 
 /**
  * Matches argument that is less than [value].
  */
-public inline fun <reified T : Comparable<T>> ArgMatchersScope.lt(
+public inline fun <T : Comparable<T>> ArgMatchersScope.lt(
     value: T
-): T = matches(ArgMatcher.Comparing(value, Lt))
+): T = generatedCode
 
 /**
  * Matches an argument that is less than or equal to [value].
  */
-public inline fun <reified T : Comparable<T>> ArgMatchersScope.lte(
+public inline fun <T : Comparable<T>> ArgMatchersScope.lte(
     value: T
-): T = matches(ArgMatcher.Comparing(value, Lte))
+): T = generatedCode
 
 /**
  * Matches argument that is greater than [value].
  */
-public inline fun <reified T : Comparable<T>> ArgMatchersScope.gt(
+public inline fun <T : Comparable<T>> ArgMatchersScope.gt(
     value: T
-): T = matches(ArgMatcher.Comparing(value, Gt))
+): T = generatedCode
 
 /**
  * Matches an argument that is greater than or equal to [value].
  */
-public inline fun <reified T : Comparable<T>> ArgMatchersScope.gte(
+public inline fun <T : Comparable<T>> ArgMatchersScope.gte(
     value: T
-): T = matches(ArgMatcher.Comparing(value, Gte))
+): T = generatedCode
 
 /**
  * Matches an argument that is an instance of type [T].
  */
-public inline fun <reified T> ArgMatchersScope.ofType(): T {
-    return matches(ArgMatcher.OfType(T::class))
-}
+public inline fun <reified T> ArgMatchersScope.ofType(): T = generatedCode
 
-@PublishedApi
-internal fun <T> ArgMatchersScope.matching(
-    argType: KClass<*>,
-    predicate: (T) -> Boolean,
-    toString: () -> String,
-): T = matches(argType, ArgMatcher.Matching(predicate, toString))
+internal inline fun <T> ArgMatchersScope._anyMokkeryMatcher(): ArgMatcher<T> = ArgMatcher.Any
 
-@PublishedApi
-internal fun <T> ArgMatchersScope.matchingBy(
-    argType: KClass<*>,
+internal inline fun <T> ArgMatchersScope._eqMokkeryMatcher(value: T): ArgMatcher<T> = ArgMatcher.Equals(value)
+
+internal inline fun <T> ArgMatchersScope._neqMokkeryMatcher(value: T): ArgMatcher<T> = ArgMatcher.NotEqual(value)
+
+internal inline fun <T> ArgMatchersScope._eqRefMokkeryMatcher(value: T): ArgMatcher<T> = ArgMatcher.EqualsRef(value)
+
+internal inline fun <T> ArgMatchersScope._neqRefMokkeryMatcher(value: T): ArgMatcher<T> = ArgMatcher.NotEqualRef(value)
+
+internal inline fun <T> ArgMatchersScope._matchingMokkeryMatcher(
+    noinline toString: () -> String = { "matching(...)" },
+    noinline predicate: (T) -> Boolean,
+): ArgMatcher<T> = ArgMatcher.Matching(predicate, toString)
+
+internal inline fun <T> ArgMatchersScope._matchingByMokkeryMatcher(
     function: KFunction1<T, Boolean>
-): T = matches(argType, ArgMatcher.Matching(function) { "${function.name}()" })
+): ArgMatcher<T> = ArgMatcher.Matching(function) { "${function.name}()" }
+
+internal inline fun <T : Comparable<T>> ArgMatchersScope._ltMokkeryMatcher(
+    value: T
+): ArgMatcher<T> = ArgMatcher.Comparing(value, Lt)
+
+internal inline fun <T : Comparable<T>> ArgMatchersScope._lteMokkeryMatcher(
+    value: T
+): ArgMatcher<T> = ArgMatcher.Comparing(value, Lte)
+
+internal inline fun <T : Comparable<T>> ArgMatchersScope._gtMokkeryMatcher(
+    value: T
+): ArgMatcher<T> = ArgMatcher.Comparing(value, Gt)
+
+internal inline fun <T : Comparable<T>> ArgMatchersScope._gteMokkeryMatcher(
+    value: T
+): ArgMatcher<T> = ArgMatcher.Comparing(value, Gte)
+
+internal inline fun <reified T> ArgMatchersScope._ofTypeMokkeryMatcher(): ArgMatcher<T> = ArgMatcher.OfType<T>(T::class)

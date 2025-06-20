@@ -1,6 +1,7 @@
 package dev.mokkery.internal.calls
 
 import dev.mokkery.internal.names.SignatureGenerator
+import dev.mokkery.internal.names.generate
 
 internal interface CallMatcher {
 

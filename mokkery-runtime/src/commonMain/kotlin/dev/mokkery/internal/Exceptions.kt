@@ -48,14 +48,6 @@ internal class NoMoreSequentialAnswersException : MokkeryRuntimeException(
     "No more sequentially defined answers!"
 )
 
-internal class MissingMatchersForComposite(
-    compositeName: String,
-    expected: Int,
-    matchers: List<ArgMatcher<*>>
-) : MokkeryRuntimeException(
-    "`$compositeName` expects $expected matchers, but received ${matchers.size}! You probably used literal in composite matcher, which is illegal! Received matchers: $matchers"
-)
-
 internal class MissingSuperMethodException(
     types: List<KClass<*>>
 ) : MokkeryRuntimeException("Super call for ${superTypesString(types)} not found!") {

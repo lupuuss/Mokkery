@@ -1,8 +1,6 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.calls.CallMatcher
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.verify.render.TemplateGroupedMatchingResultsRenderer
 import dev.mokkery.internal.verify.render.TemplateMatchingResultsRenderer

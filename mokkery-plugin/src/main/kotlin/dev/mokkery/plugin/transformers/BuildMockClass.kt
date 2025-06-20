@@ -55,7 +55,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
 import java.util.*
 
@@ -211,16 +210,16 @@ private fun IrClass.addMockClassConstructor(
                     arguments[4] = irCallListOf(
                         transformerScope = transformer,
                         type = kClassType,
-                        expressions = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
+                        elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
                     )
                     arguments[5] = irCallListOf(
                         transformerScope = transformer,
                         type = context.irBuiltIns.listClass.typeWith(kClassType),
-                        expressions = typeParameters.memoryOptimizedMap { params ->
+                        elements = typeParameters.memoryOptimizedMap { params ->
                             irCallListOf(
                                 transformerScope = transformer,
                                 type = kClassType,
-                                expressions = params.memoryOptimizedMap { irGet(it) }
+                                elements = params.memoryOptimizedMap { irGet(it) }
                             )
                         }
                     )

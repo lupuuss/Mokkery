@@ -13,18 +13,27 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_annotations by fqName
     val dev_mokkery_context by fqName
+    val dev_mokkery_internal_utils by fqName
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_context by fqName
-    val dev_mokkery_internal_calls by fqName
     val dev_mokkery_matcher by fqName
+    val dev_mokkery_internal_templating by fqName
+    val dev_mokkery_internal_matcher by fqName
+    val dev_mokkery_matcher_varargs by fqName
 
     object Class {
 
+        val Matcher by dev_mokkery_annotations.klass
         val MockMode by dev_mokkery.klass
         val MokkeryScope by dev_mokkery.klass
         val MokkeryKind by dev_mokkery_internal.klass
         val ArgMatchersScope by dev_mokkery_matcher.klass
+        val ArgMatcher by dev_mokkery_matcher.klass
+        val CompositeVarArgMatcher by dev_mokkery_internal_matcher.klass
+        val VarArgMatcher by dev_mokkery_matcher_varargs.klass
+        val VarargMatcherMarker by dev_mokkery_matcher_varargs.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
         val MockMany4 by dev_mokkery.klass
@@ -37,7 +46,9 @@ object Mokkery {
         val CallArgument by dev_mokkery_context.klass
         val SuiteName by dev_mokkery_internal_context.klass
 
-        val TemplatingScope by dev_mokkery_internal_calls.klass
+        val TemplatingScope by dev_mokkery_internal_templating.klass
+        val TemplatingParameter by dev_mokkery_internal_templating.klass
+        val TemplateOriginalResult by dev_mokkery_internal_templating.klass
         val GlobalMokkeryScope by dev_mokkery_internal.klass
 
         fun mockMany(value: Int): ClassResolver {
@@ -57,8 +68,8 @@ object Mokkery {
         val internalEverySuspend by dev_mokkery_internal.function
         val internalVerify by dev_mokkery_internal.function
         val internalVerifySuspend by dev_mokkery_internal.function
-        val callIgnoringClassCastException by dev_mokkery_internal.function
-        val TemplatingScope by dev_mokkery_internal_calls.function
+        val runTemplate by dev_mokkery_internal_templating.function
+        val runTemplateSuspend by dev_mokkery_internal_templating.function
         val MokkerySuiteScope by dev_mokkery.function
         val MokkeryInstanceScope by dev_mokkery_internal.function
         val createMokkeryInstanceContext by dev_mokkery_internal.function
@@ -68,6 +79,10 @@ object Mokkery {
         val invokeInstantiationListener by dev_mokkery_internal_context.function
         val createMokkeryBlockingCallScope by dev_mokkery_internal.function
         val createMokkerySuspendCallScope by dev_mokkery_internal.function
+        val ext by dev_mokkery_matcher.function
+        val inlineLiteralsAsMatchers by dev_mokkery_internal.function
+        val _eqMokkeryMatcher by dev_mokkery_matcher.function
+        val _anyMokkeryMatcher by dev_mokkery_matcher.function
     }
 
     object Property {
@@ -75,6 +90,7 @@ object Mokkery {
         val mockIdString by dev_mokkery_internal.property
         val spiedObject by dev_mokkery_internal.property
         val callInterceptor by dev_mokkery_internal_context.property
+        val generatedCode by dev_mokkery_internal_utils.property
     }
 
     object Name {

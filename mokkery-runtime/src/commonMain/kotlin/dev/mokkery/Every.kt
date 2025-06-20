@@ -4,7 +4,7 @@ package dev.mokkery
 
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
-import dev.mokkery.internal.MokkeryPluginNotAppliedException
+import dev.mokkery.internal.utils.generatedCode
 import dev.mokkery.matcher.ArgMatchersScope
 
 /**
@@ -16,11 +16,11 @@ import dev.mokkery.matcher.ArgMatchersScope
  */
 public fun <T> every(
     block: ArgMatchersScope.() -> T
-): BlockingAnsweringScope<T> = throw MokkeryPluginNotAppliedException()
+): BlockingAnsweringScope<T> = generatedCode
 
 /**
  * Just like [every], but allows suspendable function call.
  */
 public fun <T> everySuspend(
     block: suspend ArgMatchersScope.() -> T
-): SuspendAnsweringScope<T> = throw MokkeryPluginNotAppliedException()
+): SuspendAnsweringScope<T> = generatedCode

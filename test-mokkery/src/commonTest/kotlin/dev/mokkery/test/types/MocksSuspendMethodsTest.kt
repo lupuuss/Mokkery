@@ -4,6 +4,7 @@ import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.matcher.ext
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.SuspendMethodsInterface
@@ -103,16 +104,16 @@ class MocksSuspendMethodsTest {
 
     @Test
     fun testPrimitiveExtension() = runTest {
-        everySuspend { mock.run { 1.callPrimitiveExtension() } } returns 1
+        everySuspend { mock.ext { 1.callPrimitiveExtension() } } returns 1
         assertEquals(1, mock.run { 1.callPrimitiveExtension() })
-        verifySuspend { mock.run { 1.callPrimitiveExtension() } }
+        verifySuspend { mock.ext { 1.callPrimitiveExtension() } }
     }
 
     @Test
     fun testComplexExtension() = runTest {
-        everySuspend { mock.run { ComplexType.callComplexExtension() } } returns ComplexType.Companion
+        everySuspend { mock.ext { ComplexType.callComplexExtension() } } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.run { ComplexType.callComplexExtension() })
-        verifySuspend { mock.run { ComplexType.callComplexExtension() } }
+        verifySuspend { mock.ext { ComplexType.callComplexExtension() } }
     }
 }
 

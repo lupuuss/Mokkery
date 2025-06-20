@@ -4,6 +4,7 @@ import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.matcher.any
+import dev.mokkery.matcher.ext
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.RegularMethodsInterface
@@ -90,15 +91,15 @@ class MocksRegularMethodsTest {
 
     @Test
     fun testPrimitiveExtension() {
-        every { mock.run { 1.callPrimitiveExtension() } } returns 1
+        every { mock.ext { 1.callPrimitiveExtension() } } returns 1
         assertEquals(1, mock.run { 1.callPrimitiveExtension() })
-        verify { mock.run { 1.callPrimitiveExtension() } }
+        verify { mock.ext { 1.callPrimitiveExtension() } }
     }
 
     @Test
     fun testComplexExtension() {
-        every { mock.run { ComplexType.callComplexExtension() } } returns ComplexType.Companion
+        every { mock.ext { ComplexType.callComplexExtension() } } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.run { ComplexType.callComplexExtension() })
-        verify { mock.run { ComplexType.callComplexExtension() } }
+        verify { mock.ext { ComplexType.callComplexExtension() } }
     }
 }

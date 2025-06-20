@@ -8,7 +8,6 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MonotonicCounter
-import dev.mokkery.internal.calls.ArgMatchersComposer
 import dev.mokkery.internal.calls.CallMatcher
 import dev.mokkery.internal.names.CallTraceReceiverShortener
 import dev.mokkery.internal.names.NameShortener
@@ -26,7 +25,6 @@ internal class MokkeryTools(
     signatureGenerator: SignatureGenerator? = null,
     callTraceReceiverShortener: CallTraceReceiverShortener? = null,
     callMatcher: CallMatcher? = null,
-    argMatchersComposer: ArgMatchersComposer? = null,
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
@@ -37,7 +35,6 @@ internal class MokkeryTools(
     private val _signatureGenerator: SignatureGenerator? = signatureGenerator
     private val _callTraceReceiverShortener: CallTraceReceiverShortener? = callTraceReceiverShortener
     private val _callMatcher = callMatcher
-    private val _argMatchersComposer = argMatchersComposer
     private val _callsCounter = callsCounter
     private val _mocksCounter = mocksCounter
     private val _autofillProvider = autofillProvider
@@ -51,8 +48,6 @@ internal class MokkeryTools(
         get() = _callTraceReceiverShortener ?: mokkeryRuntimeError("CallTraceReceiverShortener not present in the tools!")
     val callMatcher: CallMatcher
         get() = _callMatcher ?: mokkeryRuntimeError("CallMatcher not present in call tools!")
-    val argMatchersComposer: ArgMatchersComposer
-        get() = _argMatchersComposer ?: mokkeryRuntimeError("ArgMatchersComposer not present in tools!")
     val callsCounter: Counter
         get() = _callsCounter ?: mokkeryRuntimeError("Calls Counter not present in tools!")
     val mocksCounter: Counter
@@ -69,7 +64,6 @@ internal class MokkeryTools(
         signatureGenerator: SignatureGenerator? = _signatureGenerator,
         callTraceReceiverShortener: CallTraceReceiverShortener? = _callTraceReceiverShortener,
         callMatcher: CallMatcher? = _callMatcher,
-        argMatchersComposer: ArgMatchersComposer? = _argMatchersComposer,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
         autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
@@ -79,7 +73,6 @@ internal class MokkeryTools(
         signatureGenerator = signatureGenerator,
         callTraceReceiverShortener = callTraceReceiverShortener,
         callMatcher = callMatcher,
-        argMatchersComposer = argMatchersComposer,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
         autofillProvider = autofillProvider,
@@ -100,7 +93,6 @@ internal class MokkeryTools(
                 signatureGenerator = signatureGenerator,
                 callTraceReceiverShortener = CallTraceReceiverShortener(namesShortener),
                 callMatcher = callMatcher,
-                argMatchersComposer = ArgMatchersComposer(),
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
                 autofillProvider = AutofillProvider.forInternals,

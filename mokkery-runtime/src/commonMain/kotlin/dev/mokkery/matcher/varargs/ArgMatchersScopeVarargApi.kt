@@ -1,271 +1,405 @@
-@file:Suppress("NOTHING_TO_INLINE")
+@file:Suppress("NOTHING_TO_INLINE", "FunctionName", "UnusedReceiverParameter", "unused")
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package dev.mokkery.matcher.varargs
 
+import dev.mokkery.internal.utils.generatedCode
 import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.matches
 
 /**
  * Matches a sequence of varargs with all elements satisfying the given [predicate].
  */
 public inline fun <reified T> ArgMatchersScope.varargsAll(
     noinline predicate: (T) -> Boolean
-): Array<T> = varargsAllInline<T, Array<T>>(predicate)
+): Array<T> = generatedCode
 
 /**
  * [varargsAll] variant for [LongArray].
  */
 public inline fun ArgMatchersScope.varargsLongAll(
     noinline predicate: (Long) -> Boolean
-): LongArray = varargsAllInline(predicate)
+): LongArray = generatedCode
 
 /**
  * [varargsAll] variant for [IntArray].
  */
 public inline fun ArgMatchersScope.varargsIntAll(
     noinline predicate: (Int) -> Boolean
-): IntArray = varargsAllInline(predicate)
+): IntArray = generatedCode
+
 
 /**
  * [varargsAll] variant for [ShortArray].
  */
 public inline fun ArgMatchersScope.varargsShortAll(
     noinline predicate: (Short) -> Boolean
-): ShortArray = varargsAllInline(predicate)
+): ShortArray = generatedCode
 
 /**
  * [varargsAll] variant for [ByteArray].
  */
 public inline fun ArgMatchersScope.varargsByteAll(
     noinline predicate: (Byte) -> Boolean
-): ByteArray = varargsAllInline(predicate)
+): ByteArray = generatedCode
 
 /**
  * [varargsAll] variant for [CharArray].
  */
 public inline fun ArgMatchersScope.varargsCharAll(
-    noinline predicate: (Short) -> Boolean
-): CharArray = varargsAllInline(predicate)
+    noinline predicate: (Char) -> Boolean
+): CharArray = generatedCode
 
 /**
  * [varargsAll] variant for [BooleanArray].
  */
 public inline fun ArgMatchersScope.varargsBooleanAll(
     noinline predicate: (Boolean) -> Boolean
-): BooleanArray = varargsAllInline(predicate)
+): BooleanArray = generatedCode
 
 /**
  * [varargsAll] variant for [ULongArray].
  */
 public inline fun ArgMatchersScope.varargsULongAll(
     noinline predicate: (ULong) -> Boolean
-): ULongArray = varargsAllInline(predicate)
+): ULongArray = generatedCode
 
 /**
  * [varargsAll] variant for [UIntArray].
  */
 public inline fun ArgMatchersScope.varargsUIntAll(
     noinline predicate: (UInt) -> Boolean
-): IntArray = varargsAllInline(predicate)
+): IntArray = generatedCode
 
 /**
  * [varargsAll] variant for [UShortArray].
  */
 public inline fun ArgMatchersScope.varargsUShortAll(
     noinline predicate: (UShort) -> Boolean
-): UShortArray = varargsAllInline(predicate)
+): UShortArray = generatedCode
 
 /**
  * [varargsAll] variant for [UByteArray].
  */
 public inline fun ArgMatchersScope.varargsUByteAll(
     noinline predicate: (UByte) -> Boolean
-): UByteArray = varargsAllInline(predicate)
+): UByteArray = generatedCode
 
 /**
  * [varargsAll] variant for [DoubleArray].
  */
 public inline fun ArgMatchersScope.varargsDoubleAll(
     noinline predicate: (Double) -> Boolean
-): DoubleArray = varargsAllInline(predicate)
+): DoubleArray = generatedCode
 
 /**
  * [varargsAll] variant for [FloatArray].
  */
 public inline fun ArgMatchersScope.varargsFloatAll(
     noinline predicate: (Float) -> Boolean
-): FloatArray = varargsAllInline(predicate)
-
+): FloatArray = generatedCode
 
 /**
  * Matches a sequence of varargs with any element satisfying the given [predicate].
  */
 public inline fun <reified T> ArgMatchersScope.varargsAny(
     noinline predicate: (T) -> Boolean
-): Array<T> = varargsAnyInline<T, Array<T>>(predicate)
+): Array<T> = generatedCode
 
 /**
  * [varargsAny] variant for [LongArray].
  */
 public inline fun ArgMatchersScope.varargsLongAny(
     noinline predicate: (Long) -> Boolean
-): LongArray = varargsAnyInline(predicate)
+): LongArray = generatedCode
 
 /**
  * [varargsAny] variant for [IntArray].
  */
 public inline fun ArgMatchersScope.varargsIntAny(
     noinline predicate: (Int) -> Boolean
-): IntArray = varargsAnyInline(predicate)
+): IntArray = generatedCode
 
 /**
  * [varargsAny] variant for [ShortArray].
  */
 public inline fun ArgMatchersScope.varargsShortAny(
     noinline predicate: (Short) -> Boolean
-): ShortArray = varargsAnyInline(predicate)
+): ShortArray = generatedCode
 
 /**
  * [varargsAny] variant for [ByteArray].
  */
 public inline fun ArgMatchersScope.varargsByteAny(
     noinline predicate: (Byte) -> Boolean
-): ByteArray = varargsAnyInline(predicate)
+): ByteArray = generatedCode
 
 /**
  * [varargsAny] variant for [CharArray].
  */
 public inline fun ArgMatchersScope.varargsCharAny(
-    noinline predicate: (Short) -> Boolean
-): CharArray = varargsAnyInline(predicate)
+    noinline predicate: (Char) -> Boolean
+): CharArray = generatedCode
 
 /**
  * [varargsAny] variant for [BooleanArray].
  */
 public inline fun ArgMatchersScope.varargsBooleanAny(
     noinline predicate: (Boolean) -> Boolean
-): BooleanArray = varargsAnyInline(predicate)
+): BooleanArray = generatedCode
 
 /**
  * [varargsAny] variant for [ULongArray].
  */
 public inline fun ArgMatchersScope.varargsULongAny(
     noinline predicate: (ULong) -> Boolean
-): ULongArray = varargsAnyInline(predicate)
+): ULongArray = generatedCode
 
 /**
  * [varargsAny] variant for [UIntArray].
  */
 public inline fun ArgMatchersScope.varargsUIntAny(
     noinline predicate: (UInt) -> Boolean
-): IntArray = varargsAnyInline(predicate)
+): IntArray = generatedCode
 
 /**
  * [varargsAny] variant for [UShortArray].
  */
 public inline fun ArgMatchersScope.varargsUShortAny(
     noinline predicate: (UShort) -> Boolean
-): UShortArray = varargsAnyInline(predicate)
+): UShortArray = generatedCode
 
 /**
  * [varargsAny] variant for [UByteArray].
  */
 public inline fun ArgMatchersScope.varargsUByteAny(
     noinline predicate: (UByte) -> Boolean
-): UByteArray = varargsAnyInline(predicate)
+): UByteArray = generatedCode
 
 /**
  * [varargsAny] variant for [DoubleArray].
  */
 public inline fun ArgMatchersScope.varargsDoubleAny(
     noinline predicate: (Double) -> Boolean
-): DoubleArray = varargsAnyInline(predicate)
+): DoubleArray = generatedCode
 
 /**
  * [varargsAny] variant for [FloatArray].
  */
 public inline fun ArgMatchersScope.varargsFloatAny(
     noinline predicate: (Float) -> Boolean
-): FloatArray = varargsAnyInline(predicate)
-
+): FloatArray = generatedCode
 
 /**
  * Matches any sequence of varargs.
  */
-public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> = anyVarargsInline<T, Array<T>>()
+public inline fun <reified T> ArgMatchersScope.anyVarargs(): Array<T> = generatedCode
 
 /**
  * [anyVarargs] variant for [LongArray].
  */
-public inline fun ArgMatchersScope.anyVarargsLong(): LongArray = anyVarargsInline<Long, _>()
+public inline fun ArgMatchersScope.anyVarargsLong(): LongArray = generatedCode
 
 /**
  * [anyVarargs] variant for [IntArray].
  */
-public inline fun ArgMatchersScope.anyVarargsInt(): IntArray = anyVarargsInline<Int, _>()
+public inline fun ArgMatchersScope.anyVarargsInt(): IntArray = generatedCode
 
 /**
  * [anyVarargs] variant for [ShortArray].
  */
-public inline fun ArgMatchersScope.anyVarargsShort(): ShortArray = anyVarargsInline<Short, _>()
+public inline fun ArgMatchersScope.anyVarargsShort(): ShortArray = generatedCode
 
 /**
  * [anyVarargs] variant for [ByteArray].
  */
-public inline fun ArgMatchersScope.anyVarargsByte(): ByteArray = anyVarargsInline<Byte, _>()
+public inline fun ArgMatchersScope.anyVarargsByte(): ByteArray = generatedCode
 
 /**
  * [anyVarargs] variant for [CharArray].
  */
-public inline fun ArgMatchersScope.anyVarargsChar(): CharArray = anyVarargsInline<Char, _>()
+public inline fun ArgMatchersScope.anyVarargsChar(): CharArray = generatedCode
 
 /**
  * [anyVarargs] variant for [BooleanArray].
  */
-public inline fun ArgMatchersScope.anyVarargsBoolean(): BooleanArray = anyVarargsInline<Boolean, _>()
+public inline fun ArgMatchersScope.anyVarargsBoolean(): BooleanArray = generatedCode
 
 /**
  * [anyVarargs] variant for [ULongArray].
  */
-public inline fun ArgMatchersScope.anyVarargsULong(): ULongArray = anyVarargsInline<ULong, _>()
+public inline fun ArgMatchersScope.anyVarargsULong(): ULongArray = generatedCode
 
 /**
  * [anyVarargs] variant for [UIntArray].
  */
-public inline fun ArgMatchersScope.anyVarargsUInt(): IntArray = anyVarargsInline<UInt, _>()
+public inline fun ArgMatchersScope.anyVarargsUInt(): IntArray = generatedCode
 
 /**
  * [anyVarargs] variant for [UShortArray].
  */
-public inline fun ArgMatchersScope.anyVarargsUShort(): UShortArray = anyVarargsInline<UShort, _>()
+public inline fun ArgMatchersScope.anyVarargsUShort(): UShortArray = generatedCode
 
 /**
  * [anyVarargs] variant for [UByteArray].
  */
-public inline fun ArgMatchersScope.anyVarargsUByte(): UByteArray = anyVarargsInline<UByte, _>()
+public inline fun ArgMatchersScope.anyVarargsUByte(): UByteArray = generatedCode
 
 /**
  * [anyVarargs] variant for [DoubleArray].
  */
-public inline fun ArgMatchersScope.anyVarargsDouble(): DoubleArray = anyVarargsInline<Double, _>()
+public inline fun ArgMatchersScope.anyVarargsDouble(): DoubleArray = generatedCode
 
 /**
  * [anyVarargs] variant for [FloatArray].
  */
-public inline fun ArgMatchersScope.anyVarargsFloat(): FloatArray = anyVarargsInline<Float, _>()
+public inline fun ArgMatchersScope.anyVarargsFloat(): FloatArray = generatedCode
+
+
+internal inline fun <reified T> ArgMatchersScope._varargsAllMokkeryMatcher(noinline predicate: (T) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsLongAllMokkeryMatcher(noinline predicate: (Long) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsIntAllMokkeryMatcher(noinline predicate: (Int) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsShortAllMokkeryMatcher(noinline predicate: (Short) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsByteAllMokkeryMatcher(noinline predicate: (Byte) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsCharAllMokkeryMatcher(noinline predicate: (Char) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsBooleanAllMokkeryMatcher(noinline predicate: (Boolean) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsULongAllMokkeryMatcher(noinline predicate: (ULong) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUShortAllMokkeryMatcher(noinline predicate: (UShort) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUIntAllMokkeryMatcher(noinline predicate: (UInt) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUByteAllMokkeryMatcher(noinline predicate: (UByte) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsDoubleAllMokkeryMatcher(noinline predicate: (Double) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsFloatAllMokkeryMatcher(noinline predicate: (Float) -> Boolean): VarArgMatcher {
+    return _varargsAllInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun <reified T> ArgMatchersScope._varargsAnyMokkeryMatcher(noinline predicate: (T) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsLongAnyMokkeryMatcher(noinline predicate: (Long) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsIntAnyMokkeryMatcher(noinline predicate: (Int) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsShortAnyMokkeryMatcher(noinline predicate: (Short) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsByteAnyMokkeryMatcher(noinline predicate: (Byte) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsCharAnyMokkeryMatcher(noinline predicate: (Char) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsBooleanAnyMokkeryMatcher(noinline predicate: (Boolean) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsULongAnyMokkeryMatcher(noinline predicate: (ULong) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUIntAnyMokkeryMatcher(noinline predicate: (UInt) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUShortAnyMokkeryMatcher(noinline predicate: (UShort) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsUByteAnyMokkeryMatcher(noinline predicate: (UByte) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsDoubleAnyMokkeryMatcher(noinline predicate: (Double) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun ArgMatchersScope._varargsFloatAnyMokkeryMatcher(noinline predicate: (Float) -> Boolean): VarArgMatcher {
+    return _varargsAnyInlineMokkeryMatcher(predicate)
+}
+
+internal inline fun <reified T> ArgMatchersScope._anyVarargsMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<T>()
+
+internal inline fun ArgMatchersScope._anyVarargsLongMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Long>()
+
+internal inline fun ArgMatchersScope._anyVarargsIntMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Int>()
+
+internal inline fun ArgMatchersScope._anyVarargsShortMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Short>()
+
+internal inline fun ArgMatchersScope._anyVarargsByteMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Byte>()
+
+internal inline fun ArgMatchersScope._anyVarargsCharMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Char>()
+
+internal inline fun ArgMatchersScope._anyVarargsBooleanMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Boolean>()
+
+internal inline fun ArgMatchersScope._anyVarargsULongMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<ULong>()
+
+internal inline fun ArgMatchersScope._anyVarargsUIntMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<UInt>()
+
+internal inline fun ArgMatchersScope._anyVarargsUShortMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<UShort>()
+
+internal inline fun ArgMatchersScope._anyVarargsUByteMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<UByte>()
+
+internal inline fun ArgMatchersScope._anyVarargsDoubleMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Double>()
+
+internal inline fun ArgMatchersScope._anyVarargsFloatMokkeryMatcher() = _anyVarargsInlineMokkeryMatcher<Float>()
 
 @PublishedApi
-internal inline fun <reified T, reified TArray> ArgMatchersScope.varargsAllInline(
+internal inline fun <reified T> ArgMatchersScope._varargsAllInlineMokkeryMatcher(
     noinline predicate: (T) -> Boolean
-): TArray = matches(VarArgMatcher.AllThat(T::class, predicate))
+): VarArgMatcher {
+    return VarArgMatcher.AllThat(T::class, predicate)
+}
 
 @PublishedApi
-internal inline fun <reified T, reified TArray> ArgMatchersScope.varargsAnyInline(
+internal inline fun <reified T> ArgMatchersScope._varargsAnyInlineMokkeryMatcher(
     noinline predicate: (T) -> Boolean
-): TArray = matches(VarArgMatcher.AnyThat(T::class, predicate))
+): VarArgMatcher {
+    return VarArgMatcher.AnyThat(T::class, predicate)
+}
 
 @PublishedApi
-internal inline fun <reified T, reified TArray> ArgMatchersScope.anyVarargsInline(): TArray {
-    return matches(VarArgMatcher.AnyOf(T::class))
+internal inline fun <reified T> ArgMatchersScope._anyVarargsInlineMokkeryMatcher(): VarArgMatcher {
+    return VarArgMatcher.AnyOf(T::class)
 }

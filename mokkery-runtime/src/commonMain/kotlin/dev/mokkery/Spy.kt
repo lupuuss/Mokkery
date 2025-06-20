@@ -1,6 +1,7 @@
 package dev.mokkery
 
 import dev.mokkery.internal.MokkeryPluginNotAppliedException
+import dev.mokkery.internal.utils.generatedCode
 
 /**
  * Returns given [obj] wrapped with a spying implementation of [T].
@@ -16,7 +17,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 public inline fun <reified T : Any> spy(
     obj: T,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = generatedCode
 
 
 /**
@@ -32,5 +33,5 @@ public inline fun <reified T : Any> spy(
 public inline fun <reified T : Any> MokkerySuiteScope.spy(
     obj: T,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = generatedCode
 

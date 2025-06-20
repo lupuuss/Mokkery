@@ -2,7 +2,7 @@
 
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryPluginNotAppliedException
+import dev.mokkery.internal.utils.generatedCode
 
 /**
  * Provides mock implementation of given type [T].
@@ -17,7 +17,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 public inline fun <reified T : Any> mock(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = generatedCode
 
 
 /**
@@ -33,4 +33,4 @@ public inline fun <reified T : Any> mock(
 public inline fun <reified T : Any> MokkerySuiteScope.mock(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = generatedCode
