@@ -20,10 +20,16 @@ public class CallArgs(public val args: List<Any?>) {
     public inline fun <reified T> arg(index: Int): T = args[index] as T
 
     public inline operator fun <reified T> component1(): T = arg(0)
+
     public inline operator fun <reified T> component2(): T = arg(1)
+
     public inline operator fun <reified T> component3(): T = arg(2)
+
     public inline operator fun <reified T> component4(): T = arg(3)
+
     public inline operator fun <reified T> component5(): T = arg(4)
+
     public inline operator fun <reified T> component6(): T = arg(5)
+
     public inline operator fun <reified T> component7(): T = arg(6)
 }

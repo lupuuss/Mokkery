@@ -1,7 +1,6 @@
 package dev.mokkery.test
 
 import dev.mokkery.MockMode.autofill
-import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
