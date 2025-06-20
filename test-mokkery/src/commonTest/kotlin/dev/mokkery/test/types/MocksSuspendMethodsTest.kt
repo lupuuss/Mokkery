@@ -1,12 +1,18 @@
 package dev.mokkery.test.types
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.answering.throws
+import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.templating.ext
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.SuspendMethodsInterface
+import dev.mokkery.test.assertVerified
+import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -82,6 +88,9 @@ class MocksSuspendMethodsTest {
     fun testPrimitiveWithDefaults() = runTest {
         everySuspend { mock.callPrimitiveWithDefaults() } returns 1
         assertEquals(1, mock.callPrimitiveWithDefaults())
+        assertEquals(1, mock.callPrimitiveWithDefaults(ComplexType, 1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(primitiveInput = 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(complexInput = ComplexType("1")) }
         verifySuspend { mock.callPrimitiveWithDefaults() }
     }
 
@@ -89,7 +98,29 @@ class MocksSuspendMethodsTest {
     fun testComplexWithDefaults() = runTest {
         everySuspend { mock.callComplexWithDefaults() } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.callComplexWithDefaults())
+        assertEquals(ComplexType.Companion, mock.callComplexWithDefaults(ComplexType, 1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(primitiveInput = 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(complexInput = ComplexType("1")) }
         verifySuspend { mock.callComplexWithDefaults() }
+    }
+
+    @Test
+    fun testDependantDefaults() = runTest {
+        everySuspend { mock.callWithDependantDefaults(any()) } returnsArgAt 1
+        assertEquals("ComplexTypeImpl(id=1)", mock.callWithDependantDefaults(ComplexType("1")))
+        assertEquals("ComplexTypeImpl(id=2)", mock.callWithDependantDefaults(ComplexType("2")))
+        assertFailsWith<MokkeryRuntimeException> {
+            mock.callWithDependantDefaults(ComplexType, name = "customName")
+        }
+        verifySuspend {
+            mock.callWithDependantDefaults(ComplexType("1"))
+            mock.callWithDependantDefaults(ComplexType("2"))
+        }
+        assertVerified {
+            verifySuspend {
+                mock.callWithDependantDefaults(ComplexType("3"))
+            }
+        }
     }
 
     @Test
@@ -103,16 +134,16 @@ class MocksSuspendMethodsTest {
 
     @Test
     fun testPrimitiveExtension() = runTest {
-        everySuspend { mock.run { 1.callPrimitiveExtension() } } returns 1
+        everySuspend { mock.ext { 1.callPrimitiveExtension() } } returns 1
         assertEquals(1, mock.run { 1.callPrimitiveExtension() })
-        verifySuspend { mock.run { 1.callPrimitiveExtension() } }
+        verifySuspend { mock.ext { 1.callPrimitiveExtension() } }
     }
 
     @Test
     fun testComplexExtension() = runTest {
-        everySuspend { mock.run { ComplexType.callComplexExtension() } } returns ComplexType.Companion
+        everySuspend { mock.ext { ComplexType.callComplexExtension() } } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.run { ComplexType.callComplexExtension() })
-        verifySuspend { mock.run { ComplexType.callComplexExtension() } }
+        verifySuspend { mock.ext { ComplexType.callComplexExtension() } }
     }
 }
 
