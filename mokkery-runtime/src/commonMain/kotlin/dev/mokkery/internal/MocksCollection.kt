@@ -1,11 +1,8 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package dev.mokkery.internal.utils
+package dev.mokkery.internal
 
-import dev.mokkery.internal.MockId
-import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.mockId
-import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 
 internal interface MocksCollection {
 
@@ -23,11 +20,19 @@ internal interface MutableMocksCollection : MocksCollection {
     fun clear()
 }
 
-internal fun MocksCollection(values: List<MokkeryInstanceScope> = emptyList()): MocksCollection {
+internal fun MocksCollection(vararg values: MokkeryInstanceScope): MocksCollection {
+    return MocksCollection(values.asList())
+}
+
+internal fun MutableMocksCollection(vararg values: MokkeryInstanceScope): MutableMocksCollection {
+    return MutableMocksCollection(values.asList())
+}
+
+internal fun MocksCollection(values: List<MokkeryInstanceScope>): MocksCollection {
     return MocksCollectionImpl(values)
 }
 
-internal fun MutableMocksCollection(values: List<MokkeryInstanceScope> = emptyList()): MutableMocksCollection {
+internal fun MutableMocksCollection(values: List<MokkeryInstanceScope>): MutableMocksCollection {
     return MocksCollectionImpl(values)
 }
 

@@ -1,16 +1,13 @@
 package dev.mokkery.internal.matcher
 
-import dev.mokkery.internal.MultipleVarargGenericMatchersException
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.varargs.VarArgMatcher
-import kotlin.reflect.KClass
 
 internal data class CompositeVarArgMatcher(
-    val type: KClass<*>,
-    val matchers: List<ArgMatcher<Any?>> = emptyList()
+    val matchers: List<ArgMatcher<Any?>>
 ) : ArgMatcher.Composite<Any?> {
 
     private val wildCard: VarArgMatcher? = matchers.filterIsInstance<VarArgMatcher>().firstOrNull()
@@ -35,17 +32,6 @@ internal data class CompositeVarArgMatcher(
         val rest = elements.subList(before.size, elements.size - after.size)
         return wildCard?.matches(rest) ?: rest.isEmpty()
     }
-
-    override fun compose(matcher: ArgMatcher<Any?>): ArgMatcher.Composite<Any?> {
-        return when {
-            wildCard != null && matcher is VarArgMatcher -> throw MultipleVarargGenericMatchersException()
-            else -> copy(matchers = listOf(matcher) + matchers)
-        }
-    }
-
-    override fun isFilled(): Boolean = false
-
-    override fun assertFilled() = Unit
 
     override fun capture(value: Any?) {
         val elements = value.asListOrNull() ?: return
