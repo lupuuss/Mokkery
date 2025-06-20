@@ -18,6 +18,7 @@ internal class TestMokkeryInstanceScope(
     typeArguments: List<List<KClass<*>>> = List(interceptedTypes.size) { emptyList() },
     spiedObject: Any? = null,
     interceptor: TestContextCallInterceptor = TestContextCallInterceptor(),
+    context: MokkeryContext = MokkeryContext.Empty
 ) : MokkeryInstanceScope {
 
     override val mokkeryContext: MokkeryContext = MockSpec(
@@ -27,5 +28,5 @@ internal class TestMokkeryInstanceScope(
         interceptedTypes = interceptedTypes.mapIndexed { index, it -> TypeSpec(it, typeArguments[index]) },
         thisRef = this,
         spiedObject = spiedObject,
-    ) + interceptor
+    ) + interceptor + context
 }

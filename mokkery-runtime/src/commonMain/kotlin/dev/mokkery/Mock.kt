@@ -1,23 +1,23 @@
-@file:Suppress("UNUSED_PARAMETER")
+@file:Suppress("UNUSED_PARAMETER", "UnusedReceiverParameter")
 
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryPluginNotAppliedException
+import dev.mokkery.internal.utils.toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of given type [T].
  *
  * [T] **must** be provided directly and **cannot** be a generic parameter.
- *
+
  * Currently supported types:
- * * Interfaces (not sealed)
- * * Function types
- * * Abstract/open classes with all methods/properties open/abstract and no-args constructor.
+ * * interfaces (not sealed)
+ * * function types
+ * * Abstract/open classes.
  */
 public inline fun <reified T : Any> mock(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = toBeReplacedByCompilerPlugin
 
 
 /**
@@ -26,11 +26,11 @@ public inline fun <reified T : Any> mock(
  * [T] **must** be provided directly and **cannot** be a generic parameter.
  *
  * Currently supported types:
- * * Interfaces (not sealed)
- * * Function types
- * * Abstract/open classes with all methods/properties open/abstract and no-args constructor.
+ * * interfaces (not sealed)
+ * * function types
+ * * Abstract/open classes.
  */
 public inline fun <reified T : Any> MokkerySuiteScope.mock(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: T.() -> Unit = { }
-): T = throw MokkeryPluginNotAppliedException()
+): T = toBeReplacedByCompilerPlugin

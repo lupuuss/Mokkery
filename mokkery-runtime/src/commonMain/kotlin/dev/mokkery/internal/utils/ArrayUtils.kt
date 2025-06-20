@@ -47,23 +47,6 @@ internal fun List<*>.toPlatformArrayOf(value: Any?): Any? {
     }
 }
 
-internal fun Any?.arrayElementType(): KClass<*> = when (this) {
-    is Array<*> -> Any::class
-    is IntArray -> Int::class
-    is ByteArray -> Byte::class
-    is DoubleArray -> Double::class
-    is CharArray -> Char::class
-    is FloatArray -> Float::class
-    is LongArray -> Long::class
-    is BooleanArray -> Boolean::class
-    is ShortArray -> Short::class
-    is UIntArray -> UInt::class
-    is UByteArray -> UByte::class
-    is ULongArray -> ULong::class
-    is UShortArray -> UShort::class
-    else -> Any::class
-}
-
 internal fun varargNameByElementType(cls: KClass<*>): String = when (cls) {
     Int::class -> "varargsInt"
     UInt::class -> "varargsUInt"

@@ -1,17 +1,21 @@
 package dev.mokkery.internal.calls
 
+import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.test.TestDefaultsMaterializer
 import dev.mokkery.test.TestSignatureGenerator
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import dev.mokkery.test.fakeDefaultValueMatcher
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class CallMatcherTest {
 
     private val generator = TestSignatureGenerator()
-    private val matcher = CallMatcher(generator)
+    private val defaultsMaterializer = TestDefaultsMaterializer()
+    private val matcher = CallMatcher(generator, defaultsMaterializer)
 
     init {
         generator.returns("call(i: kotlin.Int)")
@@ -32,6 +36,26 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
+        assertEquals(CallMatchResult.Matching, matcher.match(call, template))
+    }
+
+
+    @Test
+    fun testReturnsMatchingForFullyMatchingCallWithDefaultsMaterialized() {
+        val template = fakeCallTemplate(
+            id = 1,
+            name = "call",
+            signature = "call(i: kotlin.Int)",
+            matchers = mapOf("i" to fakeDefaultValueMatcher())
+        )
+        val call = fakeCallTrace(
+            id = 1,
+            name = "call",
+            args = listOf(fakeCallArg(name = "i", value = 1))
+        )
+        defaultsMaterializer.calls = { _, it ->
+            it.copy(matchers = it.matchers.plus("i" to MaterializedDefaultValueMatcher(1)))
+        }
         assertEquals(CallMatchResult.Matching, matcher.match(call, template))
     }
 
@@ -124,6 +148,28 @@ class CallMatcherTest {
             name = "call",
             args = listOf(fakeCallArg(name = "i", value = 1))
         )
+        assertEquals(CallMatchResult.SameReceiverMethodSignature, matcher.match(call, template))
+    }
+
+
+    @Test
+    fun testReturnsSameReceiverMethodSignatureForNotSatisfiedDefaultMatcher() {
+        val template = fakeCallTemplate(
+            id = 1,
+            name = "call",
+            signature = "call(i: kotlin.Int)",
+            matchers = mapOf(
+                "i" to fakeDefaultValueMatcher()
+            )
+        )
+        val call = fakeCallTrace(
+            id = 1,
+            name = "call",
+            args = listOf(fakeCallArg(name = "i", value = 1))
+        )
+        defaultsMaterializer.calls = { _, it ->
+            it.copy(matchers = it.matchers.plus("i" to MaterializedDefaultValueMatcher(2)))
+        }
         assertEquals(CallMatchResult.SameReceiverMethodSignature, matcher.match(call, template))
     }
 

@@ -41,7 +41,6 @@ fun TransformerScope.buildMockJsFunction(
     val typeArguments = typeToMock.let { it as IrSimpleType }
         .arguments
         .map { it.typeOrFail.eraseTypeParameters() }
-    val returnType = typeArguments.last()
     val transformer = this
     return declarationIrBuilder(expression) {
         irBlock {
@@ -60,7 +59,7 @@ fun TransformerScope.buildMockJsFunction(
                 isMutable = true
             )
             val lambdaVar = createTmpVariable(
-                irLambda(returnType, typeToMock, currentFile) {
+                irLambda(typeToMock, currentFile) {
                     +irReturn(
                         irInterceptCall(
                             transformer = transformer,
@@ -87,7 +86,7 @@ fun TransformerScope.buildMockJsFunction(
                 arguments[5] = irCallListOf(
                     transformerScope = transformer,
                     type = context.irBuiltIns.kClassClass.starProjectedType,
-                    expressions = typeArguments.memoryOptimizedMap { kClassReference(it) }
+                    elements = typeArguments.memoryOptimizedMap { kClassReference(it) }
                 )
                 arguments[6] = irGet(lambdaVar)
                 arguments[7] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()

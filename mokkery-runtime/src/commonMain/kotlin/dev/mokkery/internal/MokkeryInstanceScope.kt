@@ -7,7 +7,6 @@ import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.calls.CallTracingRegistry
-import dev.mokkery.internal.calls.TemplatingSocket
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MockSpec
@@ -15,11 +14,11 @@ import dev.mokkery.internal.context.TypeSpec
 import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.defaults.DefaultsExtractorFactory
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
-import dev.mokkery.internal.interceptor.TemplatingInterceptor
 import kotlin.reflect.KClass
 
 internal interface MokkeryInstanceScope : MokkeryScope
@@ -31,7 +30,8 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<List<KClass<*>>>,
     thisRef: Any,
-    spiedObject: Any?
+    spiedObject: Any?,
+    defaultsExtractorFactory: DefaultsExtractorFactory? = null
 ): MokkeryContext = mokkeryContext
     .plus(ContextInstantiationListener(MocksRegisteringListener))
     .plus(
@@ -46,11 +46,10 @@ internal fun MokkeryScope.createMokkeryInstanceContext(
     )
     .plus(CallTracingRegistry())
     .plus(AnsweringRegistry())
-    .plus(TemplatingSocket())
+    .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
     .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
     .plus(
         ContextCallInterceptor(
-            TemplatingInterceptor,
             CallTracingInterceptor,
             MokkeryCallHooks.beforeAnswering,
             AnsweringInterceptor

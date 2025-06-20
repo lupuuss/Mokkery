@@ -1,8 +1,5 @@
 package dev.mokkery.test.types
 
-import dev.mokkery.answering.autofill.AutofillProvider
-import dev.mokkery.answering.autofill.register
-import dev.mokkery.answering.autofill.unregister
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsSuccess
 import dev.mokkery.every
@@ -14,26 +11,12 @@ import dev.mokkery.test.ValueClass
 import dev.mokkery.test.ValueClassMethodsInterface
 import dev.mokkery.verify
 import kotlin.Result.Companion.success
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class MocksValueClassMethodsTest {
 
     private val mock = mock<ValueClassMethodsInterface<CharSequence>>()
-
-    @BeforeTest
-    fun before() {
-        AutofillProvider.forInternals.types.register<PrimitiveValueClass> { PrimitiveValueClass(0) }
-        AutofillProvider.forInternals.types.register<ValueClass<Nothing?>> { ValueClass(null) }
-    }
-
-    @AfterTest
-    fun after() {
-        AutofillProvider.forInternals.types.unregister<PrimitiveValueClass>()
-        AutofillProvider.forInternals.types.unregister<ValueClass<Nothing?>>()
-    }
 
     @Test
     fun testCallPrimitiveResult() {

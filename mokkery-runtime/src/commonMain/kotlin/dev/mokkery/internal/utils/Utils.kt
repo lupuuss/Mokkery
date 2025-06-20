@@ -3,15 +3,16 @@ package dev.mokkery.internal.utils
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.MockId
+import dev.mokkery.internal.MokkeryPluginNotAppliedException
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal val toBeReplacedByCompilerPlugin: Nothing
+    get() = throw MokkeryPluginNotAppliedException()
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @PublishedApi
 internal inline fun <T> Any?.unsafeCast(): T = this as T
-
-@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-@PublishedApi
-internal inline fun <T> Any?.unsafeCastOrNull(): T? = this as? T
 
 internal fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
@@ -28,7 +29,7 @@ internal fun callToString(
 internal fun callFunctionToString(
     name: String,
     args: List<CallArgument>,
-) = PropertyDescriptor.Companion.fromNameOrNull(name)
+) = PropertyDescriptor.fromNameOrNull(name)
     ?.toCallString(args.map { it.value.description() })
     ?: buildString {
         append(name)
@@ -36,11 +37,6 @@ internal fun callFunctionToString(
         append(args.joinToString { "${it.parameter.name} = ${it.value.description()}" })
         append(")")
     }
-
-internal fun <T> List<T>.subListAfter(index: Int): List<T> {
-    if (index >= size) return emptyList()
-    return subList(index, size)
-}
 
 internal fun Any?.description(): String {
     if (this == null) return "null"

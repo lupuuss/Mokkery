@@ -9,6 +9,7 @@ import dev.mokkery.plugin.core.getProperty
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
 import dev.mokkery.plugin.ir.computeSignature
+import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
@@ -23,6 +24,7 @@ import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
+import dev.mokkery.plugin.ir.typeWith
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -55,7 +57,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
 import java.util.*
 
@@ -143,18 +144,6 @@ private fun mockManyTypeName(klass: IrClass, types: List<IrClass>): String {
     return "${klass.kotlinFqName.asString()}<${types.joinToString { it.kotlinFqName.asString() }}>"
 }
 
-private fun List<IrClass>.createParametersMapTo(cls: IrClass): Map<IrTypeParameter, IrTypeParameter> {
-    return memoryOptimizedFlatMap { it.typeParameters }
-        .memoryOptimizedZip(cls.typeParameters)
-        .toMap()
-}
-
-private fun List<IrClass>.typeWith(parameterMap: Map<IrTypeParameter, IrTypeParameter>): List<IrType> {
-    return memoryOptimizedMap {
-        it.symbol.typeWithParameters(it.typeParameters.memoryOptimizedMap(parameterMap::getValue))
-    }
-}
-
 private fun IrBlockBodyBuilder.mockBody(
     transformer: TransformerScope,
     mokkeryKind: IrMokkeryKind,
@@ -211,21 +200,26 @@ private fun IrClass.addMockClassConstructor(
                     arguments[4] = irCallListOf(
                         transformerScope = transformer,
                         type = kClassType,
-                        expressions = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
+                        elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
                     )
                     arguments[5] = irCallListOf(
                         transformerScope = transformer,
                         type = context.irBuiltIns.listClass.typeWith(kClassType),
-                        expressions = typeParameters.memoryOptimizedMap { params ->
+                        elements = typeParameters.memoryOptimizedMap { params ->
                             irCallListOf(
                                 transformerScope = transformer,
                                 type = kClassType,
-                                expressions = params.memoryOptimizedMap { irGet(it) }
+                                elements = params.memoryOptimizedMap { irGet(it) }
                             )
                         }
                     )
                     arguments[6] = irGet(thisReceiver!!)
                     arguments[7] = spyParam?.let(::irGet) ?: irNull()
+                    arguments[8] = transformer.buildDefaultsExtractorFactoryIfRequired(
+                        className = this@addMockClassConstructor.name,
+                        classesToIntercept = classesToIntercept,
+                        bodyBuilder = this@irBlockBody
+                    )
                 }
             )
             +irCall(invokeInstantiationCallbacksFun) {

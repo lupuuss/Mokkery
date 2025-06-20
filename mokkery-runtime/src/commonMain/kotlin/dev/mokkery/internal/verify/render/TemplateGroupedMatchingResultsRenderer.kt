@@ -10,9 +10,9 @@ import dev.mokkery.internal.calls.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
 internal class TemplateGroupedMatchingResultsRenderer(
-    private val indentation: Int = 2,
-    private val matchersFailuresRenderer: Renderer<Pair<CallTemplate, CallTrace>> = MatchersStatusRenderer(),
+    private val matchersFailuresRenderer: Renderer<Pair<CallTemplate, CallTrace>>,
     private val traceRenderer: Renderer<CallTrace> = ToStringRenderer,
+    private val indentation: Int = 2,
 ) : Renderer<TemplateGroupedMatchingResults> {
 
     private val traceIndentationString = indentationString(indentation)

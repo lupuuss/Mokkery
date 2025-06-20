@@ -1,8 +1,8 @@
-@file:Suppress("UNUSED_PARAMETER")
+@file:Suppress("UNUSED_PARAMETER", "UnusedReceiverParameter")
 
 package dev.mokkery
 
-import dev.mokkery.internal.MokkeryPluginNotAppliedException
+import dev.mokkery.internal.utils.toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1] and [T2].
@@ -15,7 +15,7 @@ import dev.mokkery.internal.MokkeryPluginNotAppliedException
 public inline fun <reified T1 : Any, reified T2 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany2<T1, T2>.() -> Unit = { }
-): MockMany2<T1, T2> = throw MokkeryPluginNotAppliedException()
+): MockMany2<T1, T2> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2] and [T3].
@@ -28,7 +28,7 @@ public inline fun <reified T1 : Any, reified T2 : Any> mockMany(
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany3<T1, T2, T3>.() -> Unit = { }
-): MockMany3<T1, T2, T3> = throw MokkeryPluginNotAppliedException()
+): MockMany3<T1, T2, T3> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2], [T3] and [T4].
@@ -41,7 +41,7 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> mockMan
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
-): MockMany4<T1, T2, T3, T4> = throw MokkeryPluginNotAppliedException()
+): MockMany4<T1, T2, T3, T4> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2], [T3], [T4] and [T5].
@@ -54,7 +54,7 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any, reified T5 : Any> mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
-): MockMany5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
+): MockMany5<T1, T2, T3, T4, T5> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1] and [T2]. It is a child of given [MokkerySuiteScope].
@@ -67,7 +67,7 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified
 public inline fun <reified T1 : Any, reified T2 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany2<T1, T2>.() -> Unit = { }
-): MockMany2<T1, T2> = throw MokkeryPluginNotAppliedException()
+): MockMany2<T1, T2> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2] and [T3]. It is a child of given [MokkerySuiteScope].
@@ -80,7 +80,7 @@ public inline fun <reified T1 : Any, reified T2 : Any> MokkerySuiteScope.mockMan
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany3<T1, T2, T3>.() -> Unit = { }
-): MockMany3<T1, T2, T3> = throw MokkeryPluginNotAppliedException()
+): MockMany3<T1, T2, T3> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2], [T3] and [T4]. It is a child of given [MokkerySuiteScope].
@@ -93,7 +93,7 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any> Mokkery
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
-): MockMany4<T1, T2, T3, T4> = throw MokkeryPluginNotAppliedException()
+): MockMany4<T1, T2, T3, T4> = toBeReplacedByCompilerPlugin
 
 /**
  * Provides mock implementation of [T1], [T2], [T3], [T4] and [T5]. It is a child of given [MokkerySuiteScope].
@@ -106,7 +106,7 @@ public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified
 public inline fun <reified T1 : Any, reified T2 : Any, reified T3 : Any, reified T4 : Any, reified T5 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode = MokkeryCompilerDefaults.mockMode,
     block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
-): MockMany5<T1, T2, T3, T4, T5> = throw MokkeryPluginNotAppliedException()
+): MockMany5<T1, T2, T3, T4, T5> = toBeReplacedByCompilerPlugin
 
 
 /**

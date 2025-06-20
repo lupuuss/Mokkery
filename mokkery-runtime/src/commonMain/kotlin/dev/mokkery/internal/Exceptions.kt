@@ -2,7 +2,6 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.internal.utils.bestName
-import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
 internal class CallNotMockedException(name: String) : MokkeryRuntimeException(message = "Call $name not mocked!")
@@ -25,35 +24,11 @@ internal class BlockingAnswerSuspendingCallException : MokkeryRuntimeException(
     message = "Suspend function was mocked with answer that is for blocking functions only!"
 )
 
-internal class ConcurrentTemplatingException : MokkeryRuntimeException(
-    "Any concurrent calls involving verify and every are illegal!"
-)
-
 internal class DefaultNothingException :
     MokkeryRuntimeException("This is the default exception for Nothing return type!")
 
-internal class MultipleVarargGenericMatchersException :
-    MokkeryRuntimeException("Using more than one generic vararg matcher is illegal!")
-
-internal class MultipleMatchersForSingleArgException(name: String, matchers: List<ArgMatcher<Any?>>) :
-    MokkeryRuntimeException(
-        "Multiple matchers for param '$name' = $matchers"
-    )
-
-internal class VarargsAmbiguityDetectedException : MokkeryRuntimeException(
-    "Varargs matchers registered in a ambiguous way. Pleas read the documentation how to avoid varargs ambiguity or report an issue."
-)
-
 internal class NoMoreSequentialAnswersException : MokkeryRuntimeException(
     "No more sequentially defined answers!"
-)
-
-internal class MissingMatchersForComposite(
-    compositeName: String,
-    expected: Int,
-    matchers: List<ArgMatcher<*>>
-) : MokkeryRuntimeException(
-    "`$compositeName` expects $expected matchers, but received ${matchers.size}! You probably used literal in composite matcher, which is illegal! Received matchers: $matchers"
 )
 
 internal class MissingSuperMethodException(
