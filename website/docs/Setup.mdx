@@ -28,8 +28,8 @@ import Admonition from '@theme/Admonition';
   <TabItem value="k2">
       ```kotlin
       plugins {
-          kotlin("multiplatform") version "2.1.21" // ...or any other Kotlin plugin
-          id("dev.mokkery") version "2.8.0"
+          kotlin("multiplatform") version "2.2.0" // ...or any other Kotlin plugin
+          id("dev.mokkery") version "2.9.0"
       }
       ```
   </TabItem>
@@ -89,7 +89,7 @@ dependencies {
 
 ### Source sets
 
-By default, Mokkery is applied to all Kotlin source sets in the project that either contain the word 'Test' in their names or are named exactly 'test'.
+By default, Mokkery is applied to all Kotlin source sets whose names either contain the word 'Test' or begin with 'test'.
 As a result, Mokkery is correctly applied to the default test source sets in Android, JVM, or Multiplatform projects.
 **However, this default behavior might need adjustments if any of your main custom source sets contain the word 'Test'.**
 
@@ -161,6 +161,7 @@ You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/buil
       </Admonition>
       | Mokkery version                  	 | Supported Kotlin versions                            |
       |------------------------------------|--------------------------------------------------------|
+      | 2.9.0                              | 2.2.0
       | 2.8.0                              | 2.1.20 - 2.1.21
       | 2.7.2                              | 2.1.0 - 2.1.21                                      |
       | 2.6.0 - 2.7.1                      | 2.1.0 - 2.1.10                                      |
