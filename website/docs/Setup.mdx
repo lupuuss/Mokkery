@@ -89,7 +89,7 @@ dependencies {
 
 ### Source sets
 
-By default, Mokkery is applied to all Kotlin source sets in the project that either contain the word 'Test' in their names or are named exactly 'test'.
+By default, Mokkery is applied to all Kotlin source sets whose names either contain the word 'Test' or begin with 'test'.
 As a result, Mokkery is correctly applied to the default test source sets in Android, JVM, or Multiplatform projects.
 **However, this default behavior might need adjustments if any of your main custom source sets contain the word 'Test'.**
 
