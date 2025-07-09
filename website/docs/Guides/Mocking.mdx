@@ -121,7 +121,7 @@ val repository = mock<BookRepository>(autoUnit) {
 If a method accepts parameters, you can define an answer only for specific parameters:
 ```kotlin
 everySuspend { repository.findById("1") } returns Book(id = "1", ...)
-everySuspend { repository.findById("2") } returns Book(id = "1", ...)
+everySuspend { repository.findById("2") } returns Book(id = "2", ...)
 
 repository.findById("1") // returns Book(id = "1", ...)
 repository.findById("2") // returns Book(id = "2", ...)
