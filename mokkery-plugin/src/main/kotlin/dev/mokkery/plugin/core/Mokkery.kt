@@ -122,16 +122,11 @@ object Mokkery {
         val everySuspend by dev_mokkery.callableId
     }
 
-    object Errors {
+    object MocksCreationErrors {
         fun indirectCall(
             typeArgument: String,
             functionName: String
         ) = "''$typeArgument'' is a type parameter! Specific type expected for a ''$functionName'' call!"
-
-        fun notLambdaExpression(
-            functionName: String,
-            param: String,
-        ) = "Argument passed to ''$functionName'' for param ''$param'' must be a lambda expression!"
 
         fun sealedTypeCannotBeIntercepted(
             typeName: String,
@@ -174,6 +169,13 @@ object Mokkery {
             typeName: String,
             functionName: String
         ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
+    }
+
+    object TemplatingErrors {
+        fun notLambdaExpression(
+            functionName: String,
+            param: String,
+        ) = "Argument passed to ''$functionName'' for param ''$param'' must be a lambda expression!"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

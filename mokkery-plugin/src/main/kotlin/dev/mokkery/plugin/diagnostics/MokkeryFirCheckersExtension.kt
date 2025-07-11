@@ -11,6 +11,9 @@ class MokkeryFirCheckersExtension(
 ) : FirAdditionalCheckersExtension(session) {
 
     override val expressionCheckers = object : ExpressionCheckers() {
-        override val functionCallCheckers = setOf(MokkeryCallsChecker(session, configuration))
+        override val functionCallCheckers = setOf(
+            MocksCreationChecker(session, configuration),
+            TemplatingChecker(session, configuration)
+        )
     }
 }
