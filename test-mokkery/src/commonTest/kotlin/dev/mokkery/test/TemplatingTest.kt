@@ -42,22 +42,6 @@ class TemplatingTest {
     }
 
     @Test
-    fun testFailsWhenReturningMockResultFromFunction() {
-        assertFailsWith<MokkeryRuntimeException> {
-            verify {
-                val variable = mock.run { callPrimitive(any()) }
-            }
-        }
-    }
-
-    @Test
-    fun testFailsWhenTryingToMockExtensionFunctionWithKotlinScopeFunctions() {
-        assertFailsWith<MokkeryRuntimeException> {
-            every { mock.run { any<Int>().callPrimitiveExtension() } } returns 1
-        }
-    }
-
-    @Test
     fun testSelf() {
         val mock = mock<SelfType>()
         every { mock.callWithSelf(mock) } returns mock

@@ -289,6 +289,29 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
     }
 
+    @Test
+    fun testValueArgMatchersScopeMatcher() {
+        every { mock.callPrimitive(eqValueScope(this, 1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun tesContextArgMatchersScopeMatcher() {
+        every { mock.callPrimitive(eqContextScope(1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun testInfixMatcherWithContext() {
+        every { mock.callPrimitive(1 orr 2 orr 3 orr 4) } returnsArgAt 0
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(3))
+        assertEquals(4, mock.callPrimitive(4))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
     private fun ArgMatchersScope.xor(@Matcher left: Int, @Matcher right: Int): Int = not(and(left, right))
 }
 
@@ -317,3 +340,10 @@ private fun <T> ArgMatchersScope.customAnd(
     }
 }
 
+private fun <T> eqValueScope(scope: ArgMatchersScope, value: T): T = scope.matches { it == value }
+
+context(scope: ArgMatchersScope)
+private fun <T> eqContextScope(value: T): T = scope.matches { it == value }
+
+context(scope: ArgMatchersScope)
+private inline infix fun <reified T> @receiver:Matcher T.orr(other: T): T = scope.or(this, other)

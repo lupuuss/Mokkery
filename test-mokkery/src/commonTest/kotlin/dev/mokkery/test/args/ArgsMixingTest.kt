@@ -209,4 +209,12 @@ class ArgsMixingTest {
         assertEquals(2, mock.callPrimitiveVarargs(0, 1, 2, 2, 3))
         assertEquals(3, mock.callPrimitiveVarargs(0, 2, 2, 3))
     }
+
+    @Test
+    fun testOnlyVarargMatcher() {
+        every { mock.callPrimitiveVarargs(inputs = anyVarargsInt()) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(inputs = intArrayOf(1, 2)))
+        assertEquals(1, mock.callPrimitiveVarargs(inputs = intArrayOf(1)))
+        assertEquals(1, mock.callPrimitiveVarargs())
+    }
 }

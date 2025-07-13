@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.Mokkery.Callable
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.error0
 import org.jetbrains.kotlin.diagnostics.error2
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirSession
@@ -23,12 +24,15 @@ import org.jetbrains.kotlin.psi.KtElement
 
 class TemplatingChecker(
     private val session: FirSession,
-    configuration: CompilerConfiguration,
+    private val configuration: CompilerConfiguration,
 ) : FirFunctionCallChecker(MppCheckerKind.Common) {
-    private val every = Callable.every
-    private val everySuspend = Callable.everySuspend
-    private val verify = Callable.verify
-    private val verifySuspend = Callable.verifySuspend
+
+    private val templatingFunctions = setOf(
+        Callable.every,
+        Callable.everySuspend,
+        Callable.verify,
+        Callable.verifySuspend
+    )
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(expression: FirFunctionCall) {
@@ -36,7 +40,7 @@ class TemplatingChecker(
         val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return
         context(symbol) {
             when (symbol.callableId) {
-                every, everySuspend, verify, verifySuspend -> checkTemplating(expression)
+                in templatingFunctions -> checkTemplating(expression)
             }
         }
     }
@@ -60,6 +64,15 @@ class TemplatingChecker(
                 b = funSymbol.valueParameterSymbols.last(),
             )
         }
+        val visitor = MatchersUsageReporterVisitor(
+            session = session,
+            context = context,
+            reporter = reporter,
+            configuration = configuration,
+            parentFunction = blockArgument.anonymousFunction.symbol,
+            usageContext = MatchersUsageContext.TEMPLATING
+        )
+        blockArgument.accept(visitor)
     }
 
     object Diagnostics {

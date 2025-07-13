@@ -154,7 +154,6 @@ class MatchersInliner(
         val irSet = super.visitSetValue(expression)
         if (irSet !is IrSetValue) return irSet
         if (irSet.symbol.owner !in matchersVariables) return irSet
-        irSet.type = irSet.symbol.owner.type
         if (!irSet.value.type.isMatcher())  {
             irSet.value = callEqMatcher(irSet.value)
         }

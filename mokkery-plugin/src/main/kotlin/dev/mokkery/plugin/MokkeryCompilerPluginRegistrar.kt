@@ -1,8 +1,9 @@
 package dev.mokkery.plugin
 
 import com.google.auto.service.AutoService
+import dev.mokkery.plugin.diagnostics.MatchersUsageDiagnosticRendererFactory
 import dev.mokkery.plugin.diagnostics.MocksCreationDiagnosticRendererFactory
-import dev.mokkery.plugin.diagnostics.TempltingDiagnosticRendererFactory
+import dev.mokkery.plugin.diagnostics.TemplatingDiagnosticRendererFactory
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -17,7 +18,10 @@ class MokkeryCompilerPluginRegistrar : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         IrGenerationExtension.registerExtension(MokkeryIrGenerationExtension(configuration))
         FirExtensionRegistrarAdapter.registerExtension(MokkeryFirRegistrar(configuration))
-        RootDiagnosticRendererFactory.registerFactory(MocksCreationDiagnosticRendererFactory())
-        RootDiagnosticRendererFactory.registerFactory(TempltingDiagnosticRendererFactory())
+        RootDiagnosticRendererFactory.run {
+            registerFactory(MocksCreationDiagnosticRendererFactory())
+            registerFactory(TemplatingDiagnosticRendererFactory())
+            registerFactory(MatchersUsageDiagnosticRendererFactory())
+        }
     }
 }

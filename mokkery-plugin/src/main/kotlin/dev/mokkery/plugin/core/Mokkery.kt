@@ -120,6 +120,15 @@ object Mokkery {
         val verifySuspend by dev_mokkery.callableId
         val every by dev_mokkery.callableId
         val everySuspend by dev_mokkery.callableId
+        val ext by dev_mokkery_templating.callableId
+        val ctx by dev_mokkery_templating.callableId
+    }
+
+    object ClassId {
+        val ArgMatchersScope by dev_mokkery_matcher.classId
+        val TemplatingScope by dev_mokkery_templating.classId
+        val Matcher by dev_mokkery_annotations.classId
+        val VarArgMatcherBuilder by dev_mokkery_annotations.classId
     }
 
     object MocksCreationErrors {
@@ -147,7 +156,8 @@ object Mokkery {
             typeName: String,
             functionName: String,
             nonAbstractMembers: String,
-        ) = "Type ''$typeName'' has final members and cannot be used with ''$functionName''! Final members: $nonAbstractMembers"
+        ) =
+            "Type ''$typeName'' has final members and cannot be used with ''$functionName''! Final members: $nonAbstractMembers"
 
         fun noPublicConstructorTypeCannotBeIntercepted(
             typeName: String,
@@ -155,20 +165,21 @@ object Mokkery {
         ) = "Type ''$typeName'' has no public constructor and cannot be used with ''$functionName''!"
 
         fun noDuplicatesForMockMany(
-            typeName: String, 
+            typeName: String,
             functionName: String,
             occurrences: String,
         ) = "Type ''$typeName'' for ''$functionName'' must occur only once, but it occurs $occurrences times!"
-        
+
         fun singleSuperClass(
             functionName: String,
             superClasses: String
         ) = "Only one super class is acceptable for ''$functionName'' type! Detected super classes: $superClasses"
-        
+
         fun functionalTypeNotAllowedOnJs(
             typeName: String,
             functionName: String
-        ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
+        ) =
+            "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
     }
 
     object TemplatingErrors {
@@ -176,6 +187,64 @@ object Mokkery {
             functionName: String,
             param: String,
         ) = "Argument passed to ''$functionName'' for param ''$param'' must be a lambda expression!"
+    }
+
+    object MatcherUsageErrors {
+
+        private val scopeFunctionsHint = "If you're trying to call a function with context or extension parameters, use the appropriate `ctx` or `ext` functions."
+
+        fun illegalNestedTemplating(
+            function: String
+        ) = "''$function'' calls cannot be nested in templating functions or matcher declarations!"
+
+        fun illegalNestedFunctionsMatchers(
+            function: String
+        ) = "Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in ''$function''!"
+
+        fun illegalNestedClassMatchers(
+            klass: String
+        ) = "Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in ''$klass''"
+
+
+        fun matcherPassedToNonMatcherParam(param: String) = "''$param'' does not accept matchers, but matcher argument is given! Mark parameter with @Matcher annotation, or use regular values!"
+
+        fun illegalVarargsComposite() = "Given expression must be a vararg matcher or a composite of vararg matchers, because all matchers in a composite must be vararg if any of them is."
+
+        fun varargRequiredInAllBranches() = "When vararg matcher is given in one conditional branch, then all other branches must return vararg matchers!"
+
+        fun illegalTryCatch() = "Returning matchers from try/catch is not supported!"
+
+        fun illegalMatcherInNonMemberFunction(function: String): String {
+            return "Matchers can only be passed to member functions, but were passed to ''$function''. $scopeFunctionsHint"
+        }
+
+        fun illegalMethodInvocationOnMatcher() = "Invoking methods on matchers is illegal."
+
+        fun illegalOperatorUsageOnMatcher(operator: String) = "Operators cannot be used with matchers, but used with ''$operator''"
+
+        fun illegalMatcherInCondition() = "Matcher cannot be used as condition."
+
+        fun variableDefinedOutOfScope(variable: String) = "''$variable'' is defined outside the templating scope and cannot be assigned using matchers."
+
+        fun variableNotMatcher(variable: String) = "''$variable'' is not initialized with a matcher and therefore cannot be reassigned using one."
+
+        fun incompatibleVariableMatcherType(
+            variable: String,
+            variableMatcherType: String,
+            assignedMatcherType: String
+        ) = "''$variable'' is initialized with $variableMatcherType matcher and cannot be reassigned with $assignedMatcherType matcher!"
+
+        fun matcherPassedToMethodInMatcherBuilder() = "Passing matchers to methods is not legal inside matcher builders!"
+
+        fun illegalSpreadForVararg() = "The spread operator on matchers is only allowed for vararg matchers or composite matchers that accept only vararg matchers!"
+
+        fun singleVarargMatcherAllowed() = "Only one vararg matcher is allowed!"
+
+        fun varargMatcherUsedWithoutSpread() = "Vararg matcher can only be used with spread operator!"
+
+        fun varargMatcherUsedWithoutVararg() = "Vararg matcher can only be used with varargs!"
+
+        fun matcherPassedToNonMemberFunction() = "Matchers can be only passed to mock methods!"
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)
@@ -189,6 +258,13 @@ val FqName.callableId: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, Cal
     get() = PropertyDelegateProvider { _: Any?, property ->
         ReadOnlyProperty { _, _ ->
             CallableId(this, Name.identifier(property.name))
+        }
+    }
+
+val FqName.classId: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassId>>
+    get() = PropertyDelegateProvider { _: Any?, property ->
+        ReadOnlyProperty { _, _ ->
+            ClassId(this, Name.identifier(property.name))
         }
     }
 
