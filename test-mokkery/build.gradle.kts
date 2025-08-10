@@ -16,8 +16,8 @@ allOpen {
 }
 
 mokkery {
-    ignoreFinalMembers.set(true)
-    rule.set(ApplicationRule.All)
+    ignoreFinalMembers = true
+    rule = ApplicationRule.All
 }
 
 kotlin {
