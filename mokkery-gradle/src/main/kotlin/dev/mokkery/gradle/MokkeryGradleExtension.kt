@@ -43,4 +43,12 @@ public interface MokkeryGradleExtension {
      * By default, it is disabled.
      */
     public val ignoreFinalMembers: Property<Boolean>
+
+    /**
+     * Enables Mokkery FIR level checkers. By default, it is enabled.
+     *
+     * Generally, it shouldn't be disabled as it detects errors in Mokkery usage, but it might
+     * be used in case of a false-positives that prevents correct Mokkery code from being compiled.
+     */
+    public val enableFirDiagnostics: Property<Boolean>
 }
