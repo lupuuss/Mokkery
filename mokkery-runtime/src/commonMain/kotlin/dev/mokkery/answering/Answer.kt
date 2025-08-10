@@ -13,7 +13,6 @@ import dev.mokkery.callOriginal
 import dev.mokkery.callSuper
 import dev.mokkery.self
 import dev.mokkery.context.argValue
-import dev.mokkery.toFunctionScope
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
@@ -36,27 +35,27 @@ import kotlinx.atomicfu.locks.withLock
  *
  * Check existing answers implementations for samples.
  *
- * ### Migrations from [FunctionScope] to [MokkeryCallScope]:
- * * If your answer overrides both [call] and [callSuspend] with [FunctionScope], migrate to [call]
+ * ### Migrations from `FunctionScope` to [MokkeryCallScope]:
+ * * If your answer overrides both [call] and `callSuspend` with `FunctionScope`, migrate to [call]
  *   with [MokkeryBlockingCallScope] and [call] with [MokkerySuspendCallScope].
- * * If your answer overrides only [call] with [FunctionScope], it means that it was possible to call this answer in
+ * * If your answer overrides only [call] with `FunctionScope`, it means that it was possible to call this answer in
  *   both blocking and suspending context. In this case you need to change the base type from [Answer] to [Answer.Unified].
  *   Now, override [call] with [MokkeryCallScope].
- * * If your answer overrides [Answer.Suspending] simply migrate from [callSuspend] to [call] with [MokkerySuspendCallScope].
+ * * If your answer overrides [Answer.Suspending] simply migrate from `callSuspend` to [call] with [MokkerySuspendCallScope].
  *
- * [FunctionScope] API mappings to [MokkeryCallScope] API:
+ * `FunctionScope` API mappings to [MokkeryCallScope] API:
  *
- * | [FunctionScope] member function    | [MokkeryCallScope] extensions                                                                          |
+ * | `FunctionScope` member function    | [MokkeryCallScope] extensions                                                                          |
  * |------------------------------------|---------------------------------------------------------------------------------------------------------|
- * | [FunctionScope.returnType]         | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.function] -> [dev.mokkery.context.Function.returnType] |
- * | [FunctionScope.args]               | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValues]                                 |
- * | [FunctionScope.arg]                | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValue]                                  |
- * | [FunctionScope.supers]             | [MokkeryCallScope.supers]                                                                              |
- * | [FunctionScope.self]               | [MokkeryCallScope.self]                                                                                |
- * | [FunctionScope.callOriginal]       | [callOriginal]                                                                |
- * | [FunctionScope.callSuspendOriginal]| [callOriginal]                                                                 |
- * | [FunctionScope.callSuper]          | [callSuper]                                                                   |
- * | [FunctionScope.callSuspendSuper]   | [callSuper]
+ * | `FunctionScope.returnType`]        | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.function] -> [dev.mokkery.context.Function.returnType] |
+ * | `FunctionScope.args`               | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValues]                                 |
+ * | `FunctionScope.arg`                | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValue]                                  |
+ * | `FunctionScope.supers`             | [MokkeryCallScope.supers]                                                                              |
+ * | `FunctionScope.self`               | [MokkeryCallScope.self]                                                                                |
+ * | `FunctionScope.callOriginal`       | [callOriginal]                                                                |
+ * | `FunctionScope.callSuspendOriginal`| [callOriginal]                                                                 |
+ * | `FunctionScope.callSuper`          | [callSuper]                                                                   |
+ * | `FunctionScope.callSuspendSuper`   | [callSuper]
  */
 @DelicateMokkeryApi
 public interface Answer<out T> {
@@ -64,32 +63,12 @@ public interface Answer<out T> {
     /**
      * Provides a return value for a blocking function call with given [scope].
      */
-    public fun call(scope: MokkeryBlockingCallScope): T {
-        @Suppress("DEPRECATION_ERROR")
-        return call(scope.toFunctionScope())
-    }
+    public fun call(scope: MokkeryBlockingCallScope): T
 
     /**
      * Provides a return value for a suspend function call with given [scope].
      */
-    public suspend fun call(scope: MokkerySuspendCallScope): T {
-        @Suppress("DEPRECATION_ERROR")
-        return callSuspend(scope.toFunctionScope())
-    }
-
-    /**
-     * **DEPRECATED:** Use [call] with [MokkeryBlockingCallScope] instead!
-     */
-    @Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
-    @Suppress("DEPRECATION_ERROR")
-    public fun call(scope: FunctionScope): T = throw NotImplementedError()
-
-    /**
-     * **DEPRECATED:** Use [call] with [MokkerySuspendCallScope] instead!
-     */
-    @Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
-    @Suppress("DEPRECATION_ERROR")
-    public suspend fun callSuspend(scope: FunctionScope): T = call(scope)
+    public suspend fun call(scope: MokkerySuspendCallScope): T
 
     /**
      * Returns human-readable answer description. By default, it returns `answers $this`.
@@ -132,7 +111,7 @@ public interface Answer<out T> {
     }
 
     /**
-     * Returns [value] on [call] and [callSuspend].
+     * Returns [value] on [call].
      */
     @Poko
     public class Const<T>(public val value: T) : Unified<T> {
@@ -143,7 +122,7 @@ public interface Answer<out T> {
     }
 
     /**
-     * Calls [block] on [call] and [callSuspend].
+     * Calls [block] on [call].
      */
     @Poko
     public class Block<T>(public val block: BlockingCallDefinitionScope<T>.(CallArgs) -> T) : Blocking<T> {
@@ -157,7 +136,7 @@ public interface Answer<out T> {
     }
 
     /**
-     * Throws [throwable] on [call] and [callSuspend]
+     * Throws [throwable] on [call].
      */
     @Poko
     public class Throws(public val throwable: Throwable) : Unified<Nothing> {
@@ -234,5 +213,3 @@ public interface Answer<out T> {
         }
     }
 }
-
-internal const val AnswerDeprecationMessage = "Migrate to new `Answer.call` overloads. Read `Answer` documentation for migration guide."
