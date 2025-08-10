@@ -34,6 +34,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.rule.convention(ApplicationRule.AllTests)
         mokkery.ignoreInlineMembers.convention(false)
         mokkery.ignoreFinalMembers.convention(false)
+        mokkery.enableFirDiagnostics.convention(true)
         target.configureDependencies()
         super.apply(target)
     }
@@ -55,6 +56,10 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 SubpluginOption(
                     key = "ignoreInlineMembers",
                     value = project.mokkery.ignoreInlineMembers.get().toString()
+                ),
+                SubpluginOption(
+                    key = "enableFirDiagnostics",
+                    value = project.mokkery.enableFirDiagnostics.get().toString()
                 )
             )
         }
