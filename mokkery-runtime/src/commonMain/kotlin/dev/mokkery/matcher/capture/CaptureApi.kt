@@ -1,36 +1,32 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package dev.mokkery.matcher.capture
 
-import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.annotations.Matcher
+import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.matchesComposite
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [capture].
  * Arguments are captured only if all other matchers match.
  */
-public inline fun <reified T> ArgMatchersScope.capture(
+public fun <T> MokkeryMatcherScope.capture(
     container: Capture<T>,
-    matcher: T = any()
-): T {
-    return matches(CaptureMatcher(container))
-}
+    @Matcher matcher: T = any()
+): T = matchesComposite(matcher) { CaptureMatcher(container, it[0]) }
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [list].
  * Arguments are captured only if all other matchers match.
  */
-public inline fun <reified T> ArgMatchersScope.capture(
+public fun <T> MokkeryMatcherScope.capture(
     list: MutableList<T>,
-    matcher: T = any()
-): T {
-    return matches(CaptureMatcher(list.asCapture()))
-}
+    @Matcher matcher: T = any()
+): T = capture(list.asCapture(), matcher)
 
 /**
  * Short for [capture] with [Capture.callback].
  */
-public inline fun <reified T> ArgMatchersScope.onArg(matcher: T = any(), noinline block: (T) -> Unit): T {
-    return capture(Capture.callback(callback = block), matcher = matcher)
-}
+public fun <T> MokkeryMatcherScope.onArg(
+    @Matcher matcher: T = any(),
+    block: (T) -> Unit
+): T = capture(Capture.callback(callback = block), matcher = matcher)

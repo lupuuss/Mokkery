@@ -10,7 +10,6 @@ import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
-import dev.mokkery.toFunctionScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -26,17 +25,7 @@ public interface Awaitable<out T> {
     /**
      * Suspends current function call until the awaited result is available.
      */
-    public suspend fun await(scope: MokkerySuspendCallScope): T {
-        @Suppress("DEPRECATION")
-        return await(scope.toFunctionScope())
-    }
-
-    /**
-     * **DEPRECATED: Use [await] with [MokkerySuspendCallScope] instead!**
-     */
-    @Deprecated(AnswerDeprecationMessage)
-    @Suppress("DEPRECATION")
-    public suspend fun await(scope: dev.mokkery.answering.FunctionScope): T = throw NotImplementedError()
+    public suspend fun await(scope: MokkerySuspendCallScope): T
 
     /**
      * Provides a description of the awaitable action.
@@ -108,5 +97,3 @@ public interface Awaitable<out T> {
         }
     }
 }
-
-internal const val AnswerDeprecationMessage = "Migrate to new `await` overload. Read `Answer` documentation for migration guide."

@@ -1,7 +1,5 @@
 package dev.mokkery
 
-import dev.mokkery.answering.AnswerDeprecationMessage
-import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.require
 import dev.mokkery.internal.MissingArgsForSuperMethodException
@@ -67,23 +65,6 @@ public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args:
         .let { it ?: throw MissingSuperMethodException(superType) }
         .unsafeCast<suspend (List<Any?>) -> Any?>()
         .invoke(args)
-}
-
-/**
- * Creates [dev.mokkery.answering.FunctionScope] from this [MokkeryCallScope]
- */
-@Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
-public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionScope {
-    val call = call
-    val function = call.function
-    return dev.mokkery.answering.FunctionScope(
-        returnType = function.returnType,
-        args = call.args.map(CallArgument::value),
-        self = self,
-        supers = supers,
-        classSupertypes = mockSpec.interceptedTypes.map { it.type }
-    )
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>
