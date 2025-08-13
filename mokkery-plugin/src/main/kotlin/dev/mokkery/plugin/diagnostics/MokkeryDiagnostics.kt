@@ -1,15 +1,14 @@
 package dev.mokkery.plugin.diagnostics
 
-import org.jetbrains.kotlin.diagnostics.error2
-import org.jetbrains.kotlin.diagnostics.error3
+import dev.mokkery.plugin.fir.KtDiagnosticsContainerCompat
+import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 
-
-object MokkeryDiagnostics {
+object MokkeryDiagnostics : KtDiagnosticsContainerCompat() {
 
     val INDIRECT_INTERCEPTION by error2<KtElement, Name, ConeKotlinType>()
 
@@ -24,4 +23,5 @@ object MokkeryDiagnostics {
 
     val FUNCTIONAL_PARAM_MUST_BE_LAMBDA by error2<KtElement, Name, FirValueParameterSymbol>()
 
+    override fun getRendererFactory(): BaseDiagnosticRendererFactory = MokkeryDiagnosticRendererFactory()
 }

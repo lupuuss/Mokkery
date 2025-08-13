@@ -1,7 +1,7 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery.Errors
-import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactoryToRendererMap
+import dev.mokkery.plugin.fir.KtDiagnosticFactoryToRendererMapCompat
 import org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory
 import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer
@@ -12,7 +12,7 @@ class MokkeryDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
 
     private val typeRenderer: DiagnosticParameterRenderer<ConeKotlinType> = FirDiagnosticRenderers.RENDER_TYPE
 
-    override val MAP = KtDiagnosticFactoryToRendererMap("MokkeryDiagnostic").apply {
+    override val MAP by KtDiagnosticFactoryToRendererMapCompat("MokkeryDiagnostic") {
         put(
             factory = MokkeryDiagnostics.INDIRECT_INTERCEPTION,
             message = Errors.indirectCall(typeArgument = "{1}", functionName = "{0}"),
