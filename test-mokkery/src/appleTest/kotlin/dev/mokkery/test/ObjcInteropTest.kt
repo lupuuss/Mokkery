@@ -7,10 +7,8 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
 import platform.Foundation.NSDecimalNumber
-import kotlin.test.Ignore
 import kotlin.test.Test
 
-@Ignore
 class ObjcInteropTest {
 
     @Test
