@@ -7,7 +7,12 @@ plugins {
 
 dependencies {
     commonMainApi(project(":mokkery-core"))
-    commonTestImplementation(kotlin("test"))
+    commonMainCompileOnly(libs.kotlin.stdlib)
+
+    jsMainCompileOnly(libs.kotlin.dom.api.compat)
+
     jvmMainImplementation(libs.objenesis)
     jvmMainImplementation(libs.bytebuddy)
+
+    commonTestImplementation(kotlin("test"))
 }

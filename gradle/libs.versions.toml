@@ -19,6 +19,9 @@ gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradl
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-dom-api-compat = { module = "org.jetbrains.kotlin:kotlin-dom-api-compat", version.ref = "kotlin" }
+
 vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-publish-plugin" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
