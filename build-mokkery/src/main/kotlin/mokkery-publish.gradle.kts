@@ -5,7 +5,6 @@ import MokkeryAttributes.GitIssuesUrl
 import MokkeryAttributes.WebsiteUrl
 import com.vanniktech.maven.publish.SonatypeHost
 import java.net.URI
-import java.net.URL
 
 plugins {
     id("com.vanniktech.maven.publish")
