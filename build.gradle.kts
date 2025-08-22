@@ -36,7 +36,7 @@ allprojects {
     afterEvaluate {
         extensions
             .findByType<KotlinProjectExtension>()
-            ?.jvmToolchain(11)
+            ?.jvmToolchain(17)
         val javaVersion = JavaVersion.VERSION_1_8
         project
             .tasks
