@@ -74,8 +74,8 @@ public fun <T> BlockingCallDefinitionScope(
     scope: MokkeryBlockingCallScope
 ): BlockingCallDefinitionScope<T> = BlockingCallDefinitionScopeImpl(scope)
 
-@Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
+@Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 public fun <T> BlockingCallDefinitionScope(
     scope: FunctionScope
 ): BlockingCallDefinitionScope<T> = DeprecatedBlockingCallDefinitionScopeImpl(scope)
@@ -122,7 +122,7 @@ public fun <T> SuspendCallDefinitionScope(
 ): SuspendCallDefinitionScope<T> = SuspendCallDefinitionScopeImpl(scope)
 
 @Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 public fun <T> SuspendCallDefinitionScope(
     scope: FunctionScope
 ): SuspendCallDefinitionScope<T> = DeprecatedSuspendCallDefinitionScopeImpl(scope)
@@ -173,8 +173,7 @@ private class SuspendCallDefinitionScopeImpl<R>(
     override suspend fun callSpiedWith(vararg args: Any?): R = scope.callSpied(args.toList()).unsafeCast()
 }
 
-
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private class DeprecatedBlockingCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : BlockingCallDefinitionScope<R> {
@@ -197,7 +196,7 @@ private class DeprecatedBlockingCallDefinitionScopeImpl<R>(
     override fun callSpiedWith(vararg args: Any?): R = mokkeryRuntimeError("`callSpiedWith` is not supported with `FunctionScope`!")
 }
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private class DeprecatedSuspendCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : SuspendCallDefinitionScope<R> {

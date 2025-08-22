@@ -101,8 +101,8 @@ public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? {
 /**
  * Creates [dev.mokkery.answering.FunctionScope] from this [MokkeryCallScope]
  */
-@Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
+@Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionScope {
     val call = call
     val function = call.function

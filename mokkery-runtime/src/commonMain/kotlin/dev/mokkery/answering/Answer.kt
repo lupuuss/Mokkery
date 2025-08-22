@@ -65,7 +65,7 @@ public interface Answer<out T> {
      * Provides a return value for a blocking function call with given [scope].
      */
     public fun call(scope: MokkeryBlockingCallScope): T {
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         return call(scope.toFunctionScope())
     }
 
@@ -73,22 +73,22 @@ public interface Answer<out T> {
      * Provides a return value for a suspend function call with given [scope].
      */
     public suspend fun call(scope: MokkerySuspendCallScope): T {
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         return callSuspend(scope.toFunctionScope())
     }
 
     /**
      * **DEPRECATED:** Use [call] with [MokkeryBlockingCallScope] instead!
      */
-    @Deprecated(AnswerDeprecationMessage)
-    @Suppress("DEPRECATION")
+    @Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+    @Suppress("DEPRECATION_ERROR")
     public fun call(scope: FunctionScope): T = throw NotImplementedError()
 
     /**
      * **DEPRECATED:** Use [call] with [MokkerySuspendCallScope] instead!
      */
-    @Deprecated(AnswerDeprecationMessage)
-    @Suppress("DEPRECATION")
+    @Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+    @Suppress("DEPRECATION_ERROR")
     public suspend fun callSuspend(scope: FunctionScope): T = call(scope)
 
     /**
