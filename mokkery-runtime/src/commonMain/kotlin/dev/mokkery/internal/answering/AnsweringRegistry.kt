@@ -18,6 +18,7 @@ import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.isSpy
 import dev.mokkery.internal.names.shortToString
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
@@ -77,10 +78,9 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
     }
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
-        val spyDelegate = scope.associatedFunctions.spiedFunction
         val mockMode = scope.mockSpec.mode
         return when {
-            spyDelegate != null -> DelegateAnswer(spyDelegate)
+            scope.isSpy -> SpiedCallAnswer
             mockMode == MockMode.autofill -> Answer.Autofill
             mockMode == MockMode.original && scope.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original)
             mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)

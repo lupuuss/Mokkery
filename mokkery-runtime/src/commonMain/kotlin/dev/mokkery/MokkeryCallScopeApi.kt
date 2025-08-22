@@ -4,9 +4,12 @@ import dev.mokkery.answering.AnswerDeprecationMessage
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.require
-import dev.mokkery.internal.MissingArgsForSuperMethodException
+import dev.mokkery.internal.IncorrectArgsForSpiedMethodException
+import dev.mokkery.internal.IncorrectArgsForSuperMethodException
+import dev.mokkery.internal.MissingSpyMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
+import dev.mokkery.internal.assertSpy
 import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.mockSpec
 import dev.mokkery.internal.utils.bestName
@@ -51,7 +54,7 @@ public suspend fun MokkerySuspendCallScope.callOriginal(args: List<Any?>): Any? 
  * Calls super method of [superType] with given [args]
  */
 public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? {
-    checkArgs(args)
+    checkSuperArgs(args)
     return supers[superType]
         .let { it ?: throw MissingSuperMethodException(superType) }
         .unsafeCast<(List<Any?>) -> Any?>()
@@ -62,9 +65,35 @@ public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<A
  * Calls super method of [superType] with given [args]
  */
 public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? {
-    checkArgs(args)
+    checkSuperArgs(args)
     return supers[superType]
         .let { it ?: throw MissingSuperMethodException(superType) }
+        .unsafeCast<suspend (List<Any?>) -> Any?>()
+        .invoke(args)
+}
+
+/**
+ * Calls spied method with given [args].
+ */
+public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? {
+    assertSpy()
+    checkSpiedArgs(args)
+    return associatedFunctions
+        .spiedFunction
+        .let { it ?: throw MissingSpyMethodException() }
+        .unsafeCast<(List<Any?>) -> Any?>()
+        .invoke(args)
+}
+
+/**
+ * Calls spied method with given [args].
+ */
+public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? {
+    assertSpy()
+    checkSpiedArgs(args)
+    return associatedFunctions
+        .spiedFunction
+        .let { it ?: throw MissingSpyMethodException() }
         .unsafeCast<suspend (List<Any?>) -> Any?>()
         .invoke(args)
 }
@@ -100,8 +129,14 @@ private val MokkeryCallScope.methodOriginType: KClass<*>
         return superType
     }
 
-private fun MokkeryCallScope.checkArgs(args: List<Any?>) {
+private fun MokkeryCallScope.checkSuperArgs(args: List<Any?>) {
     if (call.args.size != args.size) {
-        throw MissingArgsForSuperMethodException(call.args.size, args.size)
+        throw IncorrectArgsForSuperMethodException(call.args.size, args.size)
+    }
+}
+
+private fun MokkeryCallScope.checkSpiedArgs(args: List<Any?>) {
+    if (call.args.size != args.size) {
+        throw IncorrectArgsForSpiedMethodException(call.args.size, args.size)
     }
 }

@@ -2,7 +2,7 @@ package dev.mokkery.answering
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.MissingArgsForSuperMethodException
+import dev.mokkery.internal.IncorrectArgsForSuperMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.utils.bestName
@@ -51,7 +51,7 @@ public class FunctionScope internal constructor(
      */
     public fun callSuper(superType: KClass<*>, args: List<Any?>): Any? {
         if (this.args.size != args.size) {
-            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+            throw IncorrectArgsForSuperMethodException(this.args.size, args.size)
         }
         return supers[superType]
             .unsafeCastOrNull<(List<Any?>) -> Any?>()
@@ -64,7 +64,7 @@ public class FunctionScope internal constructor(
      */
     public suspend fun callSuspendSuper(superType: KClass<*>, args: List<Any?>): Any? {
         if (this.args.size != args.size) {
-            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+            throw IncorrectArgsForSuperMethodException(this.args.size, args.size)
         }
         return supers[superType]
             .unsafeCastOrNull<suspend (List<Any?>) -> Any?>()
@@ -109,7 +109,7 @@ public class FunctionScope internal constructor(
 
     private fun checkArgs(args: List<Any?>) {
         if (this.args.size != args.size) {
-            throw MissingArgsForSuperMethodException(this.args.size, args.size)
+            throw IncorrectArgsForSuperMethodException(this.args.size, args.size)
         }
     }
 }
