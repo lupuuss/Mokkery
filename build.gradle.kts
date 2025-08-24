@@ -20,6 +20,7 @@ buildscript {
     dependencies {
         classpath(":build-mokkery")
         classpath(libs.dokka.base)
+        classpath(libs.agp)
     }
 }
 
@@ -38,19 +39,18 @@ allprojects {
             .findByType<KotlinProjectExtension>()
             ?.jvmToolchain(17)
         val javaVersion = JavaVersion.VERSION_1_8
-        project
-            .tasks
+        tasks
             .withType<JavaCompile>()
             .configureEach {
                 sourceCompatibility = javaVersion.toString()
                 targetCompatibility = javaVersion.toString()
             }
-        project
-            .tasks
+        tasks
             .withType<KotlinCompile>()
             .configureEach {
                 compilerOptions {
                     jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+                    freeCompilerArgs.add("-Xjdk-release=$javaVersion")
                 }
             }
     }

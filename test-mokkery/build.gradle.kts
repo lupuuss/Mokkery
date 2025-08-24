@@ -4,10 +4,22 @@ import dev.mokkery.gradle.mokkery
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
+buildscript {
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.11.0")
+    }
+}
+
 plugins {
     kotlin("multiplatform")
     id("dev.mokkery")
     id("org.jetbrains.kotlin.plugin.allopen")
+    id("com.android.library") version "8.11.0"
+}
+
+android {
+    namespace = "dev.mokkery.test"
+    compileSdk = 36
 }
 
 allOpen {
@@ -28,6 +40,8 @@ kotlin {
             }
         }
     }
+
+    androidTarget()
 
     jvm()
 

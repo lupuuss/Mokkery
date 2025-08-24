@@ -25,7 +25,7 @@ internal class TestCallMatcher(
 
     fun returnsMany(vararg values: CallMatchResult) {
         val valuesQueue = values.toMutableList()
-        calls = { _, _ -> valuesQueue.removeFirst() }
+        calls = { _, _ -> valuesQueue.removeAt(0) }
     }
 
     override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult {

@@ -10,12 +10,15 @@ vanniktech-publish-plugin = "0.32.0"
 objensis = "3.4"
 bytebuddy = "1.14.19"
 gradle-portal-publish = "1.2.1"
+agp = "8.11.0"
+dexmaker = "2.28.6"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
+agp-library = { id = "com.android.library"}
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -23,6 +26,7 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlin-dom-api-compat = { module = "org.jetbrains.kotlin:kotlin-dom-api-compat", version.ref = "kotlin" }
 
 vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-publish-plugin" }
+agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
@@ -38,3 +42,4 @@ google-autoservice-annotations = { module = "com.google.auto.service:auto-servic
 
 objenesis = { module = "org.objenesis:objenesis", version.ref = "objensis" }
 bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
+dexmaker = { module = "com.linkedin.dexmaker:dexmaker", version.ref = "dexmaker" }
