@@ -12,6 +12,11 @@ pluginManagement {
                 excludeGroup("dev.mokkery")
             }
         }
+        google {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
         mavenLocal()
     }
 }
@@ -19,6 +24,11 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         mavenCentral {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
+        google {
             content {
                 excludeGroup("dev.mokkery")
             }

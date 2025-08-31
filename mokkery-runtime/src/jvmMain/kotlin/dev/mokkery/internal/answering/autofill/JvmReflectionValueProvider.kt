@@ -6,7 +6,7 @@ import org.objenesis.ObjenesisStd
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 
-internal object ReflectionBasedValueProvider : AutofillProvider<Any> {
+internal object JvmReflectionValueProvider : AutofillProvider<Any> {
 
     private val objenesis = ObjenesisStd()
     private val byteBuddy = ByteBuddy()

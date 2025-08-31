@@ -36,7 +36,7 @@ private class ArgMatchersComposerImpl : ArgMatchersComposer {
             }
             var composite: ArgMatcher.Composite<Any?> = it
             while (stack.isNotEmpty() && !composite.isFilled()) {
-                val matcher = stack.removeLast()
+                val matcher = stack.removeAt(stack.lastIndex)
                 val composeResult =  composite.compose(matcher)
                 composite = when {
                     composite !is CompositeVarArgMatcher && matcher is VarArgMatcher -> VarargMatcherMarker(composeResult)
