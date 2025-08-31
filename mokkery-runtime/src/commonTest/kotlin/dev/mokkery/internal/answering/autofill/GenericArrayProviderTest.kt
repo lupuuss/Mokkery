@@ -16,7 +16,7 @@ class GenericArrayProviderTest {
         val result = provider.provide(kClass)
         assertIs<Value.Provided<Array<String>>>(result)
         assertEquals(1, result.value.size)
-        assertNull(result.value[0])
+        assertNull(result.value.getOrNull(0))
         assertEquals(kClass, result.value::class)
     }
 
