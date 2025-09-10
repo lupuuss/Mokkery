@@ -114,17 +114,18 @@ private fun IrBuilderWithScope.irCallArgsList(
     val callArgClass = scope.getClass(Mokkery.Class.CallArgument)
     val callArgs = function
         .nonDispatchParameters
-        .map {
-            irCallConstructor(callArgClass.constructors.take(2).last()) {
-                arguments[0] = irGet(it)
-                arguments[1] = irString(it.name.asString())
+        .map { param ->
+            val constructor = callArgClass.constructors.single { it.parameters.size == 4 }
+            irCallConstructor(constructor) {
+                arguments[0] = irGet(param)
+                arguments[1] = irString(param.name.asString())
                 arguments[2] = kClassWithTypeSubstitution(
                     transformer = scope,
                     mokkeryInstance = mokkeryInstance,
                     typeParamsContainer = paramsContainer,
-                    type = it.type
+                    type = param.type
                 )
-                arguments[3] = irBoolean(it.isVararg)
+                arguments[3] = irBoolean(param.isVararg)
             }
         }
     return irCallListOf(scope, callArgClass.defaultType, callArgs)
