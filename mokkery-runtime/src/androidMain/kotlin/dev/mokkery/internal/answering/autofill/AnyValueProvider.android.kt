@@ -4,6 +4,9 @@ import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.AutofillProvider.Value
 import kotlin.reflect.KClass
 
+// copy of AnyValueProvider.jvm.kt
+// code between JVM and Android targets can't be shared easily
+// the only difference between JVM and Android is in `notNullIfSupported`
 internal actual object AnyValueProvider : AutofillProvider<Any?> {
 
     actual override fun provide(type: KClass<*>): Value<Any?> {
@@ -22,6 +25,6 @@ internal actual object AnyValueProvider : AutofillProvider<Any?> {
             it.newInstance(buildInTypesMapping[paramType])
         }
 
-    actual fun notNullIfSupported(): AutofillProvider<Any>? = JvmReflectionValueProvider
+    actual fun notNullIfSupported(): AutofillProvider<Any>? = AndroidReflectionValueProvider
 }
 

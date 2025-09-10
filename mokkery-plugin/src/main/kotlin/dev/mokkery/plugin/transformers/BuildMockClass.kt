@@ -55,9 +55,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
-import java.util.*
+import kotlin.random.Random
+import kotlin.random.nextULong
 
 fun TransformerScope.buildMockClass(
     mokkeryKind: IrMokkeryKind,
@@ -248,11 +248,12 @@ private fun IrConstructor.addSpyParameter(classesToIntercept: List<IrClass>): Ir
 }
 
 private fun Name.createUniqueMockName(type: String) = asString()
-    .plus(type)
-    .plus(UUID.randomUUID().toString().replace("-", ""))
+    .plus($$"$$$type$$${randomString()}")
     .let(Name::identifier)
 
 private fun FqName.createUniqueManyMockName() = shortName()
     .asString()
-    .plus(UUID.randomUUID().toString().replace("-", ""))
+    .plus($$"$$${randomString()}")
     .let(Name::identifier)
+
+private fun randomString() = Random.nextULong().toString(36)

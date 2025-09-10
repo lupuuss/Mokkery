@@ -3,6 +3,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+./test-mokkery/local.properties
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

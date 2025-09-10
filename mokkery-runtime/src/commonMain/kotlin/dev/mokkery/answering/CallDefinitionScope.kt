@@ -5,7 +5,9 @@ import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
 import dev.mokkery.callOriginal
+import dev.mokkery.callSpied
 import dev.mokkery.callSuper
+import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.self
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
@@ -38,7 +40,7 @@ public inline fun <reified T> CallDefinitionScope<*>.self(): T = self as T
 public interface BlockingCallDefinitionScope<out R> : CallDefinitionScope<R> {
 
     /**
-     * Calls original implementation of mocked method with original args. For interfaces, it is default implementation.
+     * Calls original implementation of mocked method with unchanged args. For interfaces, it is default implementation.
      */
     public fun callOriginal(): R
 
@@ -48,7 +50,7 @@ public interface BlockingCallDefinitionScope<out R> : CallDefinitionScope<R> {
     public fun callOriginalWith(vararg args: Any?): R
 
     /**
-     * Calls implementation of mocked method from super [type] with original args. For interfaces, it is default implementation of this [type].
+     * Calls implementation of mocked method from super [type] with unchanged args. For interfaces, it is default implementation of this [type].
      */
     public fun callSuper(type: KClass<*>): R
 
@@ -56,14 +58,24 @@ public interface BlockingCallDefinitionScope<out R> : CallDefinitionScope<R> {
      * Calls implementation of mocked method from super [type] with given [args]. For interfaces, it is default implementation of this [type].
      */
     public fun callSuperWith(type: KClass<*>, vararg args: Any?): R
+
+    /**
+     * Calls spied method with unchanged arguments.
+     */
+    public fun callSpied(): R
+
+    /**
+     * Calls spied method with given [args].
+     */
+    public fun callSpiedWith(vararg args: Any?): R
 }
 
 public fun <T> BlockingCallDefinitionScope(
     scope: MokkeryBlockingCallScope
 ): BlockingCallDefinitionScope<T> = BlockingCallDefinitionScopeImpl(scope)
 
-@Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
+@Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 public fun <T> BlockingCallDefinitionScope(
     scope: FunctionScope
 ): BlockingCallDefinitionScope<T> = DeprecatedBlockingCallDefinitionScopeImpl(scope)
@@ -75,7 +87,7 @@ public interface SuspendCallDefinitionScope<out R> : CallDefinitionScope<R> {
 
 
     /**
-     * Calls original implementation of mocked method with original args. For interfaces, it is default implementation.
+     * Calls original implementation of mocked method with unchanged args. For interfaces, it is default implementation.
      */
     public suspend fun callOriginal(): R
 
@@ -85,7 +97,7 @@ public interface SuspendCallDefinitionScope<out R> : CallDefinitionScope<R> {
     public suspend fun callOriginalWith(vararg args: Any?): R
 
     /**
-     * Calls implementation of mocked method from super [type] with original args. For interfaces, it is default implementation of this [type].
+     * Calls implementation of mocked method from super [type] with unchanged args. For interfaces, it is default implementation of this [type].
      */
     public suspend fun callSuper(type: KClass<*>): R
 
@@ -93,6 +105,16 @@ public interface SuspendCallDefinitionScope<out R> : CallDefinitionScope<R> {
      * Calls implementation of mocked method from super [type] with given [args]. For interfaces, it is default implementation of this [type].
      */
     public suspend fun callSuperWith(type: KClass<*>, vararg args: Any?): R
+
+    /**
+     * Calls spied method with unchanged arguments.
+     */
+    public suspend fun callSpied(): R
+
+    /**
+     * Calls spied method with given [args].
+     */
+    public suspend fun callSpiedWith(vararg args: Any?): R
 }
 
 public fun <T> SuspendCallDefinitionScope(
@@ -100,7 +122,7 @@ public fun <T> SuspendCallDefinitionScope(
 ): SuspendCallDefinitionScope<T> = SuspendCallDefinitionScopeImpl(scope)
 
 @Deprecated(AnswerDeprecationMessage)
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 public fun <T> SuspendCallDefinitionScope(
     scope: FunctionScope
 ): SuspendCallDefinitionScope<T> = DeprecatedSuspendCallDefinitionScopeImpl(scope)
@@ -111,7 +133,7 @@ private class BlockingCallDefinitionScopeImpl<R>(
 
     override val returnType: KClass<*>
         get() = scope.call.function.returnType
-    override val self: Any?
+    override val self: Any
         get() = scope.self
 
     override fun callOriginal(): R = scope.callOriginal(scope.call.argValues).unsafeCast()
@@ -121,6 +143,10 @@ private class BlockingCallDefinitionScopeImpl<R>(
     override fun callSuper(type: KClass<*>): R  = scope.callSuper(type, scope.call.argValues).unsafeCast()
 
     override fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope.callSuper(type, args.toList()).unsafeCast()
+
+    override fun callSpied(): R = scope.callSpied(scope.call.argValues).unsafeCast()
+
+    override fun callSpiedWith(vararg args: Any?): R = scope.callSpied(args.toList()).unsafeCast()
 }
 
 private class SuspendCallDefinitionScopeImpl<R>(
@@ -129,7 +155,7 @@ private class SuspendCallDefinitionScopeImpl<R>(
 
     override val returnType: KClass<*>
         get() = scope.call.function.returnType
-    override val self: Any?
+    override val self: Any
         get() = scope.self
 
     override suspend fun callOriginal(): R = scope.callOriginal(scope.call.argValues).unsafeCast()
@@ -141,10 +167,13 @@ private class SuspendCallDefinitionScopeImpl<R>(
     override suspend fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope
         .callSuper(type, args.toList())
         .unsafeCast()
+
+    override suspend fun callSpied(): R = scope.callSpied(scope.call.argValues).unsafeCast()
+
+    override suspend fun callSpiedWith(vararg args: Any?): R = scope.callSpied(args.toList()).unsafeCast()
 }
 
-
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private class DeprecatedBlockingCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : BlockingCallDefinitionScope<R> {
@@ -161,9 +190,13 @@ private class DeprecatedBlockingCallDefinitionScopeImpl<R>(
     override fun callSuper(type: KClass<*>): R  = scope.callSuper(type, scope.args).unsafeCast()
 
     override fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope.callSuper(type, args.toList()).unsafeCast()
+
+    override fun callSpied(): R = mokkeryRuntimeError("`callSpied` is not supported with `FunctionScope`!")
+
+    override fun callSpiedWith(vararg args: Any?): R = mokkeryRuntimeError("`callSpiedWith` is not supported with `FunctionScope`!")
 }
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private class DeprecatedSuspendCallDefinitionScopeImpl<R>(
     private val scope: FunctionScope
 ) : SuspendCallDefinitionScope<R> {
@@ -180,4 +213,8 @@ private class DeprecatedSuspendCallDefinitionScopeImpl<R>(
     override suspend fun callSuper(type: KClass<*>): R = scope.callSuspendSuper(type, scope.args).unsafeCast()
 
     override suspend fun callSuperWith(type: KClass<*>, vararg args: Any?): R = scope.callSuspendSuper(type, args.toList()).unsafeCast()
+
+    override suspend fun callSpied(): R = mokkeryRuntimeError("`callSpied` is not supported with `FunctionScope`!")
+
+    override suspend fun callSpiedWith(vararg args: Any?): R = mokkeryRuntimeError("`callSpiedWith` is not supported with `FunctionScope`!")
 }

@@ -7,14 +7,32 @@ pluginManagement {
         id("dev.mokkery") version mokkeryVersion
     }
     repositories {
+        mavenCentral  {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
+        google {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
         mavenLocal()
-        mavenCentral()
     }
 }
 
 dependencyResolutionManagement {
     repositories {
+        mavenCentral {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
+        google {
+            content {
+                excludeGroup("dev.mokkery")
+            }
+        }
         mavenLocal()
-        mavenCentral()
     }
 }

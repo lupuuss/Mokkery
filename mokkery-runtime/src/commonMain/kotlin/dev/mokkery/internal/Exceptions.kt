@@ -14,8 +14,9 @@ internal class MokkeryPluginNotAppliedException : MokkeryRuntimeException(
 
 internal class ObjectNotMockedException(obj: Any?) : MokkeryRuntimeException("$obj is not mocked by Mokkery!")
 
-internal class NotSingleCallInEveryBlockException :
-    MokkeryRuntimeException("Each 'every' block requires single mock call!")
+internal class ObjectNotSpiedException(obj: Any?) : MokkeryRuntimeException("$obj is not a spy!")
+
+internal class NotSingleCallInEveryBlockException : MokkeryRuntimeException("Each 'every' block requires single mock call!")
 
 internal class SuspendingAnswerBlockingCallException : MokkeryRuntimeException(
     message = "Regular function was mocked with answer that is for suspending functions only!"
@@ -71,9 +72,15 @@ private fun superTypesString(types: List<KClass<*>>): String {
 }
 
 
-internal class MissingArgsForSuperMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
+internal class IncorrectArgsForSuperMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
     "Super call requires $expectedCount arguments but $actualCount provided!"
 )
+
+internal class IncorrectArgsForSpiedMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
+    "Spied call requires $expectedCount arguments but $actualCount provided!"
+)
+
+internal class MissingSpyMethodException() : MokkeryRuntimeException("Spied method not found!")
 
 internal class SuperTypeMustBeSpecifiedException(
     reason: String

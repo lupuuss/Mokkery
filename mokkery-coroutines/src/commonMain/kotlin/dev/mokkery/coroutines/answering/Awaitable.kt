@@ -27,15 +27,15 @@ public interface Awaitable<out T> {
      * Suspends current function call until the awaited result is available.
      */
     public suspend fun await(scope: MokkerySuspendCallScope): T {
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         return await(scope.toFunctionScope())
     }
 
     /**
      * **DEPRECATED: Use [await] with [MokkerySuspendCallScope] instead!**
      */
-    @Deprecated(AnswerDeprecationMessage)
-    @Suppress("DEPRECATION")
+    @Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
+    @Suppress("DEPRECATION_ERROR")
     public suspend fun await(scope: dev.mokkery.answering.FunctionScope): T = throw NotImplementedError()
 
     /**

@@ -3,6 +3,7 @@
 package dev.mokkery.internal
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.answering.AnsweringRegistry
@@ -70,6 +71,21 @@ internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
             if (totalIndex == index++) return typeArgument
     return null
 }
+
+internal val MokkeryInstanceScope.isSpy: Boolean
+    get() = mockSpec.kind == MokkeryKind.Spy
+
+internal val MokkeryCallScope.isSpy: Boolean
+    get() = mockSpec.kind == MokkeryKind.Spy
+
+internal fun MokkeryInstanceScope.assertSpy() {
+    if (!isSpy) throw ObjectNotSpiedException(mockSpec.thisRef)
+}
+
+internal fun MokkeryCallScope.assertSpy() {
+    if (!isSpy) throw ObjectNotSpiedException(mockSpec.thisRef)
+}
+
 internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: throw ObjectNotMockedException(this)
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?

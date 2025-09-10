@@ -4,6 +4,12 @@ plugins {
     id("com.github.gmazzo.buildconfig")
 }
 
+dependencies {
+    commonMainCompileOnly(libs.kotlin.stdlib)
+
+    jsMainCompileOnly(libs.kotlin.dom.api.compat)
+}
+
 buildConfig {
     val pluginProject = project(":mokkery-plugin")
     packageName(rootProject.group.toString())
