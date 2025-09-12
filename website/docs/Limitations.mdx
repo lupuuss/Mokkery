@@ -9,8 +9,9 @@ description: Get to know Mokkery's limitations for smoother development!
 * 🧩 Interfaces 
 * ➡️ Functional types 
 * 🏛️ Final classes with [all-open plugin](./Guides/Mocking#final-classes)
-* 🏗️ Abstract/open classes with public constructor and all overridable public members.\
-\* [It's possible to allow final or inline members](./Guides/Mocking#abstractopen-class-with-final-members)
+* 🏗️ Abstract/open classes with public constructor and all overridable public members
+  * ⚠️ Mocking classes whose constructor parameters are accessed within the constructor is **<u>not supported</u>**
+  * 💡[It's possible to allow final or inline members](./Guides/Mocking#abstractopen-class-with-final-members)
 
 ❌ Things that Mokkery is **unable** to mock:
 * ➡️ Functions (extensions included)
