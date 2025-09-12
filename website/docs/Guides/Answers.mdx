@@ -211,6 +211,7 @@ mock.t1.sharedMethod(2) // this calls method implementation from A with 3
 ```
 
 #### Super calls API in `calls`
+
 All of those features are accessible from `calls` scope:
 ```kotlin
 everySuspend { repository.findById(any()) } calls {
@@ -218,6 +219,27 @@ everySuspend { repository.findById(any()) } calls {
     callOriginalWith("3")
     callSuper(BaseRepository::class)
     callSuperWith(BaseRepository::class, "3")
+}
+```
+
+### Calling spied implementation
+
+When working with spies, you may want to call the real implementation while adding some extra behavior.
+This can be done using `callSpied` from `calls`:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls {
+    // ...
+    callSpied()
+}
+```
+
+If you need to override the arguments passed to the spied method, use `callSpiedWith`:
+
+```kotlin
+everySuspend { repository.findById(any()) } calls {
+    // ...
+    callSpiedWith("3")
 }
 ```
 
