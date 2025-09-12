@@ -221,41 +221,6 @@ everySuspend { repository.findById(any()) } calls {
 }
 ```
 
-#### Indirect supertype calls
-
-:::danger
-Indirect super calls are scheduled for removal and should not be used.
-:::
-
-Under the hood, `original` performs call to super method from mocked type. In Kotlin source code, it is not allowed to call super method
-of indirect supertype. However, this kind of call is possible to be generated on the compiler plugin level.
-It's important to note that indirect super calls for Java types (including kotlin.collections.List) and for super
-methods from interfaces compiled to Java defaults are not allowed.
-This restriction exists because such calls are validated in the JVM bytecode and result in runtime errors.
-
-Indirect super calls feature has to be explicitly allowed in Gradle files:
-```kotlin
-mokkery {
-    allowIndirectSuperCalls.set(true)
-}
-```
-
-Calling super methods from indirect supertypes is similar to calling original methods:
-
-```kotlin
-everySuspend { repository.findById(any()) } calls superOf<BaseRepository>()
-
-repository.findById("2") // this calls super method implementation from BaseRepository with "2"
-```
-
-You can pass different arguments to super call:
-
-```kotlin
-everySuspend { repository.findById(any()) } calls superWith<BaseRepository>("3")
-
-repository.findById("2") // this calls super method implementation from BaseRepository with "3"
-```
-
 ### Custom answer
 
 To provide custom answer implement [Answer](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
