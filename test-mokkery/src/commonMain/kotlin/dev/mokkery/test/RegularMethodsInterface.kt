@@ -28,6 +28,8 @@ interface RegularMethodsInterface {
 
     fun callComplexWithDefaults(complexInput: ComplexType = ComplexType, primitiveInput: Int = 1): ComplexType
 
+    fun callWithDependantDefaults(complex: ComplexType, name: String = complex.toString()): String
+
     fun Int.callPrimitiveExtension(): Int
 
     fun ComplexType.callComplexExtension(): ComplexType

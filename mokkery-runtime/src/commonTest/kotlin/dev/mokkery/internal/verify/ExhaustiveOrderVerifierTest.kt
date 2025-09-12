@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.calls.CallMatchResult
+import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestRenderer
@@ -18,9 +18,9 @@ class ExhaustiveOrderVerifierTest {
     private val trace2 = fakeCallTrace(name = "call2")
 
     private val callMatcher = TestCallMatcher { trace, template ->
-        when {
-            trace == trace1 && template == template1 -> CallMatchResult.Matching
-            trace == trace2 && template == template2 -> CallMatchResult.Matching
+        when (trace) {
+            trace1 if template == template1 -> CallMatchResult.Matching
+            trace2 if template == template2 -> CallMatchResult.Matching
             else -> CallMatchResult.NotMatching
         }
     }
