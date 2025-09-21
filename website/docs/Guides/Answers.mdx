@@ -248,8 +248,8 @@ everySuspend { repository.findById(any()) } calls {
 The answers API provides a way to define custom behavior for mocked method calls in Mokkery.
 It is built around two core interfaces:
 
-- [AnsweringScope](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answering-scope/index.html)
-- [Answer](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html)
+- [AnsweringScope](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answering-scope/index.html)
+- [Answer](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html)
 
 ```kotlin
 @DelicateMokkeryApi
@@ -367,7 +367,7 @@ This is simpler and avoids extra boilerplate.
 #### Answer description
 
 The `Answer` interface lets you implement a `description()` method, which provides a human-readable explanation of the answer.
-This is especially useful for debugging, e.g., with [printMokkeryDebug](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.debug/print-mokkery-debug.html)
+This is especially useful for debugging, e.g., with [printMokkeryDebug](pathname:///api_reference/mokkery-runtime/dev.mokkery.debug/print-mokkery-debug.html)
 
 The description should resemble the code usage:
 ```kotlin
@@ -386,10 +386,10 @@ private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T> {
 
 When implementing custom answers, these helper interfaces can useful:
 
-- [Answer.Suspending](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-suspending/index.html) - For suspend-only answers.
+- [Answer.Suspending](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-suspending/index.html) - For suspend-only answers.
 Provides a default blocking implementation that throws an exception.
-- [Answer.Blocking](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-blocking/index.html) - For blocking-only answers.
+- [Answer.Blocking](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-blocking/index.html) - For blocking-only answers.
 Provides a default suspend implementation that throws an exception.
-- [Answer.Unified](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third call overload with MokkeryCallScope.
+- [Answer.Unified](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third call overload with MokkeryCallScope.
 The other two overloads delegate to this method, so you only need to implement one function.
 Useful when the same logic applies to both blocking and suspend contexts.
