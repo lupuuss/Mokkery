@@ -15,6 +15,7 @@ val MOCK_MODE_KEY = CompilerConfigurationKey<List<MockMode>>("mockMode")
 val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
 val IGNORE_INLINE_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreInlineMembers")
 val IGNORE_FINAL_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreFinalMembers")
+val ENABLE_FIR_DIAGNOSTICS = CompilerConfigurationKey<List<Boolean>>("enableFirDiagnostics")
 
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {
@@ -26,14 +27,14 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             optionName = MOCK_MODE_KEY.toString(),
             valueDescription = "enum class dev.mokkery.MockMode",
             description = "Default MockMode for every mock.",
-            required = true,
+            required = false,
             allowMultipleOccurrences = false
         ),
         CliOption(
             optionName = VERIFY_MODE_KEY.toString(),
             valueDescription = "sealed class dev.mokkery.VerifyMode",
             description = "Default VerifyMode for every verify block.",
-            required = true,
+            required = false,
             allowMultipleOccurrences = false
         ),
         CliOption(
@@ -49,6 +50,13 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             description = "Ignores final members of mocked class if raised.",
             required = false,
             allowMultipleOccurrences = false
+        ),
+        CliOption(
+            optionName = ENABLE_FIR_DIAGNOSTICS.toString(),
+            valueDescription = "Boolean",
+            description = "Enables FIR diagnostics if raised.",
+            required = false,
+            allowMultipleOccurrences = false
         )
     )
 
@@ -58,6 +66,7 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             VERIFY_MODE_KEY.toString() -> configuration.add(VERIFY_MODE_KEY, VerifyModeSerializer.deserialize(value))
             IGNORE_INLINE_MEMBERS.toString() -> configuration.add(IGNORE_INLINE_MEMBERS, value.toBoolean())
             IGNORE_FINAL_MEMBERS.toString() -> configuration.add(IGNORE_FINAL_MEMBERS, value.toBoolean())
+            ENABLE_FIR_DIAGNOSTICS.toString() -> configuration.add(ENABLE_FIR_DIAGNOSTICS, value.toBoolean())
             else -> error("Unknown config option: $option")
         }
     }

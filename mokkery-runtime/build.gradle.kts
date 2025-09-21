@@ -1,3 +1,4 @@
+
 plugins {
     id("mokkery-publish")
     id("mokkery-multiplatform")
@@ -17,7 +18,12 @@ android {
     namespace = rootProject.group.toString()
 }
 
+kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
+
 dependencies {
+    kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-core"))
     commonMainApi(project(":mokkery-core"))
     commonMainCompileOnly(libs.kotlin.stdlib)
 
