@@ -105,54 +105,54 @@ everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
 You can define a sequence of answers using `sequentially`:
 
 ```kotlin
-everySuspend { repository.getById(id = any()) } sequentially {
+everySuspend { repository.findById(id = any()) } sequentially {
     returns(stubBook("1"))
     calls { stubBook("2") }
     throws(IllegalStateException())
 }
-repository.getById("1") // returns stubBook("1")
-repository.getById("2") // returns stubBook("2")
-runCatching { repository.getById("3") } // throws IllegalStateException
-repository.getById("4") // fails - no more answers
+repository.findById("1") // returns stubBook("1")
+repository.findById("2") // returns stubBook("2")
+runCatching { repository.findById("3") } // throws IllegalStateException
+repository.findById("4") // fails - no more answers
 ```
 
 At the end of `sequentially` block you can repeat a sequence of answers with `repeat`:
 
 ```kotlin
-everySuspend { repository.getById(id = any()) } sequentially {
+everySuspend { repository.findById(id = any()) } sequentially {
     returns(stubBook("1"))
     repeat { returns(stubBook("2")) }
 }
-repository.getById("1") // returns stubBook("1")
-repository.getById("2") // returns stubBook("2")
-repository.getById("3") // returns stubBook("2")
-repository.getById("4") // returns stubBook("2")
+repository.findById("1") // returns stubBook("1")
+repository.findById("2") // returns stubBook("2")
+repository.findById("3") // returns stubBook("2")
+repository.findById("4") // returns stubBook("2")
 ```
 
 You can use `sequentiallyRepeat` as a shorthand if you want to define repeating sequence:
 ```kotlin
-everySuspend { repository.getById(id = any()) } sequentiallyRepeat {
+everySuspend { repository.findById(id = any()) } sequentiallyRepeat {
     returns(stubBook("1"))
     returns(stubBook("2"))
 }
-repository.getById("1") // returns stubBook("1")
-repository.getById("2") // returns stubBook("2")
-repository.getById("3") // returns stubBook("1")
-repository.getById("4") // returns stubBook("2")
+repository.findById("1") // returns stubBook("1")
+repository.findById("2") // returns stubBook("2")
+repository.findById("3") // returns stubBook("1")
+repository.findById("4") // returns stubBook("2")
 ```
 
 You can use `sequentiallyReturns` and `sequentiallyThrows` as a shorthand:
 ```kotlin
-everySuspend { repository.getById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
-repository.getById("1") // returns stubBook("1")
-repository.getById("2") // returns stubBook("2")
-repository.getById("3") // fails - no more answers
+everySuspend { repository.findById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
+repository.findById("1") // returns stubBook("1")
+repository.findById("2") // returns stubBook("2")
+repository.findById("3") // fails - no more answers
 ```
 
 You can nest `sequentially` calls:
 
 ```kotlin
-everySuspend { repository.getById(id = any()) } sequentially {
+everySuspend { repository.findById(id = any()) } sequentially {
     returns(stubBook("1"))
     sequentially {
         returns(stubBook("2"))
@@ -160,11 +160,11 @@ everySuspend { repository.getById(id = any()) } sequentially {
     }
     returns(stubBook("4"))
 }
-repository.getById("1") // returns stubBook("1")
-repository.getById("2") // returns stubBook("2")
-repository.getById("3") // returns stubBook("3")
-repository.getById("4") // returns stubBook("4")
-repository.getById("5") // fails - no more answers
+repository.findById("1") // returns stubBook("1")
+repository.findById("2") // returns stubBook("2")
+repository.findById("3") // returns stubBook("3")
+repository.findById("4") // returns stubBook("4")
+repository.findById("5") // fails - no more answers
 ```
 ### Calling original implementation
 
@@ -243,53 +243,153 @@ everySuspend { repository.findById(any()) } calls {
 }
 ```
 
-### Custom answer
+### Extending answers API
 
-To provide custom answer implement [Answer](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html):
+The answers API provides a way to define custom behavior for mocked method calls in Mokkery.
+It is built around two core interfaces:
+
+- [AnsweringScope](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answering-scope/index.html)
+- [Answer](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/index.html)
 
 ```kotlin
-object RandomIntAnswer : Answer<Int> {
+@DelicateMokkeryApi
+public interface Answer<out T> {
 
-    override fun call(scope: FunctionScope) = Random.nextInt()
+    public fun call(scope: MokkeryBlockingCallScope): T
+
+    public suspend fun call(scope: MokkerySuspendCallScope): T
+}
+
+// ...
+
+public interface AnsweringScope<T> {
+
+    @DelicateMokkeryApi
+    public infix fun answers(answer: Answer<T>)
 }
 ```
 
-Answer that implements only `call` works for both regular functions and suspending functions.
+#### Core concepts
+
+The `Answer` interface represents custom behavior for mocked calls.
+It has two `call` overloads:
+- `call(MokkeryBlockingCallScope)` – used for regular (blocking) functions.
+- `call(MokkerySuspendCallScope)` – used for suspend functions.
+
+The `AnsweringScope` interface provides the `answers` method, which registers an `Answer` for a particular call.
+
+Some custom answers may work with both regular and suspend methods, while others support only one type.
+However, `AnsweringScope` itself does not enforce any restrictions - you can technically register any `Answer` for any call.
+
+This flexibility can lead to misuse, such as registering a suspend-only answer for a blocking call.
+For this reason, both `AnsweringScope.answers` and the `Answer` interface are marked as *delicate* APIs.
+
+#### Restricting usage
+
+To provide compile-time safety, Mokkery defines two subtypes of `AnsweringScope`:
 
 ```kotlin
-everySuspend { repository.countAllBooks() } answers RandomIntAnswer
+public interface SuspendAnsweringScope<T> : AnsweringScope<T>
+
+public interface BlockingAnsweringScope<T> : AnsweringScope<T>
 ```
 
-You can provide convenient extension for your custom answer:
+These are marker interfaces - they don’t add extra methods but indicate whether the context is for
+a regular method (`BlockingAnsweringScope`), or a suspend method (`SuspendAnsweringScope`).
+
+Mokkery uses them as follows:
+- `every` returns a `BlockingAnsweringScope`
+- `everySuspend` returns a `SuspendAnsweringScope`
+
+Custom `Answer` implementations should not be used directly.
+Instead, expose them through convenience extensions on the appropriate scope type.
+
+Example: a suspend-only answer that delays before returning a value:
 
 ```kotlin
-fun AnsweringScope<Int>.returnsRandomInt() = answers(RandomIntAnswer)
-    
-// ...
+infix fun SuspendAnsweringScope<T>.returnsDelayed(value: T) {
+    answers(ReturnsDelayedAnswer(value))
+}
 
-everySuspend { repository.countAllBooks() }.returnsRandomInt()
-```
+// you can optionally mark this class as private
+private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T> {
+    public fun call(scope: MokkeryBlockingCallScope): T = error("Not supported")
 
-If your answer needs suspension, it is recommended to implement [Answer.Suspending](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-suspending/index.html):
-
-```kotlin
-data class DelayedConstAnswer<T>(
-    val value: T, 
-) : Answer.Suspending<T> {
-    
-    override suspend fun callSuspend(scope: FunctionScope): T {
+    public suspend fun call(scope: MokkerySuspendCallScope): T {
         delay(1_000)
         return value
     }
 }
+
+// Usage:
+everySuspend { repository.findById(any()) } returnsDelayed stubBook()
+// ✅ compiles - suspend context
+
+every { repository.findAll() } returnsDelayed flowOf(stubBook())
+// ❌ does NOT compile - regular context
 ```
 
-For suspending answers it's highly recommended to introduce convenience extension. It's able to indicate that given answer only supports suspending functions:
+Some answers are valid for both regular and suspend methods.
+For consistency, you should still declare an extension function, but this time use `AnsweringScope` as the receiver:
 
 ```kotlin
-infix fun <T> SuspendAnsweringScope<T>.returnsAfterDelay(value: T) = answers(DelayedConstAnswer(value))
-// ...
-everySuspend { repository.countAllBooks() } returnsAfterDelay 1
+infix fun AnsweringScope<T>.returns(value: T) {
+    answers(ReturnsAnswer(value))
+}
+
+private class ReturnsAnswer<T>(private val value: T) : Answer<T> {
+    public fun call(scope: MokkeryBlockingCallScope): T = value
+    public suspend fun call(scope: MokkerySuspendCallScope): T = value
+}
+
+// Usage:
+everySuspend { repository.findById(any()) } returns stubBook() // suspend
+every { repository.findAll() } returns flowOf(stubBook())      // regular
+// ✅ both compile
 ```
 
-If you want to restrict answer only for regular functions, use `BlockingAnsweringScope<T>`.
+#### Using existing answers
+
+If your custom answer can be expressed using other built-in answers, you don’t need to create a new `Answer` implementation.
+Instead, declare an extension using the existing calls function:
+
+```kotlin
+fun <T> SuspendAnsweringScope<T>.returnsDelayed(value: T) {
+    calls {
+        delay(1_000)
+        value
+    }
+}
+```
+
+This is simpler and avoids extra boilerplate.
+
+#### Answer description
+
+The `Answer` interface lets you implement a `description()` method, which provides a human-readable explanation of the answer.
+This is especially useful for debugging, e.g., with [printMokkeryDebug](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.debug/print-mokkery-debug.html)
+
+The description should resemble the code usage:
+```kotlin
+infix fun SuspendAnsweringScope<T>.returnsDelayed(value: T) {
+    answers(ReturnsDelayedAnswer(value))
+}
+
+// ...
+private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T> {
+    // ...
+    override fun description() = "returnsDelayed $value"
+}
+```
+
+#### Answer implementation helpers
+
+When implementing custom answers, these helper interfaces can useful:
+
+- [Answer.Suspending](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-suspending/index.html) - For suspend-only answers.
+Provides a default blocking implementation that throws an exception.
+- [Answer.Blocking](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-blocking/index.html) - For blocking-only answers.
+Provides a default suspend implementation that throws an exception.
+- [Answer.Unified](https://mokkery.dev/api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third call overload with MokkeryCallScope.
+The other two overloads delegate to this method, so you only need to implement one function.
+Useful when the same logic applies to both blocking and suspend contexts.
