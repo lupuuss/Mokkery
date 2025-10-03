@@ -97,60 +97,6 @@ object Mokkery {
         val everySuspend by dev_mokkery.callableId
     }
 
-    object Errors {
-        fun indirectCall(
-            typeArgument: String,
-            functionName: String
-        ) = "''$typeArgument'' is a type parameter! Specific type expected for a ''$functionName'' call!"
-
-        fun notLambdaExpression(
-            functionName: String,
-            param: String,
-        ) = "Argument passed to ''$functionName'' for param ''$param'' must be a lambda expression!"
-
-        fun sealedTypeCannotBeIntercepted(
-            typeName: String,
-            functionName: String
-        ) = "Type ''$typeName'' is sealed and cannot be used with ''$functionName''!"
-
-        fun finalTypeCannotBeIntercepted(
-            typeName: String,
-            functionName: String
-        ) = "Type ''$typeName'' is final and cannot be used with ''$functionName''!"
-
-        fun primitiveTypeCannotBeIntercepted(
-            typeName: String,
-            functionName: String
-        ) = "Type ''$typeName'' is primitive and cannot be used with ''$functionName''!"
-
-        fun finalMembersTypeCannotBeIntercepted(
-            typeName: String,
-            functionName: String,
-            nonAbstractMembers: String,
-        ) = "Type ''$typeName'' has final members and cannot be used with ''$functionName''! Final members: $nonAbstractMembers"
-
-        fun noPublicConstructorTypeCannotBeIntercepted(
-            typeName: String,
-            functionName: String
-        ) = "Type ''$typeName'' has no public constructor and cannot be used with ''$functionName''!"
-
-        fun noDuplicatesForMockMany(
-            typeName: String, 
-            functionName: String,
-            occurrences: String,
-        ) = "Type ''$typeName'' for ''$functionName'' must occur only once, but it occurs $occurrences times!"
-        
-        fun singleSuperClass(
-            functionName: String,
-            superClasses: String
-        ) = "Only one super class is acceptable for ''$functionName'' type! Detected super classes: $superClasses"
-        
-        fun functionalTypeNotAllowedOnJs(
-            typeName: String,
-            functionName: String
-        ) = "Type ''$typeName'' is a functional type and it is not acceptable as an argument for ''$functionName'' on JS platform!"
-    }
-
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)
 
     object Key : GeneratedDeclarationKey() {
