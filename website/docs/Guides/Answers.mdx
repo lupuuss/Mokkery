@@ -351,7 +351,7 @@ every { repository.findAll() } returns flowOf(stubBook())      // regular
 #### Using existing answers
 
 If your custom answer can be expressed using other built-in answers, you don’t need to create a new `Answer` implementation.
-Instead, declare an extension using the existing calls function:
+Instead, declare an extension using existing answers:
 
 ```kotlin
 fun <T> SuspendAnsweringScope<T>.returnsDelayed(value: T) {
@@ -390,6 +390,6 @@ When implementing custom answers, these helper interfaces can useful:
 Provides a default blocking implementation that throws an exception.
 - [Answer.Blocking](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-blocking/index.html) - For blocking-only answers.
 Provides a default suspend implementation that throws an exception.
-- [Answer.Unified](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third call overload with MokkeryCallScope.
+- [Answer.Unified](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third `call` overload with `MokkeryCallScope`.
 The other two overloads delegate to this method, so you only need to implement one function.
 Useful when the same logic applies to both blocking and suspend contexts.
