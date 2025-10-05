@@ -87,6 +87,10 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Passing matchers to methods is not legal inside matcher builders."
         )
         put(
+            factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION,
+            message = "Matchers can be only passed to mock methods."
+        )
+        put(
             factory = Diagnostics.ILLEGAL_SPREAD_FOR_VARARG,
             message = "The spread operator on matchers is only allowed for vararg matchers or composite matchers that accept only vararg matchers."
         )
@@ -95,24 +99,20 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Only one vararg matcher is allowed."
         )
         put(
-            factory = Diagnostics.VARARG_MATCHER_USED_WITHOUT_SPREAD,
-            message = "Vararg matcher can only be used with spread operator."
-        )
-        put(
             factory = Diagnostics.VARARG_MATCHER_WITHOUT_VARARG,
             message = "Vararg matcher can only be used with varargs."
         )
         put(
-            factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION,
-            message = "Matchers can be only passed to mock methods."
-        )
-        put(
-            factory = Diagnostics.VARARG_MATCHER_BUILDER_MUST_RETURN_VARARG_MATCHERS_ONLY,
-            message = "Matchers annotated with @dev.mokkery.annotations.VarArgMatcherBuilder must return vararg matchers in all returns."
+            factory = Diagnostics.VARARG_MATCHER_USED_WITHOUT_SPREAD,
+            message = "Vararg matcher can only be used with spread operator."
         )
         put(
             factory = Diagnostics.MATCHER_RETURNING_VARARG_MATCHER_MUST_BE_ANNOTATED,
             message = "Matcher that returns vararg matchers must be annotated with @dev.mokkery.annotations.VarArgMatcherBuilder."
+        )
+        put(
+            factory = Diagnostics.VARARG_MATCHER_BUILDER_MUST_RETURN_VARARG_MATCHERS_ONLY,
+            message = "Matchers annotated with @dev.mokkery.annotations.VarArgMatcherBuilder must return vararg matchers in all returns."
         )
         put(
             factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,

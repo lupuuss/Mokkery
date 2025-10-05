@@ -250,7 +250,6 @@ class MocksCreationChecker(
         override fun getRendererFactory() = MocksCreationDiagnosticRendererFactory()
 
         val INDIRECT_INTERCEPTION by error2<KtElement, Name, ConeKotlinType>()
-
         val SEALED_TYPE_CANNOT_BE_INTERCEPTED by error2<KtElement, Name, ConeKotlinType>()
         val FINAL_TYPE_CANNOT_BE_INTERCEPTED by error2<KtElement, Name, ConeKotlinType>()
         val PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED by error2<KtElement, Name, ConeKotlinType>()

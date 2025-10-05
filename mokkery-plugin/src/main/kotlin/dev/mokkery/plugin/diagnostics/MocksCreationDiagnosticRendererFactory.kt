@@ -46,7 +46,7 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         )
         put(
             factory = Diagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
-            message = "Type ''{0}'' has no public constructor and cannot be used with ''{1}''.",
+            message = "Type ''{1}'' has no public constructor and cannot be used with ''{0}''.",
             rendererA = CommonRenderers.NAME,
             rendererB = typeRenderer,
         )

@@ -17,13 +17,13 @@ class MatchersDeclarationDiagnosticRendererFactory : BaseDiagnosticRendererFacto
             message = "Matcher must not be external."
         )
         put(
-            factory = Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION,
-            message = "Matcher must be a regular function."
-        )
-        put(
             factory = Diagnostics.PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER,
             message = "Parameter of type ''{0}'' cannot be marked with @dev.mokkery.annotations.Matcher",
             rendererA = FirDiagnosticRenderers.RENDER_TYPE
+        )
+        put(
+            factory = Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION,
+            message = "Matcher must be a regular function."
         )
     }
 }
