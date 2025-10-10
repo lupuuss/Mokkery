@@ -78,7 +78,7 @@ class MatchersProcessor(private val session: FirSession) {
                     val type = matcherType(true, isVararg)
                     MatcherProcessingResult.MatcherExpression(type)
                 }
-                symbol.callableId == Mokkery.Callable.matches -> {
+                symbol.callableId == Mokkery.Callable.matches && symbol.valueParameterSymbols.size == 1 -> {
                     val varargMatcherType = session
                         .getRegularClassSymbolByClassId(Mokkery.ClassId.VarArgMatcher)!!
                         .defaultType()
