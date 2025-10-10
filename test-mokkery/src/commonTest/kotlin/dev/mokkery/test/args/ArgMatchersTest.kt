@@ -30,7 +30,10 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.matcher.lt
 import dev.mokkery.matcher.lte
 import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.matchesBy
 import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.matching
+import dev.mokkery.matcher.matchingBy
 import dev.mokkery.matcher.neq
 import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.nullable.notNull
@@ -50,6 +53,76 @@ class ArgMatchersTest {
 
     private val mock = mock<ComplexArgsInterface>()
 
+    @Test
+    fun testMatchesMatcher() {
+        every { mock.callPrimitive(matches { it % 2 == 0 }) } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(4))
+        assertEquals(3, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatchesWithToStringMatcher() {
+        every { mock.callPrimitive(matches(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
+        assertEquals(4, mock.callPrimitive(2))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(4, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatchesByMatcher() {
+        fun Int.isEven() = this % 2 == 0
+        every { mock.callPrimitive(matchesBy(Int::isEven)) } returns 5
+        assertEquals(5, mock.callPrimitive(2))
+        assertEquals(5, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingMatcher() {
+        every { mock.callPrimitive(matching { it % 2 == 0 }) } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(4))
+        assertEquals(3, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingWithToStringMatcher() {
+        every { mock.callPrimitive(matching(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
+        assertEquals(4, mock.callPrimitive(2))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(4, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingByMatcher() {
+        fun Int.isEven() = this % 2 == 0
+        every { mock.callPrimitive(matchingBy(Int::isEven)) } returns 5
+        assertEquals(5, mock.callPrimitive(2))
+        assertEquals(5, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
 
     @Test
     fun testEqualityMatchers() {

@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@Suppress("DEPRECATION")
 class MatchingArgMatcherTest {
 
     private var capturedArg: String? = null

@@ -32,7 +32,7 @@ class MatchersCompiler(
     private val matcherAnnotation = getClass(Mokkery.Class.Matcher).symbol
     private val varargMatcherBuilderAnnotation = getClass(Mokkery.Class.VarArgMatcherBuilder).symbol
     private val matcherScopeType = getClass(Mokkery.Class.MokkeryMatcherScope).defaultType
-    private val coreMatchesFunctions = setOf(
+    private val intrinsicsMatchesFunctions = setOf(
         getFunction(Mokkery.Function.matches),
         getFunction(Mokkery.Function.matchesComposite)
     )
@@ -44,7 +44,7 @@ class MatchersCompiler(
             return function
         }
         return when {
-            function in coreMatchesFunctions -> function.apply { isCompiledMatcher = true }
+            function in intrinsicsMatchesFunctions -> function.apply { isCompiledMatcher = true }
             else -> function.apply {
                 isCompiledMatcher = true
                 transformSignature()
