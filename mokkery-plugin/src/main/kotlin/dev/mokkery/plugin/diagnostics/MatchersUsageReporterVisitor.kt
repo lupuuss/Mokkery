@@ -365,7 +365,7 @@ class MatchersUsageReporterVisitor(
                 }
             }
         }
-        if (symbol.callableId == Callable.matches) {
+        if (symbol.callableId == Callable.matches && symbol.valueParameterSymbols.size == 1) {
             val type = matchersProcessor.extractMatcherType(call)
             if (type?.isComposite == true) {
                 reporter.reportOn(

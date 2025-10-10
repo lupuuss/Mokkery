@@ -17,6 +17,28 @@ import kotlin.reflect.KFunction1
 public fun <T> MokkeryMatcherScope.matches(matcher: ArgMatcher<T>): T = mokkeryIntrinsic
 
 /**
+ * Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toString].
+ */
+public fun <T> MokkeryMatcherScope.matches(
+    toString: () -> String,
+    predicate: (T) -> Boolean,
+): T = matches(
+    object : ArgMatcher<T> {
+        override fun matches(arg: T): Boolean = predicate(arg)
+
+        override fun toString(): String = toString()
+    }
+)
+
+/**
+ * Matches an argument by calling given [function]. Also, it returns function name on [Any.toString].
+ */
+public fun <T> MokkeryMatcherScope.matchesBy(function: KFunction1<T, Boolean>): T = matches(
+    toString = { "${function.name}()" },
+    predicate = function
+)
+
+/**
  * Matches an argument that satisfies a matcher composed of [matchers] with [builder].
  *
  * Matchers used to create a composite must be passed via the [matchers] vararg.
@@ -67,21 +89,6 @@ public fun <T> MokkeryMatcherScope.eqRef(value: T): T = matches(ArgMatcher.Equal
 public fun <T> MokkeryMatcherScope.neqRef(value: T): T = matches(ArgMatcher.NotEqualRef(value))
 
 /**
- * Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toString].
- */
-public fun <T> MokkeryMatcherScope.matching(
-    toString: () -> String = { "matching(...)" },
-    predicate: (T) -> Boolean,
-): T = matches(ArgMatcher.Matching(predicate, toString))
-
-/**
- * Matches an argument by calling given [function]. Also, it returns function name on [Any.toString].
- */
-public fun <T> MokkeryMatcherScope.matchingBy(
-    function: KFunction1<T, Boolean>
-): T = matches(ArgMatcher.Matching(function) { "${function.name}()" })
-
-/**
  * Matches argument that is less than [value].
  */
 public fun <T : Comparable<T>> MokkeryMatcherScope.lt(
@@ -113,3 +120,28 @@ public fun <T : Comparable<T>> MokkeryMatcherScope.gte(
  * Matches an argument that is an instance of type [T].
  */
 public inline fun <reified T> MokkeryMatcherScope.ofType(): T = matches(ArgMatcher.OfType(T::class))
+
+/**
+ * **DEPRECATED: This API is considered obsolete. Use [matches] instead.**
+ */
+@Deprecated("This API is considered obsolete. Use `matches` instead.",  ReplaceWith("matches(predicate)", "dev.mokkery.matcher.matches"))
+public fun <T> MokkeryMatcherScope.matching(
+    predicate: (T) -> Boolean,
+): T = matches({ "matching(...)" }, predicate)
+
+/**
+ * **DEPRECATED: This API is considered obsolete. Use [matches] instead.**
+ */
+@Deprecated("This API is considered obsolete. Use `matches` instead.",  ReplaceWith("matches(toString, predicate)", "dev.mokkery.matcher.matches"))
+public fun <T> MokkeryMatcherScope.matching(
+    toString: () -> String,
+    predicate: (T) -> Boolean,
+): T = matches(toString, predicate)
+
+/**
+ * **DEPRECATED: Renamed to [matchesBy]**
+ */
+@Deprecated("Renamed to `matchesBy`.", ReplaceWith("matchesBy(function)", "dev.mokkery.matcher.matchesBy"))
+public fun <T> MokkeryMatcherScope.matchingBy(
+    function: KFunction1<T, Boolean>
+): T = matchesBy(function)

@@ -67,20 +67,6 @@ public fun interface ArgMatcher<in T> {
     }
 
     /**
-     *  Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toStringFun].
-     */
-    @Poko
-    public class Matching<T>(
-        public val predicate: (T) -> Boolean,
-        public val toStringFun: (() -> String)
-    ) : ArgMatcher<T> {
-
-        override fun matches(arg: T): Boolean = predicate(arg)
-
-        override fun toString(): String = toStringFun()
-    }
-
-    /**
      * Matches any [Comparable] [value] depending on [type] parameter.
      */
     @Poko
@@ -124,4 +110,20 @@ public fun interface ArgMatcher<in T> {
         override fun capture(value: T)
     }
 
+    /**
+     *  Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toStringFun].
+     *
+     *  **DEPRECATED: This API is considered obsolete. Implement `ArgMatcher` instead.**
+     */
+    @Poko
+    @Deprecated("This API is considered obsolete. Implement `ArgMatcher` instead.")
+    public class Matching<T>(
+        public val predicate: (T) -> Boolean,
+        public val toStringFun: (() -> String)
+    ) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = predicate(arg)
+
+        override fun toString(): String = toStringFun()
+    }
 }

@@ -3,6 +3,7 @@ package dev.mokkery.plugin.core
 import dev.mokkery.plugin.ir.fqName
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -88,7 +89,7 @@ object Mokkery {
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.function
         val throwArguments by dev_mokkery_internal_defaults.function
         val methodWithoutDefaultsError by dev_mokkery_internal_defaults.function
-        val matches by dev_mokkery_matcher.function
+        val matches by dev_mokkery_matcher.function { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.function
     }
 
@@ -178,3 +179,12 @@ val FqName.property: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, Prope
         val resolver = PropertyById(CallableId(this, Name.identifier(property.name)))
         ReadOnlyProperty { _, _ -> resolver }
     }
+
+fun FqName.function(
+    predicate: (IrSimpleFunctionSymbol) -> Boolean
+): PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, FunctionResolver>> {
+    return PropertyDelegateProvider { _: Any?, property ->
+        val resolver = FunctionById(CallableId(this, Name.identifier(property.name)), predicate)
+        ReadOnlyProperty { _, _ -> resolver }
+    }
+}

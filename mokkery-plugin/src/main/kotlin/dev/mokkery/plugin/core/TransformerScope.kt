@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 
@@ -31,8 +32,8 @@ interface PropertyResolver {
     fun resolve(context: IrPluginContext): IrProperty
 }
 
-class FunctionById(private val id: CallableId) : FunctionResolver {
-    override fun resolve(context: IrPluginContext): IrSimpleFunction = context.referenceFunctions(id).first().owner
+class FunctionById(private val id: CallableId, private val predicate: (IrSimpleFunctionSymbol) -> Boolean = { true }) : FunctionResolver {
+    override fun resolve(context: IrPluginContext): IrSimpleFunction = context.referenceFunctions(id).first(predicate).owner
 }
 
 class ClassById(private val id: ClassId) : ClassResolver {
