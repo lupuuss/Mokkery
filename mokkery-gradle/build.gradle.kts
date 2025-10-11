@@ -1,5 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
+
+
 plugins {
     kotlin("jvm")
     id("mokkery-publish")
@@ -18,6 +22,14 @@ kotlin {
     }
 }
 
+fun Test.dependsOnPublishToMavenLocalOf(project: String) {
+    dependsOn(project(project).tasks.named("publishToMavenLocal"))
+}
+
+fun Test.dependsOnPublishPublicationToMavenLocalOf(project: String, name: String) {
+    dependsOn(project(project).tasks.named("publish${name}PublicationToMavenLocal"))
+}
+
 val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     val compilations = kotlin.target.compilations
     compilations.getByName("functionalTest").associateWith(compilations.getByName("main"))
@@ -27,14 +39,33 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
             testLogging.showStandardStreams = true
             mustRunAfter("test")
             listOf(
-                ":mokkery-runtime",
-                ":mokkery-plugin",
                 ":mokkery-core",
-                ":mokkery-gradle",
+                ":mokkery-runtime",
                 ":mokkery-coroutines"
             ).forEach {
-                dependsOn(project(it).tasks.named("publishToMavenLocal"))
+                if (it == ":mokkery-runtime") {
+                    dependsOnPublishPublicationToMavenLocalOf(it, "AndroidRelease")
+                }
+                dependsOnPublishPublicationToMavenLocalOf(it, "KotlinMultiplatform")
+                dependsOnPublishPublicationToMavenLocalOf(it, "Jvm")
+                dependsOnPublishPublicationToMavenLocalOf(it, "WasmJs")
+                dependsOnPublishPublicationToMavenLocalOf(it, "Js")
+                when (HostManager.host) {
+                    is KonanTarget.LINUX_X64 -> dependsOnPublishPublicationToMavenLocalOf(it, "LinuxX64")
+                    is KonanTarget.LINUX_ARM64 -> dependsOnPublishPublicationToMavenLocalOf(it, "LinuxArm64")
+                    is KonanTarget.MACOS_X64 -> {
+                        dependsOnPublishPublicationToMavenLocalOf(it, "MacosX64")
+                    }
+                    is KonanTarget.MACOS_ARM64 -> {
+                        dependsOnPublishPublicationToMavenLocalOf(it, "MacosArm64")
+                        dependsOnPublishPublicationToMavenLocalOf(it, "IosSimulatorArm64")
+                    }
+                    is KonanTarget.MINGW_X64 -> dependsOnPublishPublicationToMavenLocalOf(it, "MingwX64")
+                    else -> error("Unsupported target ${HostManager.host}")
+                }
             }
+            dependsOnPublishToMavenLocalOf(":mokkery-plugin")
+            dependsOnPublishToMavenLocalOf(":mokkery-gradle")
         }
     }
     dependencies {

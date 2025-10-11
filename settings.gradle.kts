@@ -36,3 +36,5 @@ include(":mokkery-gradle")
 include(":mokkery-plugin")
 include(":mokkery-runtime")
 include(":mokkery-coroutines")
+include(":test-mokkery")
+
