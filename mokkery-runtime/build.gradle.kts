@@ -1,3 +1,4 @@
+
 plugins {
     id("mokkery-publish")
     id("mokkery-multiplatform")
@@ -7,6 +8,7 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     androidTarget {
         publishLibraryVariants("release")
     }
@@ -18,6 +20,9 @@ android {
 }
 
 dependencies {
+    kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-core"))
     commonMainApi(project(":mokkery-core"))
     commonMainCompileOnly(libs.kotlin.stdlib)
 
