@@ -17,8 +17,9 @@ dexmaker = "2.28.6"
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
+kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
-agp-library = { id = "com.android.library"}
+agp-library = { id = "com.android.library" }
 
 [libraries]
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.poko)
 }
 
+kotlin.explicitApi()
+
 dependencies {
     commonMainApi(project(":mokkery-runtime"))
     commonMainApi(libs.kotlinx.coroutines.core)

@@ -8,6 +8,7 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     androidTarget {
         publishLibraryVariants("release")
     }
@@ -17,8 +18,6 @@ android {
     compileSdk = 36
     namespace = rootProject.group.toString()
 }
-
-kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
 
 dependencies {
     kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
