@@ -43,7 +43,8 @@ class MokkerySuiteScopeGenerationTest : MokkerySuiteScope {
 
     @Test
     fun testContainsAllMocks() {
-        val expectedMocks = listOf(mockA, mockB)
+        val mockC = mock<(Int) -> Int>()
+        val expectedMocks = listOf(mockA, mockB, mockC)
         assertEquals(expectedMocks, mocks)
     }
 
