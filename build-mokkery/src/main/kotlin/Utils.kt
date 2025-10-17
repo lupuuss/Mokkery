@@ -1,8 +1,7 @@
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.extra
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import java.util.*
+import java.util.Properties
 
 fun Project.loadLocalProperties() {
     val secretPropsFile = rootProject.file("local.properties")

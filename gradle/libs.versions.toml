@@ -1,16 +1,16 @@
 [versions]
 kotlin = "2.2.20"
 kotlinx-coroutines = "1.10.2"
-buildconfig = "4.0.4"
+buildconfig = "5.7.0"
 google-autoservice = "1.1.1"
-atomicfu = "0.27.0"
-dokka = "2.0.0"
+atomicfu = "0.29.0"
+dokka = "2.1.0"
 poko = "0.19.3"
-vanniktech-publish-plugin = "0.32.0"
+vanniktech-publish-plugin = "0.34.0"
 objensis = "3.4"
-bytebuddy = "1.14.19"
-gradle-portal-publish = "1.2.1"
-agp = "8.11.0"
+bytebuddy = "1.17.8"
+gradle-portal-publish = "2.0.0"
+agp = "8.12.3"
 dexmaker = "2.28.6"
 
 [plugins]

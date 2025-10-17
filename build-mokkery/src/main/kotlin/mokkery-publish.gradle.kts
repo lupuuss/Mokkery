@@ -3,7 +3,6 @@ import MokkeryAttributes.GitDevConnectionUrl
 import MokkeryAttributes.GitHttpsUrl
 import MokkeryAttributes.GitIssuesUrl
 import MokkeryAttributes.WebsiteUrl
-import com.vanniktech.maven.publish.SonatypeHost
 import java.net.URI
 
 plugins {
@@ -26,7 +25,7 @@ mavenPublishing {
     if (gradle.startParameter.taskNames.any { it.contains("MavenCentral") }) {
         signAllPublications()
     }
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
+    publishToMavenCentral(automaticRelease = false)
     pom {
         name.set(project.name)
         description.set(MokkeryAttributes.Description)
