@@ -4,6 +4,8 @@ plugins {
     id("com.github.gmazzo.buildconfig")
 }
 
+kotlin.explicitApi()
+
 dependencies {
     commonMainCompileOnly(libs.kotlin.stdlib)
 

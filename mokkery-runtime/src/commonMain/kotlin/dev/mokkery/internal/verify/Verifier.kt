@@ -1,7 +1,7 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 
 internal sealed interface Verifier {
 
