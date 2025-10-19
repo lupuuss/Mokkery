@@ -10,6 +10,8 @@ description: Get to know Mokkery's limitations for smoother development!
 * ➡️ Functional types 
 * 🏛️ Final classes with [all-open plugin](./Guides/Mocking#final-classes)
 * 🏗️ Abstract/open classes with public constructor and all overridable public members
+  * 🚨 Kotlin 2.3.0 introduces stricter runtime checks for Kotlin/Native, which break mocking of classes with complex type parameters and may affect support for this feature in future releases. [Read more here.](https://github.com/lupuuss/Mokkery/issues/115)
+  * 🚨 Kotlin 2.2.20 introduces stricter runtime checks for Koltin/WASM, which break mocking of classes with complex type parameters and may affect support for this feature in future releases. [Read more here.](https://github.com/lupuuss/Mokkery/issues/111)
   * ⚠️ Mocking classes whose constructor parameters are accessed within the constructor is **<u>not supported</u>**.\
        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
        Support for this feature might be tracked [here](https://github.com/lupuuss/Mokkery/issues/108).
