@@ -1,27 +1,30 @@
 package dev.mokkery.internal.answering
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
+import dev.mokkery.call
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.MokkeryCallScope
-import dev.mokkery.call
-import dev.mokkery.supers
 import dev.mokkery.internal.CallNotMockedException
-import dev.mokkery.internal.ConcurrentTemplatingException
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.calls.isMatching
-import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.mockSpec
+import dev.mokkery.internal.context.MokkeryMockSpec
+import dev.mokkery.internal.context.MokkerySpySpec
+import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.isSpy
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.shortToString
+import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.wrapInMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
-import kotlinx.atomicfu.atomic
+import dev.mokkery.self
+import dev.mokkery.supers
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 
 internal interface AnsweringRegistry : MokkeryContext.Element {
 
@@ -46,45 +49,50 @@ internal fun AnsweringRegistry(): AnsweringRegistry = AnsweringRegistryImpl()
 
 private class AnsweringRegistryImpl : AnsweringRegistry {
 
-    private val modifiers = atomic(0)
+    private val lock = reentrantLock()
     private val _answers = linkedMapOf<CallTemplate, Answer<*>>()
 
-    override val answers: Map<CallTemplate, Answer<*>> get() = _answers.toMutableMap()
+    override val answers: Map<CallTemplate, Answer<*>> get() = lock.withLock {
+        _answers.toMutableMap()
+    }
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
-        modify {
+        lock.withLock {
             _answers += template to answer
         }
     }
 
     override fun reset() {
-        modify {
+        lock.withLock {
             _answers.clear()
         }
     }
 
     override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
-        if (modifiers.value > 0) throw ConcurrentTemplatingException()
         val trace = scope.toCallTrace(0)
-        val answers = this._answers
-        val callMatcher = scope.tools.callMatcher
-        return answers
-            .keys
-            .reversed()
-            .find { callMatcher.match(trace, it).isMatching }
-            ?.also { it.applyCapture(trace) }
-            ?.let { answers.getValue(it) }
-            ?: handleMissingAnswer(trace, scope)
+        val collection = scope.self
+            .requireInstanceScope()
+            .wrapInMokkeryCollection()
+        val callMatcher = scope.tools.callMatcherFactory.create(collection)
+        return lock.withLock {
+            _answers
+                .keys
+                .reversed()
+                .find { callMatcher.match(trace, it).isMatching }
+                ?.also { it.applyCapture(trace) }
+                ?.let { _answers.getValue(it) }
+        } ?: handleMissingAnswer(trace, scope)
     }
 
     private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
-        val mockMode = scope.mockSpec.mode
-        return when {
-            scope.isSpy -> SpiedCallAnswer
-            mockMode == MockMode.autofill -> Answer.Autofill
-            mockMode == MockMode.original && scope.supers.isNotEmpty() -> SuperCallAnswer<Any?>(SuperCall.original)
-            mockMode == MockMode.autoUnit && scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> throw CallNotMockedException(scope.tools.callTraceReceiverShortener.shortToString(trace))
+        return when (val spec = scope.instanceSpec) {
+            is MokkerySpySpec -> SpiedCallAnswer
+            is MokkeryMockSpec -> when (spec.mode) {
+                MockMode.autofill -> Answer.Autofill
+                MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
+                MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
+                else -> throw CallNotMockedException(scope.tools.callTraceReceiverShortener.shortToString(trace))
+            }
         }
     }
 
@@ -96,12 +104,6 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             val argValue = trace.args.find { it.parameter.name == name }?.value
             capture.capture(argValue)
         }
-    }
-
-    private inline fun modify(block: () -> Unit) {
-        if (modifiers.getAndIncrement() > 0) throw ConcurrentTemplatingException()
-        block()
-        modifiers.decrementAndGet()
     }
 
     override fun toString(): String = "AnsweringRegistry@${hashCode()}"

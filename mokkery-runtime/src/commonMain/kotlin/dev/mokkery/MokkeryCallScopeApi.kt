@@ -1,7 +1,5 @@
 package dev.mokkery
 
-import dev.mokkery.answering.AnswerDeprecationMessage
-import dev.mokkery.context.CallArgument
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.require
 import dev.mokkery.internal.IncorrectArgsForSpiedMethodException
@@ -9,9 +7,9 @@ import dev.mokkery.internal.IncorrectArgsForSuperMethodException
 import dev.mokkery.internal.MissingSpyMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.internal.assertSpy
 import dev.mokkery.internal.context.associatedFunctions
-import dev.mokkery.internal.context.mockSpec
+import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
@@ -20,7 +18,7 @@ import kotlin.reflect.KClass
  * Equivalent of `this` in the scope of currently called function.
  */
 public val MokkeryCallScope.self: Any
-    get() = mockSpec.thisRef
+    get() = instanceSpec.thisRef
 
 /**
  * Returns [MokkeryCallScope.self] as [T].
@@ -76,7 +74,7 @@ public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args:
  * Calls spied method with given [args].
  */
 public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? {
-    assertSpy()
+    instanceSpec.requireSpy()
     checkSpiedArgs(args)
     return associatedFunctions
         .spiedFunction
@@ -89,7 +87,7 @@ public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? {
  * Calls spied method with given [args].
  */
 public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? {
-    assertSpy()
+    instanceSpec.requireSpy()
     checkSpiedArgs(args)
     return associatedFunctions
         .spiedFunction
@@ -98,27 +96,10 @@ public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? {
         .invoke(args)
 }
 
-/**
- * Creates [dev.mokkery.answering.FunctionScope] from this [MokkeryCallScope]
- */
-@Deprecated(AnswerDeprecationMessage, level = DeprecationLevel.ERROR)
-@Suppress("DEPRECATION_ERROR")
-public fun MokkeryCallScope.toFunctionScope(): dev.mokkery.answering.FunctionScope {
-    val call = call
-    val function = call.function
-    return dev.mokkery.answering.FunctionScope(
-        returnType = function.returnType,
-        args = call.args.map(CallArgument::value),
-        self = self,
-        supers = supers,
-        classSupertypes = mockSpec.interceptedTypes.map { it.type }
-    )
-}
-
 private val MokkeryCallScope.methodOriginType: KClass<*>
     get() {
         val supers = this.supers
-        val interceptedTypes = mockSpec.interceptedTypes.map { it.type }
+        val interceptedTypes = instanceSpec.interceptedTypes.map { it.type }
         val superCandidates = interceptedTypes.filter(supers::contains)
         if (superCandidates.isEmpty()) throw MissingSuperMethodException(interceptedTypes)
         val superType = superCandidates
