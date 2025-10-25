@@ -12,6 +12,7 @@ bytebuddy = "1.17.8"
 gradle-portal-publish = "2.0.0"
 agp = "8.12.3"
 dexmaker = "2.28.6"
+kctesting = "0.11.0"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
@@ -22,6 +23,7 @@ gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradl
 agp-library = { id = "com.android.library" }
 
 [libraries]
+kctesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kctesting" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-dom-api-compat = { module = "org.jetbrains.kotlin:kotlin-dom-api-compat", version.ref = "kotlin" }

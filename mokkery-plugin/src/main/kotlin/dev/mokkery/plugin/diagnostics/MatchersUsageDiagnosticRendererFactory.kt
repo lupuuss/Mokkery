@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirDiagnosticRenderers
 class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
 
     override val MAP by KtDiagnosticFactoryToRendererMapCompat("MokkeryMatchersUsageDiagnostic") {
-        val scopeFunctionsHint = "If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
+        val scopeFunctionsHint = "If you''re trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
 
         put(
             factory = Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM,
@@ -81,7 +81,7 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         )
         put(
             factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,
-            message = "''{0}'' must not be used with matchers, because it's final and cannot be mocked.",
+            message = "''{0}'' must not be used with matchers, because it''s final and cannot be mocked.",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         put(
