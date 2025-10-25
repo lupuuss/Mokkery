@@ -1,5 +1,4 @@
 
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -31,9 +30,6 @@ rootProject.ext["pluginId"] = "dev.mokkery"
 allprojects {
     group = rootProject.group
     version = rootProject.version
-    tasks.withType<DokkaTask> {
-        onlyIf { "SNAPSHOT" !in version.toString() }
-    }
     afterEvaluate {
         extensions
             .findByType<KotlinProjectExtension>()

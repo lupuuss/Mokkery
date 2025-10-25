@@ -1,11 +1,9 @@
 package dev.mokkery
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.require
 import dev.mokkery.internal.GlobalMokkeryScope
 import dev.mokkery.internal.MokkerySuiteScopeNotImplementedException
 import dev.mokkery.internal.context.MocksRegistry
-import dev.mokkery.internal.utils.instances
 
 /**
  * A scope for a test suite that uses Mokkery mocks. It enables automation and strict exhaustiveness checks.
