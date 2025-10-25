@@ -3,7 +3,6 @@ package dev.mokkery.test.args
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.annotations.Matcher
-import dev.mokkery.annotations.VarArgMatcherBuilder
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
@@ -15,6 +14,7 @@ import dev.mokkery.matcher.capture.capture
 import dev.mokkery.matcher.capture.getIfPresent
 import dev.mokkery.matcher.capture.onArg
 import dev.mokkery.matcher.capture.propagateCapture
+import dev.mokkery.matcher.collections.containsAllInts
 import dev.mokkery.matcher.collections.contentDeepEq
 import dev.mokkery.matcher.collections.contentEq
 import dev.mokkery.matcher.collections.isIn
@@ -38,7 +38,6 @@ import dev.mokkery.matcher.neq
 import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.matcher.ofType
-import dev.mokkery.matcher.varargs.varargsIntAll
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
@@ -415,7 +414,7 @@ class ArgMatchersTest {
 
     @Test
     fun testCustomVarargMatcher() {
-        every { mock.callPrimitiveVarargs(1, 1, *varargsIntAllEq(2), 3) } returns 3
+        every { mock.callPrimitiveVarargs(1, 1, *containsAllIntsEq(2), 3) } returns 3
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 2, 3))
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 3))
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 3))
@@ -428,7 +427,7 @@ class ArgMatchersTest {
 
     @Test
     fun testCustomCompositeOfVarargMatcher() {
-        every { mock.callPrimitiveVarargs(1, 1, *notVarargsIntAllEq(2), 3) } returns 3
+        every { mock.callPrimitiveVarargs(1, 1, *allIntsNeq(2), 3) } returns 3
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 1, 2, 3))
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 3, 3))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1, 2, 2, 3) }
@@ -486,10 +485,8 @@ private fun MokkeryMatcherScope.anyOrEq(
     value: Int
 ): Int = if (condition) value else any()
 
-@VarArgMatcherBuilder
-private fun MokkeryMatcherScope.varargsIntAllEq(value: Int): IntArray = varargsIntAll { it == value }
+private fun MokkeryMatcherScope.containsAllIntsEq(value: Int): IntArray = containsAllInts { it == value }
 
-@VarArgMatcherBuilder
-private fun MokkeryMatcherScope.notVarargsIntAllEq(value: Int): IntArray = not(varargsIntAllEq(value))
+private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsAllIntsEq(value))
 
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)

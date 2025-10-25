@@ -2,21 +2,20 @@ package dev.mokkery.test.args
 
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
-import dev.mokkery.debug.printMokkeryDebug
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.collections.containsAllInts
+import dev.mokkery.matcher.collections.containsAnyInt
 import dev.mokkery.matcher.eq
 import dev.mokkery.matcher.gte
 import dev.mokkery.matcher.logical.and
 import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
 import dev.mokkery.matcher.lt
+import dev.mokkery.matcher.matches
 import dev.mokkery.matcher.neq
-import dev.mokkery.matcher.varargs.anyVarargsInt
-import dev.mokkery.matcher.varargs.varargsIntAll
-import dev.mokkery.matcher.varargs.varargsIntAny
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
@@ -109,7 +108,7 @@ class ArgsMixingTest {
 
     @Test
     fun testMixedVarargs() {
-        every { mock.callPrimitiveVarargs(any(), 1, *anyVarargsInt(), 3) } returns 1
+        every { mock.callPrimitiveVarargs(any(), 1, *any(), 3) } returns 1
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 2, 2, 3))
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 2, 3))
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 3))
@@ -121,8 +120,8 @@ class ArgsMixingTest {
 
     @Test
     fun testVarargsWildcards() {
-        every { mock.callPrimitiveVarargs(any(), 1, *varargsIntAny { it == 1 }, eq(3)) } returns 1
-        every { mock.callPrimitiveVarargs(any(), 1, *varargsIntAll { it == 0 }, eq(3)) } returns 2
+        every { mock.callPrimitiveVarargs(any(), 1, *containsAnyInt { it == 1 }, eq(3)) } returns 1
+        every { mock.callPrimitiveVarargs(any(), 1, *containsAllInts { it == 0 }, eq(3)) } returns 2
         assertEquals(2, mock.callPrimitiveVarargs(1, 1, 0, 0, 3))
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 0, 1, 3))
         assertFailsWith<MokkeryRuntimeException> {
@@ -133,8 +132,8 @@ class ArgsMixingTest {
     @Test
     fun testNamedVarargArray() {
         every { mock.callPrimitiveVarargs(1, inputs = intArrayOf(1, any(), 3)) } returns 1
-        every { mock.callPrimitiveVarargs(1, inputs = intArrayOf(1, 2, *anyVarargsInt())) } returns 2
-        every { mock.callPrimitiveVarargs(1, inputs = intArrayOf(*anyVarargsInt(), 1, 2)) } returns 3
+        every { mock.callPrimitiveVarargs(1, inputs = intArrayOf(1, 2, *any())) } returns 2
+        every { mock.callPrimitiveVarargs(1, inputs = intArrayOf(*any(), 1, 2)) } returns 3
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 5, 3))
         assertEquals(2, mock.callPrimitiveVarargs(1, 1, 2, 2))
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 1, 2))
@@ -180,7 +179,7 @@ class ArgsMixingTest {
     @Test
     fun testVarargsWildcardsWithCapture() {
         val container = Capture.container<IntArray>()
-        every { mock.callPrimitiveVarargs(any(), 1, *capture(container, anyVarargsInt()), 3) } returns 1
+        every { mock.callPrimitiveVarargs(any(), 1, *capture(container, any()), 3) } returns 1
         mock.callPrimitiveVarargs(1, 1, 2, 3)
         mock.callPrimitiveVarargs(1, 1, 2, 3, 3)
         mock.callPrimitiveVarargs(1, 1, 2, 3, 4, 3)
@@ -192,8 +191,8 @@ class ArgsMixingTest {
 
     @Test
     fun testVarargsWildcardsWithCompositeMatchers() {
-        every { mock.callPrimitiveVarargs(any(), 1, *anyVarargsInt(), 3) } returns 1
-        every { mock.callPrimitiveVarargs(any(), 1, *not(varargsIntAny { it == 1 }), 3) } returns 2
+        every { mock.callPrimitiveVarargs(any(), 1, *any(), 3) } returns 1
+        every { mock.callPrimitiveVarargs(any(), 1, *not(containsAnyInt { it == 1 }), 3) } returns 2
         assertEquals(1, mock.callPrimitiveVarargs(0, 1, 1, 2, 3))
         assertEquals(1, mock.callPrimitiveVarargs(0, 1, 1, 1, 3))
         assertEquals(2, mock.callPrimitiveVarargs(0, 1, 2, 2, 3))
@@ -201,9 +200,9 @@ class ArgsMixingTest {
 
     @Test
     fun testMixingVarargsCompositesWithLiterals() {
-        every { mock.callPrimitiveVarargs(any(), 1, *anyVarargsInt(), 3) } returns 1
-        every { mock.callPrimitiveVarargs(any(), 1, *not(varargsIntAny { it == 1 }), 3) } returns 2
-        every { mock.callPrimitiveVarargs(any(), neq(1), *anyVarargsInt(), 3) } returns 3
+        every { mock.callPrimitiveVarargs(any(), 1, *any(), 3) } returns 1
+        every { mock.callPrimitiveVarargs(any(), 1, *not(containsAnyInt { it == 1 }), 3) } returns 2
+        every { mock.callPrimitiveVarargs(any(), neq(1), *any(), 3) } returns 3
         assertEquals(1, mock.callPrimitiveVarargs(0, 1, 1, 2, 3))
         assertEquals(2, mock.callPrimitiveVarargs(0, 1, 2, 2, 3))
         assertEquals(3, mock.callPrimitiveVarargs(0, 2, 2, 3))
@@ -211,7 +210,7 @@ class ArgsMixingTest {
 
     @Test
     fun testOnlyVarargMatcher() {
-        every { mock.callPrimitiveVarargs(inputs = anyVarargsInt()) } returns 1
+        every { mock.callPrimitiveVarargs(inputs = any()) } returns 1
         assertEquals(1, mock.callPrimitiveVarargs(inputs = intArrayOf(1, 2)))
         assertEquals(1, mock.callPrimitiveVarargs(inputs = intArrayOf(1)))
         assertEquals(1, mock.callPrimitiveVarargs())
@@ -226,5 +225,13 @@ class ArgsMixingTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(2) }
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(inputs = intArrayOf(1)) }
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(inputs = intArrayOf(1, 2)) }
+    }
+
+    @Test
+    fun testVarargWithMatches() {
+        every { mock.callPrimitiveVarargs(0, 1, *matches { it.size > 1 && it[1] == 3 }) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(0, 1, 2, 3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1, 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1) }
     }
 }

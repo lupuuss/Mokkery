@@ -1,11 +1,13 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery
-import dev.mokkery.plugin.diagnostics.MatcherProcessingResult.RegularExpression
+import dev.mokkery.plugin.diagnostics.FirMatcherType.Composite
+import dev.mokkery.plugin.diagnostics.FirMatcherType.Regular
+import dev.mokkery.plugin.diagnostics.MatcherProcessingResult.MatcherExpr
+import dev.mokkery.plugin.diagnostics.MatcherProcessingResult.RegularExpr
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.isCompositeMatcher
 import dev.mokkery.plugin.fir.isMatcher
-import dev.mokkery.plugin.fir.isVarargMatcher
 import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirVariable
@@ -18,7 +20,6 @@ import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.lastExpression
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
-import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
@@ -32,13 +33,11 @@ class MatchersProcessor(private val session: FirSession) {
 
     fun processVariable(variable: FirVariable): MatcherProcessingResult = matchers.getOrPut(variable.symbol) {
         when {
-            variable.symbol.acceptsMatcher(session) -> MatcherProcessingResult.MatcherExpression(
-                matcherType(isComposite = false, isVararg = false)
-            )
+            variable.symbol.acceptsMatcher(session) -> MatcherExpr(Regular)
             variable.initializer != null -> extractMatcherType(variable.initializer)
-                ?.let { MatcherProcessingResult.MatcherExpression(it) }
-                ?: RegularExpression
-            else -> RegularExpression
+                ?.let { MatcherExpr(it) }
+                ?: RegularExpr
+            else -> RegularExpr
         }
     }
 
@@ -49,8 +48,8 @@ class MatchersProcessor(private val session: FirSession) {
             is FirQualifiedAccessExpression -> unwrappedExpression.calleeReference
                 .toResolvedCallableSymbol()
                 ?.let(matchers::get)
-                ?.let { it as? MatcherProcessingResult.MatcherExpression }
-                ?.let { yield(it.matcherType) }
+                ?.let { it as? MatcherExpr }
+                ?.let { yield(it.type) }
             is FirWhenExpression -> unwrappedExpression.branches.forEach { branch ->
                 yieldAll(
                     extractAllMatcherTypes(
@@ -72,87 +71,53 @@ class MatchersProcessor(private val session: FirSession) {
         val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return null
         return matchers.getOrPut(symbol) {
             when {
-                !symbol.isMatcher() -> RegularExpression
-                symbol.callableId == Mokkery.Callable.matchesComposite -> {
-                    val isVararg = call.arguments.any { arg -> extractAllMatcherTypes(arg).any { it.isVararg } }
-                    val type = matcherType(true, isVararg)
-                    MatcherProcessingResult.MatcherExpression(type)
-                }
+                !symbol.isMatcher() -> RegularExpr
+                symbol.callableId == Mokkery.Callable.matchesComposite -> MatcherExpr(Composite)
                 symbol.callableId == Mokkery.Callable.matches && symbol.valueParameterSymbols.size == 1 -> {
-                    val varargMatcherType = session
-                        .getRegularClassSymbolByClassId(Mokkery.ClassId.VarArgMatcher)!!
-                        .defaultType()
                     val compositeType = session
                         .getRegularClassSymbolByClassId(Mokkery.ClassId.ArgMatcherComposite)!!
                         .constructType(arrayOf(call.resolvedType))
                     val arg = call.arguments[0]
-                    val isVararg = arg.resolvedType.isSubtypeOf(varargMatcherType, session)
-                    val isComposite = arg.resolvedType.isSubtypeOf(compositeType, session)
-                    MatcherProcessingResult.MatcherExpression(matcherType(isComposite, isVararg))
+                    MatcherExpr(FirMatcherType.of(arg.resolvedType.isSubtypeOf(compositeType, session)))
                 }
-                else -> {
-                    val isComposite = symbol.isCompositeMatcher(session)
-                    val isVararg = when {
-                        isComposite -> call.arguments.any { arg -> extractAllMatcherTypes(arg).any { it.isVararg } }
-                        else -> symbol.isVarargMatcher(session)
-                    }
-                    val type = matcherType(isComposite, isVararg)
-                    MatcherProcessingResult.MatcherExpression(type)
-                }
+                else -> MatcherExpr(FirMatcherType.of(symbol.isCompositeMatcher(session)))
             }
-        }.let { it as? MatcherProcessingResult.MatcherExpression }?.matcherType
+        }.let { it as? MatcherExpr }?.type
     }
 
     fun extractMatcherType(expression: FirExpression?): FirMatcherType? {
-        val processed = extractAllMatcherTypes(expression).toList()
-        return when {
-            processed.isEmpty() -> null
-            else -> matcherType(
-                isComposite = processed.all { it.isComposite },
-                isVararg = processed.all { it.isVararg }
-            )
-        }
+        val types = extractAllMatcherTypes(expression).iterator()
+        if (!types.hasNext()) return null
+        do {
+            val type = types.next()
+            if (type == Composite) return Composite
+        } while (types.hasNext())
+        return Regular
     }
 
     fun getResultFor(symbol: FirBasedSymbol<*>): MatcherProcessingResult? = matchers[symbol]
-
-    private fun matcherType(isComposite: Boolean, isVararg: Boolean): FirMatcherType {
-        return object : FirMatcherType {
-            override val isComposite = isComposite
-            override val isVararg = isVararg
-            override val isRegular = !isComposite && !isVararg
-        }
-    }
 }
 
 fun MatchersProcessor.isMatcher(expression: FirExpression?): Boolean = extractAllMatcherTypes(expression).any()
 
 fun MatchersProcessor.isMatcher(call: FirFunctionCall): Boolean = extractMatcherType(call) != null
 
-fun MatchersProcessor.isVarargMatcher(expression: FirExpression?): Boolean = extractAllMatcherTypes(expression).any {
-    it.isVararg
-}
-
 interface MatcherProcessingResult {
 
-    interface RegularExpression : MatcherProcessingResult {
+    object RegularExpr : MatcherProcessingResult
 
-        companion object : RegularExpression
-    }
-
-    interface MatcherExpression : MatcherProcessingResult {
-        val matcherType: FirMatcherType
-
-        companion object {
-            operator fun invoke(type: FirMatcherType): MatcherExpression = object : MatcherExpression {
-                override val matcherType = type
-            }
-        }
-    }
+    data class MatcherExpr(
+        val type: FirMatcherType
+    ) : MatcherProcessingResult
 }
 
-interface FirMatcherType {
-    val isComposite: Boolean
-    val isRegular: Boolean
-    val isVararg: Boolean
+enum class FirMatcherType {
+    Regular, Composite;
+
+    companion object {
+        fun of(isComposite: Boolean): FirMatcherType = when (isComposite) {
+            true -> Composite
+            false -> Regular
+        }
+    }
 }

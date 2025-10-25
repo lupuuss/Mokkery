@@ -6,7 +6,6 @@ import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
 import dev.mokkery.plugin.fir.isSpread
-import dev.mokkery.plugin.fir.isVarargMatcher
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -24,10 +23,10 @@ import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
 import org.jetbrains.kotlin.fir.expressions.FirEqualityOperatorCall
+import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirGetClassCall
 import org.jetbrains.kotlin.fir.expressions.FirLoop
-import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirTryExpression
 import org.jetbrains.kotlin.fir.expressions.FirTypeOperatorCall
 import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
@@ -53,6 +52,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.utils.addToStdlib.popLast
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 enum class MatchersUsageContext {
     BUILDER, TEMPLATING
@@ -129,69 +129,34 @@ class MatchersUsageReporterVisitor(
             ?.toResolvedVariableSymbol()
             ?: return super.visitVariableAssignment(variableAssignment)
         if (variableAssignment.dispatchReceiver != null) return super.visitVariableAssignment(variableAssignment)
-        val rValueTypes = matchersProcessor.extractAllMatcherTypes(variableAssignment.rValue).toList()
-        if (rValueTypes.isEmpty()) return super.visitVariableAssignment(variableAssignment)
-        when (val type = matchersProcessor.getResultFor(variableSymbol)) {
+        if (!matchersProcessor.isMatcher(variableAssignment.rValue)) return super.visitVariableAssignment(variableAssignment)
+        when (matchersProcessor.getResultFor(variableSymbol)) {
             null -> reporter.reportOn(
                 source = variableAssignment.source,
                 factory = Diagnostics.VARIABLE_OUT_OF_SCOPE,
                 a = variableSymbol
             )
-            is MatcherProcessingResult.RegularExpression -> reporter.reportOn(
+            is MatcherProcessingResult.RegularExpr -> reporter.reportOn(
                 source = variableAssignment.source,
                 factory = Diagnostics.VARIABLE_NOT_A_MATCHER,
                 a = variableSymbol
             )
-            is MatcherProcessingResult.MatcherExpression -> {
-                val isAssignedWithVarargMatcher = rValueTypes.any { it.isVararg }
-                if (isAssignedWithVarargMatcher != type.matcherType.isVararg) {
-                    reporter.reportOn(
-                        source = variableAssignment.source,
-                        factory = Diagnostics.INCOMPATIBLE_VARIABLE_TYPE,
-                        a = variableSymbol,
-                        b = if (type.matcherType.isVararg) "vararg" else "regular",
-                        c = if (isAssignedWithVarargMatcher) "vararg" else "regular",
-                    )
-                }
-            }
+            else -> Unit
         }
         super.visitVariableAssignment(variableAssignment)
     }
 
     override fun visitWhenExpression(whenExpression: FirWhenExpression) = context(context) {
-        var varargsCount = 0
-        var otherMatchersCount = 0
-        var nonMatchersExpressions = 0
         val subjectInitializer = whenExpression.subjectVariable?.initializer
         if (subjectInitializer != null && matchersProcessor.isMatcher(subjectInitializer)) {
             reporter.reportOn(subjectInitializer.source, Diagnostics.ILLEGAL_MATCHER_IN_WHEN_SUBJECT)
         }
-        for (branch in whenExpression.branches) {
-            if (matchersProcessor.isMatcher(branch.condition)) {
-                reporter.reportOn(branch.condition.source, Diagnostics.ILLEGAL_MATCHER_IN_CONDITION)
+        whenExpression
+            .branches
+            .memoryOptimizedMap { it.condition }
+            .forEachMatcher {
+                reporter.reportOn(it.source, Diagnostics.ILLEGAL_MATCHER_IN_CONDITION)
             }
-            val branchExpression = branch.result.lastExpression ?: continue
-            val matchersCalls = matchersProcessor.extractAllMatcherTypes(branchExpression).toList()
-            when {
-                matchersCalls.isEmpty() -> nonMatchersExpressions++
-                matchersCalls.any { it.isVararg } -> varargsCount++
-                else -> otherMatchersCount++
-            }
-        }
-        if (varargsCount == 0) {
-            return super.visitWhenExpression(whenExpression)
-        }
-        if (nonMatchersExpressions != 0 || otherMatchersCount != 0) {
-            for (branch in whenExpression.branches) {
-                val branchExpression = branch.result.lastExpression ?: continue
-                if (!matchersProcessor.isVarargMatcher(branchExpression)) {
-                    reporter.reportOn(
-                        source = branch.source,
-                        factory = Diagnostics.VARARG_REQUIRED_IN_ALL_BRANCHES
-                    )
-                }
-            }
-        }
         super.visitWhenExpression(whenExpression)
     }
 
@@ -293,24 +258,6 @@ class MatchersUsageReporterVisitor(
         currentCallsStack.removeLast()
     }
 
-    override fun visitReturnExpression(returnExpression: FirReturnExpression) = context(context) {
-        if (usageContext != MatchersUsageContext.BUILDER) return super.visitReturnExpression(returnExpression)
-        if (returnExpression.target.labeledElement.symbol != parentFunction) {
-            return super.visitReturnExpression(returnExpression)
-        }
-        val isVarargBuilderAnnotated = parentFunction.isVarargMatcher(session)
-        val usesVarargMatchers = matchersProcessor.isVarargMatcher(returnExpression.result)
-        when {
-            usesVarargMatchers && !isVarargBuilderAnnotated -> {
-                reporter.reportOn(parentFunction.source, Diagnostics.MATCHER_RETURNING_VARARG_MATCHER_MUST_BE_ANNOTATED)
-            }
-            isVarargBuilderAnnotated && !usesVarargMatchers -> {
-                reporter.reportOn(returnExpression.source, Diagnostics.VARARG_MATCHER_BUILDER_MUST_RETURN_VARARG_MATCHERS_ONLY)
-            }
-        }
-        super.visitReturnExpression(returnExpression)
-    }
-
     private fun ensureCanUseMatchersNow(call: FirFunctionCall): Boolean = context(context) {
         val currentParent = functionsStack.lastOrNull()
         val associatedCallToLambda = callAssociatedLambdas[currentParent]
@@ -343,31 +290,19 @@ class MatchersUsageReporterVisitor(
         call: FirFunctionCall,
         symbol: FirFunctionSymbol<*>
     ) = context(context) {
-        var regularMatchers = 0
-        var varargMatchers = 0
         val argumentsMapping = call.allNonDispatchArgumentsMapping(symbol)
         for ((param, arg) in argumentsMapping) {
-            when {
-                param.acceptsMatcher(session) -> {
-                    if (matchersProcessor.isVarargMatcher(arg)) varargMatchers++ else regularMatchers++
-                }
-                matchersProcessor.isMatcher(arg) -> reporter.reportOn(
+            if (!param.acceptsMatcher(session) && matchersProcessor.isMatcher(arg)) {
+                reporter.reportOn(
                     source = arg.source,
                     factory = Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM,
                     a = param
                 )
             }
         }
-        if (varargMatchers > 0 && regularMatchers > 0) {
-            argumentsMapping.forEach { (param, arg) ->
-                if (param.acceptsMatcher(session) && !matchersProcessor.isVarargMatcher(arg)) {
-                    reporter.reportOn(arg.source, Diagnostics.ILLEGAL_VARARGS_COMPOSITE)
-                }
-            }
-        }
         if (symbol.callableId == Callable.matches && symbol.valueParameterSymbols.size == 1) {
             val type = matchersProcessor.extractMatcherType(call)
-            if (type?.isComposite == true) {
+            if (type == FirMatcherType.Composite) {
                 reporter.reportOn(
                     call.arguments[0].source,
                     Diagnostics.MATCHES_WITH_COMPOSITE_ARG
@@ -380,13 +315,11 @@ class MatchersUsageReporterVisitor(
         val arguments = call.contextArguments
             .plus(call.extensionReceiver)
             .plus(call.arguments)
-        arguments.forEach {
-            if (it != null && matchersProcessor.isMatcher(it)) {
-                reporter.reportOn(
-                    source = it.source,
-                    factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION
-                )
-            }
+        arguments.forEachMatcher {
+            reporter.reportOn(
+                source = it.source,
+                factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION
+            )
         }
     }
 
@@ -408,13 +341,11 @@ class MatchersUsageReporterVisitor(
         val arguments = call.contextArguments
             .plus(call.extensionReceiver)
             .plus(call.arguments)
-        arguments.forEach {
-            if (it != null && matchersProcessor.isMatcher(it)) {
-                reporter.reportOn(
-                    source = it.source,
-                    factory = Diagnostics.MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER
-                )
-            }
+        arguments.forEachMatcher {
+            reporter.reportOn(
+                source = it.source,
+                factory = Diagnostics.MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER
+            )
         }
     }
 
@@ -425,28 +356,23 @@ class MatchersUsageReporterVisitor(
         val arguments = call.contextArguments
             .plus(call.extensionReceiver)
             .plus(call.arguments)
-        arguments.forEach {
-            if (it != null && matchersProcessor.isMatcher(it)) {
-                reporter.reportOn(
-                    source = it.source,
-                    factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,
-                    a = symbol
-                )
-            }
+        arguments.forEachMatcher {
+            reporter.reportOn(
+                source = it.source,
+                factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,
+                a = symbol
+            )
         }
     }
 
-    private fun reportIllegalMatchersInMockableMethod(call: FirFunctionCall, symbol: FirFunctionSymbol<*>) = context(context) {
+    private fun reportIllegalMatchersInMockableMethod(
+        call: FirFunctionCall,
+        symbol: FirFunctionSymbol<*>
+    ) = context(context) {
         for ((param, arg) in call.allNonDispatchArgumentsMapping(symbol)) {
-            when {
-                param is FirValueParameterSymbol && param.isVararg -> {
-                    val vararg = arg as FirVarargArgumentsExpression
-                    reportIllegalVarargMatchers(call, vararg)
-                }
-                matchersProcessor.isVarargMatcher(arg) -> reporter.reportOn(
-                    source = arg.source,
-                    factory = Diagnostics.VARARG_MATCHER_WITHOUT_VARARG
-                )
+            if (param is FirValueParameterSymbol && param.isVararg) {
+                val vararg = arg as FirVarargArgumentsExpression
+                reportIllegalVarargMatchers(call, vararg)
             }
         }
     }
@@ -457,27 +383,22 @@ class MatchersUsageReporterVisitor(
     ): Unit = context(context) {
         var varargMatchersCount = 0
         for (arg in vararg.arguments) {
-            when {
-                arg.isSpread() -> {
-                    val arrayLiteralCall = arg.extractArrayLiteralCall(session)
-                    if (arrayLiteralCall != null) {
-                        legalizedNonMemberFunctionWithMatchers += arrayLiteralCall
-                        reportIllegalVarargMatchers(call, arrayLiteralCall.arguments[0] as FirVarargArgumentsExpression)
-                        continue
-                    }
-                    val type = matchersProcessor.extractMatcherType(arg)
-                    when {
-                        type == null -> continue
-                        type.isVararg -> if (varargMatchersCount++ > 0) {
-                            reporter.reportOn(arg.source, Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED)
-                        }
-                        else -> reporter.reportOn(arg.source, Diagnostics.ILLEGAL_SPREAD_FOR_VARARG)
-                    }
-                }
-                matchersProcessor.isVarargMatcher(arg) -> {
-                    reporter.reportOn(arg.source, Diagnostics.VARARG_MATCHER_USED_WITHOUT_SPREAD)
-                }
+            if (!arg.isSpread()) continue
+            val arrayLiteralCall = arg.extractArrayLiteralCall(session)
+            if (arrayLiteralCall != null) {
+                legalizedNonMemberFunctionWithMatchers += arrayLiteralCall
+                reportIllegalVarargMatchers(call, arrayLiteralCall.arguments[0] as FirVarargArgumentsExpression)
+                continue
             }
+            if (matchersProcessor.isMatcher(arg) && varargMatchersCount++ > 0) {
+                reporter.reportOn(arg.source, Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED)
+            }
+        }
+    }
+
+    private inline fun <T : FirExpression?> List<T>.forEachMatcher(block: (T & Any) -> Unit) {
+        forEach {
+            if (it != null && matchersProcessor.isMatcher(it)) block(it)
         }
     }
 
@@ -488,10 +409,8 @@ class MatchersUsageReporterVisitor(
         val MATCHER_PASSED_TO_NON_MATCHER_PARAM by error1<KtElement, FirBasedSymbol<*>>()
         val ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_METHOD_INVOCATION_ON_MATCHER by error0<KtElement>()
-        val ILLEGAL_VARARGS_COMPOSITE by error0<KtElement>()
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
         val ILLEGAL_TRY_CATCH by error0<KtElement>()
-        val VARARG_REQUIRED_IN_ALL_BRANCHES by error0<KtElement>()
         val ILLEGAL_NESTED_TEMPLATING by error1<KtElement, Name>()
         val ILLEGAL_NESTED_FUNCTIONS_MATCHERS by error1<KtElement, FirFunctionSymbol<*>>()
         val ILLEGAL_NESTED_CLASS_MATCHERS by error1<KtElement, FirClassSymbol<*>>()
@@ -499,15 +418,9 @@ class MatchersUsageReporterVisitor(
         val ILLEGAL_MATCHER_IN_WHEN_SUBJECT by error0<KtElement>()
         val VARIABLE_OUT_OF_SCOPE by error1<KtElement, FirVariableSymbol<*>>()
         val VARIABLE_NOT_A_MATCHER by error1<KtElement, FirVariableSymbol<*>>()
-        val INCOMPATIBLE_VARIABLE_TYPE by error3<KtElement, FirVariableSymbol<*>, String, String>()
         val MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER by error0<KtElement>()
         val MATCHER_PASSED_TO_NON_MEMBER_FUNCTION by error0<KtElement>()
-        val ILLEGAL_SPREAD_FOR_VARARG by error0<KtElement>()
         val SINGLE_VARARG_MATCHER_ALLOWED by error0<KtElement>()
-        val VARARG_MATCHER_WITHOUT_VARARG by error0<KtElement>()
-        val VARARG_MATCHER_USED_WITHOUT_SPREAD by error0<KtElement>()
-        val MATCHER_RETURNING_VARARG_MATCHER_MUST_BE_ANNOTATED by error0<KtElement>()
-        val VARARG_MATCHER_BUILDER_MUST_RETURN_VARARG_MATCHERS_ONLY by error0<KtElement>()
         val MATCHER_USED_WITH_FINAL_METHOD by error1<KtElement, FirFunctionSymbol<*>>()
         val MATCHES_WITH_COMPOSITE_ARG by error0<KtElement>()
     }

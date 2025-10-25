@@ -24,10 +24,6 @@ fun FirFunctionSymbol<*>.isTemplatingFunction(): Boolean {
             || contextParameterSymbols.any { it.resolvedReturnType.isMokkeryTemplatingScope() }
 }
 
-fun FirFunctionSymbol<*>.isVarargMatcher(session: FirSession): Boolean {
-    return isMatcher() && hasAnnotation(varArgMacherBuilderAnnotation, session)
-}
-
 fun FirFunctionSymbol<*>.isCompositeMatcher(session: FirSession): Boolean {
     return isMatcher() && contextParameterSymbols
         .plus(valueParameterSymbols)
@@ -44,6 +40,5 @@ fun ConeKotlinType?.isMokkeryMatcherScope(): Boolean = this?.classId == mokkeryM
 fun ConeKotlinType?.isMokkeryTemplatingScope(): Boolean = this?.classId == mokkeryTemplatingScopeClassId
 
 private val matcherAnnotation = Mokkery.ClassId.Matcher
-private val varArgMacherBuilderAnnotation = Mokkery.ClassId.VarArgMatcherBuilder
 private val mokkeryMatcherScopeClassId = Mokkery.ClassId.MokkeryMatcherScope
 private val mokkeryTemplatingScopeClassId = Mokkery.ClassId.MokkeryTemplatingScope

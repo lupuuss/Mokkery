@@ -49,9 +49,7 @@ class MatchersInliner(
 ) : CoreTransformer(compilerPluginScope) {
 
     private val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
-    private val varargMatcherClass = getClass(Mokkery.Class.VarArgMatcher)
-    private val varargMatcherMarkerClass = getClass(Mokkery.Class.VarargMatcherMarker)
-    private val argMatcherCompositeClass = argMatcherClass.nestedClasses.single { it.name.asString() == "Composite" }
+    private val spreadArgMatcherFun = getFunction(Mokkery.Function.spread)
     private val eqMatcher = argMatcherClass.nestedClasses
         .single { it.name.asString() == "Equals" }
         .primaryConstructor!!
@@ -97,7 +95,7 @@ class MatchersInliner(
         vararg.elements.transformInPlace { element ->
             when (element) {
                 is IrSpreadElement -> when {
-                    element.expression.type.isMatcher() -> element.expression
+                    element.expression.type.isMatcher() -> spreadArgMatcher(element.expression)
                     element.expression.type.isMatchersArray() -> element
                     else -> spreadLiteralsAsMatchers(element)
                 }
@@ -113,11 +111,7 @@ class MatchersInliner(
         val irWhen = super.visitWhen(expression)
         if (irWhen !is IrWhen) return irWhen
         if (expression.branches.none { branch -> branch.result.type.isMatcher() }) return irWhen
-        val anyVarargMatchers = expression.branches.any { it.result.type.isVarArgMatcher() }
-        val targetType = when {
-            anyVarargMatchers -> varargMatcherClass.defaultType
-            else -> argMatcherClass.typeWith(irWhen.type)
-        }
+        val targetType = argMatcherClass.typeWith(irWhen.type)
         irWhen.type = targetType
         irWhen.branches.forEach { it.result = it.result.performEqMatcherWrapping(targetType) }
         return irWhen
@@ -154,19 +148,14 @@ class MatchersInliner(
         if (originalMatcherFunction == matchesFunction) return expression.arguments[1]!!
         if (originalMatcherFunction == matchesCompositeFunction) return replaceMatchesComposite(expression)
         val matcherFunction = compileIfMatcher(originalMatcherFunction)
-        var matcherTargetType = matcherFunction.returnType
         return irCall(matcherFunction) {
             call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
             matcherFunction
                 .parameters
                 .forEachIndexed { i, it ->
-                    val arg = replaceNestedTemplatingArg(expression.arguments[i], it)
-                    arguments[it] = arg
-                    if (arg?.type?.isVarArgMatcher() == true) {
-                        matcherTargetType = varargMatcherClass.defaultType
-                    }
+                    arguments[it] = replaceNestedTemplatingArg(expression.arguments[i], it)
                 }
-        }.performVarArgMarkerWrapping(matcherTargetType)
+        }
     }
 
     private fun IrBuilderWithScope.replaceMatchesComposite(expression: IrCall): IrExpression {
@@ -230,12 +219,9 @@ class MatchersInliner(
         }
     }
 
-    private fun varargMatcherMarker(expression: IrExpression): IrExpression {
-        val constructor = varargMatcherMarkerClass.primaryConstructor!!
-        return declarationIrBuilder {
-            irCallConstructor(constructor) {
-                arguments[0] = expression
-            }
+    private fun spreadArgMatcher(expression: IrExpression) = declarationIrBuilder {
+        irCall(spreadArgMatcherFun) {
+            arguments[0] = expression
         }
     }
 
@@ -250,31 +236,10 @@ class MatchersInliner(
         return isArray() && this.getArrayElementType(pluginContext.irBuiltIns).isMatcher()
     }
 
-    private fun IrType.isComposite(): Boolean {
-        val classSymbol = classOrNull ?: return false
-        val clazz = classSymbol.owner
-        if (clazz == argMatcherCompositeClass) return true
-        return clazz.isSubclassOf(argMatcherCompositeClass)
-    }
-
-    private fun IrType.isVarArgMatcher(): Boolean {
-        val classSymbol = classOrNull ?: return false
-        val clazz = classSymbol.owner
-        if (clazz == varargMatcherClass) return true
-        return clazz.isSubclassOf(varargMatcherClass)
-    }
-
     private fun IrExpression.performEqMatcherWrapping(targetType: IrType): IrExpression {
         return when {
             !targetType.isMatcher() -> this
             !this.type.isMatcher() -> callEqMatcher(this)
-            else -> this
-        }
-    }
-
-    private fun IrExpression.performVarArgMarkerWrapping(targetType: IrType): IrExpression {
-        return when {
-            this.type.isComposite() && targetType.isVarArgMatcher() -> varargMatcherMarker(this)
             else -> this
         }
     }

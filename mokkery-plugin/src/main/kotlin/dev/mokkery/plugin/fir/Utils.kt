@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.fir.declarations.declaredProperties
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirSpreadArgumentExpression
-import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirWrappedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
 import org.jetbrains.kotlin.fir.expressions.unwrapExpression
@@ -58,10 +57,9 @@ fun FirExpression.isSpread(): Boolean {
     }
 }
 
-fun FirExpression.extractArrayLiteralCall(session: FirSession): FirFunctionCall? {
-    val expression = unwrapExpressionOrArgument()
-    return when (expression) {
-        is FirFunctionCall if expression.isArrayOfCall(session) -> expression
-        else -> null
-    }
+fun FirExpression.extractArrayLiteralCall(
+    session: FirSession
+): FirFunctionCall? = when (val expression = unwrapExpressionOrArgument()) {
+    is FirFunctionCall if expression.isArrayOfCall(session) -> expression
+    else -> null
 }

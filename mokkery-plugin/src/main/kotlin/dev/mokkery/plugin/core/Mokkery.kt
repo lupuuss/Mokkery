@@ -23,22 +23,18 @@ object Mokkery {
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName
-    val dev_mokkery_matcher_varargs by fqName
     val dev_mokkery_internal_answering_autofill by fqName
     val dev_mokkery_internal_defaults by fqName
 
     object Class {
 
         val Matcher by dev_mokkery_annotations.klass
-        val VarArgMatcherBuilder by dev_mokkery_annotations.klass
         val MockMode by dev_mokkery.klass
         val MokkeryScope by dev_mokkery.klass
         val MokkeryMatcherScope by dev_mokkery_matcher.klass
         val ArgMatcher by dev_mokkery_matcher.klass
         val CompositeVarArgMatcher by dev_mokkery_internal_matcher.klass
         val DefaultValueMatcher by dev_mokkery_internal_matcher.klass
-        val VarArgMatcher by dev_mokkery_matcher_varargs.klass
-        val VarargMatcherMarker by dev_mokkery_matcher_varargs.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
         val MockMany4 by dev_mokkery.klass
@@ -91,6 +87,7 @@ object Mokkery {
         val methodWithoutDefaultsError by dev_mokkery_internal_defaults.function
         val matches by dev_mokkery_matcher.function { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.function
+        val spread by dev_mokkery_internal_matcher.function
     }
 
     object Property {
@@ -136,9 +133,7 @@ object Mokkery {
             relativeClassName = FqName.fromSegments(listOf("ArgMatcher", "Composite")),
             isLocal = false
         )
-        val VarArgMatcher by dev_mokkery_matcher_varargs.classId
         val TemplatingLambda by dev_mokkery_internal_annotations.classId
-        val VarArgMatcherBuilder by dev_mokkery_annotations.classId
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

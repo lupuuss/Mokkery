@@ -3,7 +3,7 @@ package dev.mokkery.internal.matcher
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture
-import dev.mokkery.matcher.varargs.VarArgMatcher
+import dev.mokkery.matcher.collections.CollectionArgMatchers
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -30,7 +30,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class)
+                ArgMatcher.Any.spread(),
             )
         )
         assertTrue(matcher.matches(intArrayOf(1, 2)))
@@ -42,7 +42,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
             )
         )
         assertTrue(matcher.matches(intArrayOf(1, 2, 3, 4, 5)))
@@ -54,7 +54,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AllThat<Int>(Int::class) { it == 1 },
+                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
             )
         )
         assertFalse(matcher.matches(intArrayOf(1, 2, 3, 4, 5)))
@@ -66,7 +66,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
             )
         )
         assertFalse(matcher.matches(intArrayOf(2, 2, 3, 4, 5)))
@@ -78,7 +78,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -92,7 +92,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -106,7 +106,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AllThat<Int>(Int::class) { it == 1 },
+                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -120,7 +120,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AllThat<Any>(Int::class) { it == 1 },
+                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -145,10 +145,10 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
             )
         )
-        assertEquals("[1, 2, anyVarargsInt()]", matcher.toString())
+        assertEquals("[1, 2, *any()]", matcher.toString())
     }
 
     @Test
@@ -157,12 +157,12 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                VarArgMatcher.AnyOf(Int::class),
+                ArgMatcher.Any.spread(),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
         )
-        assertEquals("[1, 2, anyVarargsInt(), 3, 4]", matcher.toString())
+        assertEquals("[1, 2, *any(), 3, 4]", matcher.toString())
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -9,7 +9,6 @@ internal fun KClass<*>.isArray(): Boolean = this == Array::class || bestName().s
 
 internal fun Any?.asListOrNull(): List<Any?>? {
     return when (this) {
-        is List<*> -> this
         is Array<*> -> asList()
         is IntArray -> asList()
         is ByteArray -> asList()
@@ -45,23 +44,6 @@ internal fun List<*>.toPlatformArrayOf(value: Any?): Any? {
         is UShortArray -> (this as List<UShort>).toUShortArray()
         else -> null
     }
-}
-
-internal fun varargNameByElementType(cls: KClass<*>): String = when (cls) {
-    Int::class -> "varargsInt"
-    UInt::class -> "varargsUInt"
-    Short::class -> "varargsShort"
-    UShort::class -> "varargsUShort"
-    Byte::class -> "varargsByte"
-    UByte::class -> "varargsUByte"
-    Char::class -> "varargsChar"
-    Double::class -> "varargsDouble"
-    Float::class -> "varargsFloat"
-    ULong::class -> "varargsULong"
-    Long::class -> "varargsLong"
-    Boolean::class -> "varargsBoolean"
-    Any::class -> "varargs"
-    else -> "varargs<${cls.simpleName}>"
 }
 
 internal expect fun platformArrayOf(kClass: KClass<*>, elements: List<Any?>): Array<*>

@@ -1,6 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.MockMode.autofill
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.atLeast

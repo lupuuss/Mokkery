@@ -26,10 +26,6 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Invoking methods on matchers is illegal."
         )
         put(
-            factory = Diagnostics.ILLEGAL_VARARGS_COMPOSITE,
-            message = "Given expression must be a vararg matcher or a composite of vararg matchers, because all matchers in a composite must be vararg if any of them is."
-        )
-        put(
             factory = Diagnostics.ILLEGAL_OPERATOR_USAGE,
             message = "Operators cannot be used with matchers, but ''{0}'' operator is used.",
             rendererA = CommonRenderers.STRING
@@ -37,10 +33,6 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         put(
             factory = Diagnostics.ILLEGAL_TRY_CATCH,
             message = "Returning matchers from try/catch is not supported."
-        )
-        put(
-            factory = Diagnostics.VARARG_REQUIRED_IN_ALL_BRANCHES,
-            message = "When vararg matcher is given in one conditional branch, then all other branches must return vararg matchers."
         )
         put(
             factory = Diagnostics.ILLEGAL_NESTED_TEMPLATING,
@@ -76,13 +68,6 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         put(
-            factory = Diagnostics.INCOMPATIBLE_VARIABLE_TYPE,
-            message = "''{0}'' is initialized with {1} matcher and cannot be reassigned with {2} matcher.",
-            rendererA = FirDiagnosticRenderers.SYMBOL,
-            rendererB = CommonRenderers.STRING,
-            rendererC = CommonRenderers.STRING
-        )
-        put(
             factory = Diagnostics.MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER,
             message = "Passing matchers to methods is not legal inside matcher builders."
         )
@@ -91,28 +76,8 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Matchers can be only passed to mock methods."
         )
         put(
-            factory = Diagnostics.ILLEGAL_SPREAD_FOR_VARARG,
-            message = "The spread operator on matchers is only allowed for vararg matchers or composite matchers that accept only vararg matchers."
-        )
-        put(
             factory = Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED,
             message = "Only one vararg matcher is allowed."
-        )
-        put(
-            factory = Diagnostics.VARARG_MATCHER_WITHOUT_VARARG,
-            message = "Vararg matcher can only be used with varargs."
-        )
-        put(
-            factory = Diagnostics.VARARG_MATCHER_USED_WITHOUT_SPREAD,
-            message = "Vararg matcher can only be used with spread operator."
-        )
-        put(
-            factory = Diagnostics.MATCHER_RETURNING_VARARG_MATCHER_MUST_BE_ANNOTATED,
-            message = "Matcher that returns vararg matchers must be annotated with @dev.mokkery.annotations.VarArgMatcherBuilder."
-        )
-        put(
-            factory = Diagnostics.VARARG_MATCHER_BUILDER_MUST_RETURN_VARARG_MATCHERS_ONLY,
-            message = "Matchers annotated with @dev.mokkery.annotations.VarArgMatcherBuilder must return vararg matchers in all returns."
         )
         put(
             factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,

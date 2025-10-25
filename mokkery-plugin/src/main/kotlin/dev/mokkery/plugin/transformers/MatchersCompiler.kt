@@ -27,10 +27,8 @@ class MatchersCompiler(
 
     private val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
     private val argMatcherCompositeClass = argMatcherClass.nestedClasses.single { it.name.asString() == "Composite" }
-    private val varargMatcherClass = getClass(Mokkery.Class.VarArgMatcher)
 
     private val matcherAnnotation = getClass(Mokkery.Class.Matcher).symbol
-    private val varargMatcherBuilderAnnotation = getClass(Mokkery.Class.VarArgMatcherBuilder).symbol
     private val matcherScopeType = getClass(Mokkery.Class.MokkeryMatcherScope).defaultType
     private val intrinsicsMatchesFunctions = setOf(
         getFunction(Mokkery.Function.matches),
@@ -74,7 +72,6 @@ class MatchersCompiler(
         val matcherParams = transformCompositeParamsTypes()
         val type = when {
             matcherParams.any() -> argMatcherCompositeClass.typeWith(returnType)
-            hasAnnotation(varargMatcherBuilderAnnotation) -> varargMatcherClass.defaultType
             else -> argMatcherClass.typeWith(returnType)
         }
         returnType = type
