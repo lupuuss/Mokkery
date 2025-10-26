@@ -21,10 +21,12 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
@@ -105,6 +107,26 @@ class MatchersInliner(
 
         }
         return vararg
+    }
+
+    override fun visitBlock(expression: IrBlock): IrExpression {
+        val irBlock = super.visitBlock(expression)
+        if (irBlock !is IrBlock) return irBlock
+        val matcherType = when {
+            irBlock is IrReturnableBlock -> irBlock
+                .statements
+                .firstNotNullOfOrNull {
+                    if (it is IrReturn && it == irBlock.symbol && it.type.isMatcher()) it.type else null
+                }
+            else -> irBlock.statements
+                .lastOrNull()
+                .let { it as? IrExpression }
+                ?.type
+                ?.takeIf { it.isMatcher() }
+        }
+        if (matcherType == null) return irBlock
+        irBlock.type = matcherType
+        return irBlock
     }
 
     override fun visitWhen(expression: IrWhen): IrExpression {

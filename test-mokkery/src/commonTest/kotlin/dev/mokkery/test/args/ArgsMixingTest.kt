@@ -46,6 +46,25 @@ class ArgsMixingTest {
     }
 
     @Test
+    fun testExtractMatchersToVariablesInitializedWithWhen() {
+        for (i in 0..1) {
+            every {
+                val matcher = when (i) {
+                    0 -> gte(4)
+                    else -> 2
+                }
+                mock.callPrimitive(input = matcher)
+            } returns 2
+        }
+        assertEquals(2, mock.callPrimitive(2))
+        assertEquals(2, mock.callPrimitive(4))
+        assertEquals(2, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+    }
+
+    @Test
     fun testChangingArgsOrder() {
         every { mock.callDefaults(c = "4", b = 3.0, a = 2) } returns ComplexType.Companion
         mock.callDefaults(2, 3.0, "4")
