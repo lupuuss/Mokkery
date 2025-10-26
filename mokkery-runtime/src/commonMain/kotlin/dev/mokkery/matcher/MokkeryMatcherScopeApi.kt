@@ -7,6 +7,7 @@ import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gte
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lte
+import dev.mokkery.matcher.logical.not
 import kotlin.reflect.KFunction1
 
 /**
@@ -69,24 +70,9 @@ public fun <T : R, R> MokkeryMatcherScope.matchesComposite(
 public fun <T> MokkeryMatcherScope.any(): T = matches(ArgMatcher.Any)
 
 /**
- * Matches an argument that is equal to [value]. It can be replaced with [value] literal.
- */
-public fun <T> MokkeryMatcherScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
-
-/**
- * Matches an argument that is not equal to [value].
- */
-public fun <T> MokkeryMatcherScope.neq(value: T): T = matches(ArgMatcher.NotEqual(value))
-
-/**
  * Matches an argument whose reference is equal to [value]'s reference.
  */
-public fun <T> MokkeryMatcherScope.eqRef(value: T): T = matches(ArgMatcher.EqualsRef(value))
-
-/**
- * Matches an argument whose reference is not equal to [value]'s reference.
- */
-public fun <T> MokkeryMatcherScope.neqRef(value: T): T = matches(ArgMatcher.NotEqualRef(value))
+public fun <T> MokkeryMatcherScope.ref(value: T): T = matches(ArgMatcher.EqualsRef(value))
 
 /**
  * Matches argument that is less than [value].
@@ -120,6 +106,42 @@ public fun <T : Comparable<T>> MokkeryMatcherScope.gte(
  * Matches an argument that is an instance of type [T].
  */
 public inline fun <reified T> MokkeryMatcherScope.ofType(): T = matches(ArgMatcher.OfType(T::class))
+
+/**
+ * **DEPRECATED: This API is considered obsolete. Simply omit this matcher.**
+ */
+@Deprecated(
+    "This API is considered obsolete. Literals can be used in all contexts now, so this matcher usage can be omitted.",
+    ReplaceWith("value")
+)
+public fun <T> MokkeryMatcherScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
+
+/**
+ * Matches an argument that is not equal to [value].
+ */
+@Deprecated(
+    "This API is considered obsolete. `not` matcher should be used instead as it's more flexible - allows using matchers.",
+    ReplaceWith("not(value)", "dev.mokkery.matcher.logical.not")
+)
+public fun <T> MokkeryMatcherScope.neq(value: T): T = not(value)
+
+/**
+ * **DEPRECATED: Renamed to [ref].**
+ */
+@Deprecated(
+    "Renamed to `ref`",
+    ReplaceWith("ref(value)", "dev.mokkery.matcher.ref")
+)
+public fun <T> MokkeryMatcherScope.eqRef(value: T): T = ref(value)
+
+/**
+ * Matches an argument whose reference is not equal to [value]'s reference.
+ */
+@Deprecated(
+    "This API is considered obsolete. Use `not(ref(...)).`",
+    ReplaceWith("not(ref(value))", "dev.mokkery.matcher.ref", "dev.mokkery.matcher.logical.not")
+)
+public fun <T> MokkeryMatcherScope.neqRef(value: T): T = not(ref(value))
 
 /**
  * **DEPRECATED: This API is considered obsolete. Use [matches] instead.**

@@ -36,34 +36,13 @@ public fun interface ArgMatcher<in T> {
     }
 
     /**
-     * Matches an argument that is not equal to [value].
-     */
-    @Poko
-    public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
-
-        override fun matches(arg: T): Boolean = arg != value
-
-        override fun toString(): String = "neq(${value.description()})"
-    }
-
-    /**
      * Matches an argument whose reference is equal to [value]'s reference.
      */
     public class EqualsRef<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg === value
 
-        override fun toString(): String = "eqRef(${value.description()})"
-    }
-
-    /**
-     * Matches an argument whose reference is not equal to [value]'s reference.
-     */
-    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T> {
-
-        override fun matches(arg: T): Boolean = arg !== value
-
-        override fun toString(): String = "neqRef(${value.description()})"
+        override fun toString(): String = "ref(${value.description()})"
     }
 
     /**
@@ -108,6 +87,31 @@ public fun interface ArgMatcher<in T> {
          * Propagates [value] to children matchers.
          */
         override fun capture(value: T)
+    }
+
+    /**
+     * Matches an argument that is not equal to [value].
+     * **DEPRECATED: This API is obsolete and will be removed!**
+     */
+    @Poko
+    @Deprecated("This API is obsolete and will be removed!")
+    public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = arg != value
+
+        override fun toString(): String = "neq(${value.description()})"
+    }
+
+    /**
+     * Matches an argument whose reference is not equal to [value]'s reference.
+     * **DEPRECATED: This API is obsolete and will be removed!**
+     */
+    @Deprecated("This API is obsolete and will be removed!")
+    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T> {
+
+        override fun matches(arg: T): Boolean = arg !== value
+
+        override fun toString(): String = "neqRef(${value.description()})"
     }
 
     /**

@@ -96,9 +96,9 @@ class MatchersUsageInMatcherBuilderTest {
             """
             import dev.mokkery.matcher.MokkeryMatcherScope
             import dev.mokkery.matcher.any
-            import dev.mokkery.matcher.eq
+            import dev.mokkery.matcher.gte
         
-            fun <T> MokkeryMatcherScope.matcher(): T = eq(any())
+            fun <T : Comparable<T>> MokkeryMatcherScope.matcher(): T = gte(any())
         """.trimIndent()
         ).assertSingleError("'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.")
     }
@@ -195,11 +195,11 @@ class MatchersUsageInMatcherBuilderTest {
         compileJvm(
             """
                 import dev.mokkery.matcher.MokkeryMatcherScope
-                import dev.mokkery.matcher.eq
+                import dev.mokkery.matcher.logical.not
                 import dev.mokkery.every
 
                 fun MokkeryMatcherScope.matcher(): Int {              
-                    return 1.let { eq(it) }
+                    return 1.let { not(it) }
                 }
             """.trimIndent()
         ).assertSingleError("Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'let@fun <anonymous>(it: Int): Int <inline=Inline, kind=EXACTLY_ONCE>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.")

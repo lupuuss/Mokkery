@@ -38,6 +38,7 @@ import dev.mokkery.matcher.neq
 import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.matcher.ofType
+import dev.mokkery.matcher.ref
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
@@ -125,6 +126,17 @@ class ArgMatchersTest {
 
     @Test
     fun testEqualityMatchers() {
+        every { mock.callManyPrimitives(1, not(1.0)) } returns ComplexType
+        assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
+        assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 2.0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(1, 1.0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 1.0) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedEqualityMatchers() {
         every { mock.callManyPrimitives(eq(1), neq(1.0)) } returns ComplexType
         assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
         assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
@@ -135,6 +147,18 @@ class ArgMatchersTest {
 
     @Test
     fun testRefEqualityMatchers() {
+        val ref1 = ComplexType("a")
+        val ref2 = ComplexType("a")
+        every { mock.callComplex(not(ref(ref2))) } returns ComplexType
+        every { mock.callComplex(ref(ref1)) } returns ref1
+        assertEquals(ComplexType, mock.callComplex(ComplexType("a")))
+        assertEquals(ref1, mock.callComplex(ref1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ref2) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedRefEqualityMatchers() {
         val ref1 = ComplexType("a")
         val ref2 = ComplexType("a")
         every { mock.callComplex(neqRef(ref2)) } returns ComplexType
@@ -188,7 +212,7 @@ class ArgMatchersTest {
 
     @Test
     fun testAndMatcher() {
-        every { mock.callPrimitive(and(neq(1), neq(2))) } returns 1
+        every { mock.callPrimitive(and(not(1), not(2))) } returns 1
         assertEquals(1, mock.callPrimitive(0))
         assertEquals(1, mock.callPrimitive(3))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
@@ -197,7 +221,7 @@ class ArgMatchersTest {
 
     @Test
     fun testOrMatcher() {
-        every { mock.callPrimitive(or(eq(1), eq(2), eq(3), eq(4))) } returns 2
+        every { mock.callPrimitive(or(1, 2, 3, 4)) } returns 2
         assertEquals(2, mock.callPrimitive(1))
         assertEquals(2, mock.callPrimitive(2))
         assertEquals(2, mock.callPrimitive(3))
@@ -207,7 +231,7 @@ class ArgMatchersTest {
 
     @Test
     fun testNotMatcher() {
-        every { mock.callComplex(not(eqRef(ComplexType))) } returns ComplexType
+        every { mock.callComplex(not(ref(ComplexType))) } returns ComplexType
         assertEquals(ComplexType, mock.callComplex(mock()))
         assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ComplexType) }
     }
@@ -274,7 +298,7 @@ class ArgMatchersTest {
     @Test
     fun testCaptureWithNonDefaultMatcher() {
         val slot = Capture.slot<Int>()
-        every { mock.callManyPrimitives(capture(slot, eq(2)), 1.0) } returns ComplexType
+        every { mock.callManyPrimitives(capture(slot, 2), 1.0) } returns ComplexType
         mock.callManyPrimitives(2, 1.0)
         assertFailsWith<MokkeryRuntimeException> {
             mock.callManyPrimitives(3, 1.0)
