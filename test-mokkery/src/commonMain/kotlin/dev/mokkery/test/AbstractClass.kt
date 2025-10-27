@@ -9,6 +9,7 @@ abstract class AbstractClassLevel1 : AbstractClassLevel2() {
     // to be ignored by the compiler
     inline val inlineProperty get() = "Ignored inline property"
 
+    @Suppress("NOTHING_TO_INLINE")
     inline fun inlineMethod() = "Ignored inline method"
 
     fun finalMethod() = "Ignored final method"

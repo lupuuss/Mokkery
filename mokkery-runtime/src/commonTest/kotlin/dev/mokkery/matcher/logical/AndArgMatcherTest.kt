@@ -1,8 +1,11 @@
 package dev.mokkery.matcher.logical
 
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.ArgMatcher.Equals
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture
+import dev.mokkery.matcher.logical.LogicalMatchers.And
+import dev.mokkery.matcher.logical.LogicalMatchers.Not
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,13 +16,13 @@ class AndArgMatcherTest {
 
     @Test
     fun testMatchesWhenAllMatchersSatisfied() {
-        val matcher = LogicalMatchers.And(listOf(ArgMatcher.NotEqual(1), ArgMatcher.NotEqual(2)))
+        val matcher = And(listOf(Not(Equals(1)), Not(Equals(2))))
         assertTrue(matcher.matches(3))
     }
 
     @Test
     fun testComposedMatcherDoesNotMatchWhenAnyMatcherNotSatisfied() {
-        val matcher = LogicalMatchers.And(listOf(ArgMatcher.NotEqual(1), ArgMatcher.NotEqual(2)))
+        val matcher = And(listOf(Not(Equals(1)), Not(Equals(2))))
         assertFalse(matcher.matches(1))
         assertFalse(matcher.matches(2))
     }
@@ -30,7 +33,7 @@ class AndArgMatcherTest {
         val list2 = mutableListOf<Int>()
         val matcher1 = CaptureMatcher(list1.asCapture(), ArgMatcher.Any)
         val matcher2 = CaptureMatcher(list2.asCapture(), ArgMatcher.Any)
-        LogicalMatchers.And(listOf(matcher2, matcher1))
+        And(listOf(matcher2, matcher1))
             .apply {
                 capture(1)
                 capture(2)
