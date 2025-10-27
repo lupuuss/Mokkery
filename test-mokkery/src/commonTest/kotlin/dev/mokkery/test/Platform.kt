@@ -25,3 +25,5 @@ inline fun <reified T> ignoreOn(reason: String, block: () -> Unit) {
         else -> block()
     }
 }
+
+inline fun ignoreOnWasm(reason: String, block: () -> Unit) = ignoreOn<Platform.Wasm>(reason = reason, block = block)

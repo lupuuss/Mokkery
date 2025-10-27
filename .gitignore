@@ -3,7 +3,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-./test-mokkery/local.properties
+/test-mokkery-gradle/local.properties
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -43,5 +43,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.idea/
-/test-mokkery/.idea/
+/test-mokkery-gradle/.idea/
 /local.properties

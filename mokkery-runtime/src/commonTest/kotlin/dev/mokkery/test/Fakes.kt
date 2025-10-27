@@ -1,11 +1,11 @@
 package dev.mokkery.test
 
-import dev.mokkery.internal.calls.CallTemplate
+import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
-import dev.mokkery.internal.MockId
+import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.context.FunctionCall
-import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
@@ -16,7 +16,7 @@ internal fun fakeCallTemplate(
     signature: String = "call()",
     matchers: Map<String, ArgMatcher<Any?>> = emptyMap(),
 ) = CallTemplate(
-    mockId = MockId(typeName, id),
+    instanceId = MokkeryInstanceId(typeName, id),
     name = name,
     signature = signature,
     matchers = matchers,
@@ -35,7 +35,7 @@ internal fun fakeCallTrace(
     args: List<CallArgument> = emptyList(),
     orderStamp: Long = 0
 ) = CallTrace(
-    mockId = MockId(typeName, id),
+    instanceId = MokkeryInstanceId(typeName, id),
     name = name,
     args = args,
     orderStamp = orderStamp,

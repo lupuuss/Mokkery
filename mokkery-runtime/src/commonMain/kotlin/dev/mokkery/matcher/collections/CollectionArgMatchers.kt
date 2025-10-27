@@ -4,6 +4,7 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
+import kotlin.reflect.KClass
 
 /**
  * Contains matchers for collections
@@ -31,7 +32,8 @@ public object CollectionArgMatchers {
      * It accepts [Any] for convenience and should only receive arrays.
      */
     @DelicateMokkeryApi
-    public class ContentEquals(private val array: Any): ArgMatcher<Any> {
+    @Poko
+    public class ContentEquals(public val array: Any): ArgMatcher<Any> {
 
         private val elements = requireNotNull(array.asListOrNull()) {
             "ContentEquals expects array but received $array!"
@@ -57,4 +59,89 @@ public object CollectionArgMatchers {
 
         override fun toString(): String = "contentDeepEq(${array.asListOrNull().orEmpty().joinToString()})"
     }
+
+    @Poko
+    public class ContainsAnyIterable<T>(
+        public val predicate: (T) -> Boolean
+    ): ArgMatcher<Iterable<T>> {
+
+        override fun matches(arg: Iterable<T>): Boolean = arg.any(predicate)
+
+        override fun toString(): String = "containsAny(...)"
+    }
+
+    @Poko
+    public class ContainsAllIterable<T>(
+        public val predicate: (T) -> Boolean
+    ): ArgMatcher<Iterable<T>> {
+
+        override fun matches(arg: Iterable<T>): Boolean = arg.all(predicate)
+
+        override fun toString(): String = "containsAll(...)"
+    }
+
+    /**
+     * Matches an array that contains any element matching [predicate].
+     *
+     * **Important:** [elementType] must be a [KClass] of [Any] if a generic [Array] is used.
+     * For other arrays, e.g., [IntArray], the element type is expected, in this case [Int].
+     */
+    @DelicateMokkeryApi
+    @Poko
+    public class ContainsAnyArray<T : Any>(
+        public val elementType: KClass<*>,
+        public val predicate: (T) -> Boolean
+    ) : ArrayArgMatcher<T>() {
+
+        override fun matchesElements(elements: List<T>): Boolean = elements.any(predicate)
+
+        override fun toString(): String = "containsAny${anyNameByElement(elementType)}(...)"
+    }
+
+    /**
+     * Matches an array that contains only elements matching [predicate].
+     */
+    @DelicateMokkeryApi
+    @Poko
+    public class ContainsAllArray<T : Any>(
+        public val elementType: KClass<*>,
+        public val predicate: (T) -> Boolean
+    ) : ArrayArgMatcher<T>() {
+
+        override fun matchesElements(elements: List<T>): Boolean = elements.all(predicate)
+
+        override fun toString(): String = "containsAll${allNameByElement(elementType)}(...)"
+    }
+}
+
+private fun allNameByElement(cls: KClass<*>): String = when (cls) {
+    Boolean::class -> "Booleans"
+    Char::class -> "Chars"
+    Byte::class -> "Bytes"
+    UByte::class -> "UBytes"
+    Short::class -> "Shorts"
+    UShort::class -> "UShorts"
+    Int::class -> "Ints"
+    UInt::class -> "UInts"
+    Long::class -> "Longs"
+    ULong::class -> "ULongs"
+    Float::class -> "Floats"
+    Double::class -> "Doubles"
+    else -> "Elements"
+}
+
+private fun anyNameByElement(cls: KClass<*>): String = when (cls) {
+    Boolean::class -> "Boolean"
+    Char::class -> "Char"
+    Byte::class -> "Byte"
+    UByte::class -> "UByte"
+    Short::class -> "Short"
+    UShort::class -> "UShort"
+    Int::class -> "Int"
+    UInt::class -> "UInt"
+    Long::class -> "Long"
+    ULong::class -> "ULong"
+    Float::class -> "Float"
+    Double::class -> "Double"
+    else -> "Element"
 }
