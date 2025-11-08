@@ -22,7 +22,7 @@ import dev.mokkery.matcher.collections.containsAnyUShort
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyArray(predicate)", "dev.mokkery.matcher.collections.containsAnyArray")
+    ReplaceWith("containsAnyElement(predicate)", "dev.mokkery.matcher.collections.containsAnyElement")
 )
 public inline fun <reified T> MokkeryMatcherScope.varargsAny(
     noinline predicate: (T) -> Boolean
