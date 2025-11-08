@@ -5,9 +5,9 @@ import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 
-class UnverifiedCallsRendererTest {
+class ExtraUnverifiedCallsRendererTest {
 
-    private val renderer = UnverifiedCallsRenderer(StubRenderer("TRACE_LIST"))
+    private val renderer = ExtraUnverifiedCallsRenderer(StubRenderer("TRACE_LIST"))
 
     @Test
     fun testRendersUnverifiedCalls() {

@@ -4,17 +4,17 @@ package dev.mokkery
 
 import dev.mokkery.context.require
 import dev.mokkery.internal.annotations.TemplatingLambda
-import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.forEachScope
-import dev.mokkery.internal.names.aliasTraces
+import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.PointListRenderer
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
@@ -80,16 +80,15 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     val mocks = mokkeryContext
         .require(MokkeryInstancesRegistry)
         .collection
-        .withShorterNames(tools.namesShortener)
     mocks.forEachScope { mock ->
         val tracing = mock.callTracing
-        if (tracing.unverified.isNotEmpty()) {
-            failAssertion {
-                val renderer = PointListRenderer<CallTrace>()
-                val unverifiedCalls = mocks.aliasTraces(tracing.unverified)
-                appendLine("Unverified calls for $mock:")
-                append(renderer.render(unverifiedCalls))
-            }
+        val unverified = tracing.unverified
+        if (unverified.isNotEmpty()) {
+            val message = NoMoreCallsErrorRenderer
+                .factory(tools.namesShortener, mocks)
+                .create()
+                .render(mock.instanceId to unverified)
+            throw AssertionError(message)
         }
     }
 }

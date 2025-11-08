@@ -1,13 +1,13 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.defaults.DefaultsMaterializer
-import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.matcher.CallMatcherFactory
-import dev.mokkery.internal.verify.render.MatchersStatusRenderer
-import dev.mokkery.internal.verify.render.TemplateGroupedMatchingResultsRenderer
-import dev.mokkery.internal.verify.render.TemplateMatchingResultsRenderer
-import dev.mokkery.internal.verify.render.UnverifiedCallsRenderer
+import dev.mokkery.internal.names.NameShortener
+import dev.mokkery.internal.verify.render.ExhaustiveOrderVerifierErrorRenderer
+import dev.mokkery.internal.verify.render.ExhaustiveSoftVerifierErrorRenderer
+import dev.mokkery.internal.verify.render.NotVerifierErrorRenderer
+import dev.mokkery.internal.verify.render.OrderVerifierErrorRenderer
+import dev.mokkery.internal.verify.render.SoftVerifierErrorRenderer
 import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
 import dev.mokkery.verify.ExhaustiveOrderVerifyMode
 import dev.mokkery.verify.ExhaustiveSoftVerifyMode
@@ -21,12 +21,13 @@ internal interface VerifierFactory {
     fun create(mode: VerifyMode, collection: MokkeryCollection): Verifier
 }
 
-internal fun VerifierFactory(callMatcherFactory: CallMatcherFactory): VerifierFactory {
-    return VerifierFactoryImpl(callMatcherFactory)
+internal fun VerifierFactory(callMatcherFactory: CallMatcherFactory, nameShortener: NameShortener): VerifierFactory {
+    return VerifierFactoryImpl(callMatcherFactory, nameShortener)
 }
 
 private class VerifierFactoryImpl(
-    private val callMatcherFactory: CallMatcherFactory
+    private val callMatcherFactory: CallMatcherFactory,
+    private val namesShortener: NameShortener,
 ) : VerifierFactory {
 
     override fun create(mode: VerifyMode, collection: MokkeryCollection): Verifier {
@@ -35,31 +36,26 @@ private class VerifierFactoryImpl(
             OrderVerifyMode -> OrderVerifier(
                 callMatcher = callMatcher,
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
-                renderer = TemplateMatchingResultsRenderer()
+                errorRendererFactory = OrderVerifierErrorRenderer.factory(namesShortener, collection)
             )
             ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier(
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
                 callMatcher = callMatcher,
-                renderer = TemplateMatchingResultsRenderer(),
+                errorRendererFactory = ExhaustiveOrderVerifierErrorRenderer.factory(namesShortener, collection)
             )
             ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier(
                 callMatcher = callMatcher,
-                matchingResultsRenderer = TemplateGroupedMatchingResultsRenderer(
-                    MatchersStatusRenderer(DefaultsMaterializer(collection))
-                ),
-                unverifiedCallsRenderer = UnverifiedCallsRenderer()
+                errorRendererFactory = ExhaustiveSoftVerifierErrorRenderer.factory(namesShortener, collection)
             )
             NotVerifyMode -> NotVerifier(
                 callMatcher = callMatcher,
-                traceListRenderer = PointListRenderer()
+                errorRendererFactory = NotVerifierErrorRenderer.factory(namesShortener, collection)
             )
             is SoftVerifyMode -> SoftVerifier(
                 atLeast = mode.atLeast,
                 atMost = mode.atMost,
                 callMatcher = callMatcher,
-                matchingResultsRenderer = TemplateGroupedMatchingResultsRenderer(
-                    MatchersStatusRenderer(DefaultsMaterializer(collection))
-                )
+                errorRendererFactory = SoftVerifierErrorRenderer.factory(namesShortener, collection)
             )
         }
     }

@@ -1,8 +1,8 @@
 package dev.mokkery.internal.verify.render
 
+import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.ToStringRenderer
 import dev.mokkery.internal.render.indentationString
 import dev.mokkery.internal.render.withIndentation
 import dev.mokkery.internal.templating.CallTemplate
@@ -11,7 +11,8 @@ import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
 internal class TemplateGroupedMatchingResultsRenderer(
     private val matchersFailuresRenderer: Renderer<Pair<CallTemplate, CallTrace>>,
-    private val traceRenderer: Renderer<CallTrace> = ToStringRenderer,
+    private val traceRenderer: Renderer<CallTrace>,
+    private val instanceIdRender: Renderer<MokkeryInstanceId>,
     private val indentation: Int = 2,
 ) : Renderer<TemplateGroupedMatchingResults> {
 
@@ -19,7 +20,7 @@ internal class TemplateGroupedMatchingResultsRenderer(
 
     override fun render(value: TemplateGroupedMatchingResults): String = buildString {
         val (template, results) = value
-        appendLine("Results for ${value.template.instanceId}:")
+        appendLine("Results for ${instanceIdRender.render(value.template.instanceId)}:")
         if (results.all { (_, value) -> value.isEmpty() }) {
             appendLine("# No calls to this mock!")
             return@buildString

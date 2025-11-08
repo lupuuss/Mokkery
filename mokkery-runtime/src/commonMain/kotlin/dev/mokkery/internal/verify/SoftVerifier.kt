@@ -1,54 +1,42 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isMatching
+import dev.mokkery.internal.render.RendererFactory
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
 internal class SoftVerifier(
     private val atLeast: Int,
     private val atMost: Int,
     private val callMatcher: CallMatcher,
-    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults>
+    private val errorRendererFactory: RendererFactory<Error>,
 ) : Verifier {
 
-    override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
-        val verified = callTemplates.flatMap { template ->
-            val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
-            if (matching.size < atLeast || matching.size > atMost) {
-                failAssertion {
-                    appendMainError(template, matching.size)
-                    val results = TemplateGroupedMatchingResults(
-                        template = template,
-                        calls = callTraces.groupBy { callMatcher.match(it, template) }
-                    )
-                    append(matchingResultsRenderer.render(results))
-                }
-            }
-            matching
+    override fun verify(
+        callTraces: List<CallTrace>,
+        callTemplates: List<CallTemplate>
+    ) = callTemplates.flatMap { template ->
+        val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
+        if (matching.size !in atLeast..atMost) {
+            val error = Error(
+                expectedAtLeast = atLeast,
+                expectedAtMost = atMost,
+                templateMatchingResults = TemplateGroupedMatchingResults(
+                    template = template,
+                    calls = callTraces.groupBy { callMatcher.match(it, template) }
+                )
+            )
+            throw AssertionError(errorRendererFactory.create().render(error))
         }
-        return verified
+        matching
     }
 
-    private fun StringBuilder.appendMainError(template: CallTemplate, callsCount: Int) {
-        append("Expected ")
-        val callsExpectations = when {
-            atLeast == atMost -> "exactly $atLeast calls"
-            atLeast != 1 && atMost != Int.MAX_VALUE -> "calls count to be in range $atLeast..$atMost"
-            atLeast != 1 -> "at least $atLeast calls"
-            atMost != Int.MAX_VALUE -> "at most $atMost calls"
-            else -> "any call"
-        }
-        append(callsExpectations)
-        if (callsCount == 0) {
-            append(", but no matching calls")
-        } else {
-            append(", but $callsCount occurred")
-        }
-        appendLine(" for $template!")
-    }
+    data class Error(
+        val expectedAtLeast: Int,
+        val expectedAtMost: Int,
+        val templateMatchingResults: TemplateGroupedMatchingResults,
+    )
 }
 

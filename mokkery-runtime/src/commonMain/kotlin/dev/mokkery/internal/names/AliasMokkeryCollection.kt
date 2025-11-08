@@ -57,6 +57,5 @@ internal fun MokkeryCollection.withAliasing(
         override fun mapAliasToOriginal(alias: MokkeryInstanceId): MokkeryInstanceId = mocks.getValue(alias).instanceId
 
         override fun mapOriginalToAlias(original: MokkeryInstanceId): MokkeryInstanceId = reverseMapping.getValue(original)
-
     }
 }

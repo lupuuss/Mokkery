@@ -1,11 +1,10 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.tracing.CallTrace
 
-internal class UnverifiedCallsRenderer(
-    private val traceListRenderer: Renderer<List<CallTrace>> = PointListRenderer()
+internal class ExtraUnverifiedCallsRenderer(
+    private val traceListRenderer: Renderer<List<CallTrace>>
 ) : Renderer<List<CallTrace>> {
     override fun render(value: List<CallTrace>): String = buildString {
         appendLine("All expected calls have been satisfied! However, there should not be any unverified calls, yet these are present:")

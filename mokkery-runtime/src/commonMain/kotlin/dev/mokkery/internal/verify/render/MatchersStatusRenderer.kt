@@ -1,8 +1,6 @@
 package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.ToStringRenderer
-import dev.mokkery.internal.render.ValueDescriptionRenderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.tracing.CallTrace
@@ -12,8 +10,8 @@ import dev.mokkery.matcher.ArgMatcher
 
 internal class MatchersStatusRenderer(
     private val materializer: DefaultsMaterializer,
-    private val matcherRenderer: Renderer<ArgMatcher<*>> = ToStringRenderer,
-    private val valueRenderer: Renderer<Any?> = ValueDescriptionRenderer
+    private val matcherRenderer: Renderer<ArgMatcher<*>>,
+    private val valueRenderer: Renderer<Any?>,
 ) : Renderer<Pair<CallTemplate, CallTrace>> {
 
     override fun render(value: Pair<CallTemplate, CallTrace>): String {

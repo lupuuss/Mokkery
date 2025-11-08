@@ -4,14 +4,11 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.internal.annotations.TemplatingLambda
-import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.names.aliasTemplates
-import dev.mokkery.internal.names.aliasTraces
-import dev.mokkery.internal.names.withShorterNames
 import dev.mokkery.internal.templating.createTemplatingScope
 import dev.mokkery.internal.templating.templatingRegistry
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -32,7 +29,6 @@ internal fun MokkerySuiteScope.internalVerify(
         ?.collection
         .orEmpty()
         .plus(templating.collection)
-        .withShorterNames(tools.namesShortener)
     val calls = collection
         .scopes
         .map { it.callTracing.unverified }
@@ -41,6 +37,6 @@ internal fun MokkerySuiteScope.internalVerify(
     tools
         .verifierFactory
         .create(mode, collection)
-        .verify(collection.aliasTraces(calls), collection.aliasTemplates(templating.templates))
+        .verify(calls, templating.templates)
         .forEach { collection.getScope(it.instanceId).callTracing.markVerified(it) }
 }
