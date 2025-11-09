@@ -14,7 +14,7 @@ internal class TestDefaultsMaterializer(
     ): CallTemplate = calls(trace, template)
 }
 
-internal fun <T> fakeDefaultValueMatcher(): DefaultValueMatcher<T> = DefaultValueMatcher(
+internal fun fakeDefaultValueMatcher(): DefaultValueMatcher = DefaultValueMatcher(
     mask = 0,
     caller = { error("Not prepared") },
     isSuspend = false

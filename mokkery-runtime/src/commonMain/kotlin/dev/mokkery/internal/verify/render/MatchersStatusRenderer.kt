@@ -16,7 +16,7 @@ internal class MatchersStatusRenderer(
 
     override fun render(value: Pair<CallTemplate, CallTrace>): String {
         val (template, trace) = value
-        val defaultsCount = template.matchers.values.count { it is DefaultValueMatcher<*> }
+        val defaultsCount = template.matchers.values.count { it is DefaultValueMatcher }
         val nonDefaultsCount = template.matchers.size - defaultsCount
         val materializedTemplate = when {
             defaultsCount == 0 -> template
@@ -35,7 +35,7 @@ internal class MatchersStatusRenderer(
         val matches = matcher?.matches(value) == true
         val status = when {
             matches -> "[+]"
-            matcher is DefaultValueMatcher<*> -> "[?]"
+            matcher is DefaultValueMatcher -> "[?]"
             else -> "[-]"
         }
         val statusLine = "$status ${parameter.name}:"
@@ -43,7 +43,7 @@ internal class MatchersStatusRenderer(
         append(statusLine)
         when {
             matches -> appendLine(" $matcherRendered ~ ${valueRenderer.render(value)}")
-            matcher is DefaultValueMatcher<*> -> {
+            matcher is DefaultValueMatcher -> {
                 appendLine()
                 appendLine("   expect: default() => Cannot be determined, because other matchers don't match!")
                 appendLine("   actual: ${valueRenderer.render(value)}")
@@ -58,7 +58,7 @@ internal class MatchersStatusRenderer(
 
     private fun CallTrace.countNoDefaultMatching(template: CallTemplate): Int = args.count { arg ->
         val matcher = template.matchers[arg.parameter.name]
-        if (matcher is DefaultValueMatcher<*>) return@count false
+        if (matcher is DefaultValueMatcher) return@count false
         matcher?.matches(arg.value) == true
     }
 }

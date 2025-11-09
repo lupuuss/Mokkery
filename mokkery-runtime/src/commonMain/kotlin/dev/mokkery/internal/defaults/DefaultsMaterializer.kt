@@ -26,7 +26,7 @@ private class DefaultsMaterializerImpl(
         trace: CallTrace,
         template: CallTemplate
     ): CallTemplate {
-        val defaultsExpected = template.matchers.values.filterIsInstance<DefaultValueMatcher<Any?>>()
+        val defaultsExpected = template.matchers.values.filterIsInstance<DefaultValueMatcher>()
         return when {
             defaultsExpected.isEmpty() -> template
             else -> {
@@ -41,7 +41,7 @@ private class DefaultsMaterializerImpl(
                 )
                 var defaultsCount = 0
                 val materializedMatchers = template.matchers.mapValues {
-                    if (it.value is DefaultValueMatcher<*>) {
+                    if (it.value is DefaultValueMatcher) {
                         MaterializedDefaultValueMatcher(defaults[defaultsCount++])
                     } else {
                         it.value
@@ -53,7 +53,7 @@ private class DefaultsMaterializerImpl(
     }
 
     private fun extractDefaults(
-        default: DefaultValueMatcher<Any?>,
+        default: DefaultValueMatcher,
         extractor: Any,
         args: List<Any?>
     ): List<Any?> {

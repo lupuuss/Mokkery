@@ -28,9 +28,11 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
@@ -117,7 +119,10 @@ class TemplatingMockCallsTransformer(
     private fun IrBlockBodyBuilder.createTemplatingLambdaBody(expression: IrCall) {
         val calledFunc = expression.symbol.owner
         val hasDefaults = expression.arguments.any { it == null }
-        val defaults: DefaultsCallSpec? = if (hasDefaults) createDefaultsCallSpec(expression) else null
+        val defaultValueMatcherVar = when {
+            hasDefaults -> createTmpVariable(irCallDefaultValueMatcherContractorFor(expression))
+            else -> null
+        }
         +irReturn(
             irCallMapOf(
                 transformer = this@TemplatingMockCallsTransformer,
@@ -132,7 +137,7 @@ class TemplatingMockCallsTransformer(
                             arguments[2] = kClassReference(it.type.eraseTypeParameters())
                         }
                     }
-                    param to replaceTopTemplatingArg(expression.arguments[it], it, defaults)
+                    param to replaceTopTemplatingArg(expression.arguments[it], it, defaultValueMatcherVar)
                 },
                 keyType = templatingParameterClass.defaultType,
                 valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
@@ -146,14 +151,10 @@ class TemplatingMockCallsTransformer(
     private fun IrBuilderWithScope.replaceTopTemplatingArg(
         arg: IrExpression?,
         param: IrValueParameter,
-        defaults: DefaultsCallSpec?,
+        defaultValueMatcherVar: IrVariable?,
     ): IrExpression = when {
         param.isVararg -> replaceVararg(arg)
-        arg == null -> irCallConstructor(expectDefaultMatcherConstructor) {
-            arguments[0] = irLong(defaults!!.mask)
-            arguments[1] = defaults.callLambda
-            arguments[2] = irBoolean(defaults.isSuspend)
-        }
+        arg == null -> irGet(defaultValueMatcherVar!!)
         arg.type.isMatcher() -> arg
         else -> callEqMatcher(arg)
     }
@@ -227,16 +228,25 @@ class TemplatingMockCallsTransformer(
         return vararg as IrVararg
     }
 
-    private fun IrBlockBodyBuilder.createDefaultsCallSpec(expression: IrCall): DefaultsCallSpec {
-        val builtIns = pluginContext.irBuiltIns
-        val calledFunc = expression.symbol.owner
-        val mask: Long = expression.arguments.foldIndexed(0L) { index, acc, value ->
-            if (value == null) {
-                acc or (1L shl index)
-            } else {
-                acc
-            }
+    private fun IrBlockBodyBuilder.irCallDefaultValueMatcherContractorFor(
+        call: IrCall
+    ) = irCallConstructor(expectDefaultMatcherConstructor) {
+        arguments[0] = irLong(call.calculateDefaultsMask())
+        arguments[1] = createDefaultsExtractingLambdaFor(call)
+        arguments[2] = irBoolean(call.symbol.owner.isSuspend)
+    }
+
+    private fun IrCall.calculateDefaultsMask(): Long = arguments.foldIndexed(0L) { index, acc, value ->
+        if (value == null) {
+            acc or (1L shl index)
+        } else {
+            acc
         }
+    }
+
+    private fun IrBuilderWithScope.createDefaultsExtractingLambdaFor(call: IrCall): IrFunctionExpression {
+        val calledFunc = call.symbol.owner
+        val builtIns = pluginContext.irBuiltIns
         val lambdaClass = if (calledFunc.isSuspend) {
             builtIns.suspendFunctionN(2)
         } else {
@@ -247,15 +257,15 @@ class TemplatingMockCallsTransformer(
             builtIns.listClass.typeWith(builtIns.anyNType),
             builtIns.nothingType
         )
-        val lambda = irLambdaOf(lambdaType) { func ->
-            val substitutionMap = expression.typeSubstitutionMap
+        return irLambdaOf(lambdaType) { func ->
+            val substitutionMap = call.typeSubstitutionMap
             +irCall(calledFunc) {
                 arguments[0] = irGet(func.parameters[0])
                 val list = irGet(func.parameters[1])
                 val getFunc = list.type.classOrFail.getSimpleFunction("get")!!.owner
-                for (index in 1..<expression.arguments.size) {
-                    val params = expression.symbol.owner.parameters
-                    val arg = expression.arguments[index]
+                for (index in 1..<call.arguments.size) {
+                    val params = call.symbol.owner.parameters
+                    val arg = call.arguments[index]
                     if (arg == null) {
                         arguments[index] = null
                     } else {
@@ -270,9 +280,5 @@ class TemplatingMockCallsTransformer(
                 }
             }
         }
-        val lambdaVar = createTmpVariable(lambda)
-        return DefaultsCallSpec(mask, irGet(lambdaVar), calledFunc.isSuspend)
     }
 }
-
-private class DefaultsCallSpec(val mask: Long, val callLambda: IrExpression, val isSuspend: Boolean)
