@@ -4,7 +4,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
-import dev.mokkery.internal.annotations.TemplatingLambda
+import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.templating.createTemplatingScope
@@ -14,11 +14,11 @@ import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.templating.MokkeryTemplatingScope
 
 internal fun <T> internalEverySuspend(
-    block: @TemplatingLambda suspend MokkeryTemplatingScope.() -> Unit
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): SuspendAnsweringScope<T> = internalEvery<T> { runSuspension { block() } }.unsafeCast()
 
 internal fun <T> internalEvery(
-    block: @TemplatingLambda MokkeryTemplatingScope.() -> Unit
+    block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
     val scope = GlobalMokkeryScope.createTemplatingScope()
     scope.apply(block)

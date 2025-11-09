@@ -3,7 +3,7 @@
 package dev.mokkery.internal
 
 import dev.mokkery.MokkerySuiteScope
-import dev.mokkery.internal.annotations.TemplatingLambda
+import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.templating.createTemplatingScope
@@ -16,12 +16,12 @@ import dev.mokkery.verify.VerifyMode
 
 internal fun MokkerySuiteScope.internalVerifySuspend(
     mode: VerifyMode,
-    block: @TemplatingLambda suspend MokkeryTemplatingScope.() -> Unit
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ) = internalVerify(mode) { runSuspension { block() } }
 
 internal fun MokkerySuiteScope.internalVerify(
     mode: VerifyMode,
-    block: @TemplatingLambda MokkeryTemplatingScope.() -> Unit
+    block: @Templating MokkeryTemplatingScope.() -> Unit
 ) {
     val scope = createTemplatingScope().apply(block)
     val templating = scope.templatingRegistry

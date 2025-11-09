@@ -3,16 +3,13 @@
 package dev.mokkery
 
 import dev.mokkery.context.require
-import dev.mokkery.internal.annotations.TemplatingLambda
+import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.forEachScope
 import dev.mokkery.internal.instanceId
-import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.requireInstanceScope
-import dev.mokkery.internal.utils.failAssertion
 import dev.mokkery.internal.utils.mokkeryIntrinsic
 import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -28,7 +25,7 @@ import dev.mokkery.verify.VerifyMode
  */
 public fun verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: @TemplatingLambda MokkeryTemplatingScope.() -> Unit
+    block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**
@@ -36,7 +33,7 @@ public fun verify(
  */
 public fun verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: @TemplatingLambda suspend MokkeryTemplatingScope.() -> Unit
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 
@@ -52,7 +49,7 @@ public fun verifySuspend(
  */
 public fun MokkerySuiteScope.verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: @TemplatingLambda MokkeryTemplatingScope.() -> Unit
+    block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**
@@ -62,7 +59,7 @@ public fun MokkerySuiteScope.verify(
  */
 public fun MokkerySuiteScope.verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: @TemplatingLambda suspend MokkeryTemplatingScope.() -> Unit
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**

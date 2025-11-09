@@ -133,7 +133,7 @@ object Mokkery {
             relativeClassName = FqName.fromSegments(listOf("ArgMatcher", "Composite")),
             isLocal = false
         )
-        val TemplatingLambda by dev_mokkery_internal_annotations.classId
+        val Templating by dev_mokkery_internal_annotations.classId
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

@@ -4,7 +4,7 @@ package dev.mokkery
 
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
-import dev.mokkery.internal.annotations.TemplatingLambda
+import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.utils.mokkeryIntrinsic
 import dev.mokkery.templating.MokkeryTemplatingScope
 
@@ -16,12 +16,12 @@ import dev.mokkery.templating.MokkeryTemplatingScope
  * content to functions is prohibited.
  */
 public fun <T> every(
-    block: @TemplatingLambda MokkeryTemplatingScope.() -> T
+    block: @Templating MokkeryTemplatingScope.() -> T
 ): BlockingAnsweringScope<T> = mokkeryIntrinsic
 
 /**
  * Just like [every], but allows suspendable function call.
  */
 public fun <T> everySuspend(
-    block: @TemplatingLambda suspend MokkeryTemplatingScope.() -> T
+    block: @Templating suspend MokkeryTemplatingScope.() -> T
 ): SuspendAnsweringScope<T> = mokkeryIntrinsic

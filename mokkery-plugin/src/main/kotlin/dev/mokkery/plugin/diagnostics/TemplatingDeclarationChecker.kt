@@ -23,7 +23,7 @@ class TemplatingDeclarationChecker(
     private val configuration: CompilerConfiguration,
 ) : FirFunctionChecker(MppCheckerKind.Common) {
 
-    private val templatingBlockAnnotation = Mokkery.ClassId.TemplatingLambda
+    private val templatingBlockAnnotation = Mokkery.ClassId.Templating
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(declaration: FirFunction) {
