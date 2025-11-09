@@ -60,6 +60,8 @@ import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 class TemplatingTransformer(
@@ -69,6 +71,7 @@ class TemplatingTransformer(
 
     private val runTemplateBlockingFun = getFunction(Mokkery.Function.runTemplate)
     private val runTemplateSuspendFun = getFunction(Mokkery.Function.runTemplateSuspend)
+    private val checkNotMockFun = getFunction(Mokkery.Function.checkNotMock)
     private val templatingParameterClass = getClass(Mokkery.Class.TemplatingParameter)
     private val templatingParameterConstructor = templatingParameterClass.primaryConstructor!!
     private val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
@@ -142,7 +145,8 @@ class TemplatingTransformer(
                             arguments[2] = kClassReference(it.type.eraseTypeParameters())
                         }
                     }
-                    param to replaceTopTemplatingArg(expression.arguments[it], it, defaultValueMatcherVar)
+                    val argument = expression.arguments[it].wrapDispatchersWithNotMockCheck()
+                    param to replaceTopTemplatingArg(argument, it, defaultValueMatcherVar)
                 },
                 keyType = templatingParameterClass.defaultType,
                 valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
@@ -162,6 +166,26 @@ class TemplatingTransformer(
         arg == null -> irGet(defaultValueMatcherVar!!)
         arg.type.isMatcher() -> arg
         else -> callEqMatcher(arg)
+    }
+
+    private fun IrExpression?.wrapDispatchersWithNotMockCheck(): IrExpression? {
+        if (this is IrCall) {
+            return this.transform(
+                transformer = object : IrElementTransformerVoid() {
+                    override fun visitCall(expression: IrCall) = expression.transformPostfix {
+                        val dispatcher = dispatchReceiver ?: return@transformPostfix
+                        dispatchReceiver = declarationIrBuilder {
+                            irCall(checkNotMockFun, type = dispatcher.type) {
+                                arguments[0] = dispatcher
+                                typeArguments[0] = dispatcher.type
+                            }
+                        }
+                    }
+                },
+                data = null
+            )
+        }
+        return this
     }
 
     private fun IrBuilderWithScope.replaceVararg(expression: IrExpression?): IrExpression {

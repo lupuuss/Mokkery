@@ -9,7 +9,6 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -35,7 +34,7 @@ class TemplatingTest {
 
     @Test
     fun testFailsAccessingMockCallResultInVariable() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
                 val variable = mock.callPrimitive(0)
             }
@@ -44,7 +43,7 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInWhen() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
                 when (true) {
                     true -> mock.callPrimitive(1)
@@ -57,7 +56,7 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInNestedFunction() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
                 fun nested() = mock.callPrimitive(1)
                 nested()
@@ -68,7 +67,7 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenWrappingMockCallInScopeFunction() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             every {
                 1.let { mock.callPrimitive(it) }
             }
@@ -77,7 +76,7 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInAnotherCall() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
                 listOf(mock.callPrimitive(1))
             }
@@ -86,33 +85,57 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInCondition() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
-                if (mock.callPrimitive(1) == 1) {
-                    Unit
-                }
+                if (mock.callPrimitive(1) == 1) return@verify
             }
         }
     }
 
     @Test
     fun testFailsWhenAccessingMockCallResultAsIfCondition() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
-                if (mock.callBoolean(false)) {
-                    Unit
-                }
+                if (mock.callBoolean(false)) return@verify
             }
         }
     }
 
     @Test
     fun testFailsWhenAccessingMockCallResultAsLoopCondition() {
-        assertFailsWith<MokkeryRuntimeException> {
+        assertFailsWithResultAccessError {
             verify {
-                while (mock.callBoolean(false)) {
-                    Unit
-                }
+                while (mock.callBoolean(false)) return@verify
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenPassingMockCallResultToOtherMock() {
+        assertFailsWithResultAccessError {
+            verify {
+                mock.callPrimitive(mock.callPrimitive(1))
+            }
+        }
+    }
+
+
+    @Test
+    fun testFailsWhenPassingNestedMockCallResultToOtherMethodCall() {
+        assertFailsWithResultAccessError {
+            val list = listOf<Int>()
+            verify {
+                mock.callPrimitive(list.getOrElse(mock.callPrimitive(1)) { 0 })
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenPassingMockCallResultToMethodCall() {
+        assertFailsWithResultAccessError {
+            val list = listOf<Int>()
+            verify {
+                list[mock.callPrimitive(1)]
             }
         }
     }
@@ -138,6 +161,10 @@ class TemplatingTest {
         }
     }
 
+    private fun assertFailsWithResultAccessError(block: () -> Unit) {
+        val error = assertFailsWith<MokkeryRuntimeException> { block() }
+        assertEquals(mockResultAccessError, error.message)
+    }
 
     private interface SelfType {
 
@@ -145,4 +172,8 @@ class TemplatingTest {
 
         fun callWithListSelf(self: List<SelfType>): List<SelfType>
     }
+
+    private val mockResultAccessError = "The result of a mock method must not be accessed inside `every` or `verify`." +
+                " If you're trying to invoke a method with an extension receiver or context parameters," +
+                " use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
 }

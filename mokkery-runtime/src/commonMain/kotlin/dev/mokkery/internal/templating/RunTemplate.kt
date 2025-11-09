@@ -2,7 +2,8 @@
 
 package dev.mokkery.internal.templating
 
-import dev.mokkery.internal.mokkeryScope
+import dev.mokkery.internal.isMock
+import dev.mokkery.internal.isNotMock
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -16,12 +17,13 @@ internal sealed interface TemplateOriginalResult<out T> {
 
     data object Empty : TemplateOriginalResult<Nothing> {
         override val value: Nothing
-            get() = mokkeryRuntimeError(
-                "The result of a mock method should not be accessed inside `every` or `verify`." +
-                        " If you're trying to invoke a method with an extension receiver or context parameters," +
-                        " use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
-            )
+            get() = mockMethodCallResultAccessError()
     }
+}
+
+internal fun <T> checkNotMock(obj: T): T {
+    if (obj.isMock) mockMethodCallResultAccessError()
+    return obj
 }
 
 internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
@@ -31,7 +33,7 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (suspend () -> R)? = null
 ): TemplateOriginalResult<R> {
-    if (mock.mokkeryScope == null) {
+    if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
         return TemplateOriginalResult.Value(original())
     } else {
@@ -47,7 +49,7 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
     templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (() -> R)? = null
 ): TemplateOriginalResult<R> {
-    if (mock.mokkeryScope == null) {
+    if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
         return TemplateOriginalResult.Value(original())
     } else {
@@ -56,3 +58,11 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
     }
 }
 
+@Suppress("NOTHING_TO_INLINE")
+private inline fun mockMethodCallResultAccessError(): Nothing {
+    mokkeryRuntimeError(
+        "The result of a mock method must not be accessed inside `every` or `verify`." +
+                " If you're trying to invoke a method with an extension receiver or context parameters," +
+                " use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
+    )
+}

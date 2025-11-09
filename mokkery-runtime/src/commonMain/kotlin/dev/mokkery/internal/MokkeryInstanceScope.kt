@@ -85,6 +85,12 @@ internal fun MokkeryScope.createInstanceContext(
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?
 
+internal val Any?.isMock: Boolean
+    get() = this?.mokkeryScope != null
+
+internal val Any?.isNotMock: Boolean
+    get() = !isMock
+
 internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: throw ObjectNotMockedException(this)
 
 internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id

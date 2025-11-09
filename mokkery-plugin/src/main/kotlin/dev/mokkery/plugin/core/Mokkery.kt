@@ -73,6 +73,7 @@ object Mokkery {
         val internalVerifySuspend by dev_mokkery_internal.function
         val runTemplate by dev_mokkery_internal_templating.function
         val runTemplateSuspend by dev_mokkery_internal_templating.function
+        val checkNotMock by dev_mokkery_internal_templating.function
         val MokkerySuiteScope by dev_mokkery.function
         val createInstanceScope by dev_mokkery_internal.function
         val createInstanceContext by dev_mokkery_internal.function
