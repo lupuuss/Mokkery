@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.backend.common.ScopeWithIr
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -25,8 +26,9 @@ abstract class CoreTransformer(
     override val compilerConfig: CompilerConfiguration = compilerPluginScope.compilerConfig
     override val pluginContext: IrPluginContext = compilerPluginScope.pluginContext
 
-    fun <T> withScope(scope: ScopeWithIr, block: () -> T): T {
-        unsafeEnterScope(scope.scope.scopeOwnerSymbol.owner)
-        return block().also { unsafeLeaveScope() }
+    fun <T> withScope(declaration: IrDeclaration, block: () -> T): T {
+        return withinScope(declaration.symbol.owner) {
+            block()
+        }
     }
 }

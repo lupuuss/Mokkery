@@ -1,12 +1,9 @@
 package dev.mokkery.plugin.transformers
 
-import dev.mokkery.plugin.core.CompilerPluginScope
-import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
-import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.irAttribute
@@ -21,18 +18,16 @@ import org.jetbrains.kotlin.ir.util.nestedClasses
 
 var IrFunction.isCompiledMatcher: Boolean? by irAttribute(copyByDefault = true)
 
-class MatchersCompiler(
-    compilerPluginScope: CompilerPluginScope
-) : CoreTransformer(compilerPluginScope) {
+class MatchersCompiler(private val transformerScope: TransformerScope) {
 
-    private val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
+    private val argMatcherClass = transformerScope.getClass(Mokkery.Class.ArgMatcher)
     private val argMatcherCompositeClass = argMatcherClass.nestedClasses.single { it.name.asString() == "Composite" }
 
-    private val matcherAnnotation = getClass(Mokkery.Class.Matcher).symbol
-    private val matcherScopeType = getClass(Mokkery.Class.MokkeryMatcherScope).defaultType
+    private val matcherAnnotation = transformerScope.getClass(Mokkery.Class.Matcher).symbol
+    private val matcherScopeType = transformerScope.getClass(Mokkery.Class.MokkeryMatcherScope).defaultType
     private val intrinsicsMatchesFunctions = setOf(
-        getFunction(Mokkery.Function.matches),
-        getFunction(Mokkery.Function.matchesComposite)
+        transformerScope.getFunction(Mokkery.Function.matches),
+        transformerScope.getFunction(Mokkery.Function.matchesComposite)
     )
 
     fun compileIfMatcher(function: IrSimpleFunction): IrSimpleFunction {
@@ -51,20 +46,16 @@ class MatchersCompiler(
         }
     }
 
-    override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        if (declaration !is IrSimpleFunction) return declaration
-        if (declaration.origin != IrDeclarationOrigin.DEFINED) return declaration
-        return compileIfMatcher(declaration)
-    }
-
     private fun IrFunction.transformBody() {
         body = body?.let { body ->
-            val inliner = MatchersInliner(
-                compilerPluginScope = this@MatchersCompiler,
+            val inliner = MatchersInliningTransformer(
+                compilerPluginScope = transformerScope,
                 compileIfMatcher = this@MatchersCompiler::compileIfMatcher,
                 initialValueDeclarations = parameters.filter { it.hasAnnotation(matcherAnnotation) }
             )
-            inliner.withScope(currentScopeValue) { body.transform(inliner, null) }
+            inliner.withScope(this) {
+                body.transform(inliner, null)
+            }
         }
     }
 
@@ -84,7 +75,7 @@ class MatchersCompiler(
             if (it.hasAnnotation(matcherAnnotation)) {
                 matcherParams += it.symbol
                 if (it.isVararg) {
-                    val irBuiltIns = pluginContext.irBuiltIns
+                    val irBuiltIns = transformerScope.pluginContext.irBuiltIns
                     val matcherType = argMatcherClass.typeWith(it.type.getArrayElementType(irBuiltIns))
                     it.type = irBuiltIns.arrayClass.typeWith(matcherType)
                     it.varargElementType = matcherType

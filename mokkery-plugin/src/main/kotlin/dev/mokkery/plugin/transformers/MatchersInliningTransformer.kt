@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.transformInPlace
 
-class MatchersInliner(
+class MatchersInliningTransformer(
     compilerPluginScope: CompilerPluginScope,
     private val compileIfMatcher: (IrSimpleFunction) -> IrSimpleFunction,
     initialValueDeclarations: List<IrValueDeclaration>
@@ -189,7 +189,7 @@ class MatchersInliner(
             val elementType = argMatcherClass.typeWith(matchersVararg.varargElementType)
             val matchersInlined = createTmpVariable(
                 irCallListOf(
-                    transformerScope = this@MatchersInliner,
+                    transformerScope = this@MatchersInliningTransformer,
                     type = elementType,
                     elements = replaceCompositeVararg(matchersVararg, elementType).elements
                 )

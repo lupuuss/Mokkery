@@ -22,7 +22,6 @@ import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridePropertyBackingField
-import dev.mokkery.plugin.ir.removeReturnsTargeting
 import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
@@ -74,11 +73,17 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val globalMokkeryScopeSymbol = getClass(Mokkery.Class.GlobalMokkeryScope).symbol
     private val mokkerySuiteScopeClass = getClass(Mokkery.Class.MokkerySuiteScope)
     private val suiteNameClass = getClass(Mokkery.Class.SuiteName)
-    private val matchersCompiler = MatchersCompiler(compilerPluginScope)
+    private val matchersCompiler = MatchersCompiler(this)
 
     override fun visitClassNew(declaration: IrClass): IrStatement {
         overrideMokkeryTestsScopeIfNotOverridden(declaration)
         return super.visitClassNew(declaration)
+    }
+
+    override fun visitFunctionNew(declaration: IrFunction): IrStatement {
+        if (declaration !is IrSimpleFunction) return super.visitFunctionNew(declaration)
+        matchersCompiler.compileIfMatcher(declaration)
+        return super.visitFunctionNew(declaration)
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
@@ -101,7 +106,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         mockCache.clear()
         mockManyCache.clear()
         spyCache.clear()
-        return super.visitFileNew(declaration.transform(matchersCompiler, null))
+        return super.visitFileNew(declaration)
     }
 
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {
@@ -270,23 +275,20 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
             .typeWith(listOf(getClass(Mokkery.Class.MokkeryTemplatingScope).defaultType, builtIns.unitType))
         return irLambdaOf(lambdaType) { func ->
-            val contextFunctionsInliner = ContextFunctionsInliner(this@MokkeryTransformer)
-            val matchersInliner = MatchersInliner(
+            val matchersInliningTransformer = MatchersInliningTransformer(
                 compilerPluginScope = this@MokkeryTransformer,
                 compileIfMatcher = matchersCompiler::compileIfMatcher,
                 initialValueDeclarations = emptyList()
             )
-            val templatingTransformer = TemplatingMockCallsTransformer(
+            val templatingTransformer = TemplatingTransformer(
                 compilerPluginScope = this@MokkeryTransformer,
                 templatingScopeParam = func.parameters[0],
             )
-            val templatingResultUnwrapper = TemplatingResultUnwrapper(this@MokkeryTransformer)
+            val templatingCleanupTransformer = TemplatingCleanupTransformer(this@MokkeryTransformer, function.symbol)
             val newBody = function
-                .transform(contextFunctionsInliner, null)
-                .transform(matchersInliner, null)
+                .transform(matchersInliningTransformer, null)
                 .transform(templatingTransformer, null)
-                .removeReturnsTargeting(function.symbol)
-                .transform(templatingResultUnwrapper, null)
+                .transform(templatingCleanupTransformer, null)
                 .let { it as IrFunction }
                 .moveBodyTo(func, mapOf(function.parameters[0] to func.parameters[0]))
             newBody?.statements?.unaryPlus()

@@ -15,11 +15,13 @@ import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
+import org.jetbrains.kotlin.backend.common.ir.inline
 import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irAs
+import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
@@ -27,9 +29,9 @@ import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
-import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -60,7 +62,7 @@ import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
-class TemplatingMockCallsTransformer(
+class TemplatingTransformer(
     compilerPluginScope: CompilerPluginScope,
     private val templatingScopeParam: IrValueParameter,
 ) : CoreTransformer(compilerPluginScope) {
@@ -76,9 +78,10 @@ class TemplatingMockCallsTransformer(
         .primaryConstructor!!
     private val inlineLiteralsAsMatchersFunc = getFunction(Mokkery.Function.inlineLiteralsAsMatchers)
 
-    override fun visitBlock(expression: IrBlock): IrExpression = fixIrBlockType(super.visitBlock(expression))
+    private val contextFunctions = setOf(Mokkery.Name.ext, Mokkery.Name.ctx)
 
     override fun visitCall(expression: IrCall): IrExpression {
+        if (expression.symbol.owner.kotlinFqName in contextFunctions) return visitExpression(inlineContextFunction(expression))
         if (expression.type.isMatcher()) return expression
         val receiver = expression.dispatchReceiver
         val cls = receiver?.type?.getClass()
@@ -107,13 +110,15 @@ class TemplatingMockCallsTransformer(
         }
     }
 
-    private fun fixIrBlockType(expression: IrExpression): IrExpression {
-        if (expression !is IrBlock) return expression
-        val statement = expression.statements.lastOrNull()
-        if (statement !is IrExpression) return expression
-        if (statement.type != runTemplateBlockingFun.returnType) return expression
-        expression.type = statement.type
-        return expression
+    private fun inlineContextFunction(call: IrCall) = declarationIrBuilder {
+        val callArguments = call.arguments
+        val blockParam = callArguments.last() as IrFunctionExpression
+        irBlock {
+            val variables = callArguments
+                .subList(1, callArguments.lastIndex)
+                .memoryOptimizedMap { createTmpVariable(it!!) }
+            +blockParam.function.inline(parent, variables)
+        }
     }
 
     private fun IrBlockBodyBuilder.createTemplatingLambdaBody(expression: IrCall) {
@@ -125,7 +130,7 @@ class TemplatingMockCallsTransformer(
         }
         +irReturn(
             irCallMapOf(
-                transformer = this@TemplatingMockCallsTransformer,
+                transformer = this@TemplatingTransformer,
                 pairs = calledFunc.nonDispatchParameters.memoryOptimizedMap {
                     val param = irCallConstructor(templatingParameterConstructor) {
                         arguments[0] = irString(it.name.asString())
@@ -195,7 +200,7 @@ class TemplatingMockCallsTransformer(
         matchers: List<IrVarargElement>
     ) = irCallConstructor(getClass(Mokkery.Class.CompositeVarArgMatcher).primaryConstructor!!) {
         arguments[0] = irCallListOf(
-            transformerScope = this@TemplatingMockCallsTransformer,
+            transformerScope = this@TemplatingTransformer,
             type = argMatcherClass.typeWith(pluginContext.irBuiltIns.anyNType),
             elements = matchers
         )

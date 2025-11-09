@@ -9,6 +9,7 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -33,10 +34,85 @@ class TemplatingTest {
     }
 
     @Test
-    fun testFailsWhenAccessingMockResult() {
+    fun testFailsAccessingMockCallResultInVariable() {
         assertFailsWith<MokkeryRuntimeException> {
             verify {
                 val variable = mock.callPrimitive(0)
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInWhen() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                when (true) {
+                    true -> mock.callPrimitive(1)
+                    else -> Unit
+                }
+            }
+        }
+    }
+
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInNestedFunction() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                fun nested() = mock.callPrimitive(1)
+                nested()
+            }
+        }
+    }
+
+
+    @Test
+    fun testFailsWhenWrappingMockCallInScopeFunction() {
+        assertFailsWith<MokkeryRuntimeException> {
+            every {
+                1.let { mock.callPrimitive(it) }
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInAnotherCall() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                listOf(mock.callPrimitive(1))
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInCondition() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                if (mock.callPrimitive(1) == 1) {
+                    Unit
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultAsIfCondition() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                if (mock.callBoolean(false)) {
+                    Unit
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultAsLoopCondition() {
+        assertFailsWith<MokkeryRuntimeException> {
+            verify {
+                while (mock.callBoolean(false)) {
+                    Unit
+                }
             }
         }
     }

@@ -8,6 +8,8 @@ interface RegularMethodsInterface {
 
     fun callPrimitive(input: Int): Int
 
+    fun callBoolean(input: Boolean): Boolean
+
     fun callComplex(input: ComplexType): ComplexType
 
     fun callIntArray(array: IntArray): IntArray
