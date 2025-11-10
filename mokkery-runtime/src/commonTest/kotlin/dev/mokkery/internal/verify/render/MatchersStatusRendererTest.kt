@@ -9,6 +9,7 @@ import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeDefaultValueMatcher
+import dev.mokkery.test.fakeFunParam
 import kotlin.test.Test
 
 class MatchersStatusRendererTest {
@@ -30,11 +31,9 @@ class MatchersStatusRendererTest {
     @Test
     fun testRendersMatchersWithCallArgsProperly() {
         val template = fakeCallTemplate(
-            matchers = mapOf(
-                "a" to ArgMatcher.Equals("string"),
-                "b" to ArgMatcher.Any,
-                "c" to ArgMatcher.Equals(listOf("a", "b", "c")),
-            )
+            fakeFunParam<String>("a") to ArgMatcher.Equals("string"),
+            fakeFunParam<String>("b") to ArgMatcher.Any,
+            fakeFunParam<String>("c") to ArgMatcher.Equals(listOf("a", "b", "c")),
         )
         renderer.assert(template to trace) {
             """
@@ -51,11 +50,9 @@ class MatchersStatusRendererTest {
     @Test
     fun testRendersDefaultsWithCallArgsWhenOtherMatchersMatching() {
         val template = fakeCallTemplate(
-            matchers = mapOf(
-                "a" to ArgMatcher.Equals("string"),
-                "b" to ArgMatcher.Any,
-                "c" to fakeDefaultValueMatcher(),
-            )
+            fakeFunParam<String>("a") to ArgMatcher.Equals("string"),
+            fakeFunParam<String>("b") to ArgMatcher.Any,
+            fakeFunParam<String>("c") to fakeDefaultValueMatcher(),
         )
         defaultsMaterializer.calls = { _, it ->
             it.copy(matchers = it.matchers.plus("c" to MaterializedDefaultValueMatcher(listOf("a", "b", "c"))))
@@ -75,11 +72,9 @@ class MatchersStatusRendererTest {
     @Test
     fun testRendersSkipsRenderingDefaultsWhenOtherMatchersDoesNotMatch() {
         val template = fakeCallTemplate(
-            matchers = mapOf(
-                "a" to ArgMatcher.Equals("str"),
-                "b" to ArgMatcher.Any,
-                "c" to fakeDefaultValueMatcher(),
-            )
+            fakeFunParam<String>("a") to ArgMatcher.Equals("str"),
+            fakeFunParam<String>("b") to ArgMatcher.Any,
+            fakeFunParam<String>("c") to fakeDefaultValueMatcher(),
         )
         defaultsMaterializer.calls = { _, it ->
             it.copy(matchers = it.matchers.plus("c" to MaterializedDefaultValueMatcher(listOf("a", "b", "c"))))

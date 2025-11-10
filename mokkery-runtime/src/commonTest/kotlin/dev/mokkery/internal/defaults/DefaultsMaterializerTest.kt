@@ -9,6 +9,7 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.fakeFunParam
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -37,7 +38,7 @@ class DefaultsMaterializerTest {
         val template = CallTemplate(
             instanceId = scope.instanceId,
             name = "call",
-            signature = "call(i: Int, j: String)",
+            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1),
                 "j" to ArgMatcher.Any
@@ -58,7 +59,7 @@ class DefaultsMaterializerTest {
         val template = CallTemplate(
             instanceId = scope.instanceId,
             name = "call",
-            signature = "call(i: Int, j: String)",
+            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1),
                 "j" to DefaultValueMatcher(
@@ -71,7 +72,7 @@ class DefaultsMaterializerTest {
         val resultTemplate = materializer.materialize(trace, template)
         assertEquals(template.instanceId, resultTemplate.instanceId)
         assertEquals(template.name, resultTemplate.name)
-        assertEquals(template.signature, resultTemplate.signature)
+        assertEquals(template.parameters, resultTemplate.parameters)
         assertEquals(FakeExtractor, objectPassed)
         assertEquals(trace.args.map { it.value }, argumentsPassed)
         val expectedMatchers = mapOf(
@@ -93,7 +94,7 @@ class DefaultsMaterializerTest {
         val template = CallTemplate(
             instanceId = scope.instanceId,
             name = "call",
-            signature = "call(i: Int, j: String)",
+            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
             matchers = mapOf(
                 "i" to DefaultValueMatcher(
                     mask = 0b01L,
@@ -106,7 +107,7 @@ class DefaultsMaterializerTest {
         val resultTemplate = materializer.materialize(trace, template)
         assertEquals(template.instanceId, resultTemplate.instanceId)
         assertEquals(template.name, resultTemplate.name)
-        assertEquals(template.signature, resultTemplate.signature)
+        assertEquals(template.parameters, resultTemplate.parameters)
         assertEquals(FakeExtractor, objectPassed)
         assertEquals(trace.args.map { it.value }, argumentsPassed)
         val expectedMatchers = mapOf(

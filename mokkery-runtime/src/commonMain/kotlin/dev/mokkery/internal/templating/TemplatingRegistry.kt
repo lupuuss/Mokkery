@@ -6,7 +6,6 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MutableMokkeryCollection
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
@@ -97,10 +96,7 @@ private class TemplatingRegistryImpl : TemplatingRegistry {
             CallTemplate(
                 instanceId = scope.instanceId,
                 name = functionName,
-                signature = scope
-                    .tools
-                    .signatureGenerator
-                    .generate(functionName, params),
+                parameters = params,
                 matchers = input.map { (param, matcher) -> param.name to matcher }.toMap(),
             )
         )

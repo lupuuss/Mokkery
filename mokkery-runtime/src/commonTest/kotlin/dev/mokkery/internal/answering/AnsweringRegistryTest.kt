@@ -14,6 +14,7 @@ import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import dev.mokkery.test.fakeFunParam
 import dev.mokkery.test.testBlockingCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -95,18 +96,18 @@ class AnsweringRegistryTest {
     @Test
     fun testResolveAnswerReturnsLatestAnswerOnInterceptCallWhenMoreThanOneMatching() {
         callMatcher.returns(true)
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1))), Answer.Const(2))
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2))), Answer.Const(3))
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3))), Answer.Const(4))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(1)), Answer.Const(2))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(2)), Answer.Const(3))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(3)), Answer.Const(4))
         assertEquals(Answer.Const(4), answering.resolveAnswer(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testResolveAnswerCallsCallMatcherCorrectly() {
         callMatcher.returnsMany(true, true, true)
-        val template1 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1)))
-        val template2 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2)))
-        val template3 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3)))
+        val template1 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(1))
+        val template2 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(2))
+        val template3 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(3))
         answering.setup(template1, Answer.Const(2))
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
