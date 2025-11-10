@@ -15,5 +15,23 @@ class TemplatingDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = CommonRenderers.NAME,
             rendererB = FirDiagnosticRenderers.SYMBOL,
         )
+        it.put(
+            factory = Diagnostics.FUNCTIONAL_PARAM_MUST_BE_REFERENCE,
+            message = "Argument passed to ''{0}'' for param ''{1}'' must be a method reference expression.",
+            rendererA = CommonRenderers.NAME,
+            rendererB = FirDiagnosticRenderers.SYMBOL,
+        )
+        it.put(
+            factory = Diagnostics.FUNCTION_REFERENCE_INCORRECT_TYPE,
+            message = "Function reference passed to ''{0}'' is {1} but {2} is expected.",
+            rendererA = CommonRenderers.NAME,
+            rendererB = CommonRenderers.STRING,
+            rendererC = CommonRenderers.STRING,
+        )
+        it.put(
+            factory = Diagnostics.FUNCTION_REFERENCE_NOT_BOUND,
+            message = "Function reference passed to ''{0}'' must be bound to a dispatch receiver.",
+            rendererA = CommonRenderers.NAME,
+        )
     }
 }

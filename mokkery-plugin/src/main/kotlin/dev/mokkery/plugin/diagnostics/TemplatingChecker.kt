@@ -5,20 +5,27 @@ import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.error2
+import org.jetbrains.kotlin.diagnostics.error3
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
+import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
+import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.toResolvedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
+import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.psi.KtElement
 
 class TemplatingChecker(
@@ -49,11 +56,52 @@ class TemplatingChecker(
             .arguments
             .last()
             .unwrapArgument()
-        checkTemplatingFunctionalParam(blockArgument.source ?: expression.source, blockArgument)
+        checkTemplatingArgument(blockArgument.source ?: expression.source, blockArgument)
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
-    private fun checkTemplatingFunctionalParam(source: AbstractKtSourceElement?, blockArgument: FirExpression) {
+    private fun checkTemplatingArgument(source: AbstractKtSourceElement?, argument: FirExpression) {
+        val blockParameter = funSymbol
+            .valueParameterSymbols
+            .firstOrNull()
+        val classId = blockParameter?.resolvedReturnType?.classId
+        when (classId) {
+            StandardClassIds.KFunction -> checkTemplatingReference(source, argument)
+            else -> checkTemplatingBlock(source, argument)
+        }
+    }
+
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkTemplatingReference(source: AbstractKtSourceElement?, argument: FirExpression) {
+        if (argument !is FirCallableReferenceAccess) return reporter.reportOn(
+            source = argument.source,
+            factory = Diagnostics.FUNCTIONAL_PARAM_MUST_BE_REFERENCE,
+            a = funSymbol.name,
+            b = funSymbol.valueParameterSymbols.last(),
+        )
+        val referenceFunction = argument.calleeReference.toResolvedFunctionSymbol()
+        val isTemplatingForSuspend = funSymbol.name.asString().endsWith("Suspend")
+        if (referenceFunction != null && referenceFunction.isSuspend != isTemplatingForSuspend) {
+            return reporter.reportOn(
+                source = source,
+                factory = Diagnostics.FUNCTION_REFERENCE_INCORRECT_TYPE,
+                a = funSymbol.name,
+                b = if (referenceFunction.isSuspend) "suspend function" else "regular function",
+                c = if (isTemplatingForSuspend) "suspend function" else "regular function",
+            )
+        }
+        if (argument.dispatchReceiver == null) {
+            return reporter.reportOn(
+                source = source,
+                factory = Diagnostics.FUNCTION_REFERENCE_NOT_BOUND,
+                a = funSymbol.name,
+            )
+        }
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkTemplatingBlock(source: AbstractKtSourceElement?, blockArgument: FirExpression) {
         if (blockArgument !is FirAnonymousFunctionExpression) {
             return reporter.reportOn(
                 source = source,
@@ -78,5 +126,8 @@ class TemplatingChecker(
         override fun getRendererFactory() = TemplatingDiagnosticRendererFactory()
 
         val FUNCTIONAL_PARAM_MUST_BE_LAMBDA by error2<KtElement, Name, FirValueParameterSymbol>()
+        val FUNCTIONAL_PARAM_MUST_BE_REFERENCE by error2<KtElement, Name, FirValueParameterSymbol>()
+        val FUNCTION_REFERENCE_INCORRECT_TYPE by error3<KtElement, Name, String, String>()
+        val FUNCTION_REFERENCE_NOT_BOUND by error1<KtElement, Name>()
     }
 }

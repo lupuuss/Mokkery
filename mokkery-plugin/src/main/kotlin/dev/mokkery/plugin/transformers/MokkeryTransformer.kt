@@ -14,10 +14,13 @@ import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryLog
 import dev.mokkery.plugin.core.platform
 import dev.mokkery.plugin.core.verifyMode
+import dev.mokkery.plugin.ir.asTypeParamOrNull
+import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.irCallMapOf
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.isAnyFunction
@@ -31,10 +34,12 @@ import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irNull
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -43,20 +48,30 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isClass
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.nestedClasses
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import kotlin.reflect.KClass
 import kotlin.time.TimeSource
 
@@ -223,8 +238,12 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     ) = declarationIrBuilder {
         irBlock {
             +irCall(function) {
-                val block = expression.arguments[0]!! as IrFunctionExpression
-                arguments[0] = transformTemplatingBlock(block.function)
+                val templatingArgument = expression.arguments[0]
+                arguments[0] = when (templatingArgument) {
+                    is IrFunctionExpression -> transformTemplatingBlock(templatingArgument.function)
+                    is IrFunctionReference -> createTemplatingBlockForReference(expression, templatingArgument)
+                    else -> error("Unsupported templating argument!")
+                }
                 typeArguments[0] = expression.typeArguments[0]
             }
         }
@@ -298,5 +317,71 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         .getProperty("global")
         .getter!!
         .let { irCall(it) { arguments[0] = irGetObject(mokkeryScopeCompanion.symbol) } }
+
+    private fun IrBuilderWithScope.createTemplatingBlockForReference(
+        everyCall: IrCall,
+        functionReference: IrFunctionReference,
+    ): IrFunctionExpression {
+        val function = functionReference.symbol.owner as IrSimpleFunction
+        val builtIns = pluginContext.irBuiltIns
+        val lambdaType = pluginContext
+            .irBuiltIns
+            .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
+            .typeWith(listOf(getClass(Mokkery.Class.MokkeryTemplatingScope).defaultType, builtIns.unitType))
+        val runTemplateFun = when {
+            function.isSuspend -> getFunction(Mokkery.Function.runTemplateSuspend)
+            else -> getFunction(Mokkery.Function.runTemplate)
+        }
+        return irLambdaOf(lambdaType) { func ->
+            +irCall(runTemplateFun) {
+                val mockObj = functionReference.arguments[0]!!
+                typeArguments[0] = everyCall.typeArguments[0]
+                arguments[0] = irGet(func.parameters[0])
+                arguments[1] = mockObj
+                arguments[2] = kClassReference(function.parentAsClass.defaultTypeErased)
+                arguments[3] = irString(function.name.asString())
+                arguments[4] = irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                    val typeParameters = mockObj
+                        .type
+                        .classOrFail
+                        .owner
+                        .typeParameters
+                    +irReturn(irCallMapOfTemplatingParameters(function, typeParameters))
+                }
+                arguments[5] = irNull()
+            }
+        }
+
+    }
+
+    private fun IrBuilderWithScope.irCallMapOfTemplatingParameters(
+        function: IrSimpleFunction,
+        parentClassTypeParameters: List<IrTypeParameter>,
+    ): IrCall {
+        val templatingParameter = getClass(Mokkery.Class.TemplatingParameter)
+        val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
+        val anyMatcherObject = argMatcherClass
+            .nestedClasses
+            .single { it.name.asString() == "Any" }
+        val templatingParameterConstructor = templatingParameter.primaryConstructor!!
+        return irCallMapOf(
+            transformer = this@MokkeryTransformer,
+            pairs = function.nonDispatchParameters.memoryOptimizedMap {
+                val param = irCallConstructor(templatingParameterConstructor) {
+                    arguments[0] = irString(it.name.asString())
+                    arguments[1] = irBoolean(it.isVararg)
+                    val typeParam = it.type.asTypeParamOrNull()
+                    if (typeParam in parentClassTypeParameters) {
+                        arguments[3] = irInt(typeParam!!.index)
+                    } else {
+                        arguments[2] = kClassReference(it.type.eraseTypeParameters())
+                    }
+                }
+                param to irGetObject(anyMatcherObject.symbol)
+            },
+            keyType = templatingParameter.defaultType,
+            valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
+        )
+    }
 }
 

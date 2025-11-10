@@ -417,6 +417,18 @@ public class MokkeryDiagnosticTestGenerated extends AbstractMokkeryDiagnosticTes
     }
 
     @Test
+    @TestMetadata("FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt")
+    public void testFunctionReferenceIncorrectTypeMustNotBePassedToEvery() {
+      runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt");
+    }
+
+    @Test
+    @TestMetadata("FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt")
+    public void testFunctionReferenceWithoutBoundObjectMustNotBePassedToEvery() {
+      runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt");
+    }
+
+    @Test
     @TestMetadata("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt")
     public void testMustNotDeclareFunctionsAcceptingMokkeryTemplatingScope() {
       runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt");
@@ -426,6 +438,12 @@ public class MokkeryDiagnosticTestGenerated extends AbstractMokkeryDiagnosticTes
     @TestMetadata("TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt")
     public void testTemplatingLambdasMustNotBePassedToTemplatingFunctions() {
       runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt");
+    }
+
+    @Test
+    @TestMetadata("ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt")
+    public void testValuePassedToEveryReferenceOverloadMustBeActualReferece() {
+      runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt");
     }
   }
 }
