@@ -2,6 +2,7 @@
 
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.utils.mokkeryRuntimeError
 

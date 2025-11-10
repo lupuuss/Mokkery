@@ -1,9 +1,9 @@
 package dev.mokkery.internal.defaults
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.internal.MokkeryInstanceScope
 
 internal interface DefaultsExtractorFactory : MokkeryContext.Element {
 

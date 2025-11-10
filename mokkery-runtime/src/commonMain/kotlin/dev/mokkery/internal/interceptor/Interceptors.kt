@@ -1,11 +1,11 @@
 package dev.mokkery.internal.interceptor
 
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.nextIntercept
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.tracing.callTracing

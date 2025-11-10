@@ -3,6 +3,7 @@
 package dev.mokkery.internal
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.answering.AnsweringRegistry
@@ -20,8 +21,6 @@ import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
-
-internal interface MokkeryInstanceScope : MokkeryScope
 
 internal fun MokkeryInstanceScope(
     mokkeryContext: MokkeryContext

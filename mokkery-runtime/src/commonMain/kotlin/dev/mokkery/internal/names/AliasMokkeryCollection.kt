@@ -1,11 +1,11 @@
 package dev.mokkery.internal.names
 
-import dev.mokkery.internal.MokkeryInstanceId
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
-import dev.mokkery.internal.MokkeryInstanceScope
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 
 internal interface AliasMokkeryCollection : MokkeryCollection {
 

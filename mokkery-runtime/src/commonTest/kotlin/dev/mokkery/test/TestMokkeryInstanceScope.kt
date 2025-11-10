@@ -1,9 +1,9 @@
 package dev.mokkery.test
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import kotlin.reflect.KClass
 

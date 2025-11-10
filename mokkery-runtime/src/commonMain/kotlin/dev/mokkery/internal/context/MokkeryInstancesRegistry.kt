@@ -1,7 +1,7 @@
 package dev.mokkery.internal.context
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MutableMokkeryCollection
 import kotlinx.atomicfu.locks.ReentrantLock

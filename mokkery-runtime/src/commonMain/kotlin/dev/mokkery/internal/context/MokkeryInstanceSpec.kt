@@ -1,11 +1,11 @@
 package dev.mokkery.internal.context
 
 import dev.mokkery.MockMode
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.ObjectIsNotMockException
 import dev.mokkery.internal.ObjectIsNotSpyException
 import dev.mokkery.internal.utils.bestName

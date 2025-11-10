@@ -42,7 +42,7 @@ object Mokkery {
 
         val MokkerySuiteScope by dev_mokkery.klass
 
-        val MokkeryInstanceScope by dev_mokkery_internal.klass
+        val MokkeryInstanceScope by dev_mokkery.klass
 
         val CallArgument by dev_mokkery_context.klass
         val SuiteName by dev_mokkery_internal_context.klass

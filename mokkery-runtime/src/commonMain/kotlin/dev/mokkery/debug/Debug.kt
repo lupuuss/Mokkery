@@ -1,7 +1,7 @@
 package dev.mokkery.debug
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.answering.Answer
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.mokkeryScope

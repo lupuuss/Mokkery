@@ -7,6 +7,7 @@ import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
