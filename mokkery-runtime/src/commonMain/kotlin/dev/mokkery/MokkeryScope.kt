@@ -1,5 +1,6 @@
 package dev.mokkery
 
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 
@@ -13,7 +14,8 @@ public interface MokkeryScope {
 
     public companion object {
 
-        internal val global: MokkeryScope = object : MokkeryScope {
+        @InternalMokkeryApi
+        public val global: MokkeryScope = object : MokkeryScope {
 
             override val mokkeryContext: MokkeryContext = MokkeryTools.default()
 

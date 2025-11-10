@@ -1,7 +1,7 @@
 package dev.mokkery.internal.tracing
 
-import dev.mokkery.internal.Counter
 import dev.mokkery.internal.context.MokkeryTools
+import dev.mokkery.test.TestCounter
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.testBlockingCallScope
@@ -10,8 +10,7 @@ import kotlin.test.assertEquals
 
 class CallTracingRegistryTest {
 
-    private var clockStamp = 0L
-    private val counter = Counter { clockStamp }
+    private val counter = TestCounter(0)
     private val context = MokkeryTools(callsCounter = counter)
     private val tracing = CallTracingRegistry()
     private val args1 = listOf(
@@ -27,7 +26,10 @@ class CallTracingRegistryTest {
     fun testTraceSavesCallsProperly() {
         tracing.trace(testBlockingCallScope<Int>(name = "call", args = args1, context = context))
         tracing.trace(testBlockingCallScope<Int>(name = "call", args = args2, context = context))
-        val expected = listOf(fakeCallTrace(name = "call", args = args1), fakeCallTrace(name = "call", args = args2))
+        val expected = listOf(
+            fakeCallTrace(name = "call", args = args1, orderStamp = 0),
+            fakeCallTrace(name = "call", args = args2, orderStamp = 1)
+        )
         assertEquals(expected, tracing.all)
         assertEquals(expected, tracing.unverified)
     }
