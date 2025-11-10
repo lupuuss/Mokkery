@@ -1,4 +1,3 @@
-
 plugins {
     id("mokkery-publish")
     id("mokkery-multiplatform")
@@ -12,6 +11,7 @@ kotlin {
     androidTarget {
         publishLibraryVariants("release")
     }
+    optInMokkeryDelicateAndInternals()
 }
 
 android {

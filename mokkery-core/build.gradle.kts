@@ -4,7 +4,10 @@ plugins {
     id("com.github.gmazzo.buildconfig")
 }
 
-kotlin.explicitApi()
+kotlin {
+    explicitApi()
+    optInMokkeryDelicateAndInternals()
+}
 
 dependencies {
     commonMainCompileOnly(libs.kotlin.stdlib)

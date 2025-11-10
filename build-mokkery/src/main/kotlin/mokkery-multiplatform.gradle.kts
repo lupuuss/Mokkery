@@ -2,6 +2,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 
 plugins {
@@ -68,12 +69,5 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
         freeCompilerArgs.add("-Xcontext-parameters")
-    }
-
-    sourceSets {
-        all {
-            languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")
-            languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
-        }
     }
 }

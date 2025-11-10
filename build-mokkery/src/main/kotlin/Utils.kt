@@ -2,6 +2,7 @@
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
@@ -32,5 +33,12 @@ fun Project.configureCompilerPlugin(id: String, vararg options: SubpluginOption)
     }
     tasks.withType<KotlinNativeCompile> {
         compilerPluginOptions.addPluginArgument(compilerOptions)
+    }
+}
+
+fun KotlinMultiplatformExtension.optInMokkeryDelicateAndInternals() {
+    sourceSets.all {
+        languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")
+        languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
     }
 }
