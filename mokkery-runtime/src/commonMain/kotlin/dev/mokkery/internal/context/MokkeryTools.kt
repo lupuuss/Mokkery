@@ -9,7 +9,6 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.matcher.CallMatcherFactory
-import dev.mokkery.internal.names.CallTraceReceiverShortener
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.withTypeArgumentsSupport
@@ -21,7 +20,6 @@ internal val MokkeryScope.tools: MokkeryTools
 
 internal class MokkeryTools(
     namesShortener: NameShortener? = null,
-    callTraceReceiverShortener: CallTraceReceiverShortener? = null,
     callMatcherFactory: CallMatcherFactory? = null,
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
@@ -30,7 +28,6 @@ internal class MokkeryTools(
 ) : MokkeryContext.Element {
 
     private val _namesShortener: NameShortener? = namesShortener
-    private val _callTraceReceiverShortener: CallTraceReceiverShortener? = callTraceReceiverShortener
     private val _callMatcherFactory = callMatcherFactory
     private val _callsCounter = callsCounter
     private val _mocksCounter = mocksCounter
@@ -39,8 +36,6 @@ internal class MokkeryTools(
 
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
-    val callTraceReceiverShortener: CallTraceReceiverShortener
-        get() = _callTraceReceiverShortener ?: mokkeryRuntimeError("CallTraceReceiverShortener not present in the tools!")
     val callMatcherFactory: CallMatcherFactory
         get() = _callMatcherFactory ?: mokkeryRuntimeError("CallMatcher not present in call tools!")
     val callsCounter: Counter
@@ -56,7 +51,6 @@ internal class MokkeryTools(
 
     fun copy(
         namesShortener: NameShortener? = _namesShortener,
-        callTraceReceiverShortener: CallTraceReceiverShortener? = _callTraceReceiverShortener,
         callMatcherFactory: CallMatcherFactory? = _callMatcherFactory,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
@@ -64,7 +58,6 @@ internal class MokkeryTools(
         verifierFactory: VerifierFactory? = _verifierFactory
     ) = MokkeryTools(
         namesShortener = namesShortener,
-        callTraceReceiverShortener = callTraceReceiverShortener,
         callMatcherFactory = callMatcherFactory,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
@@ -82,7 +75,6 @@ internal class MokkeryTools(
             val callMatcherFactory = CallMatcherFactory()
             return MokkeryTools(
                 namesShortener = namesShortener,
-                callTraceReceiverShortener = CallTraceReceiverShortener(namesShortener),
                 callMatcherFactory = callMatcherFactory,
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,

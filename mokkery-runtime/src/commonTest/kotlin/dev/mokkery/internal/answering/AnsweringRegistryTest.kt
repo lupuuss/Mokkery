@@ -9,8 +9,8 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallMatcherFactory
-import dev.mokkery.test.TestCallTraceReceiverShortener
 import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -25,7 +25,7 @@ class AnsweringRegistryTest {
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(
         callMatcherFactory = TestCallMatcherFactory { callMatcher },
-        callTraceReceiverShortener = TestCallTraceReceiverShortener()
+        namesShortener = TestNameShortener()
     )
     private val context = tools + mockSpec(MockMode.strict)
     private val answering = AnsweringRegistry()

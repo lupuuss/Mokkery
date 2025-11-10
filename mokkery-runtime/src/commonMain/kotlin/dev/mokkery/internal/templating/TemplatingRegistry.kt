@@ -79,13 +79,11 @@ private class TemplatingRegistryImpl : TemplatingRegistry {
     ) {
         val scope = mock.requireInstanceScope()
         _collection.upsertScope(scope)
+        val interceptedTypes = scope.instanceSpec.interceptedTypes
         val params = input.keys.map { param ->
-            val paramType = param.type
-                ?: scope
-                    .instanceSpec
-                    .interceptedTypes
-                    .single { it.type == mockedType }
-                    .arguments[param.typeArgumentIndex]
+            val paramType = param.type ?: interceptedTypes
+                .single { it.type == mockedType }
+                .arguments[param.typeArgumentIndex]
             Function.Parameter(
                 name = param.name,
                 type = paramType.takeIfImplementedOrAny(),
@@ -102,5 +100,5 @@ private class TemplatingRegistryImpl : TemplatingRegistry {
         )
     }
 
-    override fun toString(): String = "TemplatingScope(templates=${templates})"
+    override fun toString(): String = "TemplatingRegistry(${templates})"
 }

@@ -9,13 +9,15 @@ import dev.mokkery.call
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.CallNotMockedException
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.names.shortToString
+import dev.mokkery.internal.names.withShorterNames
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
@@ -81,17 +83,23 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
                 .find { callMatcher.match(trace, it).isMatching }
                 ?.also { it.applyCapture(trace) }
                 ?.let { _answers.getValue(it) }
-        } ?: handleMissingAnswer(trace, scope)
+        } ?: handleMissingAnswer(scope, collection, trace)
     }
 
-    private fun handleMissingAnswer(trace: CallTrace, scope: MokkeryCallScope): Answer<*> {
-        return when (val spec = scope.instanceSpec) {
-            is MokkerySpySpec -> SpiedCallAnswer
-            is MokkeryMockSpec -> when (spec.mode) {
-                MockMode.autofill -> Answer.Autofill
-                MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
-                MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-                else -> throw CallNotMockedException(scope.tools.callTraceReceiverShortener.shortToString(trace))
+    private fun handleMissingAnswer(
+        scope: MokkeryCallScope,
+        collection: MokkeryCollection,
+        trace: CallTrace
+    ): Answer<*> = when (val spec = scope.instanceSpec) {
+        is MokkerySpySpec -> SpiedCallAnswer
+        is MokkeryMockSpec -> when (spec.mode) {
+            MockMode.autofill -> Answer.Autofill
+            MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
+            MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
+            else -> {
+                val aliases = collection.withShorterNames(scope.tools.namesShortener)
+                val renderer = Renderers.callTraceAlias(from = aliases)
+                throw CallNotMockedException(renderer.render(trace))
             }
         }
     }
