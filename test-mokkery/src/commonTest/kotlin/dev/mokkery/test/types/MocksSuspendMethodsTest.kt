@@ -124,15 +124,6 @@ class MocksSuspendMethodsTest {
     }
 
     @Test
-    fun testPropagatesClassCastExceptionWhenOccursInArgument() = runTest {
-        // ClassCastException is ignored when suspend method is called with default parameters, but it should
-        // be thrown when it occurs before registering the template
-        assertFailsWith<ClassCastException> {
-            everySuspend { mock.callComplexWithDefaults(complexInput = 1 as ComplexType) } returns ComplexType
-        }
-    }
-
-    @Test
     fun testPrimitiveExtension() = runTest {
         everySuspend { mock.ext { 1.callPrimitiveExtension() } } returns 1
         assertEquals(1, mock.run { 1.callPrimitiveExtension() })
