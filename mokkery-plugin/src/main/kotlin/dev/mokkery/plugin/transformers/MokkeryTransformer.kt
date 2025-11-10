@@ -8,6 +8,7 @@ import dev.mokkery.plugin.core.IrMokkeryKind.Spy
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getCompanionOf
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mockMode
 import dev.mokkery.plugin.core.mokkeryLog
@@ -70,7 +71,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val internalEverySuspend = getFunction(Mokkery.Function.internalEverySuspend)
     private val internalVerify = getFunction(Mokkery.Function.internalVerify)
     private val internalVerifySuspend = getFunction(Mokkery.Function.internalVerifySuspend)
-    private val globalMokkeryScopeSymbol = getClass(Mokkery.Class.GlobalMokkeryScope).symbol
+    private val mokkeryScopeCompanion = getCompanionOf(Mokkery.Class.MokkeryScope)
     private val mokkerySuiteScopeClass = getClass(Mokkery.Class.MokkerySuiteScope)
     private val suiteNameClass = getClass(Mokkery.Class.SuiteName)
     private val matchersCompiler = MatchersCompiler(this)
@@ -155,7 +156,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val calledFun = call.symbol.owner
                 val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
                 val regularParams = calledFun.parameters - extensionParam
-                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: getMokkeryGlobalScope()
                 arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(
                     getClass(Mokkery.Class.MockMode),
                     mockMode.toString()
@@ -180,7 +181,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val calledFun = call.symbol.owner
                 val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
                 val regularParams = calledFun.parameters - extensionParam
-                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: getMokkeryGlobalScope()
                 arguments[1] = call.arguments[regularParams[0]!!] ?: irGetEnumEntry(
                     getClass(Mokkery.Class.MockMode),
                     mockMode.toString()
@@ -206,7 +207,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 val calledFun = call.symbol.owner
                 val extensionParam = calledFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
                 val regularParams = calledFun.parameters - extensionParam
-                arguments[0] = extensionParam?.let(call.arguments::get) ?: irGetObject(globalMokkeryScopeSymbol)
+                arguments[0] = extensionParam?.let(call.arguments::get) ?: getMokkeryGlobalScope()
                 arguments[1] = irNull()
                 arguments[2] = call.arguments[regularParams[1]!!] ?: irNull()
                 arguments[3] = call.arguments[regularParams[0]!!]
@@ -244,7 +245,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
                 +irCall(function) {
                     arguments[0] = mokkeryScopeParam
                         ?.let(expression.arguments::get)
-                        ?: irGetObject(globalMokkeryScopeSymbol)
+                        ?: getMokkeryGlobalScope()
                     arguments[1] = mode ?: irGetVerifyMode(verifyMode)
                     arguments[2] = transformTemplatingBlock(block.function)
                 }
@@ -294,5 +295,10 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             newBody?.statements?.unaryPlus()
         }
     }
+
+    private fun IrBuilderWithScope.getMokkeryGlobalScope() = mokkeryScopeCompanion
+        .getProperty("global")
+        .getter!!
+        .let { irCall(it) { arguments[0] = irGetObject(mokkeryScopeCompanion.symbol) } }
 }
 

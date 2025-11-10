@@ -5,8 +5,10 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.core.getCompanionOf
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.mockMode
+import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irGetEnumEntry
@@ -47,7 +49,12 @@ fun TransformerScope.buildMockJsFunction(
             val extMockParam = mockFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
             val regularMockParams = mockFun.parameters - extMockParam
             val parentScopeValue = when (extMockParam) {
-                null -> irGetObject(transformer.getClass(Mokkery.Class.GlobalMokkeryScope).symbol)
+                null -> {
+                    val mokkeryScopeCompanion = getCompanionOf(Mokkery.Class.MokkeryScope)
+                    irCall(mokkeryScopeCompanion.getProperty("global").getter!!) {
+                        arguments[0] = irGetObject(mokkeryScopeCompanion.symbol)
+                    }
+                }
                 else -> expression.arguments[extMockParam]!!
             }
             val instanceScopeFun = transformer.getFunction(Mokkery.Function.createInstanceScope)
@@ -104,4 +111,3 @@ fun TransformerScope.buildMockJsFunction(
         }
     }
 }
-

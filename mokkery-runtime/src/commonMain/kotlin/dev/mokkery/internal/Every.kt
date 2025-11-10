@@ -2,6 +2,7 @@
 
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.annotations.Templating
@@ -20,7 +21,7 @@ internal fun <T> internalEverySuspend(
 internal fun <T> internalEvery(
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
-    val scope = GlobalMokkeryScope.createTemplatingScope()
+    val scope = MokkeryScope.global.createTemplatingScope()
     scope.apply(block)
     val registry = scope.templatingRegistry
     val template = registry.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()

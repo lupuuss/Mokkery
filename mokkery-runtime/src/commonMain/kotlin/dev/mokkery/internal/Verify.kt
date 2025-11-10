@@ -2,7 +2,7 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.MokkerySuiteScope
+import dev.mokkery.MokkeryScope
 import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
@@ -14,12 +14,12 @@ import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
-internal fun MokkerySuiteScope.internalVerifySuspend(
+internal fun MokkeryScope.internalVerifySuspend(
     mode: VerifyMode,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ) = internalVerify(mode) { runSuspension { block() } }
 
-internal fun MokkerySuiteScope.internalVerify(
+internal fun MokkeryScope.internalVerify(
     mode: VerifyMode,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ) {

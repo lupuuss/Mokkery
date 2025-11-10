@@ -6,12 +6,15 @@ import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.util.companionObject
 
 val TransformerScope.messageCollector get() = compilerConfig.messageCollector
 
 fun TransformerScope.getClass(resolver: ClassResolver): IrClass = classes.getOrPut(resolver) {
     resolver.resolve(pluginContext)
 }
+
+fun TransformerScope.getCompanionOf(resolver: ClassResolver): IrClass = getClass(resolver).companionObject()!!
 
 fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction = functions.getOrPut(resolver) {
     resolver.resolve(pluginContext)
