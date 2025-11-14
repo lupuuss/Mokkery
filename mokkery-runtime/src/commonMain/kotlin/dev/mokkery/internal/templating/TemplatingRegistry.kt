@@ -62,6 +62,9 @@ internal interface TemplatingRegistry : MokkeryContext.Element {
 internal val MokkeryTemplatingScope.templatingRegistry: TemplatingRegistry
     get() = mokkeryContext.require(TemplatingRegistry)
 
+internal val MokkeryTemplatingScope.registeredTemplates: List<CallTemplate>
+    get() = templatingRegistry.templates
+
 internal fun TemplatingRegistry(): TemplatingRegistry = TemplatingRegistryImpl()
 
 private class TemplatingRegistryImpl : TemplatingRegistry {

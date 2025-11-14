@@ -10,9 +10,12 @@ internal data class CallTrace(
     val name: String,
     val args: List<CallArgument>,
     val orderStamp: Long,
-) {
+): Comparable<CallTrace> {
+
     override fun toString(): String = callToString(instanceId, name, args)
 
     fun toStringNoMockId() = callFunctionToString(name, args)
+
+    override fun compareTo(other: CallTrace) = this.orderStamp.compareTo(other.orderStamp)
 }
 

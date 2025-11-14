@@ -1,6 +1,6 @@
 package dev.mokkery.internal
 
-internal class MokkeryInstanceId(val typeName: String, val id: Long) {
+internal class MokkeryInstanceId(val typeName: String, val id: Long): Comparable<MokkeryInstanceId> {
 
     override fun toString(): String = "$typeName($id)"
 
@@ -20,4 +20,10 @@ internal class MokkeryInstanceId(val typeName: String, val id: Long) {
     }
 
     fun copy(typeName: String = this.typeName, id: Long = this.id) = MokkeryInstanceId(typeName, id)
+
+    override fun compareTo(other: MokkeryInstanceId): Int {
+        val result = this.typeName.compareTo(other.typeName)
+        if (result != 0) return result
+        return id.compareTo(other.id)
+    }
 }

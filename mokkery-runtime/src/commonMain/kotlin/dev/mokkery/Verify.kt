@@ -4,12 +4,10 @@ package dev.mokkery
 
 import dev.mokkery.context.require
 import dev.mokkery.internal.annotations.Templating
-import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.forEachScope
-import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.tracing.withTracingSession
 import dev.mokkery.internal.utils.mokkeryIntrinsic
 import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -74,18 +72,18 @@ public fun verifyNoMoreCalls(vararg mocks: Any) {
  * Asserts that all mocks from given [MokkerySuiteScope] have no unverified calls.
  */
 public fun MokkerySuiteScope.verifyNoMoreCalls() {
-    val mocks = mokkeryContext
+    val collection = mokkeryContext
         .require(MokkeryInstancesRegistry)
         .collection
-    mocks.forEachScope { mock ->
-        val tracing = mock.callTracing
-        val unverified = tracing.unverified
-        if (unverified.isNotEmpty()) {
-            val message = NoMoreCallsErrorRenderer
-                .factory(tools.namesShortener, mocks)
-                .create()
-                .render(mock.instanceId to unverified)
-            throw AssertionError(message)
+    collection.withTracingSession {
+        sessions.forEach { (id, session) ->
+            if (session.unverified.isNotEmpty()) {
+                val message = NoMoreCallsErrorRenderer
+                    .factory(tools.namesShortener, collection)
+                    .create()
+                    .render(id to unverified)
+                throw AssertionError(message)
+            }
         }
     }
 }
