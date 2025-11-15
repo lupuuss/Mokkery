@@ -22,6 +22,14 @@ internal interface MutableMokkeryCollection : MokkeryCollection {
     fun clear()
 }
 
+internal fun MokkeryCollection.getScope(id: MokkeryInstanceId): MokkeryInstanceScope = getScopeOrNull(id)
+    ?: mokkeryRuntimeError("Failed to find mock with $id!")
+
+internal val MokkeryCollection.instances: List<Any>
+    get() = scopes.map { it.instanceSpec.thisRef }
+
+internal fun List<MokkeryInstanceScope>.toMokkeryCollection() = MokkeryCollection(this)
+
 internal fun MokkeryCollection(
     vararg values: MokkeryInstanceScope
 ): MokkeryCollection = MokkeryCollection(values.asList())
@@ -30,51 +38,40 @@ internal fun MutableMokkeryCollection(
     vararg values: MokkeryInstanceScope
 ): MutableMokkeryCollection = MutableMokkeryCollection(values.asList())
 
-internal fun MokkeryCollection(
-    values: List<MokkeryInstanceScope>
-): MokkeryCollection = MokkeryCollectionImpl(values)
+internal fun MokkeryInstanceScope.toMokkeryCollection(): MokkeryCollection = SingletonMokkeryCollection(this)
 
-internal fun MutableMokkeryCollection(
-    values: List<MokkeryInstanceScope>
-): MutableMokkeryCollection = MokkeryCollectionImpl(values)
-
-internal inline fun MokkeryCollection?.orEmpty(): MokkeryCollection = this ?: MokkeryCollection()
-
-internal inline fun MokkeryCollection.getScope(id: MokkeryInstanceId): MokkeryInstanceScope = getScopeOrNull(id)
-    ?: mokkeryRuntimeError("Failed to find mock with $id!")
-
-internal val MokkeryCollection.instances: List<Any>
-    get() = scopes.map { it.instanceSpec.thisRef }
+internal fun MokkeryCollection?.orEmpty(): MokkeryCollection = this ?: EmptyMokkeryCollection
 
 internal operator fun MokkeryCollection.plus(
     other: MokkeryCollection
-): MokkeryCollection = MutableMokkeryCollection(scopes + other.scopes)
-
-internal fun MokkeryCollection.forEachScope(block: (MokkeryInstanceScope) -> Unit) {
-    scopes.forEach(block)
+): MokkeryCollection {
+    if (this.ids.isEmpty()) return other
+    if (other.ids.isEmpty()) return this
+    val map = LinkedHashMap<MokkeryInstanceId, MokkeryInstanceScope>(this.ids.size + other.ids.size)
+    scopes.forEach { map[it.instanceId] = it }
+    other.scopes.forEach { map[it.instanceId] = it }
+    return MokkeryCollectionImpl(map)
 }
 
-internal fun List<MokkeryInstanceScope>.toMokkeryCollection() = MokkeryCollection(this)
+internal fun MokkeryCollection(
+    values: List<MokkeryInstanceScope>
+): MokkeryCollection = when (values.size) {
+    0 -> EmptyMokkeryCollection
+    1 -> SingletonMokkeryCollection(values.single())
+    else -> MokkeryCollectionImpl(values.associateByTo(linkedMapOf()) { it.instanceId })
+}
 
-internal fun MokkeryInstanceScope.wrapInMokkeryCollection() = listOf(this).toMokkeryCollection()
+internal fun MutableMokkeryCollection(
+    values: List<MokkeryInstanceScope>
+): MutableMokkeryCollection = MokkeryCollectionImpl(values.associateByTo(linkedMapOf()) { it.instanceId })
 
 private class MokkeryCollectionImpl(
-    initial: List<MokkeryInstanceScope>
+    private val map: LinkedHashMap<MokkeryInstanceId, MokkeryInstanceScope>
 ) : MutableMokkeryCollection {
-
-    private val map = LinkedHashMap(initial.associateBy { it.instanceId })
 
     override val ids: Set<MokkeryInstanceId> get() = map.keys
 
     override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = map[id]
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is MokkeryCollection) return false
-        return this.ids == other.ids
-    }
-
-    override fun hashCode(): Int = this.ids.hashCode()
 
     override val scopes: MutableCollection<MokkeryInstanceScope>
         get() = map.values
@@ -84,4 +81,52 @@ private class MokkeryCollectionImpl(
     }
 
     override fun clear() = map.clear()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MokkeryCollection) return false
+        return this.ids == other.ids
+    }
+
+    override fun hashCode(): Int = this.ids.hashCode()
+
+    override fun toString(): String = "MokkeryCollection[${ids.joinToString()}]"
+}
+
+private class SingletonMokkeryCollection(
+    private val value: MokkeryInstanceScope,
+) : MokkeryCollection {
+
+    override val ids = setOf(value.instanceId)
+    override val scopes = listOf(value)
+
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = when (value.instanceId) {
+        id -> value
+        else -> null
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MokkeryCollection) return false
+        return this.ids == other.ids
+    }
+
+    override fun hashCode(): Int = this.ids.hashCode()
+
+    override fun toString(): String = "MokkeryCollection[${value.instanceId}]"
+}
+
+private object EmptyMokkeryCollection : MokkeryCollection {
+    override val ids: Set<MokkeryInstanceId>
+        get() = emptySet()
+    override val scopes: Collection<MokkeryInstanceScope>
+        get() = emptyList()
+
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = null
+
+    override fun equals(other: Any?): Boolean = other === EmptyMokkeryCollection || (other is MokkeryCollection && other.ids.isEmpty())
+
+    override fun hashCode(): Int = 0
+
+    override fun toString(): String = "MokkeryCollection[]"
 }

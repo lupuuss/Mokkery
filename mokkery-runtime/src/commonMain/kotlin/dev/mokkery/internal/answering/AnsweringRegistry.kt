@@ -21,7 +21,7 @@ import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.wrapInMokkeryCollection
+import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.self
 import dev.mokkery.supers
@@ -74,7 +74,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         val trace = scope.toCallTrace(0)
         val collection = scope.self
             .requireInstanceScope()
-            .wrapInMokkeryCollection()
+            .toMokkeryCollection()
         val callMatcher = scope.tools.callMatcherFactory.create(collection)
         return lock.withLock {
             _answers
