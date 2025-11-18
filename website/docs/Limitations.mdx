@@ -3,6 +3,10 @@ description: Get to know Mokkery's limitations for smoother development!
 ---
 # Limitations
 
+## All versions
+
+Those limitations affect all Mokkery versions with some variations between the versions.
+
 ### Supported types
 
 ✅ In general, Mokkery is able to mock a type that is fully overridable. That includes:
@@ -23,17 +27,6 @@ description: Get to know Mokkery's limitations for smoother development!
 * 🔢 Primitives
 * 🔐 Sealed types
 * 🗽 Objects
-
-### Value classes (WASM)
-
-Mokkery supports mocking methods involving value classes, whether they serve as return types or parameters.
-However, for WASM, this support is restricted only to value classes originating from the standard library
-(`kotlin.Result` and `kotlin.time.Duration`).
-
-Any other value class requires registering `AutofillProvider` that returns some *empty* value:
-```kotlin
-AutofillProvider.forInternals.types.register { ValueClass(null) }
-```
 
 ### Calling `mock` & `spy`
 
@@ -81,6 +74,21 @@ private fun foo() {
        repository.findAll()
    }
 }
+```
+
+## Before Mokkery 3
+
+Given limitations affect **only** Mokkery 1 and 2 and they are **not** present in Mokkery 3.
+
+### Value classes (WASM)
+
+Mokkery supports mocking methods involving value classes, whether they serve as return types or parameters.
+However, for WASM, this support is restricted only to value classes originating from the standard library
+(`kotlin.Result` and `kotlin.time.Duration`).
+
+Any other value class requires registering `AutofillProvider` that returns some *empty* value:
+```kotlin
+AutofillProvider.forInternals.types.register { ValueClass(null) }
 ```
 
 ### Using matchers
