@@ -8,6 +8,7 @@ internal fun NameShortener.withTypeArgumentsSupport(): NameShortener {
 private class TypeParametersSupportNameShortener(private val baseShortener: NameShortener) : NameShortener {
 
     override fun shorten(names: Set<String>): Map<String, String> {
+        names.shortenSingleNotParametrizedOrNull()?.let { return it }
         val mapping = baseShortener.shorten(names.flatMapTo(mutableSetOf(), ::extractNames))
         return names.associateWith {
             if (it.contains("<")) mapping.entries.fold(it) { longName, (key, value) -> longName.replace(key, value) }
@@ -20,5 +21,11 @@ private class TypeParametersSupportNameShortener(private val baseShortener: Name
             name.contains("<") -> name.replace(">", "").split(", ", "<").toSet()
             else -> setOf(name)
         }
+    }
+
+    private fun Set<String>.shortenSingleNotParametrizedOrNull(): Map<String, String>? {
+        val single = singleOrNull() ?: return null
+        if (single.contains("<")) return null
+        return baseShortener.shorten(this)
     }
 }

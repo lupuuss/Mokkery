@@ -7,6 +7,7 @@ import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
@@ -47,23 +48,23 @@ internal fun MokkerySuspendCallScope.withContext(
     }
 }
 
-internal fun MokkeryInstanceScope.createMokkeryBlockingCallScope(
+internal fun MokkeryInstanceScope.createBlockingCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
-) = MokkeryBlockingCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
+) = MokkeryBlockingCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
 
-internal fun MokkeryInstanceScope.createMokkerySuspendCallScope(
+internal fun MokkeryInstanceScope.createSuspendCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
-) = MokkerySuspendCallScope(createMokkeryCallContext(name, returnType, args, supers, spyDelegate))
+) = MokkerySuspendCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
 
-private fun MokkeryInstanceScope.createMokkeryCallContext(
+private fun MokkeryInstanceScope.createCallContext(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,

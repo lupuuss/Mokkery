@@ -1,18 +1,16 @@
-@file:Suppress("UNUSED_PARAMETER", "unused")
+@file:Suppress("UNUSED_PARAMETER", "unused", "UnusedReceiverParameter")
 
 package dev.mokkery
 
 import dev.mokkery.context.require
-import dev.mokkery.internal.MokkeryPluginNotAppliedException
-import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.calls.callTracing
-import dev.mokkery.internal.context.MocksRegistry
+import dev.mokkery.internal.annotations.Templating
+import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.names.createGroupMockReceiverShortener
-import dev.mokkery.internal.render.PointListRenderer
 import dev.mokkery.internal.requireInstanceScope
-import dev.mokkery.internal.utils.failAssertion
-import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.internal.tracing.withTracingSession
+import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
+import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
 /**
@@ -25,16 +23,16 @@ import dev.mokkery.verify.VerifyMode
  */
 public fun verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+    block: @Templating MokkeryTemplatingScope.() -> Unit
+): Unit = mokkeryIntrinsic
 
 /**
  * Just like [verify], but allows suspendable function calls.
  */
 public fun verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: suspend ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
+): Unit = mokkeryIntrinsic
 
 
 /**
@@ -49,8 +47,8 @@ public fun verifySuspend(
  */
 public fun MokkerySuiteScope.verify(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+    block: @Templating MokkeryTemplatingScope.() -> Unit
+): Unit = mokkeryIntrinsic
 
 /**
  * Just like [verify], but allows suspendable function calls.
@@ -59,36 +57,33 @@ public fun MokkerySuiteScope.verify(
  */
 public fun MokkerySuiteScope.verifySuspend(
     mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
-    block: suspend ArgMatchersScope.() -> Unit
-): Unit = throw MokkeryPluginNotAppliedException()
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
+): Unit = mokkeryIntrinsic
 
 /**
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
     val instances = mocks.map(Any::requireInstanceScope)
-    MokkerySuiteScope(MocksRegistry(mocks = instances)).verifyNoMoreCalls()
+    MokkerySuiteScope(MokkeryInstancesRegistry(instances = instances)).verifyNoMoreCalls()
 }
 
 /**
  * Asserts that all mocks from given [MokkerySuiteScope] have no unverified calls.
  */
 public fun MokkerySuiteScope.verifyNoMoreCalls() {
-    mokkeryContext
-        .require(MocksRegistry)
-        .mocks
-        .scopes
-        .forEach { mock ->
-            val tracing = mock.callTracing
-            if (tracing.unverified.isNotEmpty()) {
-                failAssertion {
-                    val renderer = PointListRenderer<CallTrace>()
-                    val shortener = tools.createGroupMockReceiverShortener()
-                    shortener.prepare(tracing.unverified, emptyList())
-                    val unverifiedCalls = shortener.shortenTraces(tracing.unverified)
-                    appendLine("Unverified calls for $mock:")
-                    append(renderer.render(unverifiedCalls))
-                }
+    val collection = mokkeryContext
+        .require(MokkeryInstancesRegistry)
+        .collection
+    collection.withTracingSession {
+        sessions.forEach { (id, session) ->
+            if (session.unverified.isNotEmpty()) {
+                val message = NoMoreCallsErrorRenderer
+                    .factory(tools.namesShortener, collection)
+                    .create()
+                    .render(id to unverified)
+                throw AssertionError(message)
             }
         }
+    }
 }

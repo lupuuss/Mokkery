@@ -2,36 +2,29 @@
 
 package dev.mokkery.internal
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
+import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.answering.answering
+import dev.mokkery.internal.templating.createTemplatingScope
+import dev.mokkery.internal.templating.templatingRegistry
 import dev.mokkery.internal.utils.runSuspension
-import dev.mokkery.internal.calls.TemplatingScope
-import dev.mokkery.internal.utils.getScope
 import dev.mokkery.internal.utils.unsafeCast
-import dev.mokkery.matcher.ArgMatchersScope
+import dev.mokkery.templating.MokkeryTemplatingScope
 
 internal fun <T> internalEverySuspend(
-    scope: TemplatingScope,
-    block: suspend ArgMatchersScope.() -> T
-): SuspendAnsweringScope<T> = internalEvery(scope) { runSuspension { block() } }.unsafeCast()
+    block: @Templating suspend MokkeryTemplatingScope.() -> Unit
+): SuspendAnsweringScope<T> = internalEvery<T> { runSuspension { block() } }.unsafeCast()
 
 internal fun <T> internalEvery(
-    scope: TemplatingScope,
-    block: ArgMatchersScope.() -> T
+    block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
-    val result = runCatching { block(scope) }
-    val exception = result.exceptionOrNull()
-    if  (exception != null && exception !is DefaultNothingException) {
-        scope.release()
-        throw exception
-    }
-    return try {
-        val template = scope.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
-        val mock = scope.mocks.getScope(template.mockId)
-        UnifiedAnsweringScope(mock.answering, template)
-    } finally {
-        scope.release()
-    }
+    val scope = MokkeryScope.global.createTemplatingScope()
+    scope.apply(block)
+    val registry = scope.templatingRegistry
+    val template = registry.templates.singleOrNull() ?: throw NotSingleCallInEveryBlockException()
+    val instanceScope = registry.collection.getScope(template.instanceId)
+    return UnifiedAnsweringScope(instanceScope.answering, template)
 }

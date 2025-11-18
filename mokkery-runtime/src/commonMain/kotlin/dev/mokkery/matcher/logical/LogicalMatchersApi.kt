@@ -1,11 +1,11 @@
 package dev.mokkery.matcher.logical
 
-import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.matches
+import dev.mokkery.annotations.Matcher
+import dev.mokkery.matcher.MokkeryMatcherScope
+import dev.mokkery.matcher.matchesComposite
 
 /**
  * Matches argument that satisfies all the matchers ([first], [second] and all from [moreMatchers]).
- * It must not receive literals. Only matchers allowed!
  *
  * Example:
  * ```kotlin
@@ -13,31 +13,29 @@ import dev.mokkery.matcher.matches
  * every { dependency.getForIndex(and(gte(1), lte(4))) }
  * ```
  */
-public inline fun <reified T> ArgMatchersScope.and(first: T, second: T, vararg moreMatchers: T): T {
-    val matchers = listOf(first, second) + moreMatchers
-    return matches(LogicalMatchers.And(matchers.size))
-}
-
+public fun <T> MokkeryMatcherScope.and(
+    @Matcher first: T,
+    @Matcher second: T,
+    @Matcher vararg moreMatchers: T
+): T = matchesComposite(first, second, *moreMatchers, builder = LogicalMatchers::And)
 
 /**
  * Matches argument that satisfies any matcher ([first], [second] or any from [moreMatchers]).
- * It must not receive literals. Only matchers allowed!
  *
  * ```kotlin
  * // matches every `getForIndex` with arg that is equal 2 or 4
- * every { dependency.getForIndex(or(eq(1), eq(4))) }
+ * every { dependency.getForIndex(or(1, 4)) }
  * ```
  */
-public inline fun <reified T> ArgMatchersScope.or(first: T, second: T, vararg moreMatchers: T): T {
-    val matchers = listOf(first, second) + moreMatchers
-    return matches(LogicalMatchers.Or(matchers.size))
-}
+public fun <T> MokkeryMatcherScope.or(
+    @Matcher first: T,
+    @Matcher second: T,
+    @Matcher vararg moreMatchers: T
+): T = matchesComposite(first, second, *moreMatchers, builder = LogicalMatchers::Or)
 
 /**
  * Matches argument that does not satisfy [matcher].
- * It must not receive literals. Only matchers allowed!
  */
-@Suppress("UNUSED_PARAMETER")
-public inline fun <reified T> ArgMatchersScope.not(matcher: T): T {
-    return matches(LogicalMatchers.Not())
-}
+public fun <T> MokkeryMatcherScope.not(
+    @Matcher matcher: T
+): T = matchesComposite(matcher) { LogicalMatchers.Not(it[0]) }

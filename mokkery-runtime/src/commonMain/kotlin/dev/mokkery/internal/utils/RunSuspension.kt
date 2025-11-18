@@ -12,4 +12,11 @@ internal fun runSuspension(block: suspend () -> Unit) {
     }
 }
 
+internal fun runSuspensionNothing(block: suspend () -> Nothing): Nothing {
+    if (block.startCoroutineUninterceptedOrReturn(EmptyContinuation) == COROUTINE_SUSPENDED) {
+        throw IllegalSuspensionException()
+    }
+    error("Given lambda should fail, but it didn't!")
+}
+
 private val EmptyContinuation = Continuation<Unit>(EmptyCoroutineContext) { }

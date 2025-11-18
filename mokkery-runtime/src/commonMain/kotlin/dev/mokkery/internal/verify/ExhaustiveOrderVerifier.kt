@@ -1,44 +1,33 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.calls.CallMatcher
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
-import dev.mokkery.internal.calls.isNotMatching
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.utils.failAssertion
+import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isNotMatching
+import dev.mokkery.internal.render.RendererFactory
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
 
 internal class ExhaustiveOrderVerifier(
     private val callMatcher: CallMatcher,
     private val resultsComposer: TemplateMatchingResultsComposer,
-    private val renderer: Renderer<List<TemplateMatchingResult>>
+    private val errorRendererFactory: RendererFactory<Error>,
 ) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
-        if (callTemplates.size != callTraces.size) {
-            failAssertion {
-                appendMainError()
-                appendRenderedResults(callTraces, callTemplates)
-            }
-        }
-        callTraces.zip(callTemplates).forEach { (trace, template) ->
-            if (callMatcher.match(trace, template).isNotMatching) {
-                failAssertion {
-                    appendMainError()
-                    appendRenderedResults(callTraces, callTemplates)
-                }
-            }
-        }
+        if (callTemplates.size != callTraces.size) fail(callTraces, callTemplates)
+        callTraces
+            .zip(callTemplates)
+            .filter { (trace, template) -> callMatcher.match(trace, template).isNotMatching }
+            .forEach { _ -> fail(callTraces, callTemplates) }
         return callTraces
     }
 
-    private fun StringBuilder.appendMainError() {
-        appendLine("Expected strict order of calls without unverified ones, but not satisfied!")
+    private fun fail(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): Nothing {
+        val error = Error(resultsComposer.compose(callTraces, callTemplates))
+        throw AssertionError(errorRendererFactory.create().render(error))
     }
 
-    private fun StringBuilder.appendRenderedResults(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>) {
-        val results = resultsComposer.compose(callTraces, callTemplates)
-        append(renderer.render(results))
-    }
+
+    data class Error(val results: List<TemplateMatchingResult>)
 }

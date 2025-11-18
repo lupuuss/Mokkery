@@ -1,8 +1,8 @@
 package dev.mokkery.internal.context
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.internal.MokkeryInstanceScope
 import dev.mokkery.internal.interceptor.MokkeryInstantiationListener
 
 @Suppress("unused")
@@ -23,6 +23,7 @@ internal interface ContextInstantiationListener : MokkeryContext.Element, Mokker
 internal fun ContextInstantiationListener(
     vararg listeners: MokkeryInstantiationListener
 ): ContextInstantiationListener = object : ContextInstantiationListener {
+
     override fun onInstantiation(scope: MokkeryInstanceScope, mock: Any) = listeners.forEach {
         it.onInstantiation(scope, mock)
     }

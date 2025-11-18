@@ -5,14 +5,16 @@ import dev.mokkery.answering.Answer
 import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.context.mockSpec
+import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
-import dev.mokkery.test.TestCallTraceReceiverShortener
+import dev.mokkery.test.TestCallMatcherFactory
 import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import dev.mokkery.test.fakeFunParam
 import dev.mokkery.test.testBlockingCallScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,10 +24,10 @@ class AnsweringRegistryTest {
 
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(
-        callMatcher = callMatcher,
-        callTraceReceiverShortener = TestCallTraceReceiverShortener()
+        callMatcherFactory = TestCallMatcherFactory { callMatcher },
+        namesShortener = TestNameShortener()
     )
-    private val context = tools + currentMockContext(MockMode.strict)
+    private val context = tools + mockSpec(MockMode.strict)
     private val answering = AnsweringRegistry()
 
     @Test
@@ -37,7 +39,7 @@ class AnsweringRegistryTest {
 
     @Test
     fun testResolveAnswerReturnsConstUnitAnswerWhenNoAnswersAndAutoUnitModeAndMethodReturnsUnit() {
-        val scope = testBlockingCallScope<Unit>(context = context + currentMockContext(MockMode.autoUnit))
+        val scope = testBlockingCallScope<Unit>(context = context + mockSpec(MockMode.autoUnit))
         val answer = answering.resolveAnswer(scope)
         assertEquals(Answer.Const(Unit), answer)
     }
@@ -45,7 +47,7 @@ class AnsweringRegistryTest {
     @Test
     fun testResolveAnswerThrowsCallNotMockedWhenNoAnswersAndAutoUnitModeAndMethodReturnsNotUnit() {
         assertFailsWith<CallNotMockedException> {
-            val scope = testBlockingCallScope<Int>(context = context + currentMockContext(MockMode.autoUnit))
+            val scope = testBlockingCallScope<Int>(context = context + mockSpec(MockMode.autoUnit))
             answering.resolveAnswer(scope)
         }
     }
@@ -53,7 +55,7 @@ class AnsweringRegistryTest {
     @Test
     fun testResolveAnswerThrowsCallNotMockedWhenNoSuperCallsForMockModeOriginal() {
         assertFailsWith<CallNotMockedException> {
-            val scope = testBlockingCallScope<Int>(context = context + currentMockContext(MockMode.original))
+            val scope = testBlockingCallScope<Int>(context = context + mockSpec(MockMode.original))
             answering.resolveAnswer(scope)
         }
     }
@@ -62,14 +64,14 @@ class AnsweringRegistryTest {
     fun testResolveAnswerReturnsSuperCallAnswerWithOriginalWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
         val scope = testBlockingCallScope<Int>(
             supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context + tools + currentMockContext(MockMode.original)
+            context = context + tools + mockSpec(MockMode.original)
         )
         assertEquals(SuperCallAnswer<Any?>(SuperCall.original), answering.resolveAnswer(scope))
     }
 
     @Test
     fun testResolveAnswerReturnsAutofillAnswerWhenNoAnswersAndAutofillModeAndMethodReturnsNotUnit() {
-        val scope = testBlockingCallScope<Int>(context = context + currentMockContext(MockMode.autofill))
+        val scope = testBlockingCallScope<Int>(context = context + mockSpec(MockMode.autofill))
         val answer = answering.resolveAnswer(scope)
         assertEquals(Answer.Autofill, answer)
     }
@@ -94,18 +96,18 @@ class AnsweringRegistryTest {
     @Test
     fun testResolveAnswerReturnsLatestAnswerOnInterceptCallWhenMoreThanOneMatching() {
         callMatcher.returns(true)
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1))), Answer.Const(2))
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2))), Answer.Const(3))
-        answering.setup(fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3))), Answer.Const(4))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(1)), Answer.Const(2))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(2)), Answer.Const(3))
+        answering.setup(fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(3)), Answer.Const(4))
         assertEquals(Answer.Const(4), answering.resolveAnswer(testBlockingCallScope<Int>(context = context)))
     }
 
     @Test
     fun testResolveAnswerCallsCallMatcherCorrectly() {
         callMatcher.returnsMany(true, true, true)
-        val template1 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(1)))
-        val template2 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(2)))
-        val template3 = fakeCallTemplate(matchers = mapOf("i" to ArgMatcher.Equals(3)))
+        val template1 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(1))
+        val template2 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(2))
+        val template3 = fakeCallTemplate(fakeFunParam<Int>("i") to ArgMatcher.Equals(3))
         answering.setup(template1, Answer.Const(2))
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
@@ -126,5 +128,5 @@ class AnsweringRegistryTest {
         assertEquals(listOf(expectedTrace), callMatcher.recordedCalls.map { it.first })
     }
 
-    private fun currentMockContext(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).mockSpec
+    private fun mockSpec(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).instanceSpec
 }

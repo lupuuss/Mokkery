@@ -1,8 +1,8 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.calls.CallMatchResult
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 import dev.mokkery.test.StubRenderer
 import dev.mokkery.test.assert
@@ -15,7 +15,8 @@ class TemplateGroupedMatchingResultsRendererTest {
     private val renderer = TemplateGroupedMatchingResultsRenderer(
         indentation = 3,
         matchersFailuresRenderer = StubRenderer("MATCHERS", StubRenderer.Mode.RepeatWithBreak(2)),
-        traceRenderer = StubRenderer("TRACE")
+        traceRenderer = StubRenderer("TRACE"),
+        instanceIdRender = StubRenderer("MOCK_ID")
     )
 
     private val template = fakeCallTemplate()
@@ -26,7 +27,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyMatchingGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.Matching to traces)) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Matching calls:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -39,7 +40,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyFailingMatchersGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiverMethodSignature to traces)) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Calls to the same method with failing matchers:
                RENDERER_TRACE
                   RENDERER_MATCHERS
@@ -56,7 +57,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyOverloadsGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiverMethodOverload to traces)) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Calls to the same overload:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -69,7 +70,7 @@ class TemplateGroupedMatchingResultsRendererTest {
     fun testRendersProperlyOtherCallsGroup() {
         renderer.assert(fakeMatchingResults(template, CallMatchResult.SameReceiver to traces)) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Other calls to this mock:
                RENDERER_TRACE
                RENDERER_TRACE
@@ -90,7 +91,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Matching calls:
                RENDERER_TRACE
             # Calls to the same method with failing matchers:
@@ -118,7 +119,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # Matching calls:
                RENDERER_TRACE
             # Calls to the same overload:
@@ -140,7 +141,7 @@ class TemplateGroupedMatchingResultsRendererTest {
             )
         ) {
             """
-            Results for mock(1):
+            Results for RENDERER_MOCK_ID:
             # No calls to this mock!
             
             """.trimIndent()

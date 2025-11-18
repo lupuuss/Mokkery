@@ -1,44 +1,142 @@
 package dev.mokkery.test.args
 
 import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.annotations.Matcher
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
+import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
 import dev.mokkery.matcher.capture.getIfPresent
 import dev.mokkery.matcher.capture.onArg
+import dev.mokkery.matcher.capture.propagateCapture
+import dev.mokkery.matcher.collections.containsAllInts
 import dev.mokkery.matcher.collections.contentDeepEq
 import dev.mokkery.matcher.collections.contentEq
 import dev.mokkery.matcher.collections.isIn
 import dev.mokkery.matcher.collections.isNotIn
 import dev.mokkery.matcher.eq
 import dev.mokkery.matcher.eqRef
+import dev.mokkery.matcher.gt
 import dev.mokkery.matcher.gte
+import dev.mokkery.matcher.logical.LogicalMatchers
 import dev.mokkery.matcher.logical.and
 import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
+import dev.mokkery.matcher.lt
 import dev.mokkery.matcher.lte
+import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.matchesBy
+import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.matching
+import dev.mokkery.matcher.matchingBy
 import dev.mokkery.matcher.neq
 import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.matcher.ofType
+import dev.mokkery.matcher.ref
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
-import dev.mokkery.test.ComplexType.Companion.invoke
+import dev.mokkery.test.externalMatcher
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+@OptIn(DelicateMokkeryApi::class)
 class ArgMatchersTest {
 
     private val mock = mock<ComplexArgsInterface>()
 
+    @Test
+    fun testMatchesMatcher() {
+        every { mock.callPrimitive(matches { it % 2 == 0 }) } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(4))
+        assertEquals(3, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatchesWithToStringMatcher() {
+        every { mock.callPrimitive(matches(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
+        assertEquals(4, mock.callPrimitive(2))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(4, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatchesByMatcher() {
+        fun Int.isEven() = this % 2 == 0
+        every { mock.callPrimitive(matchesBy(Int::isEven)) } returns 5
+        assertEquals(5, mock.callPrimitive(2))
+        assertEquals(5, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingMatcher() {
+        every { mock.callPrimitive(matching { it % 2 == 0 }) } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(4))
+        assertEquals(3, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingWithToStringMatcher() {
+        every { mock.callPrimitive(matching(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
+        assertEquals(4, mock.callPrimitive(2))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(4, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testMatchingByMatcher() {
+        fun Int.isEven() = this % 2 == 0
+        every { mock.callPrimitive(matchingBy(Int::isEven)) } returns 5
+        assertEquals(5, mock.callPrimitive(2))
+        assertEquals(5, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
 
     @Test
     fun testEqualityMatchers() {
+        every { mock.callManyPrimitives(1, not(1.0)) } returns ComplexType
+        assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
+        assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 2.0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(1, 1.0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 1.0) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedEqualityMatchers() {
         every { mock.callManyPrimitives(eq(1), neq(1.0)) } returns ComplexType
         assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
         assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
@@ -49,6 +147,18 @@ class ArgMatchersTest {
 
     @Test
     fun testRefEqualityMatchers() {
+        val ref1 = ComplexType("a")
+        val ref2 = ComplexType("a")
+        every { mock.callComplex(not(ref(ref2))) } returns ComplexType
+        every { mock.callComplex(ref(ref1)) } returns ref1
+        assertEquals(ComplexType, mock.callComplex(ComplexType("a")))
+        assertEquals(ref1, mock.callComplex(ref1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ref2) }
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testDeprecatedRefEqualityMatchers() {
         val ref1 = ComplexType("a")
         val ref2 = ComplexType("a")
         every { mock.callComplex(neqRef(ref2)) } returns ComplexType
@@ -70,6 +180,30 @@ class ArgMatchersTest {
     }
 
     @Test
+    fun testDirectCompositeFunctionReference() {
+        every { mock.callPrimitive(matchesComposite(1, 2, builder = LogicalMatchers::Or)) } returnsArgAt 0
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+    }
+
+    @Test
+    fun testDirectCompositeLambdaLiteral() {
+        every {
+            mock.callPrimitive(matchesComposite(1, 2) { LogicalMatchers.Or(it) })
+        } returnsArgAt 0
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+    }
+
+    @Test
+    fun testDirectLambdaVariable() {
+        val lambda =  { matchers: List<ArgMatcher<Int>> -> LogicalMatchers.Or(matchers) }
+        every { mock.callPrimitive(matchesComposite(1, 2, builder = lambda)) } returnsArgAt 0
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+    }
+
+    @Test
     fun testOfTypeMatcher() {
         every { mock.callComplex(ofType<ComplexType.Companion>()) } returns ComplexType
         assertEquals(ComplexType, mock.callComplex(ComplexType))
@@ -78,7 +212,7 @@ class ArgMatchersTest {
 
     @Test
     fun testAndMatcher() {
-        every { mock.callPrimitive(and(neq(1), neq(2))) } returns 1
+        every { mock.callPrimitive(and(not(1), not(2))) } returns 1
         assertEquals(1, mock.callPrimitive(0))
         assertEquals(1, mock.callPrimitive(3))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
@@ -87,16 +221,17 @@ class ArgMatchersTest {
 
     @Test
     fun testOrMatcher() {
-        every { mock.callPrimitive(or(eq(1), eq(2))) } returns 2
+        every { mock.callPrimitive(or(1, 2, 3, 4)) } returns 2
         assertEquals(2, mock.callPrimitive(1))
         assertEquals(2, mock.callPrimitive(2))
+        assertEquals(2, mock.callPrimitive(3))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
 
     @Test
     fun testNotMatcher() {
-        every { mock.callComplex(not(eqRef(ComplexType))) } returns ComplexType
+        every { mock.callComplex(not(ref(ComplexType))) } returns ComplexType
         assertEquals(ComplexType, mock.callComplex(mock()))
         assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ComplexType) }
     }
@@ -163,7 +298,7 @@ class ArgMatchersTest {
     @Test
     fun testCaptureWithNonDefaultMatcher() {
         val slot = Capture.slot<Int>()
-        every { mock.callManyPrimitives(capture(slot, eq(2)), 1.0) } returns ComplexType
+        every { mock.callManyPrimitives(capture(slot, 2), 1.0) } returns ComplexType
         mock.callManyPrimitives(2, 1.0)
         assertFailsWith<MokkeryRuntimeException> {
             mock.callManyPrimitives(3, 1.0)
@@ -215,5 +350,167 @@ class ArgMatchersTest {
         assertEquals(2, mock.callNullable(2))
         assertEquals(3, mock.callNullable(3))
     }
+
+    @Test
+    fun testCustomRegularMatcher() {
+        every { mock.callNullable(any()) } returns 0
+        every { mock.callNullable(isNull()) } returns 1
+        assertEquals(1, mock.callNullable(null))
+        assertEquals(0, mock.callNullable(1))
+    }
+
+    @Test
+    fun testCustomCompositeMatcher() {
+        every { mock.callNullable(customAnd(not(isNull()), gte(1))) } returns 3
+        assertEquals(3, mock.callNullable(1))
+        assertEquals(3, mock.callNullable(2))
+        assertEquals(3, mock.callNullable(3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(null) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(0) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(-1) }
+    }
+
+    @Test
+    fun testCustomCompositeWithDefaultMatcher() {
+        val capture = Capture.container<Int?>()
+        every { mock.callNullable(customCapture(capture)) } returns 3
+        assertEquals(3, mock.callNullable(1))
+        assertEquals(3, mock.callNullable(2))
+        assertEquals(3, mock.callNullable(3))
+        assertEquals(listOf(1, 2, 3), capture.values)
+    }
+
+    @Test
+    fun testCustomMatcherInClass() {
+        every { mock.callPrimitive(xor(gt(1), lt(3))) } returnsArgAt 0
+        assertEquals(0, mock.callPrimitive(0))
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testValueArgMatchersScopeMatcher() {
+        every { mock.callPrimitive(eqValueScope(this, 1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun tesContextArgMatchersScopeMatcher() {
+        every { mock.callPrimitive(eqContextScope(1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun testInfixMatcherWithContext() {
+        every { mock.callPrimitive(1 orr 2 orr 3 orr gte(4)) } returnsArgAt 0
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(3))
+        assertEquals(4, mock.callPrimitive(4))
+        assertEquals(5, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(-1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+    }
+
+    @Test
+    fun testExternalGeneratedMatcher() {
+        every { mock.callPrimitive(externalMatcher(1)) } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun testRegularValueMatcher() {
+        every { mock.callPrimitive(regularValueMatcher()) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testConditionalMatcher() {
+        every { mock.callPrimitive(anyOrEq(false, 0)) } returns 3
+        every { mock.callPrimitive(anyOrEq(true, 2)) } returns 2
+        assertEquals(3, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(2))
+        assertEquals(3, mock.callPrimitive(3))
+    }
+
+    @Test
+    fun testCustomVarargMatcher() {
+        every { mock.callPrimitiveVarargs(1, 1, *containsAllIntsEq(2), 3) } returns 3
+        assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 2, 3))
+        assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 3))
+        assertEquals(3, mock.callPrimitiveVarargs(1, 1, 3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 2, 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 2, 2, 3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1, 2, 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1) }
+    }
+
+    @Test
+    fun testCustomCompositeOfVarargMatcher() {
+        every { mock.callPrimitiveVarargs(1, 1, *allIntsNeq(2), 3) } returns 3
+        assertEquals(3, mock.callPrimitiveVarargs(1, 1, 1, 2, 3))
+        assertEquals(3, mock.callPrimitiveVarargs(1, 1, 2, 3, 3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1, 2, 2, 3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1, 2, 3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 1, 3) }
+    }
+
+    @Test
+    fun testRawMatcherParam() {
+        every { mock.callPrimitive(rawMatcher(ArgMatcher.Equals(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+    }
+
+
+    private fun MokkeryMatcherScope.xor(@Matcher left: Int, @Matcher right: Int): Int = not(and(left, right))
 }
 
+
+private fun <T> MokkeryMatcherScope.isNull(): T = customMatcher { it == null }
+
+private fun <T> MokkeryMatcherScope.customMatcher(block: (T) -> Boolean): T = matches { block(it) }
+
+private fun <T> MokkeryMatcherScope.customCapture(
+    capture: Capture<T>,
+    @Matcher matcher: T = customMatcher { true }
+) = capture(capture, matcher)
+
+@OptIn(DelicateMokkeryApi::class)
+private fun <T> MokkeryMatcherScope.customAnd(
+    @Matcher first: T,
+    @Matcher second: T,
+    @Matcher vararg matchers: T
+): T = matchesComposite(first, second, *matchers) {
+    object : ArgMatcher.Composite<T> {
+        override fun capture(value: T) = it.propagateCapture(value)
+
+        override fun matches(arg: T): Boolean = it.all { matcher -> matcher.matches(arg) }
+
+        override fun toString(): String = "customAnd(${it.joinToString()})"
+    }
+}
+
+private fun <T> eqValueScope(scope: MokkeryMatcherScope, value: T): T = scope.matches { it == value }
+
+context(scope: MokkeryMatcherScope)
+private fun <T> eqContextScope(value: T): T = scope.matches { it == value }
+
+context(scope: MokkeryMatcherScope)
+private inline infix fun <reified T> @receiver:Matcher T.orr(@Matcher other: T): T = scope.or(this, other)
+
+private fun MokkeryMatcherScope.regularValueMatcher(): Int = 1
+
+private fun MokkeryMatcherScope.anyOrEq(
+    condition: Boolean,
+    value: Int
+): Int = if (condition) value else any()
+
+private fun MokkeryMatcherScope.containsAllIntsEq(value: Int): IntArray = containsAllInts { it == value }
+
+private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsAllIntsEq(value))
+
+private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
