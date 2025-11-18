@@ -10,16 +10,16 @@ Please read [matchers limitations](../../docs/Limitations#using-matchers) sectio
 ### Regular matchers
 
 Matchers are quite straightforward to use. Instead of literal argument, you have to pass a matcher. You can use named
-parameters and change their order. Mixing matchers and literal arguments is also allowed. 
+parameters, change their order and extract them to variables!
 
-Full list of matchers with documentation is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/-arg-matchers-scope/index.html).
+Full list of matchers with documentation is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/-mokkery-matcher-scope/index.html).
 
 ### Logical matchers
 
 Logical matchers allows combining regular matchers into logical expressions. 
 
 ```kotlin
-everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns stubBook()
+everySuspend { repository.findById(or("1", not("2"))) } returns stubBook()
 ```
 
 Full list of logical matchers is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
@@ -35,28 +35,41 @@ everySuspend { repository.findAllById("1", any(), "3") } returns emptyList()
 The problem with regular matchers here is that the number of varargs is always fixed. Answer definition above works only
 for calls with `"1"` at index 0, any arg at index 1 and `"3"` at index 2.
 
-To solve this problem you can use wildcard matchers:
+To solve this problem you can use any matcher that accepts array with spread (`*`) operator. For example
+you can use `any()` to accept **any** arguments in between.
 
 ```kotlin
-everySuspend { repository.findAllById("1", *anyVarargs(), "3") } returns emptyList()
+everySuspend { repository.findAllById("1", *any(), "3") } returns emptyList()
 ```
 
 Now all `findAllById` calls with `"1"` as the first argument and `"3"` as the last argument return an empty list.
 
-You can apply restrictions with wildcard matchers using `varargsAny` and `varargsAll`:
+Mokkery provides several array-specific matchers, such as `containsAllElements`
+(with numeric variants like `containsAllInts`, `containsAllFloats`, etc.) that also can be used with spread operator:
 
 ```kotlin
-everySuspend { repository.findAllById("1", *varargsAll { it != "2" }, "3") } returns emptyList()
+everySuspend { repository.findAllById("1", *containsAllElements { it != "2" }, "3") } returns emptyList()
 
 repository.findAllById("1", "3", "3", "3") // returns empty list
 repository.findAllById("1", "2", "3", "3") // fails - method not mocked
 ```
 
-Wildcard vararg matchers can be used with composite matchers (e.g. [logical matchers](#logical-matchers)):
+You can provide custom matcher for spread operator:
 
 ```kotlin
-everySuspend { repository.findAllById(*anyVarargs()) } returns listOf(stubBook("1"))
-everySuspend { repository.findAllById(*not(varargsAll { it == "2" })) } returns listOf(stubBook("2"))
+everySuspend { repository.findAllById("1", *matches { it.size == 2 }, "3") } returns emptyList()
+
+repository.findAllById("1", "2", "2", "3") // returns empty list
+repository.findAllById("1", "5", "5", "3") // returns empty list
+repository.findAllById("1", "2", "2", "2", "3") // fails - method not mocked
+repository.findAllById("1", "2", "3") // fails - method not mocked
+```
+
+Spread operator can be used with composite matchers (e.g. [logical matchers](#logical-matchers)):
+
+```kotlin
+everySuspend { repository.findAllById(*any()) } returns listOf(stubBook("1"))
+everySuspend { repository.findAllById(*not(containsAllElements { it == "2" })) } returns listOf(stubBook("2"))
 
 repository.findAllById("2", "2", "2") // returns listOf(stubBook("1"))
 repository.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
@@ -64,27 +77,27 @@ repository.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
 
 ### Custom matchers
 
-The most straightforward way to define a custom matcher is by defining an extension on `ArgMatchersScope`:
+The most straightforward way to define a custom matcher is by defining an extension on `MokkeryMatcherScope`:
 
 ```kotlin
 // only for strings
-fun ArgMatchersScope.regex(
+fun MokkeryMatcherScope.regex(
     regex: Regex
-): String = matching(toString = { "regex($regex)" }, predicate = regex::matches)
+): String = matches(toString = { "regex($regex)" }, predicate = regex::matches)
 
 // for any type
-inline fun <reified T> ArgMatchersScope.eqAnyOf(
+inline fun <reified T> MokkeryMatcherScope.eqAnyOf(
     vararg values: T
-): T = matching(
+): T = matches(
     toString = { "eqAnyOf(${values.contentToString()})" },
     predicate = { values.contains(it) }
 )
 ```
 
-It is possible to use `matching` as anonymous matcher directly.
+It is possible to use `matches` as anonymous matcher directly.
 
 You can also implement [ArgMatcher](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/-arg-matcher/index.html)
-and pass its instance as an argument to [ArgMatchersScope.matches](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
+and pass its instance as an argument to [MokkeryMatcherScope.matches](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher/matches.html) method.
 
 ### Arguments capturing
 
@@ -103,7 +116,7 @@ By default `capture` matches any argument. You can change it by providing a diff
 
 ```kotlin
 val slot = Capture.slot<String>()
-everySuspend { repository.findById(capture(slot, neq("1"))) } returns stubBook()
+everySuspend { repository.findById(capture(slot, not("1"))) } returns stubBook()
 
 repository.findById("2")
 
@@ -119,8 +132,8 @@ Argument capture occurs only if given definition is actually used to provide an 
 val container = Capture.container<String>() // stores multiple values
 
 everySuspend { repository.findByName(query = any(), limit = any()) } returns listOf(stubBook())
-everySuspend { repository.findByName(query = capture(container), limit = eq(10)) } returns listOf(stubBook())
-everySuspend { repository.findByName(query = eq("Book 3"), limit = any()) } returns listOf(stubBook())
+everySuspend { repository.findByName(query = capture(container), limit = 10) } returns listOf(stubBook())
+everySuspend { repository.findByName(query = "Book 3", limit = any()) } returns listOf(stubBook())
 
 repository.findByName(query = "Book 1", limit = 10) // `query` arg is captured
 repository.findByName(query = "Book 2", limit = 20) // `limit` parameter does not match - argument is not captured
@@ -129,12 +142,12 @@ repository.findByName(query = "Book 3", limit = 10) // answer defined later is s
 println(container.values) // prints ["Book 1"]
 ```
 
-Argument capturing works with vararg matchers (including wildcard matchers):
+Argument capturing works with vararg matchers (including matchers with spread operator):
 
 ```kotlin
 val slot = Capture.slot<Array<String>>()
 
-everySuspend { repository.findAllById(*capture(slot, anyVarargs())) } returns listOf(stubBook("1"))
+everySuspend { repository.findAllById(*capture(slot)) } returns listOf(stubBook("1"))
 
 repository.findAllById("1", "2", "3")
 // slot contains arrayOf("1", "2", "3")
