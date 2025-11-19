@@ -11,7 +11,7 @@ import dev.mokkery.matcher.ArgMatcher
  *
  * Subclass should not be used directly and wrapped in a type-safe manner.
  * Check existing subclasses and their usage for guidance e.g.
- * [CollectionArgMatchers.ContainsAllArray] and it's usage in [containsAll], [containsAllInts], [containsAllElements] etc.
+ * [CollectionArgMatchers.ContainsAllArray] and it's usage in [containsAllElements], [containsAllInts] etc.
  */
 @DelicateMokkeryApi
 public abstract class ArrayArgMatcher<T> : ArgMatcher<Any?> {
