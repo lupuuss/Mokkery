@@ -64,37 +64,23 @@ class MatchersInliningTransformer(
 
     override fun visitCall(expression: IrCall): IrExpression {
         val matcher = compileIfMatcher(expression.symbol.owner)
-        if (matcher.isCompiledMatcher != true) return super.visitCall(expression)
-        super.visitCall(expression)
-        return declarationIrBuilder {
-            replaceMatcher(expression)
-        }
+        expression.transformChildrenVoid()
+        if (matcher.isCompiledMatcher != true) return expression
+        return declarationIrBuilder { replaceMatcher(expression) }
     }
 
-    override fun visitVariable(declaration: IrVariable): IrStatement {
-        val irVariable = super.visitVariable(declaration)
-        if (irVariable !is IrVariable) return irVariable
-        if (irVariable.initializer?.type?.isMatcher() != true) return irVariable
-        irVariable.type = irVariable.initializer!!.type
-        matcherValueDeclarations += irVariable
-        return irVariable
+    override fun visitVariable(declaration: IrVariable) = declaration.transformPostfix {
+        if (initializer?.type?.isMatcher() != true) return@transformPostfix
+        type = initializer!!.type
+        matcherValueDeclarations += this
     }
 
-    override fun visitVararg(expression: IrVararg): IrExpression {
-        val vararg = super.visitVararg(expression)
-        if (vararg !is IrVararg) return vararg
-        val usesMatchers = vararg.elements.any {
-            when (it) {
-                is IrSpreadElement -> it.expression.type.isMatcher()
-                is IrExpression -> it.type.isMatcher()
-                else -> false
-            }
-        }
-        if (!usesMatchers) return vararg
-        val elementType = argMatcherClass.typeWith(vararg.varargElementType)
-        vararg.varargElementType = elementType
-        vararg.type = pluginContext.irBuiltIns.arrayClass.owner.typeWith(elementType)
-        vararg.elements.transformInPlace { element ->
+    override fun visitVararg(expression: IrVararg) = expression.transformPostfix {
+        if (!this.usesMatchers()) return@transformPostfix
+        val elementType = argMatcherClass.typeWith(varargElementType)
+        varargElementType = elementType
+        type = pluginContext.irBuiltIns.arrayClass.owner.typeWith(elementType)
+        elements.transformInPlace { element ->
             when (element) {
                 is IrSpreadElement -> when {
                     element.expression.type.isMatcher() -> spreadArgMatcher(element.expression)
@@ -106,62 +92,45 @@ class MatchersInliningTransformer(
             }
 
         }
-        return vararg
     }
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
-        val irBlock = super.visitBlock(expression)
-        if (irBlock !is IrBlock) return irBlock
-        val matcherType = when {
-            irBlock is IrReturnableBlock -> irBlock
-                .statements
+    override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
+        val matcherType = when (this) {
+            is IrReturnableBlock -> statements
                 .firstNotNullOfOrNull {
-                    if (it is IrReturn && it == irBlock.symbol && it.type.isMatcher()) it.type else null
+                    if (it is IrReturn && it == symbol && it.type.isMatcher()) it.type else null
                 }
-            else -> irBlock.statements
+            else -> statements
                 .lastOrNull()
                 .let { it as? IrExpression }
                 ?.type
                 ?.takeIf { it.isMatcher() }
         }
-        if (matcherType == null) return irBlock
-        irBlock.type = matcherType
-        return irBlock
+        if (matcherType == null) return@transformPostfix
+        type = matcherType
     }
 
-    override fun visitWhen(expression: IrWhen): IrExpression {
-        val irWhen = super.visitWhen(expression)
-        if (irWhen !is IrWhen) return irWhen
-        if (expression.branches.none { branch -> branch.result.type.isMatcher() }) return irWhen
-        val targetType = argMatcherClass.typeWith(irWhen.type)
-        irWhen.type = targetType
-        irWhen.branches.forEach { it.result = it.result.performEqMatcherWrapping(targetType) }
-        return irWhen
+    override fun visitWhen(expression: IrWhen) = expression.transformPostfix {
+        if (branches.none { branch -> branch.result.type.isMatcher() }) return@transformPostfix
+        val targetType = argMatcherClass.typeWith(type)
+        type = targetType
+        branches.forEach { it.result = it.result.performEqMatcherWrapping(targetType) }
     }
 
-    override fun visitGetValue(expression: IrGetValue): IrExpression {
-        val irGet = super.visitGetValue(expression)
-        if (irGet !is IrGetValue) return irGet
-        if (irGet.symbol.owner !in matcherValueDeclarations) return irGet
-        irGet.type = irGet.symbol.owner.type
-        return irGet
+    override fun visitGetValue(expression: IrGetValue) = expression.transformPostfix {
+        if (symbol.owner !in matcherValueDeclarations) return@transformPostfix
+        type = symbol.owner.type
     }
 
-    override fun visitSetValue(expression: IrSetValue): IrExpression {
-        val irSet = super.visitSetValue(expression)
-        if (irSet !is IrSetValue) return irSet
-        if (irSet.symbol.owner !in matcherValueDeclarations) return irSet
-        irSet.value = irSet.value.performEqMatcherWrapping(irSet.symbol.owner.type)
-        return irSet
+    override fun visitSetValue(expression: IrSetValue) = expression.transformPostfix {
+        if (symbol.owner !in matcherValueDeclarations) return@transformPostfix
+        value = value.performEqMatcherWrapping(symbol.owner.type)
     }
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
-        val returnExpression = super.visitReturn(expression)
-        if (returnExpression !is IrReturn) return returnExpression
-        val func = returnExpression.returnTargetSymbol.owner as? IrSimpleFunction ?: return returnExpression
-        returnExpression.value = returnExpression.value.performEqMatcherWrapping(targetType = func.returnType)
-        returnExpression.type = func.returnType
-        return returnExpression
+    override fun visitReturn(expression: IrReturn) = expression.transformPostfix {
+        val func = returnTargetSymbol.owner as? IrSimpleFunction ?: return@transformPostfix
+        value = value.performEqMatcherWrapping(func.returnType)
+        type = func.returnType
     }
 
     private fun IrBuilderWithScope.replaceMatcher(expression: IrExpression): IrExpression {
@@ -206,6 +175,14 @@ class MatchersInliningTransformer(
         arg is IrVararg && param.isMatchersVararg -> replaceCompositeVararg(arg, param.varargElementType!!)
         arg == null -> null
         else -> arg.performEqMatcherWrapping(param.type)
+    }
+
+    private fun IrVararg.usesMatchers() = elements.any {
+        when (it) {
+            is IrSpreadElement -> it.expression.type.isMatcher()
+            is IrExpression -> it.type.isMatcher()
+            else -> false
+        }
     }
 
     private fun IrBuilderWithScope.replaceCompositeVararg(

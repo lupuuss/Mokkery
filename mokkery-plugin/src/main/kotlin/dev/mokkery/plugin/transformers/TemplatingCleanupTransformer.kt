@@ -84,13 +84,13 @@ class TemplatingCleanupTransformer(
     }
 
     override fun visitReturn(expression: IrReturn) = expression.transformPostfix {
-        if (expression.returnTargetSymbol == templatingFunctionSymbol) {
+        if (returnTargetSymbol == templatingFunctionSymbol) {
             val unitType = pluginContext.irBuiltIns.unitType
-            expression.type = unitType
-            expression.value = declarationIrBuilder { irImplicitCoercionToUnit(expression.value) }
+            type = unitType
+            value = declarationIrBuilder { irImplicitCoercionToUnit(value) }
             return@transformPostfix
         }
-        if (expression.type.isTemplatingResult()) return@transformPostfix
+        if (type.isTemplatingResult()) return@transformPostfix
         value = value.unwrapResultIfPossible()
     }
 

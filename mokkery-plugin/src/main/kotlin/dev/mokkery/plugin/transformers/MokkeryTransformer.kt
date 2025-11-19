@@ -82,15 +82,14 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     }
 
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        if (declaration !is IrSimpleFunction) return super.visitFunctionNew(declaration)
-        matchersCompiler.compileIfMatcher(declaration)
+        if (declaration is IrSimpleFunction) matchersCompiler.compileIfMatcher(declaration)
         return super.visitFunctionNew(declaration)
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
         val name = expression.symbol.owner.kotlinFqName
-        if (!name.isSubpackageOf(Mokkery.dev_mokkery)) return super.visitCall(expression)
-        val result = super.visitCall(expression)
+        expression.transformChildrenVoid()
+        if (!name.isSubpackageOf(Mokkery.dev_mokkery)) return expression
         return when (name) {
             Mokkery.Name.mock -> replaceWithMock(expression)
             Mokkery.Name.mockMany -> replaceWithMockMany(expression)
@@ -99,7 +98,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             Mokkery.Name.verify -> replaceWithInternalVerify(expression, internalVerify.symbol)
             Mokkery.Name.everySuspend -> replaceWithInternalEvery(expression, internalEverySuspend.symbol)
             Mokkery.Name.verifySuspend -> replaceWithInternalVerify(expression, internalVerifySuspend.symbol)
-            else -> result
+            else -> expression
         }
     }
 
