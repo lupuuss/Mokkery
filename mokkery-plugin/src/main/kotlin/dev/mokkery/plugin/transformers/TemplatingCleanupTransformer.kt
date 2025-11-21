@@ -5,6 +5,7 @@ import dev.mokkery.plugin.core.CoreTransformer
 import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
+import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.transformArguments
@@ -22,9 +23,11 @@ import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrWhen
+import org.jetbrains.kotlin.ir.symbols.IrReturnableBlockSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.typeWith
 
 class TemplatingCleanupTransformer(
@@ -83,15 +86,24 @@ class TemplatingCleanupTransformer(
         catches.forEach { it.result = it.result.unwrapResultIfPossible() }
     }
 
-    override fun visitReturn(expression: IrReturn) = expression.transformPostfix {
-        if (returnTargetSymbol == templatingFunctionSymbol) {
-            val unitType = pluginContext.irBuiltIns.unitType
-            type = unitType
-            value = declarationIrBuilder { irImplicitCoercionToUnit(value) }
-            return@transformPostfix
+    override fun visitReturn(expression: IrReturn): IrExpression {
+        if (expression.returnTargetSymbol == templatingFunctionSymbol) {
+            return expression.transformPostfix {
+                val unitType = pluginContext.irBuiltIns.unitType
+                type = unitType
+                value = declarationIrBuilder { irImplicitCoercionToUnit(value) }
+            }
         }
-        if (type.isTemplatingResult()) return@transformPostfix
-        value = value.unwrapResultIfPossible()
+        // while visiting IrReturn we cannot make a decision if returned value should be unwrapped or not
+        // we make a decision while visiting IrReturnableBlock
+        if (expression.returnTargetSymbol is IrReturnableBlockSymbol) {
+            expression.value = expression.value.transform(this, null)
+            return expression
+        }
+        return expression.transformPostfix {
+            if (type.isTemplatingResult()) return@transformPostfix
+            value = value.unwrapResultIfPossible()
+        }
     }
 
     override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
@@ -100,34 +112,25 @@ class TemplatingCleanupTransformer(
         type = lastExpression.type
     }
 
-    override fun visitReturnableBlock(expression: IrReturnableBlock): IrExpression {
-        if (expression.statements.isEmpty()) return expression
-        val blockSymbol = expression.symbol
-        val blockReturns = mutableListOf<IrReturn>()
-        var anyNotTemplating = false
-        expression.statements.forEach {
-            if (it is IrReturn && it.returnTargetSymbol == blockSymbol) {
-                val transformed = it.value.transform(this, null)
-                it.value = transformed
-                if (!transformed.type.isTemplatingResult()) anyNotTemplating = true
-                blockReturns.add(it)
-            } else {
-                it.transformChildrenVoid()
+    override fun visitReturnableBlock(expression: IrReturnableBlock) = expression.transformPostfix {
+        if (type.isTemplatingResult()) return@transformPostfix
+        val returns = collectReturns()
+        when {
+            returns.isEmpty() && type.isUnit() -> return@transformPostfix
+            returns.isEmpty() -> {
+                val lastExpression = statements
+                    .lastOrNull() as? IrExpression
+                    ?: return@transformPostfix
+                if (lastExpression.type.isTemplatingResult()) type = lastExpression.type
+                return@transformPostfix
             }
+            returns.all { it.value.type.isTemplatingResult() } -> {
+                type = type.toTemplatingResult()
+                returns.forEach { it.type = it.value.type }
+                return@transformPostfix
+            }
+            else -> returns.forEach { it.value = it.value.unwrapResultIfPossible() }
         }
-        if (blockReturns.isEmpty()) {
-            val lastExpression = expression.statements.lastOrNull() as? IrExpression ?: return expression
-            if (lastExpression.type.isTemplatingResult()) expression.type = lastExpression.type
-            return expression
-        }
-        if (anyNotTemplating) {
-            blockReturns.forEach { it.value = it.value.unwrapResultIfPossible() }
-            return expression
-        }
-        val switchedType = expression.type.toTemplatingResult()
-        expression.type = switchedType
-        blockReturns.forEach { it.type = switchedType }
-        return expression
     }
 
     private fun IrExpression.unwrapResultIfPossible() = when (val arg = this) {
