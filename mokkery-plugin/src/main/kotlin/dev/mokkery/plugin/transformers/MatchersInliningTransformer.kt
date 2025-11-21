@@ -6,12 +6,12 @@ import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.declarationIrBuilder
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallListOf
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irVararg
-import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -94,20 +94,22 @@ class MatchersInliningTransformer(
         }
     }
 
-    override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
-        val matcherType = when (this) {
-            is IrReturnableBlock -> statements
-                .firstNotNullOfOrNull {
-                    if (it is IrReturn && it == symbol && it.type.isMatcher()) it.type else null
-                }
-            else -> statements
-                .lastOrNull()
-                .let { it as? IrExpression }
-                ?.type
-                ?.takeIf { it.isMatcher() }
+    override fun visitReturnableBlock(expression: IrReturnableBlock) = expression.transformPostfix {
+        val returns = collectReturns()
+        if (returns.none { it.value.type.isMatcher() }) return@transformPostfix
+        val targetType = argMatcherClass.typeWith(type)
+        type = targetType
+        returns.forEach {
+            it.type = targetType
+            it.value = it.value.performEqMatcherWrapping(targetType)
         }
-        if (matcherType == null) return@transformPostfix
-        type = matcherType
+    }
+
+    override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
+        val lastExpression = statements.lastOrNull() as? IrExpression ?: return@transformPostfix
+        if (lastExpression.type.isMatcher()) {
+            type = lastExpression.type
+        }
     }
 
     override fun visitWhen(expression: IrWhen) = expression.transformPostfix {
@@ -128,6 +130,9 @@ class MatchersInliningTransformer(
     }
 
     override fun visitReturn(expression: IrReturn) = expression.transformPostfix {
+        // equality matchers wrapping is performed only for functions
+        // constructor cannot be a matcher
+        // for returnable blocks, we will make decision when visiting it
         val func = returnTargetSymbol.owner as? IrSimpleFunction ?: return@transformPostfix
         value = value.performEqMatcherWrapping(func.returnType)
         type = func.returnType
