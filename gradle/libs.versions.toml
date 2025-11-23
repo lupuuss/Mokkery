@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.2.21"
+kotlin = "2.3.0-RC"
 kotlinx-coroutines = "1.10.2"
 buildconfig = "5.7.0"
 google-autoservice = "1.1.1"
 atomicfu = "0.29.0"
 dokka = "2.1.0"
-poko = "0.19.3"
+poko = "0.20.2"
 vanniktech-publish-plugin = "0.34.0"
 objensis = "3.4"
 bytebuddy = "1.17.8"
