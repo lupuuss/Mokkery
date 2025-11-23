@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.ir.declarations.IrReturnTarget
 import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
 import org.jetbrains.kotlin.ir.util.render
@@ -20,7 +21,7 @@ fun IrElement.locationInFile(file: IrFile) = CompilerMessageLocation.create(
     lineContent = this.render()
 )
 
-fun IrFunctionAccessExpression.transformArguments(transformer: (IrExpression?) -> IrExpression?) {
+fun IrMemberAccessExpression<*>.transformArguments(transformer: (IrExpression?) -> IrExpression?) {
     val count = arguments.size
     for (i in 0..<count) {
         arguments[i] = transformer(arguments[i])

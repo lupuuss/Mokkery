@@ -9,13 +9,13 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
 import kotlin.reflect.KClass
 
-internal sealed interface TemplateOriginalResult<out T> {
+internal sealed interface RunTemplateResult<out T> {
 
     val value: T
 
-    data class Value<T>(override val value: T): TemplateOriginalResult<T>
+    data class Original<T>(override val value: T): RunTemplateResult<T>
 
-    data object Empty : TemplateOriginalResult<Nothing> {
+    data object Empty : RunTemplateResult<Nothing> {
         override val value: Nothing
             get() = mockMethodCallResultAccessError()
     }
@@ -32,13 +32,13 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     functionName: String,
     templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (suspend () -> R)? = null
-): TemplateOriginalResult<R> {
+): RunTemplateResult<R> {
     if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
-        return TemplateOriginalResult.Value(original())
+        return RunTemplateResult.Original(original())
     } else {
         templatingRegistry.register(mock, mockedType, functionName, templating!!())
-        return TemplateOriginalResult.Empty
+        return RunTemplateResult.Empty
     }
 }
 
@@ -48,13 +48,13 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
     functionName: String,
     templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (() -> R)? = null
-): TemplateOriginalResult<R> {
+): RunTemplateResult<R> {
     if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
-        return TemplateOriginalResult.Value(original())
+        return RunTemplateResult.Original(original())
     } else {
         templatingRegistry.register(mock, mockedType, functionName, templating!!())
-        return TemplateOriginalResult.Empty
+        return RunTemplateResult.Empty
     }
 }
 

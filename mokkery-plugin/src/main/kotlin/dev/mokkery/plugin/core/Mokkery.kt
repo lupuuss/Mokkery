@@ -49,7 +49,7 @@ object Mokkery {
 
         val MokkeryTemplatingScope by dev_mokkery_templating.klass
         val TemplatingParameter by dev_mokkery_internal_templating.klass
-        val TemplateOriginalResult by dev_mokkery_internal_templating.klass
+        val RunTemplateResult by dev_mokkery_internal_templating.klass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.klass
 

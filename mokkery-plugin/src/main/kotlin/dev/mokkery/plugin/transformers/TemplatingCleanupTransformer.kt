@@ -14,9 +14,9 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetClass
 import org.jetbrains.kotlin.ir.expressions.IrLoop
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrSetField
@@ -35,11 +35,11 @@ class TemplatingCleanupTransformer(
     private val templatingFunctionSymbol: IrSimpleFunctionSymbol,
 ) : CoreTransformer(compilerPluginScope) {
 
-    private val templatingResultClass = getClass(Mokkery.Class.TemplateOriginalResult)
-    private val templatingResultClassSymbol = templatingResultClass.symbol
-    private val valueGetter = templatingResultClass.getProperty("value").getter!!
+    private val runTemplateResultClass = getClass(Mokkery.Class.RunTemplateResult)
+    private val runTemplateResultClassSymbol = runTemplateResultClass.symbol
+    private val valueGetter = runTemplateResultClass.getProperty("value").getter!!
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression) = expression.transformPostfix {
+    override fun visitMemberAccess(expression: IrMemberAccessExpression<*>) = expression.transformPostfix {
         transformArguments { it?.unwrapResultIfPossible() }
     }
 
@@ -118,10 +118,8 @@ class TemplatingCleanupTransformer(
         when {
             returns.isEmpty() && type.isUnit() -> return@transformPostfix
             returns.isEmpty() -> {
-                val lastExpression = statements
-                    .lastOrNull() as? IrExpression
-                    ?: return@transformPostfix
-                if (lastExpression.type.isTemplatingResult()) type = lastExpression.type
+                val lastExpr = statements.lastOrNull() as? IrExpression ?: return@transformPostfix
+                if (lastExpr.type.isTemplatingResult()) type = lastExpr.type
                 return@transformPostfix
             }
             returns.all { it.value.type.isTemplatingResult() } -> {
@@ -141,8 +139,8 @@ class TemplatingCleanupTransformer(
     }
 
     private fun IrType.isTemplatingResult(): Boolean {
-        return classOrNull == templatingResultClassSymbol
+        return classOrNull == runTemplateResultClassSymbol
     }
 
-    private fun IrType.toTemplatingResult(): IrType = templatingResultClass.typeWith(this)
+    private fun IrType.toTemplatingResult(): IrType = runTemplateResultClass.typeWith(this)
 }
