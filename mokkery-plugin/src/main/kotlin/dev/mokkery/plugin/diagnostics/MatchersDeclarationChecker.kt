@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery
-import dev.mokkery.plugin.fir.KtDiagnosticsContainerCompat
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.getMatcherAnnotation
 import dev.mokkery.plugin.fir.isMatcher
@@ -9,6 +8,9 @@ import dev.mokkery.plugin.fir.isMokkeryMatcherScope
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error0
+import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
@@ -106,7 +108,7 @@ class MatchersDeclarationChecker(
     }
 
 
-    object Diagnostics : KtDiagnosticsContainerCompat() {
+    object Diagnostics : KtDiagnosticsContainer() {
 
         override fun getRendererFactory() = MatchersDeclarationDiagnosticRendererFactory()
 

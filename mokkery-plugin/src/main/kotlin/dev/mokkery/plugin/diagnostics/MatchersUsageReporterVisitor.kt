@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery.Callable
-import dev.mokkery.plugin.fir.KtDiagnosticsContainerCompat
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
@@ -9,6 +8,9 @@ import dev.mokkery.plugin.fir.isSpread
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error0
+import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
@@ -127,9 +129,9 @@ class MatchersUsageReporterVisitor(
         val variableSymbol = variableAssignment
             .calleeReference
             ?.toResolvedVariableSymbol()
-            ?: return super.visitVariableAssignment(variableAssignment)
-        if (variableAssignment.dispatchReceiver != null) return super.visitVariableAssignment(variableAssignment)
-        if (!matchersProcessor.isMatcher(variableAssignment.rValue)) return super.visitVariableAssignment(variableAssignment)
+            ?: return@context super.visitVariableAssignment(variableAssignment)
+        if (variableAssignment.dispatchReceiver != null) return@context super.visitVariableAssignment(variableAssignment)
+        if (!matchersProcessor.isMatcher(variableAssignment.rValue)) return@context super.visitVariableAssignment(variableAssignment)
         when (matchersProcessor.getResultFor(variableSymbol)) {
             null -> reporter.reportOn(
                 source = variableAssignment.source,
@@ -143,7 +145,7 @@ class MatchersUsageReporterVisitor(
             )
             else -> Unit
         }
-        super.visitVariableAssignment(variableAssignment)
+        return@context super.visitVariableAssignment(variableAssignment)
     }
 
     override fun visitWhenExpression(whenExpression: FirWhenExpression) = context(context) {
@@ -402,7 +404,7 @@ class MatchersUsageReporterVisitor(
         }
     }
 
-    object Diagnostics : KtDiagnosticsContainerCompat() {
+    object Diagnostics : KtDiagnosticsContainer() {
 
         override fun getRendererFactory() = MatchersUsageDiagnosticRendererFactory()
 
