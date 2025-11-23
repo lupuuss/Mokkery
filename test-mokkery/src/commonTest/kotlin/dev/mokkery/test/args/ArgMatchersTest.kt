@@ -7,6 +7,7 @@ import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
@@ -465,6 +466,12 @@ class ArgMatchersTest {
         assertEquals(1, mock.callPrimitive(1))
     }
 
+    @Test
+    fun testDeprecatedScope() {
+        every { mock.callPrimitive(deprecatedEq(1)) } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+    }
+
 
     private fun MokkeryMatcherScope.xor(@Matcher left: Int, @Matcher right: Int): Int = not(and(left, right))
 }
@@ -514,3 +521,6 @@ private fun MokkeryMatcherScope.containsAllIntsEq(value: Int): IntArray = contai
 private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsAllIntsEq(value))
 
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
+
+@Suppress("DEPRECATION")
+private fun <T> ArgMatchersScope.deprecatedEq(value: T) = matches<T> { it == value }
