@@ -8,6 +8,7 @@ internal interface NameShortener {
 internal object ReverseDomainNameShortener : NameShortener {
 
     override fun shorten(names: Set<String>): Map<String, String> {
+        names.shortenSingleOrNull()?.let { return it }
         val splitNames = names.associateWith { it.split(".") }
         return names.associateWith { shortenName(it, splitNames) }
     }
@@ -21,4 +22,7 @@ internal object ReverseDomainNameShortener : NameShortener {
         }
         return name
     }
+
+    private fun Set<String>.shortenSingleOrNull(): Map<String, String>? = singleOrNull()
+        ?.let { mapOf(it to it.substringAfterLast(".")) }
 }

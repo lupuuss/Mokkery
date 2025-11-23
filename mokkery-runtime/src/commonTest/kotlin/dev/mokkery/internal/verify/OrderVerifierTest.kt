@@ -1,10 +1,10 @@
 package dev.mokkery.internal.verify
 
-import dev.mokkery.internal.calls.CallMatchResult
+import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
+import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestRenderer
-import dev.mokkery.test.TestTemplateMatchingResultComposer
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
@@ -20,15 +20,19 @@ class OrderVerifierTest {
 
 
     private val callMatcher = TestCallMatcher { trace, template ->
-        when {
-            trace == trace1 && template == template1 -> CallMatchResult.Matching
-            trace == trace2 && template == template2 -> CallMatchResult.Matching
+        when (trace) {
+            trace1 if template == template1 -> CallMatchResult.Matching
+            trace2 if template == template2 -> CallMatchResult.Matching
             else -> CallMatchResult.NotMatching
         }
     }
-    private val resultsTestComposer = TestTemplateMatchingResultComposer()
-    private val testRenderer = TestRenderer<List<TemplateMatchingResult>> { "RENDERER_RESULTS" }
-    private val verifier = OrderVerifier(callMatcher, resultsTestComposer, testRenderer)
+    private val resultsTestComposer = TemplateMatchingResultsComposer(callMatcher)
+    private val testRenderer = TestRenderer<OrderVerifier.Error> { "RENDERED_ERROR" }
+    private val verifier = OrderVerifier(
+        callMatcher = callMatcher,
+        resultsComposer = resultsTestComposer,
+        errorRendererFactory = ::testRenderer
+    )
 
     @Test
     fun testSuccessWhenOrderIsStrictlySatisfied() {
@@ -69,47 +73,45 @@ class OrderVerifierTest {
 
     @Test
     fun testFailsWhenOrderIsNotSatisfiedWithoutAdditionalCalls() {
-        assertFailsWith<AssertionError> {
-            verifier.verify(listOf(trace2, trace1), listOf(template1, template2))
-        }
+        val traces = listOf(trace2, trace1)
+        val templates = listOf(template1, template2)
+        val error = assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
+        assertEquals("RENDERED_ERROR", error.message)
+        assertEquals(
+            OrderVerifier.Error(
+                failedAt = template2,
+                failedIndex = 1,
+                results = listOf(
+                    TemplateMatchingResult.UnverifiedCall(trace2),
+                    TemplateMatchingResult.Matching(trace1, template1),
+                    TemplateMatchingResult.NoMatch(template2)
+                )
+            ),
+            testRenderer.recordedCalls.single()
+        )
     }
 
     @Test
     fun testFailsWhenOrderIsNotSatisfiedWithAdditionalCalls() {
-        assertFailsWith<AssertionError> {
-            val traces = listOf(
-                fakeCallTrace(name = "call0"),
-                trace2,
-                fakeCallTrace(name = "call0"),
-                trace1,
-                fakeCallTrace(name = "call0")
-            )
-            verifier.verify(traces, listOf(template1, template2))
-        }
-    }
-
-    @Test
-    fun testFailsWithCorrectMessage() {
-        val error = assertFailsWith<AssertionError> {
-            val traces = listOf(trace2, trace1, trace2)
-            val templates = listOf(template1, template2, template1)
-            verifier.verify(traces, templates)
-        }
-        val expectedMessage = """
-            Expected calls in specified order but not satisfied! Failed at 3. mock(1).call1()!
-            RENDERER_RESULTS
-        """.trimIndent()
-        assertEquals(expectedMessage, error.message)
-    }
-
-    @Test
-    fun testUsesComposerResultsToRenderError() {
-        val traces = listOf(trace2, trace1, trace2)
-        val templates = listOf(template1, template2, template1)
-        val results = listOf(TemplateMatchingResult.UnverifiedCall(trace1))
-        resultsTestComposer.returns(results)
-        assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
-        assertEquals(traces to templates, resultsTestComposer.recordedCalls.single())
-        assertEquals(results, testRenderer.recordedCalls.single())
+        val trace0 = fakeCallTrace(name = "call0")
+        val traces = listOf(trace0, trace2, trace0, trace1, trace0)
+        val templates = listOf(template1, template2)
+        val error = assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
+        assertEquals("RENDERED_ERROR", error.message)
+        assertEquals(
+            OrderVerifier.Error(
+                failedAt = template2,
+                failedIndex = 1,
+                results = listOf(
+                    TemplateMatchingResult.UnverifiedCall(trace0),
+                    TemplateMatchingResult.UnverifiedCall(trace2),
+                    TemplateMatchingResult.UnverifiedCall(trace0),
+                    TemplateMatchingResult.Matching(trace1, template1),
+                    TemplateMatchingResult.NoMatch(template2),
+                    TemplateMatchingResult.UnverifiedCall(trace0),
+                )
+            ),
+            testRenderer.recordedCalls.single()
+        )
     }
 }

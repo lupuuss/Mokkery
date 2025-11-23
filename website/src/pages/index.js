@@ -38,13 +38,13 @@ const setupTabBlockK2 = `plugins {
 `
 
 const extensibleMatchersTabBlock = `// For any type!
-inline fun <reified T : List<*>> ArgMatchersScope.hasSize(size: Int): T = matching(
+inline fun <reified T : List<*>> MokkeryMatcherScope.hasSize(size: Int): T = matches(
     toString = { "hasSize($size)" }, // prettify its presence!
     predicate = { it.size == size }
 )
 
 // By function reference!
-fun ArgMatchersScope.isNotEmpty(): String = matchingBy(String::isNotEmpty)
+fun MokkeryMatcherScope.isNotEmpty(): String = matchesBy(String::isNotEmpty)
 `
 const extensilbeAnswersTabBlock = `// Custom answer for blocking functions!
 fun BlockingAnsweringScope<Int>.randomInt() = calls { Random.nextInt() }
@@ -66,7 +66,7 @@ const customizableLocallyTabBlock = `class FooTest {
     @Test
     fun fooTest() {
         // ...
-        verify (exhaustiveOrder) { /* ... */ }
+        verify(exhaustiveOrder) { /* ... */ }
     }
 }
 `

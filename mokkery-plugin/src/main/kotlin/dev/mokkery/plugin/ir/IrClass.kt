@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
@@ -34,6 +35,8 @@ import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.memoryOptimizedZip
 
 fun IrClass.getProperty(name: String): IrProperty {
     val nameId = Name.identifier(name)
@@ -219,3 +222,15 @@ val IrClass.overridableProperties
     get() = properties.filter { it.isOverridable }
 
 val IrClass.defaultTypeErased get() = defaultType.eraseTypeParameters()
+
+fun List<IrClass>.createParametersMapTo(cls: IrClass): Map<IrTypeParameter, IrTypeParameter> {
+    return memoryOptimizedFlatMap { it.typeParameters }
+        .memoryOptimizedZip(cls.typeParameters)
+        .toMap()
+}
+
+fun List<IrClass>.typeWith(parameterMap: Map<IrTypeParameter, IrTypeParameter>): List<IrType> {
+    return memoryOptimizedMap {
+        it.symbol.typeWithParameters(it.typeParameters.memoryOptimizedMap(parameterMap::getValue))
+    }
+}

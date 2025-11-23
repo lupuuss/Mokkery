@@ -23,6 +23,27 @@ class ReverseDomainNameShortenerTest {
     }
 
     @Test
+    fun testLeavesWholeSequencesIfNoSeparators() {
+        val names = setOf("Foo", "Bar", "Far")
+        val expectedShorterNames = mapOf("Foo" to "Foo", "Bar" to "Bar", "Far" to "Far")
+        assertEquals(expectedShorterNames, shortener.shorten(names))
+    }
+
+    @Test
+    fun testLeavesOnlyLastSequenceOfNameIfSingle() {
+        val names = setOf("com.example.Foo")
+        val expectedShorterNames = mapOf("com.example.Foo" to "Foo",)
+        assertEquals(expectedShorterNames, shortener.shorten(names))
+    }
+
+    @Test
+    fun testLeavesOnlyWholeSequenceIfSingleWithoutSeparators() {
+        val names = setOf("Foo")
+        val expectedShorterNames = mapOf("Foo" to "Foo",)
+        assertEquals(expectedShorterNames, shortener.shorten(names))
+    }
+
+    @Test
     fun testLeavesOnlyLastSequenceOfNameIfUniqueWhenDifferentNumberOfSequences() {
         val names = setOf(
             "Foo",

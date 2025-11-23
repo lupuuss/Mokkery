@@ -1,6 +1,7 @@
 package dev.mokkery.test.answers
 
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.returns
@@ -106,4 +107,6 @@ class CoreAnswersTest {
 private data class CustomAnswer<T>(val value: T) : Answer<T> {
 
     override fun call(scope: MokkeryBlockingCallScope): T = value
+
+    override suspend fun call(scope: MokkerySuspendCallScope): T = value
 }

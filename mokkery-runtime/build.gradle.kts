@@ -7,9 +7,11 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     androidTarget {
         publishLibraryVariants("release")
     }
+    optInMokkeryDelicateAndInternals()
 }
 
 android {
@@ -18,6 +20,9 @@ android {
 }
 
 dependencies {
+    kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-core"))
     commonMainApi(project(":mokkery-core"))
     commonMainCompileOnly(libs.kotlin.stdlib)
 

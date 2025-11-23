@@ -3,6 +3,9 @@ package dev.mokkery.context
 import dev.drewhamilton.poko.Poko
 import kotlin.reflect.KClass
 
+/**
+ * Argument for a mocked method call. It is a combination of a [parameter] and [value].
+ */
 @Poko
 public class CallArgument internal constructor(
     public val value: Any?,

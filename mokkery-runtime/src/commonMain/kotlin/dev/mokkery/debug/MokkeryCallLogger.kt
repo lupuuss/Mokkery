@@ -3,7 +3,7 @@ package dev.mokkery.debug
 import dev.mokkery.interceptor.MokkeryCallListener
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.call
-import dev.mokkery.internal.context.mockSpec
+import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.suiteName
 import dev.mokkery.internal.utils.callToString
 
@@ -31,7 +31,7 @@ public class MokkeryCallLogger(
         scope.suiteName
             ?.let { "[$it] " }
             .orEmpty()
-            .plus(callToString(scope.mockSpec.id, scope.call.function.name, scope.call.args))
+            .plus(callToString(scope.instanceSpec.id, scope.call.function.name, scope.call.args))
             .let(lineTransformer)
             .let(loggingFunction)
     }

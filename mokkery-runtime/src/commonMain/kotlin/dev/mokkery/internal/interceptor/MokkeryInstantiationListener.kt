@@ -1,6 +1,6 @@
 package dev.mokkery.internal.interceptor
 
-import dev.mokkery.internal.MokkeryInstanceScope
+import dev.mokkery.MokkeryInstanceScope
 
 internal interface MokkeryInstantiationListener {
 

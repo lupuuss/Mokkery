@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 
@@ -34,6 +33,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.rule.convention(ApplicationRule.AllTests)
         mokkery.ignoreInlineMembers.convention(false)
         mokkery.ignoreFinalMembers.convention(false)
+        mokkery.enableFirDiagnostics.convention(true)
         target.configureDependencies()
         super.apply(target)
     }
@@ -55,6 +55,10 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 SubpluginOption(
                     key = "ignoreInlineMembers",
                     value = project.mokkery.ignoreInlineMembers.get().toString()
+                ),
+                SubpluginOption(
+                    key = "enableFirDiagnostics",
+                    value = project.mokkery.enableFirDiagnostics.get().toString()
                 )
             )
         }
@@ -71,7 +75,6 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        if (kotlinCompilation.target is KotlinMetadataTarget) return true
         val project = kotlinCompilation.target.project
         val sourceSet = runCatching { kotlinCompilation.defaultSourceSet }
             .getOrNull()

@@ -1,6 +1,8 @@
 package dev.mokkery
 
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.internal.context.MokkeryTools
 
 /**
  * Base interface for all scopes that are based on [MokkeryContext].
@@ -9,4 +11,15 @@ import dev.mokkery.context.MokkeryContext
 public interface MokkeryScope {
 
     public val mokkeryContext: MokkeryContext
+
+    public companion object {
+
+        @InternalMokkeryApi
+        public val global: MokkeryScope = object : MokkeryScope {
+
+            override val mokkeryContext: MokkeryContext = MokkeryTools.default()
+
+            override fun toString(): String = "MokkeryScope.global(mokkeryContext=$mokkeryContext)"
+        }
+    }
 }

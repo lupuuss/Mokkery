@@ -1,14 +1,13 @@
 package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.ToStringRenderer
-import dev.mokkery.internal.calls.CallTemplate
-import dev.mokkery.internal.calls.CallTrace
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 
 internal class TemplateMatchingResultsRenderer(
-    private val traceRenderer: Renderer<CallTrace> = ToStringRenderer,
-    private val templateRenderer: Renderer<CallTemplate> = ToStringRenderer,
+    private val traceRenderer: Renderer<CallTrace>,
+    private val templateRenderer: Renderer<CallTemplate>,
 ) : Renderer<List<TemplateMatchingResult>> {
     override fun render(value: List<TemplateMatchingResult>): String = buildString {
         var templateCounter = 1

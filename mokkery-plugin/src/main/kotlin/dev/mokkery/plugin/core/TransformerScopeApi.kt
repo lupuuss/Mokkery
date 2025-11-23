@@ -6,14 +6,15 @@ import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.util.companionObject
 
 val TransformerScope.messageCollector get() = compilerConfig.messageCollector
 
 fun TransformerScope.getClass(resolver: ClassResolver): IrClass = classes.getOrPut(resolver) {
     resolver.resolve(pluginContext)
 }
+
+fun TransformerScope.getCompanionOf(resolver: ClassResolver): IrClass = getClass(resolver).companionObject()!!
 
 fun TransformerScope.getFunction(resolver: FunctionResolver): IrSimpleFunction = functions.getOrPut(resolver) {
     resolver.resolve(pluginContext)
@@ -26,13 +27,6 @@ fun TransformerScope.getProperty(resolver: PropertyResolver): IrProperty = prope
 inline val TransformerScope.platform get() = pluginContext.platform
 
 inline fun <T> TransformerScope.declarationIrBuilder(
-    symbol: IrSymbol,
     context: IrGeneratorContext = pluginContext,
     block: DeclarationIrBuilder.() -> T
-) = DeclarationIrBuilder(context, symbol).run(block)
-
-inline fun <T> TransformerScope.declarationIrBuilder(
-    expression: IrCall,
-    context: IrGeneratorContext = pluginContext,
-    block: DeclarationIrBuilder.() -> T
-) = DeclarationIrBuilder(context, expression.symbol).run(block)
+) = DeclarationIrBuilder(context, currentScopeValue!!.scope.scopeOwnerSymbol).run(block)

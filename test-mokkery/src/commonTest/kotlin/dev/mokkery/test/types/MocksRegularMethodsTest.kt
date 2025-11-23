@@ -1,13 +1,18 @@
 package dev.mokkery.test.types
 
+import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.matcher.any
+import dev.mokkery.templating.ext
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.RegularMethodsInterface
+import dev.mokkery.test.assertVerified
 import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -78,6 +83,9 @@ class MocksRegularMethodsTest {
     fun testPrimitiveWithDefaults() {
         every { mock.callPrimitiveWithDefaults() } returns 1
         assertEquals(1, mock.callPrimitiveWithDefaults())
+        assertEquals(1, mock.callPrimitiveWithDefaults(ComplexType, 1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(primitiveInput = 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(complexInput = ComplexType("1")) }
         verify { mock.callPrimitiveWithDefaults() }
     }
 
@@ -85,20 +93,44 @@ class MocksRegularMethodsTest {
     fun testComplexWithDefaults() {
         every { mock.callComplexWithDefaults() } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.callComplexWithDefaults())
+        assertEquals(ComplexType.Companion, mock.callComplexWithDefaults(ComplexType, 1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(primitiveInput = 2) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveWithDefaults(complexInput = ComplexType("1")) }
         verify { mock.callComplexWithDefaults() }
     }
 
     @Test
+    fun testDependantDefaults() {
+        every { mock.callWithDependantDefaults(any()) } returnsArgAt 1
+        every { mock.callWithDependantDefaults(any(), "custom") } returns ""
+        assertEquals("ComplexTypeImpl(id=1)", mock.callWithDependantDefaults(ComplexType("1")))
+        assertEquals("ComplexTypeImpl(id=2)", mock.callWithDependantDefaults(ComplexType("2")))
+        assertEquals("", mock.callWithDependantDefaults(ComplexType("3"), "custom"))
+        assertFailsWith<MokkeryRuntimeException> {
+            mock.callWithDependantDefaults(ComplexType, name = "customName")
+        }
+        verify {
+            mock.callWithDependantDefaults(ComplexType("1"))
+            mock.callWithDependantDefaults(ComplexType("2"))
+        }
+        assertVerified {
+            verifySuspend {
+                mock.callWithDependantDefaults(ComplexType("3"))
+            }
+        }
+    }
+
+    @Test
     fun testPrimitiveExtension() {
-        every { mock.run { 1.callPrimitiveExtension() } } returns 1
+        every { mock.ext { 1.callPrimitiveExtension() } } returns 1
         assertEquals(1, mock.run { 1.callPrimitiveExtension() })
-        verify { mock.run { 1.callPrimitiveExtension() } }
+        verify { mock.ext { 1.callPrimitiveExtension() } }
     }
 
     @Test
     fun testComplexExtension() {
-        every { mock.run { ComplexType.callComplexExtension() } } returns ComplexType.Companion
+        every { mock.ext { ComplexType.callComplexExtension() } } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.run { ComplexType.callComplexExtension() })
-        verify { mock.run { ComplexType.callComplexExtension() } }
+        verify { mock.ext { ComplexType.callComplexExtension() } }
     }
 }
