@@ -18,7 +18,6 @@ kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "ko
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
 
 [libraries]
-kctesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kctesting" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-dom-api-compat = { module = "org.jetbrains.kotlin:kotlin-dom-api-compat", version.ref = "kotlin" }
