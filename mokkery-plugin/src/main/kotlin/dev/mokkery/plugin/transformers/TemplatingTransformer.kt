@@ -61,7 +61,6 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
-import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 class TemplatingTransformer(
@@ -75,7 +74,7 @@ class TemplatingTransformer(
     private val templatingParameterClass = getClass(Mokkery.Class.TemplatingParameter)
     private val templatingParameterConstructor = templatingParameterClass.primaryConstructor!!
     private val argMatcherClass = getClass(Mokkery.Class.ArgMatcher)
-    private val expectDefaultMatcherConstructor = getClass(Mokkery.Class.DefaultValueMatcher).primaryConstructor!!
+    private val defaultValuesMatcherConstructor = getClass(Mokkery.Class.DefaultValuesMatcher).primaryConstructor!!
     private val eqMatcher = argMatcherClass.nestedClasses
         .single { it.name.asString() == "Equals" }
         .primaryConstructor!!
@@ -127,8 +126,8 @@ class TemplatingTransformer(
     private fun IrBlockBodyBuilder.createTemplatingLambdaBody(expression: IrCall) {
         val calledFunc = expression.symbol.owner
         val hasDefaults = expression.arguments.any { it == null }
-        val defaultValueMatcherVar = when {
-            hasDefaults -> createTmpVariable(irCallDefaultValueMatcherContractorFor(expression))
+        val defaultsMatcherVar = when {
+            hasDefaults -> createTmpVariable(irCallDefaultValuesMatcherContractorFor(expression))
             else -> null
         }
         +irReturn(
@@ -146,7 +145,7 @@ class TemplatingTransformer(
                         }
                     }
                     val argument = expression.arguments[it].wrapDispatchersWithNotMockCheck()
-                    param to replaceTopTemplatingArg(argument, it, defaultValueMatcherVar)
+                    param to replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
                 },
                 keyType = templatingParameterClass.defaultType,
                 valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
@@ -257,9 +256,9 @@ class TemplatingTransformer(
         return vararg as IrVararg
     }
 
-    private fun IrBlockBodyBuilder.irCallDefaultValueMatcherContractorFor(
+    private fun IrBlockBodyBuilder.irCallDefaultValuesMatcherContractorFor(
         call: IrCall
-    ) = irCallConstructor(expectDefaultMatcherConstructor) {
+    ) = irCallConstructor(defaultValuesMatcherConstructor) {
         arguments[0] = irLong(call.calculateDefaultsMask())
         arguments[1] = createDefaultsExtractingLambdaFor(call)
         arguments[2] = irBoolean(call.symbol.owner.isSuspend)

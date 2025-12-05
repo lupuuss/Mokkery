@@ -1,7 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.internal.defaults.DefaultsMaterializer
-import dev.mokkery.internal.matcher.DefaultValueMatcher
+import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -14,8 +14,8 @@ internal class TestDefaultsMaterializer(
     ): CallTemplate = calls(trace, template)
 }
 
-internal fun fakeDefaultValueMatcher(): DefaultValueMatcher = DefaultValueMatcher(
+internal fun fakeDefaultValueMatcher(): DefaultValuesMatcher = DefaultValuesMatcher(
     mask = 0,
-    caller = { error("Not prepared") },
-    isSuspend = false
+    extractingFunction = { error("Not prepared") },
+    isExtractingFunctionSuspend = false
 )

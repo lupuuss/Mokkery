@@ -2,7 +2,7 @@ package dev.mokkery.internal.defaults
 
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.matcher.DefaultValueMatcher
+import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
 import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.MokkeryCollection
@@ -62,10 +62,10 @@ class DefaultsMaterializerTest {
             parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
             matchers = mapOf(
                 "i" to ArgMatcher.Equals(1),
-                "j" to DefaultValueMatcher(
+                "j" to DefaultValuesMatcher(
                     mask = 0b10L,
-                    caller = caller,
-                    isSuspend = false
+                    extractingFunction = caller,
+                    isExtractingFunctionSuspend = false
                 )
             )
         )
@@ -96,10 +96,10 @@ class DefaultsMaterializerTest {
             name = "call",
             parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
             matchers = mapOf(
-                "i" to DefaultValueMatcher(
+                "i" to DefaultValuesMatcher(
                     mask = 0b01L,
-                    caller = caller,
-                    isSuspend = true
+                    extractingFunction = caller,
+                    isExtractingFunctionSuspend = true
                 ),
                 "j" to ArgMatcher.Equals("Hello!")
             )

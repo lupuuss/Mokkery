@@ -34,7 +34,7 @@ object Mokkery {
         val MokkeryMatcherScope by dev_mokkery_matcher.klass
         val ArgMatcher by dev_mokkery_matcher.klass
         val CompositeVarArgMatcher by dev_mokkery_internal_matcher.klass
-        val DefaultValueMatcher by dev_mokkery_internal_matcher.klass
+        val DefaultValuesMatcher by dev_mokkery_internal_matcher.klass
         val MockMany2 by dev_mokkery.klass
         val MockMany3 by dev_mokkery.klass
         val MockMany4 by dev_mokkery.klass
