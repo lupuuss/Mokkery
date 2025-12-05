@@ -26,12 +26,12 @@ private class DefaultsMaterializerImpl(
         trace: CallTrace,
         template: CallTemplate
     ): CallTemplate {
-        val defaultsExpected = template.matchers.values.filterIsInstance<DefaultValueMatcher>()
+        // we need only first DefaultValueMatcher - the same instance is passed on each default
+        val default = template.firstDefaultValueMatcherOrNull()
         return when {
-            defaultsExpected.isEmpty() -> template
+            default == null -> template
             else -> {
                 // all DefaultValueMatcher instances should have the same properties for single call, so we need only one
-                val default = defaultsExpected.first()
                 val scope = collection.getScope(template.instanceId)
                 val extractor = scope.defaultsExtractorFactory.createDefaultsExtractor()
                 val defaults = extractDefaults(
@@ -73,3 +73,7 @@ private class DefaultsMaterializerImpl(
         }
     }
 }
+
+private fun CallTemplate.firstDefaultValueMatcherOrNull() = matchers
+    .values
+    .firstNotNullOfOrNull { it as? DefaultValueMatcher }
