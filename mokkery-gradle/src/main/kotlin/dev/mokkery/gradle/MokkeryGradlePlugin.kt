@@ -34,6 +34,8 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.ignoreInlineMembers.convention(false)
         mokkery.ignoreFinalMembers.convention(false)
         mokkery.enableFirDiagnostics.convention(true)
+        mokkery.stubs.allowConcreteClassInstantiation.convention(false)
+        mokkery.stubs.allowClassInheritance.convention(false)
         target.configureDependencies()
         super.apply(target)
     }
@@ -59,6 +61,14 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 SubpluginOption(
                     key = "enableFirDiagnostics",
                     value = project.mokkery.enableFirDiagnostics.get().toString()
+                ),
+                SubpluginOption(
+                    key = "stubs.allowClassInheritance",
+                    value = project.mokkery.stubs.allowClassInheritance.get().toString()
+                ),
+                SubpluginOption(
+                    key = "stubs.allowConcreteClassInstantiation",
+                    value = project.mokkery.stubs.allowConcreteClassInstantiation.get().toString()
                 )
             )
         }

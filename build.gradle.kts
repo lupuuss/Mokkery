@@ -19,7 +19,6 @@ buildscript {
     dependencies {
         classpath(":build-mokkery")
         classpath(libs.dokka.base)
-        classpath(libs.agp)
     }
 }
 

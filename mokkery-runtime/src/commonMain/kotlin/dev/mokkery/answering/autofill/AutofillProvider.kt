@@ -3,7 +3,6 @@
 package dev.mokkery.answering.autofill
 
 import dev.drewhamilton.poko.Poko
-import dev.mokkery.internal.answering.autofill.AnyValueProvider
 import dev.mokkery.internal.answering.autofill.CombinedProviders
 import dev.mokkery.internal.answering.autofill.GenericArrayProvider
 import dev.mokkery.internal.answering.autofill.NothingValueProvider
@@ -62,7 +61,6 @@ public fun interface AutofillProvider<out T> {
             TypeToValueAutofillProvider(buildInTypesMapping),
             NothingValueProvider,
             GenericArrayProvider,
-            AnyValueProvider
         )
 
         /**
@@ -78,14 +76,7 @@ public fun interface AutofillProvider<out T> {
          * * For [Unit] - [Unit]
          * * For [Result] - [Result.failure] with [IllegalStateException]
          * * For [kotlin.time.Duration] - [kotlin.time.Duration.ZERO]
-         * * For arrays - array with single element according to previous rules
-         * * For complex types:
-         *    * Wasm - null
-         *    * JS - empty object `{}`
-         *    * Native - reference to `object UnsafeValue`
-         *    * JVM:
-         *       * value classes - instance created with reflection
-         *       * other types - null
+         * * For arrays - empty array
          */
         public val forInternals: CompositeAutofillProvider = compositeAutofillProvider(builtIn)
 

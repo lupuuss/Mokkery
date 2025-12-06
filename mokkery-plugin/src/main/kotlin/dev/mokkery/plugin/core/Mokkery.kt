@@ -23,7 +23,6 @@ object Mokkery {
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName
-    val dev_mokkery_internal_answering_autofill by fqName
     val dev_mokkery_internal_defaults by fqName
 
     object Class {
@@ -78,7 +77,6 @@ object Mokkery {
         val createInstanceContext by dev_mokkery_internal.function
         val initializeInJsFunctionMock by dev_mokkery_internal.function
         val typeArgumentAt by dev_mokkery_internal.function
-        val autofillConstructor by dev_mokkery_internal_answering_autofill.function
         val invokeInstantiationListener by dev_mokkery_internal_context.function
         val createBlockingCallScope by dev_mokkery_internal.function
         val createSuspendCallScope by dev_mokkery_internal.function

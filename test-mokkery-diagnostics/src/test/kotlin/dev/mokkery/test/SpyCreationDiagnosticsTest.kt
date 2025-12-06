@@ -100,7 +100,7 @@ class SpyCreationDiagnosticsTest {
                 spy(spied)
             }
             """.trimIndent()
-        ).assertSingleError("Type 'AbstractClass' has no public constructor and cannot be used with 'spy'.")
+        ).assertSingleError("Type 'AbstractClass' has no public or internal constructor and cannot be used with 'spy'.")
     }
 
 }

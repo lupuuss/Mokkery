@@ -44,9 +44,6 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
                 ":mokkery-runtime",
                 ":mokkery-coroutines"
             ).forEach {
-                if (it == ":mokkery-runtime") {
-                    dependsOnPublishPublicationToMavenLocalOf(it, "AndroidRelease")
-                }
                 dependsOnPublishPublicationToMavenLocalOf(it, "KotlinMultiplatform")
                 dependsOnPublishPublicationToMavenLocalOf(it, "Jvm")
                 dependsOnPublishPublicationToMavenLocalOf(it, "WasmJs")

@@ -46,7 +46,7 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         )
         it.put(
             factory = Diagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
-            message = "Type ''{1}'' has no public constructor and cannot be used with ''{0}''.",
+            message = "Type ''{1}'' has no public or internal constructor and cannot be used with ''{0}''.",
             rendererA = CommonRenderers.NAME,
             rendererB = typeRenderer,
         )
@@ -68,6 +68,18 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Type ''{0}'' is a functional type and it is not acceptable as an argument for ''{1}'' on JS platform.",
             rendererA = typeRenderer,
             rendererB = CommonRenderers.NAME
+        )
+        it.put(
+            factory = Diagnostics.NO_CONSTRUCTOR_TO_STUB,
+            message = "Type ''{0}'' has available constructors but none cannot be fully supplied with arguments." +
+                    " Problematic argument types: {1}",
+            rendererA = CommonRenderers.NAME,
+            rendererB = CommonRenderers.points(
+                CommonRenderers.pair(
+                    CommonRenderers.simpleType(),
+                    StubError.renderer()
+                )
+            ),
         )
     }
 }

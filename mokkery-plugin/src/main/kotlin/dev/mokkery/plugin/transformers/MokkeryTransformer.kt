@@ -49,7 +49,6 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -148,7 +147,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val classToMock = typeToMock.getClass() ?: return call
         if (platform.isJs() && classToMock.defaultType.isAnyFunction()) return buildMockJsFunction(call, Mock)
         val mockedClass = mockCache.getOrPut(classToMock) {
-            buildMockClass(Mock, classToMock).also(currentFile::addChild)
+            buildMockClass(Mock, classToMock)
         }
         return declarationIrBuilder {
             irCallConstructor(mockedClass.primaryConstructor!!) {
@@ -173,7 +172,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val classes = call.typeArguments.mapNotNullTo(mutableSetOf()) { it?.getClass() }
         if (classes.isEmpty()) return call
         val mockedClass = mockManyCache.getOrPut(classes) {
-            buildManyMockClass(classes.toList()).also(currentFile::addChild)
+            buildManyMockClass(classes.toList())
         }
         return declarationIrBuilder {
             irCallConstructor(mockedClass.primaryConstructor!!) {
@@ -200,7 +199,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         val typeToMock = call.typeArguments.firstOrNull() ?: return call
         val klass = typeToMock.getClass() ?: return call
         if (platform.isJs() && klass.defaultType.isAnyFunction()) return buildMockJsFunction(call, Spy)
-        val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass).also(currentFile::addChild) }
+        val spiedClass = spyCache.getOrPut(klass) { buildMockClass(Spy, klass) }
         return declarationIrBuilder {
             irCallConstructor(spiedClass.primaryConstructor!!) {
                 val calledFun = call.symbol.owner

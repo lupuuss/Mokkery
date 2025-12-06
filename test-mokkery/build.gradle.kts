@@ -2,17 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
 plugins {
     id("mokkery-multiplatform")
-    alias(libs.plugins.agp.library)
     alias(libs.plugins.kotlin.allopen)
-}
-
-kotlin {
-    androidTarget()
-}
-
-android {
-    namespace = "dev.mokkery.test"
-    compileSdk = 36
 }
 
 allOpen {
@@ -21,7 +11,9 @@ allOpen {
 
 configureCompilerPlugin(
     "dev.mokkery",
-    SubpluginOption("ignoreFinalMembers", "true")
+    SubpluginOption("ignoreFinalMembers", "true"),
+    SubpluginOption("stubs.allowConcreteClassInstantiation", "true"),
+    SubpluginOption("stubs.allowClassInheritance", "true"),
 )
 
 dependencies {

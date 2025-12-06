@@ -6,6 +6,7 @@ import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.getProperty
+import dev.mokkery.plugin.core.randomString
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
 import dev.mokkery.plugin.ir.computeSignature
@@ -14,7 +15,7 @@ import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.getProperty
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallListOf
-import dev.mokkery.plugin.ir.irDelegatingDefaultConstructorOrAny
+import dev.mokkery.plugin.ir.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.irInvokeIfNotNull
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
@@ -43,6 +44,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
+import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -64,6 +66,7 @@ fun TransformerScope.buildMockClass(
     val mockedClass = pluginContext
         .irFactory
         .buildClass { name = classToMock.name.createUniqueMockName(mokkeryKind.name) }
+    currentFileValue.addChild(mockedClass)
     mockedClass.copyTypeParametersFrom(classToMock)
     val typedClassToMock = classToMock.symbol.typeWithParameters(mockedClass.typeParameters)
     mockedClass.superTypes = listOfNotNull(
@@ -97,6 +100,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
     val mokkeryInstanceClass = getClass(Mokkery.Class.MokkeryInstanceScope)
     val mockedClass = pluginContext.irFactory
         .buildClass { name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName() }
+    currentFileValue.addChild(mockedClass)
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
     mockedClass.createThisReceiverParameter()
     mockedClass.origin = Mokkery.Origin
@@ -183,7 +187,7 @@ private fun IrClass.addMockClassConstructor(
             }
 
         body = DeclarationIrBuilder(context, symbol).irBlockBody {
-            +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
+            +irDelegatingConstructorWithStubs(transformer, classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = contextProperty,
@@ -243,5 +247,3 @@ private fun FqName.createUniqueManyMockName() = shortName()
     .asString()
     .plus($$"$$${randomString()}")
     .let(Name::identifier)
-
-private fun randomString() = Random.nextULong().toString(36)

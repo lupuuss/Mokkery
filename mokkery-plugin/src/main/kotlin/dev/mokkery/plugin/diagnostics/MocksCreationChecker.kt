@@ -1,7 +1,9 @@
 package dev.mokkery.plugin.diagnostics
 
+import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
+import dev.mokkery.plugin.core.stubsConfig
 import dev.mokkery.plugin.core.validationMode
 import dev.mokkery.plugin.fir.declaredMembers
 import org.jetbrains.kotlin.AbstractKtSourceElement
@@ -13,19 +15,24 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
 import org.jetbrains.kotlin.diagnostics.error2
 import org.jetbrains.kotlin.diagnostics.error3
+import org.jetbrains.kotlin.diagnostics.rendering.Renderer
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.isSubtypeOfThrowable
 import org.jetbrains.kotlin.fir.declarations.constructors
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
+import org.jetbrains.kotlin.fir.declarations.utils.isInlineOrValue
 import org.jetbrains.kotlin.fir.declarations.utils.isInterface
+import org.jetbrains.kotlin.fir.declarations.utils.isSealed
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.isPrimitiveType
 import org.jetbrains.kotlin.fir.moduleData
+import org.jetbrains.kotlin.fir.packageFqName
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
@@ -35,16 +42,24 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
+import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.isSomeFunctionType
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
 import org.jetbrains.kotlin.fir.types.type
+import org.jetbrains.kotlin.fir.types.typeContext
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.StandardClassIds
+import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.types.model.eraseContainingTypeParameters
+import org.jetbrains.kotlin.types.model.isNullableType
 
 class MocksCreationChecker(
     configuration: CompilerConfiguration,
@@ -55,6 +70,7 @@ class MocksCreationChecker(
 
 
     private val validationMode = configuration.validationMode
+    private val stubsConfig = configuration.stubsConfig
     private val wasmHashCode = Name.identifier("_hashCode")
     private val wasmTypeInfo = Name.identifier("typeInfo")
     private val wasmSpecialPropertyNames = listOf(wasmHashCode, wasmTypeInfo)
@@ -166,7 +182,7 @@ class MocksCreationChecker(
         classSymbol: FirRegularClassSymbol
     ): Boolean {
         val modality = classSymbol.modality
-        val modalityDiagnostic = when  {
+        val modalityDiagnostic = when {
             classSymbol.isPrimitiveType() -> Diagnostics.PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED
             modality == Modality.SEALED -> Diagnostics.SEALED_TYPE_CANNOT_BE_INTERCEPTED
             modality == Modality.FINAL -> Diagnostics.FINAL_TYPE_CANNOT_BE_INTERCEPTED
@@ -187,8 +203,10 @@ class MocksCreationChecker(
         source: AbstractKtSourceElement?,
         classSymbol: FirRegularClassSymbol
     ): Boolean {
-        val constructors = classSymbol.constructors(context.session)
-        if (constructors.none { it.visibility.isPublicAPI }) {
+        val constructors = classSymbol
+            .constructors(context.session)
+            .filter { it.isAccessible() }
+        if (constructors.isEmpty()) {
             reporter.reportOn(
                 source = source,
                 factory = Diagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
@@ -197,6 +215,7 @@ class MocksCreationChecker(
             )
             return false
         }
+        checkConstructorPossibleToStub(source, classSymbol, constructors)
         val inheritedSymbols = classSymbol
             .resolvedSuperTypes
             .asSequence()
@@ -247,6 +266,122 @@ class MocksCreationChecker(
         return filterNot { it is FirPropertySymbol && it.name in wasmSpecialPropertyNames }
     }
 
+    context(context: CheckerContext, reporter: DiagnosticReporter)
+    private fun checkConstructorPossibleToStub(
+        source: AbstractKtSourceElement?,
+        classSymbol: FirRegularClassSymbol,
+        constructors: List<FirConstructorSymbol>
+    ) {
+        constructors.forEach { if (it.isPossibleToStub()) return }
+        val problems = constructors.flatMap { ctor ->
+            ctor.valueParameterSymbols.flatMap { param -> param.collectStubErrors() }
+        }
+        reporter.reportOn(
+            source = source,
+            factory = Diagnostics.NO_CONSTRUCTOR_TO_STUB,
+            a = classSymbol.name,
+            b = problems.distinctBy { it.first },
+        )
+    }
+
+    context(context: CheckerContext)
+    private fun FirValueParameterSymbol.collectStubErrors(
+        typesStack: Set<ConeKotlinType> = emptySet()
+    ): List<Pair<ConeKotlinType, StubError>> {
+        if (hasDefaultValue) return emptyList()
+        val type = context(context.session.typeContext) {
+            this.resolvedReturnType.eraseContainingTypeParameters() as ConeKotlinType
+        }
+        if (type in typesStack) return listOf(type to StubError.Recursion)
+        if (type.isPossibleToStubByDefault()) return emptyList()
+        val cls = type
+            .toRegularClassSymbol()
+            ?: return listOf(type to StubError.NoAccessibleConstructors)
+        if (cls.isInlineOrValue) return emptyList()
+        val constructors = cls
+            .constructors(context.session)
+            .filter { it.isAccessible() }
+        if (constructors.isEmpty()) return listOf(type to StubError.NoAccessibleConstructors)
+        val problems = constructors.flatMap { ctor ->
+            ctor.valueParameterSymbols.flatMap { param -> param.collectStubErrors(typesStack + type) }
+        }
+        if (problems.isNotEmpty()) return problems
+        if (!stubsConfig.allowConcreteClassInstantiation && cls.isInstantiableClass(typesStack)) {
+            return listOf(type to StubError.ClassInstantiationNeedsOptIn)
+        }
+        if (!stubsConfig.allowClassInheritance && cls.isOverridableClass(typesStack)) {
+            return listOf(type to StubError.ClassOverrideNeedsOptIn)
+        }
+        return emptyList()
+    }
+
+    context(context: CheckerContext)
+    private fun FirConstructorSymbol.isPossibleToStub(
+        typesStack: Set<ConeKotlinType> = emptySet()
+    ) = isAccessible() && valueParameterSymbols.all { it.resolvedReturnType.isPossibleToStub(typesStack) }
+
+    context(context: CheckerContext)
+    private fun ConeKotlinType.isPossibleToStub(typesStack: Set<ConeKotlinType> = emptySet()): Boolean {
+        val erased = context(context.session.typeContext) {
+            this.eraseContainingTypeParameters() as ConeKotlinType
+        }
+        if (erased in typesStack) return false
+        if (erased.isPossibleToStubByDefault()) return true
+        val cls = erased.toRegularClassSymbol() ?: return false
+        return (stubsConfig.allowConcreteClassInstantiation && cls.isInstantiableClass(typesStack + this))
+                || (stubsConfig.allowClassInheritance && cls.isOverridableClass(typesStack + this))
+    }
+
+    context(context: CheckerContext)
+    private fun ConeKotlinType.isPossibleToStubByDefault() = context(context.session.typeContext) {
+        isNullableType()
+                || isAnyOf(defaultTypesToStub)
+                || isSomeFunctionType(context.session)
+                || toRegularClassSymbol()?.let { cls ->
+                    val fqName = cls.packageFqName()
+                    cls.isInterface()
+                            || cls.isInlineClass()
+                            || fqName.isSubpackageOf(Kotlin.kotlin_collections)
+                            || fqName.isSubpackageOf(Kotlin.kotlin_ranges)
+                            || fqName.isSubpackageOf(Kotlin.kotlin_sequences)
+                } == true
+                || isSubtypeOfThrowable(context.session)
+
+    }
+
+    private fun FirRegularClassSymbol?.isInterface(): Boolean = this?.classKind == ClassKind.INTERFACE && !this.isSealed
+
+    private fun FirRegularClassSymbol?.isInlineClass(): Boolean = this?.isInlineOrValue == true
+
+    context(context: CheckerContext)
+    private fun FirRegularClassSymbol.isOverridableClass(
+        typesStack: Set<ConeKotlinType>
+    ): Boolean = context(context.session.typeContext) {
+        this.classKind == ClassKind.CLASS
+                && this.isOverridable()
+                && this.constructors(context.session).any { it.isPossibleToStub(typesStack) }
+    }
+
+    context(context: CheckerContext)
+    private fun FirRegularClassSymbol.isInstantiableClass(
+        typesStack: Set<ConeKotlinType>
+    ): Boolean = context(context.session.typeContext) {
+        this.classKind == ClassKind.CLASS
+                && this.isInstantiable()
+                && this.constructors(context.session).any { it.isPossibleToStub(typesStack) }
+    }
+
+    private fun ConeKotlinType.isAnyOf(classIds: Set<ClassId>): Boolean {
+        if (this !is ConeClassLikeType) return false
+        return lookupTag.classId in classIds
+    }
+
+    private fun FirRegularClassSymbol.isInstantiable() = modality in instantiableModalities
+
+    private fun FirRegularClassSymbol.isOverridable() = modality in overridableModalities
+
+    private fun FirConstructorSymbol.isAccessible() = visibility in accessibleVisibility
+
     object Diagnostics : KtDiagnosticsContainer() {
 
         override fun getRendererFactory() = MocksCreationDiagnosticRendererFactory()
@@ -257,8 +392,47 @@ class MocksCreationChecker(
         val PRIMITIVE_TYPE_CANNOT_BE_INTERCEPTED by error2<KtElement, Name, ConeKotlinType>()
         val FINAL_MEMBERS_TYPE_CANNOT_BE_INTERCEPTED by error3<KtElement, Name, ConeKotlinType, List<FirBasedSymbol<*>>>()
         val NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED by error2<KtElement, Name, ConeKotlinType>()
+        val NO_CONSTRUCTOR_TO_STUB by error2<KtElement, Name, List<Pair<ConeKotlinType, StubError>>>()
         val MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY by error2<KtElement, Name, List<ConeKotlinType>>()
         val DUPLICATE_TYPES_FOR_MOCK_MANY by error3<KtElement, ConeKotlinType, Name, String>()
         val FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY by error2<KtElement, ConeKotlinType, Name>()
+    }
+
+    companion object {
+
+        private val accessibleVisibility = setOf(Visibilities.Public, Visibilities.Internal)
+        private val overridableModalities = setOf(Modality.ABSTRACT, Modality.OPEN)
+        private val instantiableModalities = setOf(Modality.OPEN, Modality.FINAL)
+
+        private val defaultTypesToStub = StandardClassIds.primitiveTypes +
+                StandardClassIds.unsignedTypes +
+                StandardClassIds.Number +
+                StandardClassIds.KType +
+                StandardClassIds.Unit +
+                StandardClassIds.String +
+                StandardClassIds.primitiveArrayTypeByElementType.values.toSet() +
+                StandardClassIds.unsignedArrayTypeByElementType.values.toSet() +
+                StandardClassIds.Array
+    }
+}
+
+enum class StubError {
+
+    Recursion, ClassInstantiationNeedsOptIn, ClassOverrideNeedsOptIn, NoAccessibleConstructors;
+
+    companion object {
+
+        fun renderer() = Renderer<StubError> {
+            when (it) {
+                Recursion -> "This class causes an instantiation cycle and its instance cannot be supplied."
+                ClassInstantiationNeedsOptIn -> "This class could be instantiated," +
+                        " but it requires explicit permission due to potential execution of unintended code." +
+                        " Enable it in your Gradle file with `mokkery.stubs.allowConcreteClassInstantiation` flag."
+                ClassOverrideNeedsOptIn -> "This class could be inherited to create a stub," +
+                        " but it requires explicit permission due to potential execution of unintended code." +
+                        " Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag."
+                NoAccessibleConstructors -> "This class cannot be stubbed. No accessible constructors."
+            }
+        }
     }
 }

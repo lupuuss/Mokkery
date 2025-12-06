@@ -11,12 +11,11 @@ class GenericArrayProviderTest {
     private val provider = GenericArrayProvider
 
     @Test
-    fun testReturnsArrayWithSingleNullForGenericArrays() {
+    fun testReturnsEmptyArrayForGenericArrays() {
         val kClass = arrayOf("")::class
         val result = provider.provide(kClass)
         assertIs<Value.Provided<Array<String>>>(result)
-        assertEquals(1, result.value.size)
-        assertNull(result.value.getOrNull(0))
+        assertEquals(0, result.value.size)
         assertEquals(kClass, result.value::class)
     }
 

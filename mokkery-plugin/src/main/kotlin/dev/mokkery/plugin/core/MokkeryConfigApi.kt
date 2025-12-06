@@ -6,7 +6,10 @@ import dev.mokkery.plugin.ENABLE_FIR_DIAGNOSTICS
 import dev.mokkery.plugin.IGNORE_FINAL_MEMBERS
 import dev.mokkery.plugin.IGNORE_INLINE_MEMBERS
 import dev.mokkery.plugin.MOCK_MODE_KEY
+import dev.mokkery.plugin.STUBS_ALLOW_CLASS_INHERITANCE
+import dev.mokkery.plugin.STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION
 import dev.mokkery.plugin.VERIFY_MODE_KEY
+import dev.mokkery.plugin.stubs.MokkeryStubsConfig
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
@@ -21,7 +24,7 @@ val TransformerScope.verifyMode: VerifyMode get() = compilerConfig
     ?: MokkeryCompilerDefaults.verifyMode
 
 
-val CompilerConfiguration.validationMode: MembersValidationMode get() =  when {
+val CompilerConfiguration.validationMode: MembersValidationMode get() = when {
     get(IGNORE_FINAL_MEMBERS)?.singleOrNull() == true -> MembersValidationMode.IgnoreFinal
     get(IGNORE_INLINE_MEMBERS)?.singleOrNull() == true -> MembersValidationMode.IgnoreInline
     else -> MembersValidationMode.Strict
@@ -29,3 +32,9 @@ val CompilerConfiguration.validationMode: MembersValidationMode get() =  when {
 
 val CompilerConfiguration.enableFirDiagnostics: Boolean
     get() = get(ENABLE_FIR_DIAGNOSTICS)?.singleOrNull() ?: true
+
+val CompilerConfiguration.stubsConfig: MokkeryStubsConfig
+    get() = MokkeryStubsConfig(
+        allowClassInheritance = get(STUBS_ALLOW_CLASS_INHERITANCE)?.singleOrNull() ?: false,
+        allowConcreteClassInstantiation = get(STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION)?.singleOrNull() ?: false
+    )
