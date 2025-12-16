@@ -14,11 +14,7 @@ Those limitations affect all Mokkery versions with some variations between the v
 * ➡️ Functional types 
 * 🏛️ Final classes with [all-open plugin](./Guides/Mocking#final-classes)
 * 🏗️ Abstract/open classes with public constructor and all overridable public members
-  * 🚨 Kotlin 2.3.0 introduces stricter runtime checks for Kotlin/Native, which break mocking of classes with complex type parameters and may affect support for this feature in future releases. [Read more here.](https://github.com/lupuuss/Mokkery/issues/115)
-  * 🚨 Kotlin 2.2.20 introduces stricter runtime checks for Koltin/WASM, which break mocking of classes with complex type parameters and may affect support for this feature in future releases. [Read more here.](https://github.com/lupuuss/Mokkery/issues/111)
-  * ⚠️ Mocking classes whose constructor parameters are accessed within the constructor is **<u>not supported</u>**.\
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-       Support for this feature might be tracked [here](https://github.com/lupuuss/Mokkery/issues/108).
+  * 🚨 Support for mocking classes with parameterized constructors has evolved over time. For more details, please refer to [this section](#mocking-classes-with-parameterized-constructors).
   * 💡[It's possible to allow final or inline members](./Guides/Mocking#abstractopen-class-with-final-members)
 
 ❌ Things that Mokkery is **unable** to mock:
@@ -75,6 +71,42 @@ private fun foo() {
    }
 }
 ```
+
+### Mocking classes with parameterized constructors
+
+Since Mokkery 2.3.0, a public no-argument constructor is no longer required for a type to be mockable.
+Earlier implementations had an additional, implicit limitation: complex constructor arguments could not be accessed.
+This was because, on most platforms, Mokkery simply passed `null` to satisfy constructor parameters - even when the type was non-nullable.
+However, starting with version 2.2.20 (WASM) and 2.3.0 (Native), this approach was no longer viable due to stricter runtime checks.
+
+Mokkery 3.1.0 introduces a more robust and correct solution.
+It allows access to constructor parameters by attempting to supply actual instances of the required types.
+This approach has one limitation - Mokkery must be able to provide an instance of given type.
+
+Mokkery uses the following strategies to supply constructor arguments:
+- `null` for nullable types
+- `0` for all numeric types
+- `false` for `Boolean`
+- `'\u0000'` for `Char`
+- `Any()` for `Any`
+- A `kotlin.reflect.KClass` instance matching the required type
+  (e.g. `Int::class` for `KClass<Int>`)
+- The `Unit` object for `Unit`
+- Empty arrays for all array types
+- Empty collections for `Iterable`, `Collection`, `List`, `Set`, `Map`, and their mutable counterparts
+- The first declared entry for enum types
+- Lambdas that return values resolved using the same strategies
+- Generated stub implementations for interfaces
+- Instantiating concrete classes using available constructors, following the same rules as above.
+  By default, this works only for inline classes, `Throwable` subclasses, and classes from `kotlin.collections`, `kotlin.sequences`, and `kotlin.ranges`.
+  **For other types, explicit permission is required because invoking constructors may execute unintended code during tests.**
+  Public and internal constructors are supported, with default constructors preferred.
+  Enable this behavior in your Gradle build file using the `mokkery.stubs.allowConcreteClassInstantiation` flag.
+- Generating stub implementations for classes.
+  **This requires explicit permission for the same reason as concrete classes instantiation.**
+  Enable this behavior in your Gradle build file using `mokkery.stubs.allowClassInheritance` flag.
+
+Mokkery selects the first applicable strategy based on the order listed above.
 
 ## Before Mokkery 3
 
