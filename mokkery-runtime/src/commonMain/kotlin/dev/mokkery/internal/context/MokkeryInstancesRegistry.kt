@@ -31,5 +31,5 @@ private class MokkeryInstancesRegistryImpl(mocks: List<MokkeryInstanceScope>) : 
 
     override fun register(instance: MokkeryInstanceScope) = lock.withLock { _mocks.upsertScope(instance) }
 
-    override fun toString(): String = "MokkeryInstancesRegistry { ${collection.scopes.joinToString()} }"
+    override fun toString(): String = "MokkeryInstancesRegistry(collection=${collection})"
 }

@@ -21,8 +21,13 @@ import kotlin.test.assertTrue
 class BeforeAnsweringInterceptorTest {
 
     private val interceptor = TestInterceptor(
-        interceptBlock = { it.nextIntercept() },
-        interceptSuspendBlock = { it.nextIntercept() }
+        interceptBlock = {
+            println(it)
+            it.nextIntercept() },
+        interceptSuspendBlock = {
+            println(it)
+            it.nextIntercept()
+        }
     )
 
     @BeforeTest

@@ -37,4 +37,6 @@ internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<Mokkery
     } else {
         ContextCallInterceptor(interceptors + callInterceptor)
     }
+
+    override fun toString(): String = "HookCallInterceptor(interceptors=${interceptors.value})"
 }

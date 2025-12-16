@@ -17,7 +17,7 @@ internal fun MokkeryTemplatingScope(
 ): MokkeryTemplatingScope = object : MokkeryTemplatingScope {
     override val mokkeryContext = context
 
-    override fun toString(): String = "MokkeryTemplatingScope($context)"
+    override fun toString(): String = "MokkeryTemplatingScope(mokkeryContext=$context)"
 }
 
 internal val MokkeryTemplatingScope.participatingInstances
