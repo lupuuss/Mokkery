@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
@@ -22,7 +23,7 @@ fun IrFunction.copyNonDispatchParametersWithoutDefaultsFrom(
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
     parameters += function.nonDispatchParameters.memoryOptimizedMap {
-        it.copyToCompat(this, defaultValue = null, remapTypeMap = parameterMap)
+        it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap)
     }
 }
 

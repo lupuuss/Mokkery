@@ -2,7 +2,7 @@
 
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
-
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("jvm")
@@ -17,6 +17,7 @@ dependencies {
 
 kotlin {
     explicitApi()
+    setKotlinCompatibility(KotlinVersion.KOTLIN_2_2)
     sourceSets.all {
         languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
     }

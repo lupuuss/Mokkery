@@ -3,7 +3,6 @@ package dev.mokkery.plugin.diagnostics
 import dev.mokkery.plugin.core.MembersValidationMode
 import dev.mokkery.plugin.core.Mokkery.Callable
 import dev.mokkery.plugin.core.validationMode
-import dev.mokkery.plugin.fir.KtDiagnosticsContainerCompat
 import dev.mokkery.plugin.fir.declaredMembers
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -11,6 +10,9 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error2
+import org.jetbrains.kotlin.diagnostics.error3
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
@@ -75,7 +77,7 @@ class MocksCreationChecker(
         val classMappings = expression.typeArguments.groupBy {
             val type = it.toConeTypeProjection().type ?: return
             if (!checkInterceptionType(it.source ?: expression.source, type)) return
-            val classSymbol = type.toRegularClassSymbol(context.session) ?: return
+            val classSymbol = type.toRegularClassSymbol() ?: return
             classSymbol
         }
         if (!checkNoDuplicates(expression.typeArguments.size, classMappings)) return
@@ -139,7 +141,7 @@ class MocksCreationChecker(
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
     private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
         if (!checkInterceptionTypeParameter(source, type)) return false
-        val classSymbol = type.toRegularClassSymbol(context.session) ?: return false
+        val classSymbol = type.toRegularClassSymbol() ?: return false
         if (!checkInterceptionModality(source, classSymbol)) return false
         if (classSymbol.isInterface) return true
         if (!checkClassInterceptionRequirements(source, classSymbol)) return false
@@ -198,7 +200,7 @@ class MocksCreationChecker(
         val inheritedSymbols = classSymbol
             .resolvedSuperTypes
             .asSequence()
-            .mapNotNull { it.toRegularClassSymbol(context.session) }
+            .mapNotNull { it.toRegularClassSymbol() }
             .flatMap { it.declaredMembers(context.session) }
         val allDeclarationSymbols = classSymbol
             .declaredMembers(context.session)
@@ -245,7 +247,7 @@ class MocksCreationChecker(
         return filterNot { it is FirPropertySymbol && it.name in wasmSpecialPropertyNames }
     }
 
-    object Diagnostics : KtDiagnosticsContainerCompat() {
+    object Diagnostics : KtDiagnosticsContainer() {
 
         override fun getRendererFactory() = MocksCreationDiagnosticRendererFactory()
 
