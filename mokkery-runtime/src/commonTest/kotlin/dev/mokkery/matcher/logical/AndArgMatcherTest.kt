@@ -16,13 +16,18 @@ class AndArgMatcherTest {
 
     @Test
     fun testMatchesWhenAllMatchersSatisfied() {
-        val matcher = And(listOf(Not(Equals(1)), Not(Equals(2))))
+        val matcher = And(
+            listOf(
+                Not(listOf(Equals(1))),
+                Not(listOf(Equals(2)))
+            )
+        )
         assertTrue(matcher.matches(3))
     }
 
     @Test
     fun testComposedMatcherDoesNotMatchWhenAnyMatcherNotSatisfied() {
-        val matcher = And(listOf(Not(Equals(1)), Not(Equals(2))))
+        val matcher = And(listOf(Not(listOf(Equals(1))), Not(listOf(Equals(2)))))
         assertFalse(matcher.matches(1))
         assertFalse(matcher.matches(2))
     }

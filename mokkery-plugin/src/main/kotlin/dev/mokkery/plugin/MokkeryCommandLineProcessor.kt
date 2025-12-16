@@ -16,6 +16,8 @@ val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
 val IGNORE_INLINE_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreInlineMembers")
 val IGNORE_FINAL_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreFinalMembers")
 val ENABLE_FIR_DIAGNOSTICS = CompilerConfigurationKey<List<Boolean>>("enableFirDiagnostics")
+val STUBS_ALLOW_CLASS_INHERITANCE = CompilerConfigurationKey<List<Boolean>>("stubs.allowClassInheritance")
+val STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION = CompilerConfigurationKey<List<Boolean>>("stubs.allowConcreteClassInstantiation")
 
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {
@@ -57,6 +59,20 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             description = "Enables FIR diagnostics if raised.",
             required = false,
             allowMultipleOccurrences = false
+        ),
+        CliOption(
+            optionName = STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION.toString(),
+            valueDescription = "Boolean",
+            description = "Allows Mokkery to instantiate existing classes required for mocked class constructor.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
+        CliOption(
+            optionName = STUBS_ALLOW_CLASS_INHERITANCE.toString(),
+            valueDescription = "Boolean",
+            description = "Allows Mokkery to inherit from existing classes when required for mocked class constructor.",
+            required = false,
+            allowMultipleOccurrences = false,
         )
     )
 
@@ -67,6 +83,8 @@ class MokkeryCommandLineProcessor : CommandLineProcessor {
             IGNORE_INLINE_MEMBERS.toString() -> configuration.add(IGNORE_INLINE_MEMBERS, value.toBoolean())
             IGNORE_FINAL_MEMBERS.toString() -> configuration.add(IGNORE_FINAL_MEMBERS, value.toBoolean())
             ENABLE_FIR_DIAGNOSTICS.toString() -> configuration.add(ENABLE_FIR_DIAGNOSTICS, value.toBoolean())
+            STUBS_ALLOW_CLASS_INHERITANCE.toString() -> configuration.add(STUBS_ALLOW_CLASS_INHERITANCE, value.toBoolean())
+            STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION.toString() -> configuration.add(STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION, value.toBoolean())
             else -> error("Unknown config option: $option")
         }
     }

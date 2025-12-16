@@ -1,10 +1,11 @@
 package dev.mokkery.plugin.diagnostics
 
 import dev.mokkery.plugin.core.Mokkery
-import dev.mokkery.plugin.fir.KtDiagnosticsContainerCompat
 import dev.mokkery.plugin.fir.isTemplatingFunction
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error0
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
@@ -45,7 +46,7 @@ class TemplatingDeclarationChecker(
                     it.isSubpackageOf(Mokkery.dev_mokkery_internal_templating)
         }
 
-    object Diagnostics : KtDiagnosticsContainerCompat() {
+    object Diagnostics : KtDiagnosticsContainer() {
 
         override fun getRendererFactory() = TemplatingDeclarationDiagnosticRendererFactory()
 

@@ -45,5 +45,5 @@ private class RecursiveContextCallInterceptor(
         return interceptors[index].intercept(scope.withContext(next))
     }
 
-    override fun toString(): String = "RecursiveMockInterceptor(index=$index)"
+    override fun toString(): String = "ContextCallInterceptor(index=$index)"
 }

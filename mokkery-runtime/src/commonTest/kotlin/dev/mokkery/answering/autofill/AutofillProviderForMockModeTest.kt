@@ -86,8 +86,8 @@ class AutofillProviderForMockModeTest {
         assertEquals(0, providerForMock.provideValue(Int::class))
         assertEquals("", providerForMock.provideValue(String::class))
         assertEquals(Any::class, providerForMock.provideValue(KClass::class))
-        assertContentEquals(arrayOf<String?>(null), providerForMock.provideValue(arrayOf("")::class).unsafeCast())
-        assertContentEquals(intArrayOf(0), providerForMock.provideValue(IntArray::class).unsafeCast())
+        assertContentEquals(arrayOf<String?>(), providerForMock.provideValue(arrayOf("")::class).unsafeCast())
+        assertContentEquals(intArrayOf(), providerForMock.provideValue(IntArray::class).unsafeCast())
         assertFailsWith<DefaultNothingException> { providerForMock.provideValue(Nothing::class) }
     }
 }

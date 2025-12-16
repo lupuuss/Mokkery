@@ -2,7 +2,7 @@
 
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
-
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("jvm")
@@ -17,6 +17,7 @@ dependencies {
 
 kotlin {
     explicitApi()
+    setKotlinCompatibility(KotlinVersion.KOTLIN_2_2)
     sourceSets.all {
         languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
     }
@@ -43,9 +44,6 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
                 ":mokkery-runtime",
                 ":mokkery-coroutines"
             ).forEach {
-                if (it == ":mokkery-runtime") {
-                    dependsOnPublishPublicationToMavenLocalOf(it, "AndroidRelease")
-                }
                 dependsOnPublishPublicationToMavenLocalOf(it, "KotlinMultiplatform")
                 dependsOnPublishPublicationToMavenLocalOf(it, "Jvm")
                 dependsOnPublishPublicationToMavenLocalOf(it, "WasmJs")

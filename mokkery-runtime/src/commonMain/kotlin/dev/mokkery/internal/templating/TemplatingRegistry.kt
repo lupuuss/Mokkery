@@ -103,5 +103,5 @@ private class TemplatingRegistryImpl : TemplatingRegistry {
         )
     }
 
-    override fun toString(): String = "TemplatingRegistry(${templates})"
+    override fun toString(): String = "TemplatingRegistry(templates=${templates})"
 }

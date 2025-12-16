@@ -94,7 +94,7 @@ class MockManyCreationDiagnosticsTest {
                 mockMany<AbstractClass, AutoCloseable>()
             }
             """.trimIndent()
-        ).assertSingleError("Type 'AbstractClass' has no public constructor and cannot be used with 'mockMany'.")
+        ).assertSingleError("Type 'AbstractClass' has no public or internal constructor and cannot be used with 'mockMany'.")
     }
 
     @Test

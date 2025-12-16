@@ -10,7 +10,7 @@ import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
-import dev.mokkery.plugin.ir.irDelegatingDefaultConstructorOrAny
+import dev.mokkery.plugin.ir.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
@@ -66,6 +66,7 @@ private fun TransformerScope.buildDefaultsExtractorOrNull(
     val defaultsExtractorClass = pluginContext.irFactory
         .buildClass { name = Name.identifier("DE${className.asString()}") }
     classesToIntercept.forEach(defaultsExtractorClass::copyTypeParametersFrom)
+    currentFileValue.addChild(defaultsExtractorClass)
     defaultsExtractorClass.createThisReceiverParameter()
     defaultsExtractorClass.origin = Mokkery.Origin
     val parameterMap = classesToIntercept.createParametersMapTo(defaultsExtractorClass)
@@ -103,7 +104,6 @@ private fun TransformerScope.buildDefaultsExtractorOrNull(
                 setterBlock = { +irCall(methodWithoutDefaultFunction) }
             )
         }
-    currentFileValue.addChild(defaultsExtractorClass)
     return defaultsExtractorClass
 }
 
@@ -139,7 +139,7 @@ private fun IrClass.addDefaultsExtractorConstructor(
         isPrimary = true
     }.apply {
         body = DeclarationIrBuilder(transformer.pluginContext, symbol).irBlockBody {
-            +irDelegatingDefaultConstructorOrAny(transformer, classesToIntercept.firstOrNull { it.isClass })
+            +irDelegatingConstructorWithStubs(transformer, classesToIntercept.firstOrNull { it.isClass })
         }
     }
 }

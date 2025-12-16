@@ -114,5 +114,5 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         }
     }
 
-    override fun toString(): String = "AnsweringRegistry@${hashCode()}"
+    override fun toString(): String = "AnsweringRegistry(answers=$answers)"
 }

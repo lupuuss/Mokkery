@@ -2,10 +2,10 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.matcher.ArgMatcher
 
-internal data class DefaultValueMatcher(
+internal data class DefaultValuesMatcher(
     val mask: Long,
-    val caller: Function<Nothing>,
-    val isSuspend: Boolean,
+    val extractingFunction: Function<Nothing>,
+    val isExtractingFunctionSuspend: Boolean,
 ) : ArgMatcher<Any?> {
 
     override fun matches(arg: Any?): Boolean = false

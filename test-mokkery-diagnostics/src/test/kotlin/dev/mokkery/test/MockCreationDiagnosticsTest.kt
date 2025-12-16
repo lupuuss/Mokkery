@@ -92,7 +92,7 @@ class MockCreationDiagnosticsTest {
                 mock<AbstractClass>()
             }
             """.trimIndent()
-        ).assertSingleError("Type 'AbstractClass' has no public constructor and cannot be used with 'mock'.")
+        ).assertSingleError("Type 'AbstractClass' has no public or internal constructor and cannot be used with 'mock'.")
     }
 
 }

@@ -7,7 +7,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
@@ -232,9 +231,13 @@ class ArgMatchersTest {
 
     @Test
     fun testNotMatcher() {
-        every { mock.callComplex(not(ref(ComplexType))) } returns ComplexType
-        assertEquals(ComplexType, mock.callComplex(mock()))
-        assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ComplexType) }
+        val c1 = ComplexType("1")
+        val c2 = ComplexType("2")
+        every { mock.callComplex(not(ref(c1))) } returns c2
+        every { mock.callComplex(not(ref(c1), ref(c2))) } returns ComplexType
+        assertEquals(c2, mock.callComplex(c2))
+        assertEquals(ComplexType, mock.callComplex(ComplexType))
+        assertFailsWith<MokkeryRuntimeException> { mock.callComplex(c1) }
     }
 
     @Test
@@ -509,6 +512,7 @@ private fun <T> eqContextScope(value: T): T = scope.matches { it == value }
 context(scope: MokkeryMatcherScope)
 private inline infix fun <reified T> @receiver:Matcher T.orr(@Matcher other: T): T = scope.or(this, other)
 
+@Suppress("UnusedReceiverParameter")
 private fun MokkeryMatcherScope.regularValueMatcher(): Int = 1
 
 private fun MokkeryMatcherScope.anyOrEq(
@@ -523,4 +527,4 @@ private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsA
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
 
 @Suppress("DEPRECATION")
-private fun <T> ArgMatchersScope.deprecatedEq(value: T) = matches<T> { it == value }
+private fun <T> dev.mokkery.matcher.ArgMatchersScope.deprecatedEq(value: T) = matches<T> { it == value }

@@ -8,7 +8,7 @@ import dev.mokkery.matcher.matches
  */
 public fun <T> MokkeryMatcherScope.isIn(
     vararg values: T
-): T = matches(CollectionArgMatchers.ValueInIterable(values.toList()))
+): T = matches(CollectionArgMatchers.ValueInIterable(values.asList()))
 
 /**
  * Matches argument that is present in [values].
@@ -23,7 +23,7 @@ public fun <T> MokkeryMatcherScope.isIn(
  */
 public fun <T> MokkeryMatcherScope.isNotIn(
     vararg values: T
-): T = matches(CollectionArgMatchers.ValueNotInIterable(values.toList()))
+): T = matches(CollectionArgMatchers.ValueNotInIterable(values.asList()))
 
 /**
  * Matches argument that is not present in [values].

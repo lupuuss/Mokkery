@@ -1,10 +1,13 @@
 package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.core.Kotlin
-import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
+import dev.mokkery.plugin.core.stubsConfig
+import dev.mokkery.plugin.stubs.StubStrategy
+import dev.mokkery.plugin.stubs.StubStrategyScope
+import dev.mokkery.plugin.stubs.provideConstructorWithStubs
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
@@ -31,6 +34,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
@@ -54,14 +58,15 @@ import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.BodyPrintingStrategy
+import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
+import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
 import org.jetbrains.kotlin.ir.util.isVararg
-import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
@@ -85,10 +90,12 @@ fun IrBuilder.irGetEnumEntry(
 )
 
 fun IrBuilder.irCallConstructor(
-    constructor: IrConstructor
-) = irCallConstructor(callee = constructor.symbol, typeArguments = emptyList())
+    constructor: IrConstructor,
+    typeArguments: List<IrType> = emptyList(),
+    block: IrConstructorCall.() -> Unit = { }
+) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments).apply { block() }
 
-fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
+fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
     transformer: TransformerScope,
     irClass: IrClass?
 ): IrDelegatingConstructorCall {
@@ -97,21 +104,33 @@ fun IrBlockBodyBuilder.irDelegatingDefaultConstructorOrAny(
         irClass == null -> irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.primaryConstructor!!)
         defaultConstructor != null -> irDelegatingConstructorCall(defaultConstructor)
         else -> {
-            val autofillFun = transformer.getFunction(Mokkery.Function.autofillConstructor)
-            val constructor = irClass.primaryConstructor
-                ?: irClass.constructors.firstOrNull()
-                ?: error("No constructor found for ${irClass.kotlinFqName.asString()}!")
-            irDelegatingConstructorCall(constructor).apply {
-                constructor.parameters.forEach {
-                    arguments[it] = irCall(autofillFun) {
-                        type = it.type
-                        typeArguments[0] = it.type
-                        arguments[0] = kClassReference(it.type.eraseTypeParameters())
-                    }
-                }
+            val provider = StubStrategy.default(transformer.compilerConfig.stubsConfig)
+            val scope = StubStrategyScope(
+                strategy = provider,
+                compilerConfig = transformer.compilerConfig,
+                pluginContext = transformer.pluginContext,
+                builder = this
+            )
+            context(scope) {
+                irDelegatingConstructorWithStubs(
+                    provider.provideConstructorWithStubs(irClass) ?: failedToProvideStubsError(irClass)
+                )
             }
         }
     }
+}
+
+private fun failedToProvideStubsError(irClass: IrClass): Nothing {
+    val dumpOptions = KotlinLikeDumpOptions(bodyPrintingStrategy = BodyPrintingStrategy.NO_BODIES)
+    val constructorsDump = irClass
+        .constructors
+        .joinToString {
+            it.dumpKotlinLike(options = dumpOptions)
+                .removeSuffix("\n")
+        }
+    error("Failed to mock `${irClass.name.asString()}`. " +
+            "Mokkery is unable to supply all required arguments for any declared constructor: $constructorsDump")
+
 }
 
 fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
@@ -209,13 +228,6 @@ fun IrBuilder.irCall(
     origin = origin,
     superQualifierSymbol = superQualifierSymbol
 ).apply(block)
-
-inline fun IrBuilder.irCallConstructor(
-    constructor: IrConstructor,
-    block: IrFunctionAccessExpression.() -> Unit
-): IrFunctionAccessExpression {
-    return irCallConstructor(constructor).apply(block)
-}
 
 fun IrBuilder.irSetPropertyField(
     thisParam: IrValueParameter,

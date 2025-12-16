@@ -104,22 +104,10 @@ private val buildFileContent = $$"""
     import org.jetbrains.kotlin.konan.target.HostManager
     import org.jetbrains.kotlin.konan.target.KonanTarget
 
-    buildscript {
-        dependencies {
-            classpath("com.android.tools.build:gradle:8.11.0")
-        }
-    }
-
     plugins {
         kotlin("multiplatform")
         id("dev.mokkery")
         id("org.jetbrains.kotlin.plugin.allopen")
-        id("com.android.library") version "8.11.0"
-    }
-
-    android {
-        namespace = "dev.mokkery.test"
-        compileSdk = 36
     }
 
     allOpen {
@@ -129,6 +117,8 @@ private val buildFileContent = $$"""
     mokkery {
         ignoreFinalMembers = true
         rule = ApplicationRule.All
+        stubs.allowConcreteClassInstantiation = true
+        stubs.allowClassInheritance = true
     }
 
     kotlin {
@@ -140,7 +130,6 @@ private val buildFileContent = $$"""
             }
         }
         
-        androidTarget()
         jvm()
         js(IR) { nodejs() }
         wasmJs { nodejs() }

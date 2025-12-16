@@ -28,5 +28,5 @@ internal fun ContextInstantiationListener(
         it.onInstantiation(scope, mock)
     }
 
-    override fun toString(): String = "ContextInstantiationListener@${hashCode()}"
+    override fun toString(): String = "ContextInstantiationListener(listeners=$listeners)"
 }

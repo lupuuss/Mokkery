@@ -47,14 +47,26 @@ public object LogicalMatchers {
      */
     @DelicateMokkeryApi
     @Poko
-    public class Not<T>(public val matcher: ArgMatcher<T>) : ArgMatcher.Composite<T> {
+    public class Not<T>(public val matchers: List<ArgMatcher<T>>) : ArgMatcher.Composite<T> {
 
-        override fun matches(arg: T): Boolean = matcher.matches(arg).not()
+        @Deprecated(
+            "This field should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
+            ReplaceWith("matchers[0]")
+        )
+        public val matcher: ArgMatcher<T> get() = matchers[0]
 
-        override fun toString(): String = "not($matcher)"
+        @Deprecated(
+            "This field should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
+            ReplaceWith("Not(listOf<_>(matcher))")
+        )
+        public constructor(matcher: ArgMatcher<T>) : this(listOf(matcher))
+
+        override fun matches(arg: T): Boolean = matchers.none { it.matches(arg) }
+
+        override fun toString(): String = "not(${matchers.joinToString()}j)"
 
         override fun capture(value: T) {
-            matcher.propagateCapture(value)
+            matchers.propagateCapture(value)
         }
     }
 }

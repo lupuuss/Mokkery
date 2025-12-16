@@ -93,7 +93,7 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
         override fun close() = verifiedTracesLock.unlock()
     }
 
-    override fun toString(): String = "CallTracingRegistry@${hashCode()}"
+    override fun toString(): String = "CallTracingRegistry(all=$all)"
 }
 
 private class CompositeSessionImpl(

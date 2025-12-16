@@ -6,6 +6,8 @@ import dev.mokkery.plugin.ir.functionId
 object Kotlin {
 
     val kotlin_collections by fqName
+    val kotlin_ranges by fqName
+    val kotlin_sequences by fqName
     val kotlin by fqName
     object Name {
 

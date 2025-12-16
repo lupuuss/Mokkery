@@ -18,7 +18,7 @@ internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.E
     return object : MokkeryBlockingCallScope {
         override val mokkeryContext = context
 
-        override fun toString(): String = "MokkeryBlockingCallScope($context)"
+        override fun toString(): String = "MokkeryBlockingCallScope(mokkeryContext=$context)"
     }
 }
 
@@ -26,7 +26,7 @@ internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Em
     return object : MokkerySuspendCallScope {
         override val mokkeryContext = context
 
-        override fun toString(): String = "MokkerySuspendCallScope($context)"
+        override fun toString(): String = "MokkerySuspendCallScope(mokkeryContext=$context)"
     }
 }
 

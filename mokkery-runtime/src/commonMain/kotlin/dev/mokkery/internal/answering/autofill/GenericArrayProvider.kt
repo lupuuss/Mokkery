@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 internal object GenericArrayProvider : AutofillProvider<Array<*>> {
 
     override fun provide(type: KClass<*>): AutofillProvider.Value<Array<*>> = when {
-        type.isArray() -> platformArrayOf(type, listOf(null)).asAutofillProvided()
+        type.isArray() -> platformArrayOf(type, listOf()).asAutofillProvided()
         else -> AutofillProvider.Value.Absent
     }
 }

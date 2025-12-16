@@ -3,6 +3,7 @@ package dev.mokkery.gradle
 import dev.mokkery.MockMode
 import dev.mokkery.verify.VerifyMode
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
 
 public interface MokkeryGradleExtension {
     /**
@@ -51,4 +52,54 @@ public interface MokkeryGradleExtension {
      * be used in case of a false-positives that prevents correct Mokkery code from being compiled.
      */
     public val enableFirDiagnostics: Property<Boolean>
+
+    /**
+     * Allows adjusting Mokkery stubbing mechanism.
+     *
+     * @see [MokkeryStubsOptions]
+     */
+    @get:Nested
+    public val stubs: MokkeryStubsOptions
+}
+
+/**
+ * When mocking an abstract or open class, its constructor may require arguments.
+ * Since Mokkery must invoke this constructor, all required parameters must be provided.
+ *
+ * Mokkery uses the following strategies to supply constructor arguments:
+ * * `null` for nullable types
+ * * `0` for all numeric types
+ * * `false` for `Boolean`
+ * * `'\u0000'` for `Char`
+ * * `Any()` for `Any`
+ * * A `kotlin.reflect.KClass` instance matching the required type
+ *   (e.g. `Int::class` for `KClass<Int>`)
+ * * The `Unit` object for `Unit`
+ * * Empty arrays for all array types
+ * * Empty collections for `Iterable`, `Collection`, `List`, `Set`, `Map`, and their mutable counterparts
+ * * The first declared entry for enum types
+ * * Lambdas that return values resolved using the same strategies
+ * * Generated stub implementations for interfaces
+ * * Instantiating concrete classes using available constructors, following the same rules.
+ *   By default, this works only for inline classes, `Throwable` subclasses, and classes from `kotlin.collections`, `kotlin.sequences`, and `kotlin.ranges`.
+ *   **For other types, explicit permission is required because invoking constructors may execute unintended code during tests.**
+ *   Public and internal constructors are supported, with default constructors preferred.
+ *   Enable this behavior in your Gradle build file using the `mokkery.stubs.allowConcreteClassInstantiation` flag.
+ * * Generating stub implementations for classes.
+ *   **This requires explicit permission for the same reason as concrete classes instantiation.**
+ *   Enable this behavior in your Gradle build file using `mokkery.stubs.allowClassInheritance` flag.
+ *
+ * Mokkery selects the first applicable strategy based on the order listed above.
+ */
+public interface MokkeryStubsOptions {
+
+    /**
+     * @see [MokkeryStubsOptions]
+     */
+    public val allowConcreteClassInstantiation: Property<Boolean>
+
+    /**
+     * @see [MokkeryStubsOptions]
+     */
+    public val allowClassInheritance: Property<Boolean>
 }

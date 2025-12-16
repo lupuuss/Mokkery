@@ -51,8 +51,8 @@ class AutofillProviderForInternalsTest {
         assertEquals(0, provider.provideValue(Int::class))
         assertEquals("", provider.provideValue(String::class))
         assertEquals(Any::class, provider.provideValue(KClass::class))
-        assertContentEquals(arrayOf<String?>(null), provider.provideValue(arrayOf("")::class).unsafeCast())
-        assertContentEquals(intArrayOf(0), provider.provideValue(IntArray::class).unsafeCast())
+        assertContentEquals(arrayOf<String?>(), provider.provideValue(arrayOf("")::class).unsafeCast())
+        assertContentEquals(intArrayOf(), provider.provideValue(IntArray::class).unsafeCast())
         assertFailsWith<DefaultNothingException> { provider.provideValue(Nothing::class) }
     }
 }
