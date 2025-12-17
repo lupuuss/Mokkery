@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.isSubtypeOfThrowable
 import org.jetbrains.kotlin.fir.declarations.constructors
+import org.jetbrains.kotlin.fir.declarations.utils.isEnumClass
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isInlineOrValue
@@ -297,7 +298,6 @@ class MocksCreationChecker(
         val cls = type
             .toRegularClassSymbol()
             ?: return listOf(type to StubError.NoAccessibleConstructors)
-        if (cls.isInlineOrValue) return emptyList()
         val constructors = cls
             .constructors(context.session)
             .filter { it.isAccessible() }
@@ -339,7 +339,8 @@ class MocksCreationChecker(
                 || isSomeFunctionType(context.session)
                 || toRegularClassSymbol()?.let { cls ->
                     val fqName = cls.packageFqName()
-                    cls.isInterface()
+                    cls.isRegularInterface()
+                            || cls.isEnumClass
                             || cls.isInlineClass()
                             || fqName.isSubpackageOf(Kotlin.kotlin_collections)
                             || fqName.isSubpackageOf(Kotlin.kotlin_ranges)
@@ -349,7 +350,7 @@ class MocksCreationChecker(
 
     }
 
-    private fun FirRegularClassSymbol?.isInterface(): Boolean = this?.classKind == ClassKind.INTERFACE && !this.isSealed
+    private fun FirRegularClassSymbol?.isRegularInterface(): Boolean = this?.classKind == ClassKind.INTERFACE && !this.isSealed
 
     private fun FirRegularClassSymbol?.isInlineClass(): Boolean = this?.isInlineOrValue == true
 
