@@ -28,10 +28,10 @@ internal class ExhaustiveSoftVerifierErrorRenderer(
 
     companion object {
 
-        fun factory(
+        fun lazy(
             nameShortener: NameShortener,
             collection: MokkeryCollection
-        ) = verifyRendererFactory(nameShortener, collection) {
+        ) = lazyVerifyRenderer(nameShortener, collection) {
             ExhaustiveSoftVerifierErrorRenderer(
                 templateRenderer = callTemplateAliasRenderer,
                 matchingResultsRenderer = templateGroupedMatchingResultsRenderer,

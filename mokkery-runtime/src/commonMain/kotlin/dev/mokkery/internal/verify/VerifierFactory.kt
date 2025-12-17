@@ -36,26 +36,26 @@ private class VerifierFactoryImpl(
             OrderVerifyMode -> OrderVerifier(
                 callMatcher = callMatcher,
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
-                errorRendererFactory = OrderVerifierErrorRenderer.factory(namesShortener, collection)
+                errorRenderer = OrderVerifierErrorRenderer.lazy(namesShortener, collection)
             )
             ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier(
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
                 callMatcher = callMatcher,
-                errorRendererFactory = ExhaustiveOrderVerifierErrorRenderer.factory(namesShortener, collection)
+                errorRenderer = ExhaustiveOrderVerifierErrorRenderer.lazy(namesShortener, collection)
             )
             ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier(
                 callMatcher = callMatcher,
-                errorRendererFactory = ExhaustiveSoftVerifierErrorRenderer.factory(namesShortener, collection)
+                errorRenderer = ExhaustiveSoftVerifierErrorRenderer.lazy(namesShortener, collection)
             )
             NotVerifyMode -> NotVerifier(
                 callMatcher = callMatcher,
-                errorRendererFactory = NotVerifierErrorRenderer.factory(namesShortener, collection)
+                errorRenderer = NotVerifierErrorRenderer.lazy(namesShortener, collection)
             )
             is SoftVerifyMode -> SoftVerifier(
                 atLeast = mode.atLeast,
                 atMost = mode.atMost,
                 callMatcher = callMatcher,
-                errorRendererFactory = SoftVerifierErrorRenderer.factory(namesShortener, collection)
+                errorRenderer = SoftVerifierErrorRenderer.lazy(namesShortener, collection)
             )
         }
     }

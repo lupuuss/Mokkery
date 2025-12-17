@@ -32,7 +32,7 @@ class SoftVerifierTest {
         atLeast = 1,
         atMost = 2,
         callMatcher = callMatcher,
-        errorRendererFactory = ::testRenderer
+        errorRenderer = testRenderer
     )
 
     @Test

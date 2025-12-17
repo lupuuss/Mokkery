@@ -20,10 +20,10 @@ internal class NotVerifierErrorRenderer(
 
     companion object {
 
-        fun factory(
+        fun lazy(
             nameShortener: NameShortener,
             collection: MokkeryCollection
-        ) = verifyRendererFactory(nameShortener, collection) {
+        ) = lazyVerifyRenderer(nameShortener, collection) {
             NotVerifierErrorRenderer(
                 templateRenderer = callTemplateAliasRenderer,
                 traceListRenderer = Renderers.points(item = callTraceAliasRenderer)

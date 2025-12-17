@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.render.RendererFactory
+import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
@@ -11,7 +11,7 @@ internal class SoftVerifier(
     private val atLeast: Int,
     private val atMost: Int,
     private val callMatcher: CallMatcher,
-    private val errorRendererFactory: RendererFactory<Error>,
+    private val errorRenderer: Renderer<Error>,
 ) : Verifier {
 
     override fun verify(
@@ -28,7 +28,7 @@ internal class SoftVerifier(
                     calls = callTraces.groupBy { callMatcher.match(it, template) }
                 )
             )
-            throw AssertionError(errorRendererFactory.create().render(error))
+            throw AssertionError(errorRenderer.render(error))
         }
         matching
     }

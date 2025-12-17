@@ -2,14 +2,14 @@ package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.render.RendererFactory
+import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 
 internal class ExhaustiveSoftVerifier(
     private val callMatcher: CallMatcher,
-    private val errorRendererFactory: RendererFactory<Error>
+    private val errorRenderer: Renderer<Error>
 ) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
@@ -27,7 +27,7 @@ internal class ExhaustiveSoftVerifier(
         return callTraces
     }
 
-    private fun fail(error: Error): Nothing = throw AssertionError(errorRendererFactory.create().render(error))
+    private fun fail(error: Error): Nothing = throw AssertionError(errorRenderer.render(error))
 
     sealed class Error {
         data class NoMatch(val templateMatchingResults: TemplateGroupedMatchingResults) : Error()

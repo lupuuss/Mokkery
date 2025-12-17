@@ -20,6 +20,10 @@ class StubsTest {
     }
 }
 
+private enum class EnumToStub {
+    A, B, C
+}
+
 @Suppress("ArrayInDataClass")
 private data class DataClassToStub<T : Number>(
     val short: Short,
@@ -50,6 +54,7 @@ private data class DataClassToStub<T : Number>(
     val range: IntRange,
     val throwable: Throwable,
     val sequence: Sequence<T>,
+    val enumToStub: EnumToStub,
 ) {
     init {
         func(1)

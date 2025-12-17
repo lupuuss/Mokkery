@@ -7,14 +7,13 @@ import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.withShorterNames
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.RendererFactory
 import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 
-internal interface VerifyRendererFactoryScope {
+internal interface LazyVerifyRendererScope {
 
     val callTraceAliasRenderer: Renderer<CallTrace>
 
@@ -29,26 +28,25 @@ internal interface VerifyRendererFactoryScope {
     fun <T> pointsRenderer(item: Renderer<T>): Renderer<List<T>>
 }
 
-internal inline fun <T> verifyRendererFactory(
+internal inline fun <T> lazyVerifyRenderer(
     nameShortener: NameShortener,
     collection: MokkeryCollection,
-    crossinline block: VerifyRendererFactoryScope.() -> Renderer<T>
-): RendererFactory<T> = RendererFactory {
-    block(VerifyRendererFactoryScope(nameShortener, collection))
+    crossinline block: LazyVerifyRendererScope.() -> Renderer<T>
+): Renderer<T> = Renderer {
+    block(LazyVerifyRendererScope(nameShortener, collection))
+        .render(it)
 }
 
 
-internal fun VerifyRendererFactoryScope(
+internal fun LazyVerifyRendererScope(
     nameShortener: NameShortener,
     collection: MokkeryCollection,
-): VerifyRendererFactoryScope {
-    return VerifyRendererFactoryScopeImpl(nameShortener, collection)
-}
+): LazyVerifyRendererScope = LazyVerifyRendererScopeImpl(nameShortener, collection)
 
-private class VerifyRendererFactoryScopeImpl(
+private class LazyVerifyRendererScopeImpl(
     private val nameShortener: NameShortener,
     private val collection: MokkeryCollection,
-) : VerifyRendererFactoryScope {
+) : LazyVerifyRendererScope {
 
     // this way of lazy initialization is more performant than lazy delegate
 

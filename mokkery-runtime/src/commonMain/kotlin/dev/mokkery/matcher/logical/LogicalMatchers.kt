@@ -56,7 +56,7 @@ public object LogicalMatchers {
         public val matcher: ArgMatcher<T> get() = matchers[0]
 
         @Deprecated(
-            "This field should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
+            "This constructor should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
             ReplaceWith("Not(listOf<_>(matcher))")
         )
         public constructor(matcher: ArgMatcher<T>) : this(listOf(matcher))
