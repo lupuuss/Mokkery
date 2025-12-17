@@ -37,10 +37,10 @@ internal class SoftVerifierErrorRenderer(
 
     companion object {
 
-        fun factory(
+        fun lazy(
             nameShortener: NameShortener,
             collection: MokkeryCollection
-        ) = verifyRendererFactory(nameShortener, collection) {
+        ) = lazyVerifyRenderer(nameShortener, collection) {
             SoftVerifierErrorRenderer(
                 templateRenderer = callTemplateAliasRenderer,
                 matchingResultsRenderer = templateGroupedMatchingResultsRenderer

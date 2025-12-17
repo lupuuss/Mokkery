@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.matcher.isNotMatching
-import dev.mokkery.internal.render.RendererFactory
+import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
@@ -11,7 +11,7 @@ import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
 internal class ExhaustiveOrderVerifier(
     private val callMatcher: CallMatcher,
     private val resultsComposer: TemplateMatchingResultsComposer,
-    private val errorRendererFactory: RendererFactory<Error>,
+    private val errorRenderer: Renderer<Error>,
 ) : Verifier {
 
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): List<CallTrace> {
@@ -25,7 +25,7 @@ internal class ExhaustiveOrderVerifier(
 
     private fun fail(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): Nothing {
         val error = Error(resultsComposer.compose(callTraces, callTemplates))
-        throw AssertionError(errorRendererFactory.create().render(error))
+        throw AssertionError(errorRenderer.render(error))
     }
 
 

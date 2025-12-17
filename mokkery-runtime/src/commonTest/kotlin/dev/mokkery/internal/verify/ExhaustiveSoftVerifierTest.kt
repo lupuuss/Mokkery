@@ -25,7 +25,7 @@ class ExhaustiveSoftVerifierTest {
         }
     }
     private val testRenderer = TestRenderer<ExhaustiveSoftVerifier.Error> { "RENDERED_ERROR" }
-    private val verifier = ExhaustiveSoftVerifier(callMatcher = callMatcher, errorRendererFactory = ::testRenderer)
+    private val verifier = ExhaustiveSoftVerifier(callMatcher = callMatcher, errorRenderer = testRenderer)
 
     @Test
     fun testSuccessWhenAllCallsMatch() {

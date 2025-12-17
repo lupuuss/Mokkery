@@ -79,8 +79,7 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
         sessions.forEach { (id, session) ->
             if (session.unverified.isNotEmpty()) {
                 val message = NoMoreCallsErrorRenderer
-                    .factory(tools.namesShortener, collection)
-                    .create()
+                    .lazy(tools.namesShortener, collection)
                     .render(id to unverified)
                 throw AssertionError(message)
             }

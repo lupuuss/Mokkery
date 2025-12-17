@@ -33,7 +33,7 @@ class ExhaustiveOrderVerifierTest {
     private val verifier = ExhaustiveOrderVerifier(
         callMatcher = callMatcher,
         resultsComposer = resultsTestComposer,
-        errorRendererFactory = ::testRenderer
+        errorRenderer = testRenderer
     )
 
     @Test

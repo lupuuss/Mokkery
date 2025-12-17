@@ -28,7 +28,7 @@ class NotVerifierTest {
         }
     }
     private val testRenderer = TestRenderer<NotVerifier.Error> { "RENDERED_ERROR" }
-    private val verifier = NotVerifier(callMatcher = callMatcher, errorRendererFactory = ::testRenderer)
+    private val verifier = NotVerifier(callMatcher = callMatcher, errorRenderer = testRenderer)
 
     @Test
     fun testFailsWhenMultipleCallsMatch() {

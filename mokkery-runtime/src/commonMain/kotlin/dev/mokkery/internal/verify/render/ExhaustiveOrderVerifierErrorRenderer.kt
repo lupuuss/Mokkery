@@ -17,10 +17,10 @@ internal class ExhaustiveOrderVerifierErrorRenderer(
 
     companion object {
 
-        fun factory(
+        fun lazy(
             nameShortener: NameShortener,
             collection: MokkeryCollection
-        ) = verifyRendererFactory(nameShortener, collection) {
+        ) = lazyVerifyRenderer(nameShortener, collection) {
             ExhaustiveOrderVerifierErrorRenderer(matchingResultsRenderer = templateMatchingResultsRenderer)
         }
     }

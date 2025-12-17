@@ -31,7 +31,7 @@ class OrderVerifierTest {
     private val verifier = OrderVerifier(
         callMatcher = callMatcher,
         resultsComposer = resultsTestComposer,
-        errorRendererFactory = ::testRenderer
+        errorRenderer = testRenderer
     )
 
     @Test
