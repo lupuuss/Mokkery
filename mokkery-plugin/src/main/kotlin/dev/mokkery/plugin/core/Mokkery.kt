@@ -24,6 +24,7 @@ object Mokkery {
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName
     val dev_mokkery_internal_defaults by fqName
+    val dev_mokkery_internal_utils by fqName
 
     object Class {
 
@@ -86,6 +87,7 @@ object Mokkery {
         val matches by dev_mokkery_matcher.function { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.function
         val spread by dev_mokkery_internal_matcher.function
+        val mokkeryRuntimeError by dev_mokkery_internal_utils.function
     }
 
     object Property {

@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.core.Mokkery
 import dev.mokkery.plugin.stubs.Stub
 import dev.mokkery.plugin.stubs.StubStrategyScope
 import dev.mokkery.plugin.stubs.with
@@ -62,12 +63,8 @@ fun IrBlockBodyBuilder.stubFunctionBody(func: IrSimpleFunction) {
 
 
 context(scope: StubStrategyScope)
-private fun IrBlockBodyBuilder.irCallError(message: String): IrCall {
-    val errorFun = scope
-        .plugin
-        .referenceKotlinFunctions("error")
-        .first()
-    return irCall(errorFun) {
-        arguments[0] = irString(message)
-    }
+private fun IrBlockBodyBuilder.irCallError(
+    message: String
+): IrCall = irCall(Mokkery.Function.mokkeryRuntimeError.resolve(scope.plugin)) {
+    arguments[0] = irString(message)
 }
