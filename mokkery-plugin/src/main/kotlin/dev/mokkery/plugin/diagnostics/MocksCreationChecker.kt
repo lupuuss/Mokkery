@@ -306,10 +306,14 @@ class MocksCreationChecker(
             ctor.valueParameterSymbols.flatMap { param -> param.collectStubErrors(typesStack + type) }
         }
         if (problems.isNotEmpty()) return problems
-        if (!stubsConfig.allowConcreteClassInstantiation && cls.isInstantiableClass(typesStack)) {
+        val isInstantiable = cls.isInstantiableClass(typesStack)
+        val isOverridable = cls.isOverridableClass(typesStack)
+        if (stubsConfig.allowConcreteClassInstantiation && isInstantiable) return emptyList()
+        if (stubsConfig.allowClassInheritance && isOverridable) return emptyList()
+        if (!stubsConfig.allowConcreteClassInstantiation && isInstantiable) {
             return listOf(type to StubError.ClassInstantiationNeedsOptIn)
         }
-        if (!stubsConfig.allowClassInheritance && cls.isOverridableClass(typesStack)) {
+        if (!stubsConfig.allowClassInheritance && isOverridable) {
             return listOf(type to StubError.ClassOverrideNeedsOptIn)
         }
         return emptyList()
