@@ -1,0 +1,11 @@
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(113,155): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.
+
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(157,205): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.
+
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(207,264): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.
+
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(311,314): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.
+
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(360,363): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.
+
+/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt:(420,423): error: Extracting templating to separate functions is currently illegal. Templating must be performed directly inside lambda passed to `every`/`verify`.

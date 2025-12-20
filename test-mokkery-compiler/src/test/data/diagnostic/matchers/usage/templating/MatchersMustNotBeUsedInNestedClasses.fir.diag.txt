@@ -1,0 +1,7 @@
+/MatchersMustNotBeUsedInNestedClasses.kt:(250,260): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'class Bar : Any'.
+
+/MatchersMustNotBeUsedInNestedClasses.kt:(372,382): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.
+
+/MatchersMustNotBeUsedInNestedClasses.kt:(486,496): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'class Bar : Any'.
+
+/MatchersMustNotBeUsedInNestedClasses.kt:(609,619): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.

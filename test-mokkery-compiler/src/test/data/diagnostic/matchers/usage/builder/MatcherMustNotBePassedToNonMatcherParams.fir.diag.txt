@@ -1,0 +1,1 @@
+/MatcherMustNotBePassedToNonMatcherParams.kt:(173,178): error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.

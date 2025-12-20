@@ -1,0 +1,1 @@
+/MatcherMustBeRegularFunction.kt:(93,98): error: Matcher must be a regular function.

@@ -1,0 +1,7 @@
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:(245,250): error: Argument passed to 'every' for param 'block: MokkeryTemplatingScope.() -> T' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:(269,274): error: Argument passed to 'everySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> T' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:(357,362): error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:(390,395): error: Argument passed to 'verifySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> Unit' must be a lambda expression.

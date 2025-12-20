@@ -1,0 +1,3 @@
+/MatchersMustNotBeUsedWithFinalMethods.kt:(218,223): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.
+
+/MatchersMustNotBeUsedWithFinalMethods.kt:(261,266): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.

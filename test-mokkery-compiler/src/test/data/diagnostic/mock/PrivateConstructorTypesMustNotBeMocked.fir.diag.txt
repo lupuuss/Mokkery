@@ -1,0 +1,5 @@
+/PrivateConstructorTypesMustNotBeMocked.kt:(195,198): error: Type 'AbstractClass' has no public or internal constructor and cannot be used with 'spy'.
+
+/PrivateConstructorTypesMustNotBeMocked.kt:(211,224): error: Type 'AbstractClass' has no public or internal constructor and cannot be used with 'mock'.
+
+/PrivateConstructorTypesMustNotBeMocked.kt:(241,254): error: Type 'AbstractClass' has no public or internal constructor and cannot be used with 'mockMany'.

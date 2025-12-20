@@ -1,0 +1,22 @@
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(285,288): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.
+
+
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(301,315): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.
+
+
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(332,346): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.
+
+
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(397,400): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.
+
+
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(413,423): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.
+
+
+/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt:(440,450): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	PrivateConstructor: This class cannot be stubbed. No accessible constructors.

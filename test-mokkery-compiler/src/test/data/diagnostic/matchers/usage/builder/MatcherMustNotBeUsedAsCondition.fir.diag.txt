@@ -1,0 +1,15 @@
+/MatcherMustNotBeUsedAsCondition.kt:(167,174): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(189,203): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(339,346): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(363,377): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(536,543): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(561,575): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(600,607): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(627,641): error: Matcher cannot be used as a condition.

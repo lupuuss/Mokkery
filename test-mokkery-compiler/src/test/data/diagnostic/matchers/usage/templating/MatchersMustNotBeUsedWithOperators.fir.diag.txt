@@ -1,0 +1,23 @@
+/MatchersMustNotBeUsedWithOperators.kt:(252,265): error: Operators cannot be used with matchers, but '::class' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(281,288): error: Operators cannot be used with matchers, but '::class' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(304,317): error: Operators cannot be used with matchers, but '==' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(332,339): error: Operators cannot be used with matchers, but '==' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(354,367): error: Operators cannot be used with matchers, but '===' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(383,390): error: Operators cannot be used with matchers, but '===' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(487,500): error: Operators cannot be used with matchers, but '::class' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(516,523): error: Operators cannot be used with matchers, but '::class' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(539,552): error: Operators cannot be used with matchers, but '==' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(567,574): error: Operators cannot be used with matchers, but '==' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(589,602): error: Operators cannot be used with matchers, but '===' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(618,625): error: Operators cannot be used with matchers, but '===' operator is used.

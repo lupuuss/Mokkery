@@ -1,0 +1,1 @@
+/MatcherMustNotBeReturnedFromTryCatch.kt:(279,348): error: Returning matchers from try/catch is not supported.

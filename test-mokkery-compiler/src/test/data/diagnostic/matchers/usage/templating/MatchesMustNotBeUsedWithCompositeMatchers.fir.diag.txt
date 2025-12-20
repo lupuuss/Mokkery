@@ -1,0 +1,3 @@
+/MatchesMustNotBeUsedWithCompositeMatchers.kt:(484,505): error: `dev.mokkery.matcher.matches` cannot be used with `ArgMatcher.Composite` matchers. To register composite matcher use `dev.mokkery.matcher.matchesComposite`.
+
+/MatchesMustNotBeUsedWithCompositeMatchers.kt:(540,561): error: `dev.mokkery.matcher.matches` cannot be used with `ArgMatcher.Composite` matchers. To register composite matcher use `dev.mokkery.matcher.matchesComposite`.

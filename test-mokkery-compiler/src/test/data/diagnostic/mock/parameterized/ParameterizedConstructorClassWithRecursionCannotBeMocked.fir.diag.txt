@@ -1,0 +1,22 @@
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(385,388): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractRecursion: This class causes an instantiation cycle and its instance cannot be supplied.
+
+
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(401,415): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractRecursion: This class causes an instantiation cycle and its instance cannot be supplied.
+
+
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(432,446): error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractRecursion: This class causes an instantiation cycle and its instance cannot be supplied.
+
+
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(497,500): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	OpenSubNode: This class causes an instantiation cycle and its instance cannot be supplied.
+
+
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(513,523): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	OpenSubNode: This class causes an instantiation cycle and its instance cannot be supplied.
+
+
+/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt:(540,550): error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	OpenSubNode: This class causes an instantiation cycle and its instance cannot be supplied.
