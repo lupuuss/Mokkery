@@ -1,12 +1,12 @@
 package dev.mokkery.plugin
 
-import dev.mokkery.plugin.core.enableFirDiagnostics
-import dev.mokkery.plugin.diagnostics.MatchersDeclarationChecker
-import dev.mokkery.plugin.diagnostics.MatchersUsageReporterVisitor
-import dev.mokkery.plugin.diagnostics.MocksCreationChecker
-import dev.mokkery.plugin.diagnostics.MokkeryFirCheckersExtension
-import dev.mokkery.plugin.diagnostics.TemplatingChecker
-import dev.mokkery.plugin.diagnostics.TemplatingDeclarationChecker
+import dev.mokkery.plugin.ir.transformers.core.enableFirDiagnostics
+import dev.mokkery.plugin.fir.diagnostics.MatchersDeclarationChecker
+import dev.mokkery.plugin.fir.diagnostics.MatchersUsageReporterVisitor
+import dev.mokkery.plugin.fir.diagnostics.MocksCreationChecker
+import dev.mokkery.plugin.fir.diagnostics.MokkeryFirCheckersExtension
+import dev.mokkery.plugin.fir.diagnostics.TemplatingChecker
+import dev.mokkery.plugin.fir.diagnostics.TemplatingDeclarationChecker
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar

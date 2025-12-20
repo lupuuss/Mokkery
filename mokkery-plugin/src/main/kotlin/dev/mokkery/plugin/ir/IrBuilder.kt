@@ -1,14 +1,14 @@
 package dev.mokkery.plugin.ir
 
-import dev.mokkery.plugin.core.Kotlin
-import dev.mokkery.plugin.core.TransformerScope
-import dev.mokkery.plugin.core.getClass
-import dev.mokkery.plugin.core.getFunction
-import dev.mokkery.plugin.core.stubsConfig
-import dev.mokkery.plugin.stubs.ConstructableClassStubStrategy
-import dev.mokkery.plugin.stubs.StubStrategy
-import dev.mokkery.plugin.stubs.StubStrategyScope
-import dev.mokkery.plugin.stubs.provideConstructorWithStubs
+import dev.mokkery.plugin.Kotlin
+import dev.mokkery.plugin.ir.transformers.core.TransformerScope
+import dev.mokkery.plugin.ir.transformers.core.getClass
+import dev.mokkery.plugin.ir.transformers.core.getFunction
+import dev.mokkery.plugin.ir.transformers.core.stubsConfig
+import dev.mokkery.plugin.ir.stubs.ConstructableClassStubStrategy
+import dev.mokkery.plugin.ir.stubs.StubStrategy
+import dev.mokkery.plugin.ir.stubs.StubStrategyScope
+import dev.mokkery.plugin.ir.stubs.provideConstructorWithStubs
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
@@ -276,7 +276,7 @@ fun IrBuilder.irCallMapOf(
         .first { it.owner.parameters.firstOrNull()?.isVararg == true }
     return irCall(mapOf) {
         val varargs = irVararg(
-            elementType = transformer.getClass(Kotlin.Class.Pair).typeWith(keyType, valueType),
+            elementType = transformer.getClass(KotlinIr.Class.Pair).typeWith(keyType, valueType),
             elements = pairs.map { irCreatePair(transformer, it.first, it.second) }
         )
         typeArguments[0] = keyType
@@ -290,7 +290,7 @@ private fun IrBuilder.irCreatePair(
     first: IrExpression,
     second: IrExpression
 ): IrExpression {
-    return irCall(transformer.getFunction(Kotlin.Function.to)) {
+    return irCall(transformer.getFunction(KotlinIr.Function.to)) {
         typeArguments[0] = first.type
         typeArguments[1] = second.type
         arguments[0] = first

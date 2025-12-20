@@ -1,7 +1,7 @@
 package dev.mokkery.plugin
 
-import dev.mokkery.plugin.core.CompilerPluginScope
-import dev.mokkery.plugin.transformers.MokkeryTransformer
+import dev.mokkery.plugin.ir.transformers.core.CompilerPluginScope
+import dev.mokkery.plugin.ir.transformers.MokkeryTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
