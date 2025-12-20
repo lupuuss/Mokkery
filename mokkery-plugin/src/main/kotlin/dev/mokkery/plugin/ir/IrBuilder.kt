@@ -5,6 +5,7 @@ import dev.mokkery.plugin.core.TransformerScope
 import dev.mokkery.plugin.core.getClass
 import dev.mokkery.plugin.core.getFunction
 import dev.mokkery.plugin.core.stubsConfig
+import dev.mokkery.plugin.stubs.ConstructableClassStubStrategy
 import dev.mokkery.plugin.stubs.StubStrategy
 import dev.mokkery.plugin.stubs.StubStrategyScope
 import dev.mokkery.plugin.stubs.provideConstructorWithStubs
@@ -112,9 +113,13 @@ fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
                 builder = this
             )
             context(scope) {
-                irDelegatingConstructorWithStubs(
-                    provider.provideConstructorWithStubs(irClass) ?: failedToProvideStubsError(irClass)
-                )
+                val constructor = provider
+                    .provideConstructorWithStubs(
+                        cls = irClass,
+                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities
+                    ) ?: failedToProvideStubsError(irClass)
+
+                irDelegatingConstructorWithStubs(constructor)
             }
         }
     }

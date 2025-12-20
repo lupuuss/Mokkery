@@ -7,6 +7,7 @@ import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.stubFunctionBody
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
@@ -49,8 +50,9 @@ class OverridableTypeStubStrategy(
         val provider = scope.strategy
         val constructorWithStubs = baseClass
             .defaultConstructor
+            ?.takeIf { it.visibility in acceptedVisibilities }
             ?.let { it to emptyList() }
-            ?: provider.provideConstructorWithStubs(baseClass)
+            ?: provider.provideConstructorWithStubs(baseClass, acceptedVisibilities)
             ?: return null
         return stub {
             val cls = file
@@ -108,6 +110,13 @@ class OverridableTypeStubStrategy(
 
     private fun IrFile.findClassByNameBase(nameBase: String): IrClass? = findDeclaration<IrClass> {
         it.name.asString().contains(nameBase)
+    }
+
+    companion object {
+        val acceptedVisibilities = setOf(
+            DescriptorVisibilities.INTERNAL,
+            DescriptorVisibilities.PUBLIC
+        )
     }
 }
 

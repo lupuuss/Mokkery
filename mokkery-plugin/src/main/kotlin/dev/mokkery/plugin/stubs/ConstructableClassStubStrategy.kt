@@ -3,6 +3,7 @@ package dev.mokkery.plugin.stubs
 import dev.mokkery.plugin.core.Kotlin
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irCallConstructorWithStubs
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -34,12 +35,12 @@ class ConstructableClassStubStrategy(
                 || cls.packageFqName?.isSubpackageOf(Kotlin.kotlin_ranges) == true
         if (!allowInstantiation) return null
         val defaultConstructor = cls.defaultConstructor
-        if (defaultConstructor != null) return stub {
+        if (defaultConstructor != null && defaultConstructor.visibility in acceptedVisibilities) return stub {
             scope.builder.irCallConstructor(defaultConstructor, type.toTypeArgumentsOf(defaultConstructor))
         }
         return scope
             .strategy
-            .provideConstructorWithStubs(cls)
+            .provideConstructorWithStubs(cls, acceptedVisibilities)
             ?.let {
                 stub { scope.builder.irCallConstructorWithStubs(it, type.toTypeArgumentsOf(it.first)) }
             }
@@ -51,5 +52,11 @@ class ConstructableClassStubStrategy(
         return params.mapIndexed { i, param ->
             args[i].typeOrNull ?: param.defaultType.eraseTypeParameters()
         }
+    }
+
+
+    companion object {
+
+        val acceptedVisibilities = setOf(DescriptorVisibilities.INTERNAL, DescriptorVisibilities.PUBLIC)
     }
 }

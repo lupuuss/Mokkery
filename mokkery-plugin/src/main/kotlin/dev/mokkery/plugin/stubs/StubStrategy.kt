@@ -2,6 +2,7 @@ package dev.mokkery.plugin.stubs
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -24,7 +25,10 @@ val StubStrategyScope.irBuiltIns get() = plugin.irBuiltIns
 val StubStrategyScope.irFactory get() = plugin.irFactory
 
 context(scope: StubStrategyScope)
-fun StubStrategy.provideConstructorWithStubs(cls: IrClass) = cls.constructors.firstNotNullOfOrNull { ctor ->
+fun StubStrategy.provideConstructorWithStubs(
+    cls: IrClass, visibilities: Set<DescriptorVisibility>
+) = cls.constructors.firstNotNullOfOrNull { ctor ->
+    if (ctor.visibility !in visibilities) return@firstNotNullOfOrNull null
     val stubs = ctor.parameters.mapNotNull { this.provide(it.type) }
     if (stubs.size != ctor.parameters.size) return@firstNotNullOfOrNull null
     ctor to stubs

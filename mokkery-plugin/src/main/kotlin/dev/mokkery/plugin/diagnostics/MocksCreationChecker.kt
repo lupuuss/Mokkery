@@ -412,7 +412,7 @@ class MocksCreationChecker(
         private val defaultTypesToStub = StandardClassIds.primitiveTypes +
                 StandardClassIds.unsignedTypes +
                 StandardClassIds.Number +
-                StandardClassIds.KType +
+                StandardClassIds.KClass +
                 StandardClassIds.Unit +
                 StandardClassIds.String +
                 StandardClassIds.primitiveArrayTypeByElementType.values.toSet() +
