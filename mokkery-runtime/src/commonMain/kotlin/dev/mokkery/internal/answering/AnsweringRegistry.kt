@@ -16,7 +16,7 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.Renderers
+import dev.mokkery.internal.render.callTrace
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
@@ -98,8 +98,12 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
             else -> {
                 val aliases = collection.withShorterNames(scope.tools.namesShortener)
-                val renderer = Renderers.callTraceAlias(from = aliases)
-                throw CallNotMockedException(renderer.render(trace))
+                throw CallNotMockedException(
+                    name = scope.tools
+                        .renderers
+                        .callTrace(aliases = aliases)
+                        .render(trace)
+                )
             }
         }
     }

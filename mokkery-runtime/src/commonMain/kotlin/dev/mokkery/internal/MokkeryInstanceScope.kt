@@ -94,7 +94,10 @@ internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: 
 
 internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id
 
-internal val MokkeryInstanceScope.instanceIdString get() = instanceSpec.id.toString()
+internal val MokkeryInstanceScope.instanceIdString get() = tools
+    .renderers
+    .instanceId()
+    .render(instanceId)
 
 internal val MokkeryInstanceScope.spiedObject get() = instanceSpec.requireSpy().spiedObject
 

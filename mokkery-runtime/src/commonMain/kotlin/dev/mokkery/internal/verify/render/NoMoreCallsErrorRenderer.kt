@@ -4,6 +4,7 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.render.Renderer
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.tracing.CallTrace
 
 internal class NoMoreCallsErrorRenderer(
@@ -21,8 +22,9 @@ internal class NoMoreCallsErrorRenderer(
 
         fun lazy(
             nameShortener: NameShortener,
-            collection: MokkeryCollection
-        ) = lazyVerifyRenderer(nameShortener, collection) {
+            collection: MokkeryCollection,
+            renderers: Renderers,
+        ) = lazyVerifyRenderer(nameShortener, collection, renderers) {
             NoMoreCallsErrorRenderer(
                 instanceIdRenderer = instanceIdAliasRenderer,
                 callsListRenderer = pointsRenderer(item = callTraceAliasRenderer)

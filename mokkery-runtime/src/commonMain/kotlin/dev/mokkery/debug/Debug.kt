@@ -1,7 +1,6 @@
 package dev.mokkery.debug
 
 import dev.mokkery.MokkeryInstanceScope
-import dev.mokkery.answering.Answer
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.mokkeryScope
@@ -9,6 +8,9 @@ import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.instanceIdString
+import dev.mokkery.internal.render.Renderers
+import dev.mokkery.internal.render.callTemplate
+import dev.mokkery.internal.render.callTrace
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import dev.mokkery.internal.tracing.callTracing
 
@@ -60,7 +62,8 @@ private fun HierarchicalStringBuilder.callsSection(callTracing: CallTracingRegis
             line("")
             return@section
         }
-        calls.forEach { line(it.toStringNoMockId()) }
+        val traceRenderer = Renderers.default.callTrace()
+        calls.forEach { line(traceRenderer.render(it)) }
     }
 }
 
@@ -69,11 +72,10 @@ private fun HierarchicalStringBuilder.answersSection(answering: AnsweringRegistr
         if (answering.answers.isEmpty()) {
             line("")
         } else {
+            val templateRenderer = Renderers.default.callTemplate(renderReceiver = false)
             answering.answers.forEach { (template, answer) ->
-                line("${template.toStringNoMockId()} ${answer.debug()}")
+                line("${templateRenderer.render(template)} ${answer.description()}")
             }
         }
     }
 }
-
-private fun Answer<*>.debug(): String = description()

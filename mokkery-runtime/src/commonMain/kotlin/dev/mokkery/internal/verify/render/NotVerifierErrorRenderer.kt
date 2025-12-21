@@ -22,11 +22,12 @@ internal class NotVerifierErrorRenderer(
 
         fun lazy(
             nameShortener: NameShortener,
-            collection: MokkeryCollection
-        ) = lazyVerifyRenderer(nameShortener, collection) {
+            collection: MokkeryCollection,
+            renderers: Renderers
+        ) = lazyVerifyRenderer(nameShortener, collection, renderers) {
             NotVerifierErrorRenderer(
                 templateRenderer = callTemplateAliasRenderer,
-                traceListRenderer = Renderers.points(item = callTraceAliasRenderer)
+                traceListRenderer = renderers.points(item = callTraceAliasRenderer)
             )
         }
     }

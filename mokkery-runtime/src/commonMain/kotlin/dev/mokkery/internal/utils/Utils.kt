@@ -1,37 +1,11 @@
 package dev.mokkery.internal.utils
 
 import dev.mokkery.context.CallArgument
-import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.render.Renderers.description
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
 @PublishedApi
 internal inline fun <T> Any?.unsafeCast(): T = this as T
-
-internal fun callToString(
-    id: MokkeryInstanceId,
-    name: String,
-    args: List<CallArgument>,
-) = buildString {
-    append(id)
-    append(".")
-    append(callFunctionToString(name, args))
-}
-
-internal fun callFunctionToString(
-    name: String,
-    args: List<CallArgument>,
-) = PropertyDescriptor.fromNameOrNull(name)
-    ?.toCallString(args.map { description.render(it.value) })
-    ?: buildString {
-        append(name)
-        append("(")
-        append(args.joinToString { "${it.parameter.name} = ${description.render(it.value)}" })
-        append(")")
-    }
-
-
 
 internal expect fun KClass<*>.bestName(): String
 

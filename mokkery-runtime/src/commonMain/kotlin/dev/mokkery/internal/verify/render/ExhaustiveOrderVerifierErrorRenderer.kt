@@ -3,6 +3,7 @@ package dev.mokkery.internal.verify.render
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.render.Renderer
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
 
@@ -19,8 +20,9 @@ internal class ExhaustiveOrderVerifierErrorRenderer(
 
         fun lazy(
             nameShortener: NameShortener,
-            collection: MokkeryCollection
-        ) = lazyVerifyRenderer(nameShortener, collection) {
+            collection: MokkeryCollection,
+            renderers: Renderers
+        ) = lazyVerifyRenderer(nameShortener, collection, renderers) {
             ExhaustiveOrderVerifierErrorRenderer(matchingResultsRenderer = templateMatchingResultsRenderer)
         }
     }

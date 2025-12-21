@@ -4,8 +4,6 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.instanceId
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
 
 internal interface AliasMokkeryCollection : MokkeryCollection {
 
@@ -13,22 +11,6 @@ internal interface AliasMokkeryCollection : MokkeryCollection {
 
     fun mapOriginalToAlias(original: MokkeryInstanceId): MokkeryInstanceId
 }
-
-internal fun AliasMokkeryCollection.aliasTraces(
-    traces: List<CallTrace>
-): List<CallTrace> = traces.map { aliasTrace(it) }
-
-internal fun AliasMokkeryCollection.aliasTemplates(
-    templates: List<CallTemplate>
-): List<CallTemplate> = templates.map { aliasTemplate(it) }
-
-internal fun AliasMokkeryCollection.aliasTrace(
-    trace: CallTrace
-) = trace.copy(instanceId = mapOriginalToAlias(trace.instanceId))
-
-internal fun AliasMokkeryCollection.aliasTemplate(
-    template: CallTemplate
-) = template.copy(instanceId = mapOriginalToAlias(template.instanceId))
 
 internal fun MokkeryCollection.withShorterNames(nameShortener: NameShortener): AliasMokkeryCollection {
     val names = ids.mapTo(mutableSetOf()) { it.typeName }

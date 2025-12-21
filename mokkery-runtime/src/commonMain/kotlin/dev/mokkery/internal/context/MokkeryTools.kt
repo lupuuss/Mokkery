@@ -13,6 +13,7 @@ import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.withTypeArgumentsSupport
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.verify.VerifierFactory
 
 internal val MokkeryScope.tools: MokkeryTools
@@ -25,6 +26,7 @@ internal class MokkeryTools(
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
     verifierFactory: VerifierFactory? = null,
+    renderers: Renderers? = null,
 ) : MokkeryContext.Element {
 
     private val _namesShortener: NameShortener? = namesShortener
@@ -33,6 +35,7 @@ internal class MokkeryTools(
     private val _mocksCounter = mocksCounter
     private val _autofillProvider = autofillProvider
     private val _verifierFactory = verifierFactory
+    private val _renderers = renderers
 
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
@@ -46,6 +49,8 @@ internal class MokkeryTools(
         get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools!")
     val verifierFactory: VerifierFactory
         get() = _verifierFactory ?: mokkeryRuntimeError("VerifierFactory not present in tools!")
+    val renderers: Renderers
+        get() = _renderers ?: mokkeryRuntimeError("Renderers not present in tools!")
 
     override val key = Key
 
@@ -55,14 +60,16 @@ internal class MokkeryTools(
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
         autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
-        verifierFactory: VerifierFactory? = _verifierFactory
+        verifierFactory: VerifierFactory? = _verifierFactory,
+        renderers: Renderers? = _renderers,
     ) = MokkeryTools(
         namesShortener = namesShortener,
         callMatcherFactory = callMatcherFactory,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
         autofillProvider = autofillProvider,
-        verifierFactory = verifierFactory
+        verifierFactory = verifierFactory,
+        renderers = renderers,
     )
 
     companion object Key : MokkeryContext.Key<MokkeryTools> {
@@ -77,7 +84,8 @@ internal class MokkeryTools(
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
                 autofillProvider = AutofillProvider.forInternals,
-                verifierFactory = VerifierFactory(callMatcherFactory, namesShortener)
+                verifierFactory = VerifierFactory(callMatcherFactory, namesShortener, Renderers.default),
+                renderers = Renderers.default,
             )
         }
     }

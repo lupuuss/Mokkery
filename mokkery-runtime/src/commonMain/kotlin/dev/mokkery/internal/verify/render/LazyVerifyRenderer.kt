@@ -6,8 +6,11 @@ import dev.mokkery.internal.defaults.DefaultsMaterializer
 import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.withShorterNames
+import dev.mokkery.internal.render.CallRenderDescriptor
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.render.Renderers
+import dev.mokkery.internal.render.callTemplate
+import dev.mokkery.internal.render.callTrace
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
@@ -31,9 +34,10 @@ internal interface LazyVerifyRendererScope {
 internal inline fun <T> lazyVerifyRenderer(
     nameShortener: NameShortener,
     collection: MokkeryCollection,
+    renderers: Renderers,
     crossinline block: LazyVerifyRendererScope.() -> Renderer<T>
 ): Renderer<T> = Renderer {
-    block(LazyVerifyRendererScope(nameShortener, collection))
+    block(LazyVerifyRendererScope(nameShortener, collection, renderers))
         .render(it)
 }
 
@@ -41,11 +45,13 @@ internal inline fun <T> lazyVerifyRenderer(
 internal fun LazyVerifyRendererScope(
     nameShortener: NameShortener,
     collection: MokkeryCollection,
-): LazyVerifyRendererScope = LazyVerifyRendererScopeImpl(nameShortener, collection)
+    renderers: Renderers,
+): LazyVerifyRendererScope = LazyVerifyRendererScopeImpl(nameShortener, collection, renderers)
 
 private class LazyVerifyRendererScopeImpl(
     private val nameShortener: NameShortener,
     private val collection: MokkeryCollection,
+    private val renderers: Renderers,
 ) : LazyVerifyRendererScope {
 
     // this way of lazy initialization is more performant than lazy delegate
@@ -58,12 +64,35 @@ private class LazyVerifyRendererScopeImpl(
             initializer = { collection.withShorterNames(nameShortener) }
         )
 
+    private var _instanceIdAliasRenderer: Renderer<MokkeryInstanceId>? = null
+    override val instanceIdAliasRenderer
+        get() = inlineLazy(
+            getter = { _instanceIdAliasRenderer },
+            setter = { _instanceIdAliasRenderer = it },
+            initializer = { renderers.instanceId(aliases = aliases) }
+        )
+
+    private var _callDescriptorRenderer: Renderer<CallRenderDescriptor>? = null
+    private val callDescriptorRenderer: Renderer<CallRenderDescriptor>
+        get() = inlineLazy(
+            getter = { _callDescriptorRenderer },
+            setter = { _callDescriptorRenderer = it },
+            initializer = {
+                renderers.callDescriptor(
+                    renderReceiver = true,
+                    valueRenderer = renderers.description,
+                    matcherRenderer = renderers.toString,
+                    instanceIdRenderer = instanceIdAliasRenderer
+                )
+            },
+        )
+
     private var _callTraceAliasRenderer: Renderer<CallTrace>? = null
     override val callTraceAliasRenderer
         get() = inlineLazy(
             getter = { _callTraceAliasRenderer },
             setter = { _callTraceAliasRenderer = it },
-            initializer = { Renderers.callTraceAlias(from = aliases) }
+            initializer = { renderers.callTrace(callDescriptorRenderer) }
         )
 
     private var _callTemplateAliasRenderer: Renderer<CallTemplate>? = null
@@ -71,16 +100,9 @@ private class LazyVerifyRendererScopeImpl(
         get() = inlineLazy(
             getter = { _callTemplateAliasRenderer },
             setter = { _callTemplateAliasRenderer = it },
-            initializer = { Renderers.callTemplateAlias(from = aliases) }
+            initializer = { renderers.callTemplate(callDescriptorRenderer) }
         )
 
-    private var _instanceIdAliasRenderer: Renderer<MokkeryInstanceId>? = null
-    override val instanceIdAliasRenderer
-        get() = inlineLazy(
-            getter = { _instanceIdAliasRenderer },
-            setter = { _instanceIdAliasRenderer = it },
-            initializer = { Renderers.instanceIdAlias(from = aliases) }
-        )
 
     private var _templateGroupedMatchingResultsRenderer: Renderer<TemplateGroupedMatchingResults>? = null
     override val templateGroupedMatchingResultsRenderer
@@ -91,8 +113,8 @@ private class LazyVerifyRendererScopeImpl(
                 TemplateGroupedMatchingResultsRenderer(
                     matchersFailuresRenderer = MatchersStatusRenderer(
                         materializer = DefaultsMaterializer(collection),
-                        matcherRenderer = Renderers.toString,
-                        valueRenderer = Renderers.description,
+                        matcherRenderer = renderers.toString,
+                        valueRenderer = renderers.description,
                     ),
                     traceRenderer = callTraceAliasRenderer,
                     instanceIdRender = instanceIdAliasRenderer
@@ -113,7 +135,7 @@ private class LazyVerifyRendererScopeImpl(
             }
         )
 
-    override fun <T> pointsRenderer(item: Renderer<T>): Renderer<List<T>> = Renderers.points(item = item)
+    override fun <T> pointsRenderer(item: Renderer<T>): Renderer<List<T>> = renderers.points(item = item)
 }
 
 private inline fun <T> inlineLazy(

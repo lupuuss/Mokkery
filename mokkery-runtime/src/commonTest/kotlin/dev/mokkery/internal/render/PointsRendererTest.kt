@@ -5,8 +5,8 @@ import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 
-class PointListRendererTest {
-    private val renderer = Renderers.points(
+class PointsRendererTest {
+    private val renderer = Renderers.default.points(
         point = "-",
         item = StubRenderer()
     )

@@ -6,6 +6,7 @@ import dev.mokkery.answering.SuperCall
 import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.render.Renderers
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestCallMatcherFactory
@@ -25,7 +26,8 @@ class AnsweringRegistryTest {
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(
         callMatcherFactory = TestCallMatcherFactory { callMatcher },
-        namesShortener = TestNameShortener()
+        namesShortener = TestNameShortener(),
+        renderers = Renderers.default,
     )
     private val context = tools + mockSpec(MockMode.strict)
     private val answering = AnsweringRegistry()
