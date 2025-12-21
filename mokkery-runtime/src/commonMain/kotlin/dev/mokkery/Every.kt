@@ -5,7 +5,7 @@ package dev.mokkery
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.annotations.Templating
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.templating.MokkeryTemplatingScope
 import kotlin.reflect.KFunction
 

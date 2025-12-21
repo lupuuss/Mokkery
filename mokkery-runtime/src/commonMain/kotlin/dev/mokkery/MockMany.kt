@@ -2,7 +2,7 @@
 
 package dev.mokkery
 
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
  * Provides mock implementation of [T1] and [T2].

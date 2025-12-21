@@ -2,8 +2,8 @@ package dev.mokkery.matcher
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.internal.render.Renderers.description
 import dev.mokkery.internal.utils.bestName
-import dev.mokkery.internal.utils.description
 import dev.mokkery.matcher.capture.Capture
 import kotlin.reflect.KClass
 
@@ -32,7 +32,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg == value
 
-        override fun toString(): String = value.description()
+        override fun toString(): String = description.render(value)
     }
 
     /**
@@ -42,7 +42,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg === value
 
-        override fun toString(): String = "ref(${value.description()})"
+        override fun toString(): String = "ref(${description.render(value)})"
     }
 
     /**
@@ -55,7 +55,7 @@ public fun interface ArgMatcher<in T> {
     ) : ArgMatcher<T> where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
-        override fun toString(): String = "${type.toString().lowercase()}(${value.description()})"
+        override fun toString(): String = "${type.toString().lowercase()}(${description.render(value)})"
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -99,7 +99,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg != value
 
-        override fun toString(): String = "neq(${value.description()})"
+        override fun toString(): String = "neq(${description.render(value)})"
     }
 
     /**
@@ -111,7 +111,7 @@ public fun interface ArgMatcher<in T> {
 
         override fun matches(arg: T): Boolean = arg !== value
 
-        override fun toString(): String = "neqRef(${value.description()})"
+        override fun toString(): String = "neqRef(${description.render(value)})"
     }
 
     /**

@@ -8,7 +8,7 @@ import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.tracing.withTracingSession
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode

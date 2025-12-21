@@ -6,12 +6,19 @@ import dev.mokkery.internal.names.aliasTemplate
 import dev.mokkery.internal.names.aliasTrace
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.utils.asListOrNull
 
 internal object Renderers {
 
     val toString = Renderer<Any?> { it.toString() }
-    val description = Renderer<Any?> { it.description() }
+    val description = Renderer<Any?> {
+        when (it) {
+            null -> "null"
+            is String -> "\"$it\""
+            is Function<*> -> "{...}"
+            else -> it.asListOrNull()?.toString() ?: it.toString()
+        }
+    }
 
     fun callTemplateAlias(from: AliasMokkeryCollection) = Renderer<CallTemplate> {
         from.aliasTemplate(it).toString()

@@ -13,7 +13,6 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.withShorterNames
@@ -21,6 +20,7 @@ import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.tracing.toCallTrace
 import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.self

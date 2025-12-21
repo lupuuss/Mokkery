@@ -1,7 +1,10 @@
 package dev.mokkery.internal.tracing
 
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.call
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.MokkeryInstanceId
+import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.utils.callFunctionToString
 import dev.mokkery.internal.utils.callToString
 
@@ -17,5 +20,15 @@ internal data class CallTrace(
     fun toStringNoMockId() = callFunctionToString(name, args)
 
     override fun compareTo(other: CallTrace) = this.orderStamp.compareTo(other.orderStamp)
+}
+
+internal fun MokkeryCallScope.toCallTrace(orderStamp: Long): CallTrace {
+    val call = call
+    return CallTrace(
+        instanceId = instanceSpec.id,
+        name = call.function.name,
+        args = call.args,
+        orderStamp = orderStamp
+    )
 }
 

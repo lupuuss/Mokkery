@@ -3,7 +3,6 @@ package dev.mokkery.matcher.varargs
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.asListOrNull
-import dev.mokkery.internal.utils.capitalize
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
@@ -116,3 +115,5 @@ private fun varargNameByElementType(cls: KClass<*>): String = when (cls) {
     Any::class -> "varargs"
     else -> "varargs<${cls.simpleName}>"
 }
+
+private fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }

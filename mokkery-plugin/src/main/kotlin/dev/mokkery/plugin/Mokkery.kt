@@ -21,7 +21,6 @@ object Mokkery {
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName
     val dev_mokkery_internal_defaults by fqName
-    val dev_mokkery_internal_utils by fqName
 
     object Name {
         val mock by dev_mokkery.fqName

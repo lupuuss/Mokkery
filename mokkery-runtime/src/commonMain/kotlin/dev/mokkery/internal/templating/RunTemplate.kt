@@ -4,7 +4,7 @@ package dev.mokkery.internal.templating
 
 import dev.mokkery.internal.isMock
 import dev.mokkery.internal.isNotMock
-import dev.mokkery.internal.utils.mokkeryRuntimeError
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
 import kotlin.reflect.KClass

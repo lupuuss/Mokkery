@@ -9,7 +9,7 @@ import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
 import dev.mokkery.callOriginal
 import dev.mokkery.callSuper
-import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.render.Renderers.description
 import dev.mokkery.internal.utils.unsafeCast
 
 @Poko
@@ -31,11 +31,11 @@ internal class SuperCallAnswer<T>(
         val callDescription = when (superCall) {
             is SuperCall.OfType -> when (superCall.args) {
                 null -> "superOf<${superCall.type.simpleName}>()"
-                else -> "superWith<${superCall.type.simpleName}>(${superCall.args.joinToString { it.description() }})"
+                else -> "superWith<${superCall.type.simpleName}>(${superCall.args.joinToString { description.render(it) }})"
             }
             is SuperCall.Original -> when (superCall.args) {
                 null -> "original"
-                else -> "originalWith(${superCall.args.joinToString { it.description() }})"
+                else -> "originalWith(${superCall.args.joinToString { description.render(it) }})"
             }
         }
         return "calls $callDescription"

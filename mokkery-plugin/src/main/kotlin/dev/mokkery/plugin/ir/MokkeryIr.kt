@@ -8,7 +8,6 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_context
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_defaults
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
-import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_utils
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
 import org.jetbrains.kotlin.GeneratedDeclarationKey
@@ -83,7 +82,7 @@ object MokkeryIr {
         val matches by dev_mokkery_matcher.function { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.function
         val spread by dev_mokkery_internal_matcher.function
-        val mokkeryRuntimeError by dev_mokkery_internal_utils.function
+        val mokkeryRuntimeError by dev_mokkery_internal.function
     }
 
     object Property {

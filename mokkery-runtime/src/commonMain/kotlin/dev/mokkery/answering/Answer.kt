@@ -16,7 +16,7 @@ import dev.mokkery.context.argValue
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
-import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.render.Renderers.description
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -118,7 +118,7 @@ public interface Answer<out T> {
 
         override fun call(scope: MokkeryCallScope): T = value
 
-        override fun description(): String = "returns ${value.description()}"
+        override fun description(): String = "returns ${description.render(value)}"
     }
 
     /**

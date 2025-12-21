@@ -2,7 +2,7 @@
 
 package dev.mokkery.templating
 
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
  * Allows mocking methods with extension receiver.

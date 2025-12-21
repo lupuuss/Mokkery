@@ -2,7 +2,7 @@
 
 package dev.mokkery
 
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
  * Returns given [obj] wrapped with a spying implementation of [T].

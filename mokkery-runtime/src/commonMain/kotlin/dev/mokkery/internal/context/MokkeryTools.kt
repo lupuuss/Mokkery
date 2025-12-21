@@ -9,10 +9,10 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MonotonicCounter
 import dev.mokkery.internal.matcher.CallMatcherFactory
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.withTypeArgumentsSupport
-import dev.mokkery.internal.utils.mokkeryRuntimeError
 import dev.mokkery.internal.verify.VerifierFactory
 
 internal val MokkeryScope.tools: MokkeryTools

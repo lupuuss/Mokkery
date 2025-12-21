@@ -2,7 +2,7 @@ package dev.mokkery.matcher
 
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.annotations.Matcher
-import dev.mokkery.internal.utils.mokkeryIntrinsic
+import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gt
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Gte
 import dev.mokkery.matcher.ArgMatcher.Comparing.Type.Lt

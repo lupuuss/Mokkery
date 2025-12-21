@@ -8,8 +8,8 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.ObjectIsNotMockException
 import dev.mokkery.internal.ObjectIsNotSpyException
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.utils.bestName
-import dev.mokkery.internal.utils.mokkeryRuntimeError
 import kotlin.reflect.KClass
 
 internal val MokkeryCallScope.instanceSpec: MokkeryInstanceSpec

@@ -7,7 +7,6 @@ import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.instanceId
 import kotlinx.atomicfu.locks.reentrantLock
