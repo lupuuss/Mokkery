@@ -23,8 +23,10 @@ internal interface Renderers {
 
    companion object {
 
-       val default: Renderers = object : Renderers {
+       val default = object : Renderers {
+
            override val toString = Renderer(Any?::toString)
+
            override val description = Renderer<Any?> {
                when (it) {
                    null -> "null"
