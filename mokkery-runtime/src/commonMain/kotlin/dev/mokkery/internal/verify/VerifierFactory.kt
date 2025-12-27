@@ -2,13 +2,6 @@ package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.matcher.CallMatcherFactory
-import dev.mokkery.internal.names.NameShortener
-import dev.mokkery.internal.render.Renderers
-import dev.mokkery.internal.verify.render.ExhaustiveOrderVerifierErrorRenderer
-import dev.mokkery.internal.verify.render.ExhaustiveSoftVerifierErrorRenderer
-import dev.mokkery.internal.verify.render.NotVerifierErrorRenderer
-import dev.mokkery.internal.verify.render.OrderVerifierErrorRenderer
-import dev.mokkery.internal.verify.render.SoftVerifierErrorRenderer
 import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
 import dev.mokkery.verify.ExhaustiveOrderVerifyMode
 import dev.mokkery.verify.ExhaustiveSoftVerifyMode
@@ -24,14 +17,10 @@ internal interface VerifierFactory {
 
 internal fun VerifierFactory(
     callMatcherFactory: CallMatcherFactory,
-    nameShortener: NameShortener,
-    renderers: Renderers,
-): VerifierFactory = VerifierFactoryImpl(callMatcherFactory, nameShortener, renderers)
+): VerifierFactory = VerifierFactoryImpl(callMatcherFactory)
 
 private class VerifierFactoryImpl(
     private val callMatcherFactory: CallMatcherFactory,
-    private val namesShortener: NameShortener,
-    private val renderers: Renderers,
 ) : VerifierFactory {
 
     override fun create(mode: VerifyMode, collection: MokkeryCollection): Verifier {
@@ -39,27 +28,22 @@ private class VerifierFactoryImpl(
         return when (mode) {
             OrderVerifyMode -> OrderVerifier(
                 callMatcher = callMatcher,
-                resultsComposer = TemplateMatchingResultsComposer(callMatcher),
-                errorRenderer = OrderVerifierErrorRenderer.lazy(namesShortener, collection, renderers)
+                resultsComposer = TemplateMatchingResultsComposer(callMatcher)
             )
             ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier(
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
                 callMatcher = callMatcher,
-                errorRenderer = ExhaustiveOrderVerifierErrorRenderer.lazy(namesShortener, collection, renderers)
             )
             ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier(
                 callMatcher = callMatcher,
-                errorRenderer = ExhaustiveSoftVerifierErrorRenderer.lazy(namesShortener, collection, renderers)
             )
             NotVerifyMode -> NotVerifier(
                 callMatcher = callMatcher,
-                errorRenderer = NotVerifierErrorRenderer.lazy(namesShortener, collection, renderers)
             )
             is SoftVerifyMode -> SoftVerifier(
                 atLeast = mode.atLeast,
                 atMost = mode.atMost,
                 callMatcher = callMatcher,
-                errorRenderer = SoftVerifierErrorRenderer.lazy(namesShortener, collection, renderers)
             )
         }
     }

@@ -9,7 +9,7 @@ import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.tracing.withTracingSession
 import dev.mokkery.internal.mokkeryIntrinsic
-import dev.mokkery.internal.verify.render.NoMoreCallsErrorRenderer
+import dev.mokkery.internal.verify.render.noMoreCallsError
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
@@ -78,10 +78,10 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     collection.withTracingSession {
         sessions.forEach { (id, session) ->
             if (session.unverified.isNotEmpty()) {
-                val message = NoMoreCallsErrorRenderer
-                    .lazy(tools.namesShortener, collection, tools.renderers)
-                    .render(id to unverified)
-                throw AssertionError(message)
+                val renderer = tools
+                    .renderers
+                    .noMoreCallsError(tools.namesShortener, collection)
+                throw AssertionError(renderer.render(id to unverified))
             }
         }
     }

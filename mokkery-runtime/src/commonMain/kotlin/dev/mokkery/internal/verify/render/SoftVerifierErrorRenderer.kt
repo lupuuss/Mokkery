@@ -1,10 +1,7 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.matcher.CallMatchResult
-import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.verify.SoftVerifier
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
@@ -36,17 +33,4 @@ internal class SoftVerifierErrorRenderer(
         append(matchingResultsRenderer.render(value.templateMatchingResults))
     }
 
-    companion object {
-
-        fun lazy(
-            nameShortener: NameShortener,
-            collection: MokkeryCollection,
-            renderers: Renderers,
-        ) = lazyVerifyRenderer(nameShortener, collection, renderers) {
-            SoftVerifierErrorRenderer(
-                templateRenderer = callTemplateAliasRenderer,
-                matchingResultsRenderer = templateGroupedMatchingResultsRenderer
-            )
-        }
-    }
 }

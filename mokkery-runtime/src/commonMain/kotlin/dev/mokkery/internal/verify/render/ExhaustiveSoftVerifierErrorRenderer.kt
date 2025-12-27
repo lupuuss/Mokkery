@@ -1,9 +1,6 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.MokkeryCollection
-import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
@@ -24,23 +21,6 @@ internal class ExhaustiveSoftVerifierErrorRenderer(
             is ExhaustiveSoftVerifier.Error.UnverifiedCalls -> {
                 append(unverifiedCallsRenderer.render(value.calls))
             }
-        }
-    }
-
-    companion object {
-
-        fun lazy(
-            nameShortener: NameShortener,
-            collection: MokkeryCollection,
-            renderers: Renderers
-        ) = lazyVerifyRenderer(nameShortener, collection, renderers) {
-            ExhaustiveSoftVerifierErrorRenderer(
-                templateRenderer = callTemplateAliasRenderer,
-                matchingResultsRenderer = templateGroupedMatchingResultsRenderer,
-                unverifiedCallsRenderer = ExtraUnverifiedCallsRenderer(
-                    traceListRenderer = pointsRenderer(callTraceAliasRenderer)
-                )
-            )
         }
     }
 }

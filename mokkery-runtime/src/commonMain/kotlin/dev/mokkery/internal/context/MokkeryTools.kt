@@ -84,7 +84,7 @@ internal class MokkeryTools(
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
                 autofillProvider = AutofillProvider.forInternals,
-                verifierFactory = VerifierFactory(callMatcherFactory, namesShortener, Renderers.default),
+                verifierFactory = VerifierFactory(callMatcherFactory),
                 renderers = Renderers.default,
             )
         }
