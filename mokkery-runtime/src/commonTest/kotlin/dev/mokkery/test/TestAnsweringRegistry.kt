@@ -8,14 +8,15 @@ import dev.mokkery.internal.templating.CallTemplate
 
 internal class TestAnsweringRegistry : AnsweringRegistry {
 
-    private val _answers = mutableMapOf<CallTemplate, Answer<*>>()
-    override val answers: Map<CallTemplate, Answer<*>> = _answers
+    private val _answers = mutableListOf<Pair<CallTemplate, Answer<*>>>()
+    override val answers: List<Pair<CallTemplate, Answer<*>>> = _answers
 
     var resetCalls = 0
         private set
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
-        _answers[template] = answer
+        _answers.removeAll { it.first == template }
+        _answers.add(Pair(template, answer))
     }
 
     override fun reset() {
