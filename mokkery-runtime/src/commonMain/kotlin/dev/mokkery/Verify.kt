@@ -7,7 +7,7 @@ import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.requireInstanceScope
-import dev.mokkery.internal.tracing.withTracingSession
+import dev.mokkery.internal.tracing.withVerifySession
 import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.verify.render.noMoreCallsError
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -75,7 +75,7 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     val collection = mokkeryContext
         .require(MokkeryInstancesRegistry)
         .collection
-    collection.withTracingSession {
+    collection.withVerifySession {
         sessions.forEach { (id, session) ->
             if (session.unverified.isNotEmpty()) {
                 val renderer = tools

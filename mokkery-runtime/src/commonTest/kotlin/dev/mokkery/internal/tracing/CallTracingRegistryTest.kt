@@ -32,7 +32,7 @@ class CallTracingRegistryTest {
             instance1.callTrace("call2", 1, fakeCallArg(2)),
         )
         assertEquals(expected, instance1.callTracing.all)
-        assertEquals(expected, instance1.callTracing.withSession { unverified })
+        assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
     }
 
     @Test
@@ -43,9 +43,9 @@ class CallTracingRegistryTest {
         instance1
             .callTracing
             .trace(instance1.blockingCallScope("call2", Int::class, fakeCallArg(2)))
-        instance1.callTracing.withSession { resetAll() }
+        instance1.callTracing.withVerifySession { resetAll() }
         assertEquals(emptyList(), instance1.callTracing.all)
-        assertEquals(emptyList(), instance1.callTracing.withSession { unverified })
+        assertEquals(emptyList(), instance1.callTracing.withVerifySession { unverified })
     }
 
     @Test
@@ -57,7 +57,7 @@ class CallTracingRegistryTest {
             .callTracing
             .trace(instance1.blockingCallScope("call2", Int::class, fakeCallArg(2)))
         val expected = listOf(instance1.callTrace("call2", 1, fakeCallArg(2)),)
-        instance1.callTracing.withSession {
+        instance1.callTracing.withVerifySession {
             markVerified(unverified.first())
             assertEquals(expected, unverified)
         }
@@ -75,7 +75,7 @@ class CallTracingRegistryTest {
             instance1.callTrace("call1", 0, fakeCallArg(1)),
             instance1.callTrace("call2", 1, fakeCallArg(2)),
         )
-        instance1.callTracing.withSession { markVerified(unverified.first()) }
+        instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
         assertEquals(expected, instance1.callTracing.all)
     }
 
@@ -88,13 +88,13 @@ class CallTracingRegistryTest {
             .callTracing
             .trace(instance1.blockingCallScope("call2", Int::class, fakeCallArg(2)))
         val expected = listOf(instance1.callTrace("call2", 1, fakeCallArg(2)),)
-        instance1.callTracing.withSession { markVerified(unverified.first()) }
-        assertEquals(expected, instance1.callTracing.withSession { unverified })
+        instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
+        assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
     }
 
     @Test
     fun testAllowsTracingWhenSessionIsStarted() {
-        instance1.callTracing.withSession {
+        instance1.callTracing.withVerifySession {
             instance1.callTracing.trace(instance1.blockingCallScope("call1", Int::class, fakeCallArg(1)))
             assertEquals(1, instance1.callTracing.all.size)
         }
@@ -102,7 +102,7 @@ class CallTracingRegistryTest {
 
     @Test
     fun testTracingDoesNotAffectSessionState() {
-        instance1.callTracing.withSession {
+        instance1.callTracing.withVerifySession {
             instance1.callTracing.trace(instance1.blockingCallScope("call1", Int::class, fakeCallArg(1)))
             assertEquals(emptyList(), unverified)
         }
@@ -110,18 +110,18 @@ class CallTracingRegistryTest {
 
     @Test
     fun testTracingEffectShouldBeVisibleInNextSession() {
-        instance1.callTracing.withSession {
+        instance1.callTracing.withVerifySession {
             instance1.callTracing.trace(instance1.blockingCallScope("call1", Int::class, fakeCallArg(1)))
         }
-        instance1.callTracing.withSession { assertEquals(1, unverified.size) }
+        instance1.callTracing.withVerifySession { assertEquals(1, unverified.size) }
     }
 
     @Test
     fun testResetAffectsOnlyTracesFrom() {
-        instance1.callTracing.withSession {
+        instance1.callTracing.withVerifySession {
             instance1.callTracing.trace(instance1.blockingCallScope("call1", Int::class, fakeCallArg(1)))
         }
-        instance1.callTracing.withSession { assertEquals(1, unverified.size) }
+        instance1.callTracing.withVerifySession { assertEquals(1, unverified.size) }
     }
 
     @Test
@@ -135,7 +135,7 @@ class CallTracingRegistryTest {
             instance2.callTrace("call2", 1, fakeCallArg(2)),
             instance1.callTrace("call3", 2, fakeCallArg(3)),
         )
-        assertEquals(expected, collection.withTracingSession { unverified })
+        assertEquals(expected, collection.withVerifySession { unverified })
     }
 
     @Test
@@ -151,7 +151,7 @@ class CallTracingRegistryTest {
             instance1.callTrace("call3", 2, fakeCallArg(3)),
             instance2.callTrace("call4", 3, fakeCallArg(4)),
         )
-        collection.withTracingSession {
+        collection.withVerifySession {
             markVerified(calls[1])
             markVerified(calls[2])
             assertEquals(listOf(calls[0], calls[3]), unverified)
@@ -171,12 +171,12 @@ class CallTracingRegistryTest {
             instance1.callTrace("call3", 2, fakeCallArg(3)),
             instance2.callTrace("call4", 3, fakeCallArg(4)),
         )
-        collection.withTracingSession {
+        collection.withVerifySession {
             markVerified(calls[1])
             markVerified(calls[2])
         }
-        assertEquals(listOf(calls[0]), instance1.callTracing.withSession { unverified })
-        assertEquals(listOf(calls[3]), instance2.callTracing.withSession { unverified })
+        assertEquals(listOf(calls[0]), instance1.callTracing.withVerifySession { unverified })
+        assertEquals(listOf(calls[3]), instance2.callTracing.withVerifySession { unverified })
     }
 
     @Test
@@ -192,7 +192,7 @@ class CallTracingRegistryTest {
             instance1.callTrace("call3", 2, fakeCallArg(3)),
             instance2.callTrace("call4", 3, fakeCallArg(4)),
         )
-        collection.withTracingSession {
+        collection.withVerifySession {
             markVerified(calls[1])
             markVerified(calls[2])
             resetAll()
@@ -213,15 +213,15 @@ class CallTracingRegistryTest {
             instance1.callTrace("call3", 2, fakeCallArg(3)),
             instance2.callTrace("call4", 3, fakeCallArg(4)),
         )
-        collection.withTracingSession {
+        collection.withVerifySession {
             markVerified(calls[1])
             markVerified(calls[2])
             resetAll()
         }
         assertEquals(emptyList(), instance1.callTracing.all)
-        assertEquals(emptyList(), instance1.callTracing.withSession { unverified })
+        assertEquals(emptyList(), instance1.callTracing.withVerifySession { unverified })
         assertEquals(emptyList(), instance2.callTracing.all)
-        assertEquals(emptyList(), instance2.callTracing.withSession { unverified })
+        assertEquals(emptyList(), instance2.callTracing.withVerifySession { unverified })
     }
 
     private fun TestMokkeryInstanceScope.callTrace(

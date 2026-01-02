@@ -22,11 +22,11 @@ internal interface CallTracingRegistry : MokkeryContext.Element {
 
     fun trace(scope: MokkeryCallScope)
 
-    fun acquireSession(): Session
+    fun acquireVerifySession(): VerifySession
 
     companion object Key : MokkeryContext.Key<CallTracingRegistry>
 
-    interface Session : AutoCloseable {
+    interface VerifySession : AutoCloseable {
         val unverified: List<CallTrace>
 
         fun resetAll()
@@ -34,8 +34,8 @@ internal interface CallTracingRegistry : MokkeryContext.Element {
         fun markVerified(trace: CallTrace)
     }
 
-    interface CompositeSession : Session {
-        val sessions: Map<MokkeryInstanceId, Session>
+    interface CompositeVerifySession : VerifySession {
+        val sessions: Map<MokkeryInstanceId, VerifySession>
     }
 }
 
@@ -44,15 +44,15 @@ internal val MokkeryScope.callTracing: CallTracingRegistry
 
 internal fun CallTracingRegistry(): CallTracingRegistry = CallTracingRegistryImpl()
 
-internal inline fun <R> CallTracingRegistry.withSession(
-    block: CallTracingRegistry.Session.() -> R
-): R = acquireSession().use(block)
+internal inline fun <R> CallTracingRegistry.withVerifySession(
+    block: CallTracingRegistry.VerifySession.() -> R
+): R = acquireVerifySession().use(block)
 
-internal fun MokkeryCollection.acquireSession(): CallTracingRegistry.CompositeSession = CompositeSessionImpl(this)
+internal fun MokkeryCollection.acquireVerifySession(): CallTracingRegistry.CompositeVerifySession = CompositeVerifySessionImpl(this)
 
-internal inline fun <R> MokkeryCollection.withTracingSession(
-    block: CallTracingRegistry.CompositeSession.() -> R
-): R = acquireSession().use(block)
+internal inline fun <R> MokkeryCollection.withVerifySession(
+    block: CallTracingRegistry.CompositeVerifySession.() -> R
+): R = acquireVerifySession().use(block)
 
 private class CallTracingRegistryImpl : CallTracingRegistry {
 
@@ -68,7 +68,7 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
         allTraces += scope.toCallTrace(scope.tools.callsCounter.next())
     }
 
-    override fun acquireSession() = object : CallTracingRegistry.Session {
+    override fun acquireVerifySession() = object : CallTracingRegistry.VerifySession {
 
         private val allSnapshot = allTracesLock.withLock { allTraces.toMutableList() }
 
@@ -95,19 +95,19 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
     override fun toString(): String = "CallTracingRegistry(all=$all)"
 }
 
-private class CompositeSessionImpl(
+private class CompositeVerifySessionImpl(
     collection: MokkeryCollection,
-) : CallTracingRegistry.CompositeSession {
+) : CallTracingRegistry.CompositeVerifySession {
 
     override val sessions = collection
         .scopes
         .sortedBy { it.instanceId }
-        .associateTo(linkedMapOf()) { it.instanceId to it.callTracing.acquireSession() }
+        .associateTo(linkedMapOf()) { it.instanceId to it.callTracing.acquireVerifySession() }
 
     override val unverified: List<CallTrace>
         get() = sessions
             .values
-            .flatMap(CallTracingRegistry.Session::unverified)
+            .flatMap(CallTracingRegistry.VerifySession::unverified)
             .sorted()
 
     override fun resetAll() {
