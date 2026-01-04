@@ -27,14 +27,12 @@ private class CallMatcherImpl(
     private val defaultsMaterializer: DefaultsMaterializer
 ) : CallMatcher {
 
-    override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult {
-        return when {
-            trace.instanceId != template.instanceId -> CallMatchResult.NotMatching
-            trace.name != template.name -> CallMatchResult.SameReceiver
-            !(trace hasTheSameParameters template) -> CallMatchResult.SameReceiverMethodOverload
-            trace.matchesArgsOf(template) -> CallMatchResult.Matching
-            else -> CallMatchResult.SameReceiverMethodSignature
-        }
+    override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult = when {
+        trace.instanceId != template.instanceId -> CallMatchResult.NotMatching
+        trace.name != template.name -> CallMatchResult.SameReceiver
+        !(trace hasTheSameParameters template) -> CallMatchResult.SameReceiverMethodOverload
+        trace.matchesArgsOf(template) -> CallMatchResult.Matching
+        else -> CallMatchResult.SameReceiverMethodSignature
     }
 
     private fun CallTrace.matchesArgsOf(template: CallTemplate): Boolean {

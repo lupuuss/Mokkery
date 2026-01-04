@@ -69,11 +69,10 @@ private class MokkeryCollectionImpl(
 ) : MutableMokkeryCollection {
 
     override val ids: Set<MokkeryInstanceId> get() = map.keys
-
-    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = map[id]
-
     override val scopes: MutableCollection<MokkeryInstanceScope>
         get() = map.values
+
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = map[id]
 
     override fun upsertScope(scope: MokkeryInstanceScope) {
         map[scope.instanceId] = scope
@@ -92,15 +91,15 @@ private class MokkeryCollectionImpl(
     override fun toString(): String = "MokkeryCollection[${ids.joinToString()}]"
 }
 
-private class SingletonMokkeryCollection(
-    private val value: MokkeryInstanceScope,
-) : MokkeryCollection {
+private class SingletonMokkeryCollection(value: MokkeryInstanceScope) : MokkeryCollection {
 
     override val ids = setOf(value.instanceId)
     override val scopes = listOf(value)
 
-    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = when (value.instanceId) {
-        id -> value
+    private inline val scope get() = scopes[0]
+
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = when (scope.instanceId) {
+        id -> scope
         else -> null
     }
 
@@ -112,7 +111,7 @@ private class SingletonMokkeryCollection(
 
     override fun hashCode(): Int = this.ids.hashCode()
 
-    override fun toString(): String = "MokkeryCollection[${value.instanceId}]"
+    override fun toString(): String = "MokkeryCollection[${scope.instanceId}]"
 }
 
 private object EmptyMokkeryCollection : MokkeryCollection {

@@ -46,8 +46,10 @@ private class AssociatedFunctionsImpl(
 
 private object EmptyAssociatedFunctions : AssociatedFunctions {
 
-    override val supers: Map<KClass<*>, Function<Any?>> = emptyMap()
-    override val spiedFunction: Function<Any?>? = null
+    override val supers: Map<KClass<*>, Function<Any?>>
+        get() = emptyMap()
+    override val spiedFunction: Function<Any?>?
+        get() = null
 
     override fun toString(): String = "AssociatedFunctions()"
 }

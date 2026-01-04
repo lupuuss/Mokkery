@@ -29,7 +29,8 @@ internal fun MokkeryCollection.withAliasing(
         private val mocks = from.scopes.associateBy { aliasCreator(it.instanceId) }
         private val reverseMapping = mocks.entries.associate { it.value.instanceId to it.key }
 
-        override val ids: Set<MokkeryInstanceId> get() = mocks.keys
+        override val ids: Set<MokkeryInstanceId>
+            get() = mocks.keys
 
         override val scopes: Collection<MokkeryInstanceScope>
             get() = from.scopes
