@@ -1,8 +1,5 @@
 package dev.mokkery.internal.render.descriptor
 
-import dev.mokkery.internal.render.FunctionRenderDescriptor
-import dev.mokkery.internal.render.GetterRenderDescriptor
-import dev.mokkery.internal.render.SetterRenderDescriptor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

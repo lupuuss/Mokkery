@@ -1,4 +1,4 @@
-package dev.mokkery.internal.render
+package dev.mokkery.internal.render.descriptor
 
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.call

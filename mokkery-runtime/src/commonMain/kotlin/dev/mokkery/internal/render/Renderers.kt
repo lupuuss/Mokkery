@@ -2,6 +2,10 @@ package dev.mokkery.internal.render
 
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.names.AliasMokkeryCollection
+import dev.mokkery.internal.render.descriptor.ArgumentRenderDescriptor
+import dev.mokkery.internal.render.descriptor.CallRenderDescriptor
+import dev.mokkery.internal.render.descriptor.GetterRenderDescriptor
+import dev.mokkery.internal.render.descriptor.SetterRenderDescriptor
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
 

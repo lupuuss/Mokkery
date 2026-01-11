@@ -3,8 +3,6 @@ package dev.mokkery.internal.render.descriptor
 import dev.mokkery.call
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.createBlockingCallScope
-import dev.mokkery.internal.render.ArgumentRenderDescriptor
-import dev.mokkery.internal.render.asCallRenderDescriptor
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg

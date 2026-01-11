@@ -6,7 +6,7 @@ import dev.mokkery.internal.defaults.DefaultsMaterializer
 import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.CallRenderDescriptor
+import dev.mokkery.internal.render.descriptor.CallRenderDescriptor
 import dev.mokkery.internal.render.Renderer
 import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.render.callTemplate
