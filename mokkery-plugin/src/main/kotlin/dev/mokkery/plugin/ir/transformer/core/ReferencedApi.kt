@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -36,6 +37,12 @@ fun referenced(referencer: IrPropertyReferencer): IrProperty = caches[Caches.pro
     .getOrPut(referencer) {
         referencer.reference(pluginContext)
     }
+
+context(scope: TransformerScope)
+fun referencedGetter(resolver: IrPropertyReferencer): IrSimpleFunction = referenced(resolver).getter!!
+
+context(scope: TransformerScope)
+fun referencedGetterSymbol(resolver: IrPropertyReferencer): IrSimpleFunctionSymbol = referencedGetter(resolver).symbol
 
 context(scope: TransformerScope)
 fun referencedCompanion(resolver: IrClassReferencer): IrClass = referenced(resolver).companionObject()!!

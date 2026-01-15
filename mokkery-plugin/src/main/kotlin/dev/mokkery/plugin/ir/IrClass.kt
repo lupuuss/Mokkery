@@ -2,6 +2,9 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.ir.annotations.AnnotationFilter
 import dev.mokkery.plugin.ir.annotations.deepApplyAnnotationsFilter
+import dev.mokkery.plugin.ir.compat.DEFAULT_PROPERTY_ACCESSOR_COMPAT
+import dev.mokkery.plugin.ir.compat.DEFINED_COMPAT
+import dev.mokkery.plugin.ir.compat.addBackingFieldCompat
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
@@ -95,7 +98,7 @@ fun IrClass.addOverridingMethod(
         updateFrom(function)
         name = function.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
         isFakeOverride = false
     }.apply {
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
@@ -179,7 +182,7 @@ fun IrClass.addOverridingProperty(
         updateFrom(property)
         name = property.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
         isFakeOverride = false
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
@@ -219,17 +222,17 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
         name = property.name
         isVar = property.isVar
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
     }.apply {
         val returnType = property.getter!!.returnType
-        addBackingField {
+        addBackingFieldCompat {
             type = returnType
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
         addGetter {
             this.returnType = returnType
-            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR_COMPAT
         }.apply {
             parameters = listOf(createDispatchReceiverParameterWithClassParent())
             body = DeclarationIrBuilder(context, symbol).irBlockBody {

@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 import java.io.File
 import kotlin.text.get
 
-object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPathProvider() {
+object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPathProvider {
     private val SEP = "\\${File.separator}"
 
     private val GRADLE_DEPENDENCY =
