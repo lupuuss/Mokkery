@@ -4,6 +4,10 @@ plugins {
 
 val mokkeryRuntimeClasspath: Configuration by configurations.creating
 
+kotlin {
+    optInMokkeryDelicateAndInternals()
+}
+
 dependencies {
     testImplementation(project(":mokkery-plugin"))
 

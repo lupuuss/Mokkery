@@ -20,6 +20,7 @@ dependencies {
     kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
     kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
     kotlinNativeCompilerPluginClasspath(project(":mokkery-core"))
+    kotlinNativeCompilerPluginClasspath(project(":mokkery-core-tooling"))
     commonMainImplementation(project(":mokkery-runtime"))
     commonMainImplementation(project(":mokkery-coroutines"))
     commonTestImplementation(kotlin("test"))

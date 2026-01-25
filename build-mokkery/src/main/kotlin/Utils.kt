@@ -3,13 +3,13 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetContainer
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
-import java.util.Properties
+import java.util.*
 
 fun Project.loadLocalProperties() {
     val secretPropsFile = rootProject.file("local.properties")
@@ -38,7 +38,7 @@ fun Project.configureCompilerPlugin(id: String, vararg options: SubpluginOption)
     }
 }
 
-fun KotlinMultiplatformExtension.optInMokkeryDelicateAndInternals() {
+fun KotlinSourceSetContainer.optInMokkeryDelicateAndInternals() {
     sourceSets.all {
         languageSettings.optIn("dev.mokkery.annotations.DelicateMokkeryApi")
         languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")

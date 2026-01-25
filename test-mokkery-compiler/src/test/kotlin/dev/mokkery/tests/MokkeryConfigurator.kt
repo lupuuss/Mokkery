@@ -1,11 +1,11 @@
 package dev.mokkery.tests
 
-import dev.mokkery.plugin.ENABLE_FIR_DIAGNOSTICS
-import dev.mokkery.plugin.IGNORE_FINAL_MEMBERS
-import dev.mokkery.plugin.IGNORE_INLINE_MEMBERS
+
+import dev.mokkery.annotations.InternalMokkeryApi
+import dev.mokkery.internal.options.MokkeryOption
+import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.plugin.MokkeryFirRegistrar
-import dev.mokkery.plugin.STUBS_ALLOW_CLASS_INHERITANCE
-import dev.mokkery.plugin.STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION
+import dev.mokkery.plugin.configurationKey
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -27,16 +27,7 @@ class MokkeryConfigurator(testServices: TestServices) : EnvironmentConfigurator(
 
     override fun configureCompilerConfiguration(configuration: CompilerConfiguration, module: TestModule) {
         module.directives.forEach {
-            with(configuration) {
-                when (it) {
-                    MokkeryDirectives.IGNORE_FINAL_MEMBERS -> put(IGNORE_FINAL_MEMBERS, listOf(true))
-                    MokkeryDirectives.IGNORE_INLINE_MEMBERS -> put(IGNORE_INLINE_MEMBERS, listOf(true))
-                    MokkeryDirectives.DISABLE_FIR_DIAGNOSTICS -> put(ENABLE_FIR_DIAGNOSTICS, listOf(false))
-                    MokkeryDirectives.STUBS_ALLOW_CLASS_INHERITANCE -> put(STUBS_ALLOW_CLASS_INHERITANCE, listOf(true))
-                    MokkeryDirectives.STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION -> put(STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION, listOf(true))
-                    else -> Unit
-                }
-            }
+            MokkeryDirectives.writeDirective(it, configuration)
         }
         for (file in mokkeryRuntimeClasspath) {
             configuration.addJvmClasspathRoot(file)

@@ -19,5 +19,6 @@ dependencies {
     compileOnly(libs.google.autoservice.annotations)
     compileOnly(libs.kotlin.compiler.embeddable)
     compileOnly(libs.kotlin.stdlib)
-    implementation(project(":mokkery-core"))
+    api(project(":mokkery-core"))
+    api(project(":mokkery-core-tooling"))
 }

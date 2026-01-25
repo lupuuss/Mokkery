@@ -85,27 +85,3 @@ public object ExhaustiveSoftVerifyMode : VerifyMode()
  */
 @InternalMokkeryApi
 public data class SoftVerifyMode(val atLeast: Int, val atMost: Int) : VerifyMode()
-
-/**
- * Serializes and deserializes [VerifyMode] to pass it as compiler plugin option.
- */
-@InternalMokkeryApi
-public object VerifyModeSerializer {
-    public fun serialize(verifyMode: VerifyMode): String = when (verifyMode) {
-        ExhaustiveOrderVerifyMode -> "ExhaustiveOrder"
-        ExhaustiveSoftVerifyMode -> "ExhaustiveSoft"
-        NotVerifyMode -> "Not"
-        OrderVerifyMode -> "Order"
-        is SoftVerifyMode -> "Soft_${verifyMode.atLeast}_${verifyMode.atMost}"
-    }
-
-    public fun deserialize(value: String): VerifyMode = when {
-        value == "ExhaustiveOrder" -> ExhaustiveOrderVerifyMode
-        value == "ExhaustiveSoft" -> ExhaustiveSoftVerifyMode
-        value == "Not" -> NotVerifyMode
-        value == "Order" -> OrderVerifyMode
-        value.startsWith("Soft") -> value.removePrefix("Soft_")
-            .let { SoftVerifyMode(it.substringBefore("_").toInt(), it.substringAfter("_").toInt())}
-        else -> error("Unknown verify mode!")
-    }
-}

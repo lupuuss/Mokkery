@@ -13,6 +13,7 @@ plugins {
 dependencies {
     compileOnly(kotlin("gradle-plugin"))
     api(project(":mokkery-core"))
+    api(project(":mokkery-core-tooling"))
 }
 
 kotlin {
@@ -62,6 +63,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
                     else -> error("Unsupported target ${HostManager.host}")
                 }
             }
+            dependsOnPublishToMavenLocalOf(":mokkery-core-tooling")
             dependsOnPublishToMavenLocalOf(":mokkery-plugin")
             dependsOnPublishToMavenLocalOf(":mokkery-gradle")
         }
