@@ -34,7 +34,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             .extensions
             .create("mokkery", MokkeryGradleExtension::class.java)
         mokkery.rule.convention(ApplicationRule.AllTests)
-        val projection = PropertyProjection(target)
+        val projection = GradlePropertyProjection(target)
         MokkeryOptions.forEach {
             it.get(projection)?.convention(it.defaultValue)
         }
@@ -46,7 +46,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
         target.project.provider {
-            val property = PropertyProjection(project)
+            val property = GradlePropertyProjection(project)
             MokkeryOptions.mapNotNull {
                 val value = it.get(property)?.get() ?: return@mapNotNull null
                 SubpluginOption(it.name, it.type.serializer.serialize(value))
@@ -137,7 +137,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     private fun KotlinVersion(string: String): KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
 }
 
-private data class PropertyProjection(
+private data class GradlePropertyProjection(
     val project: Project
 ) : MokkeryOptionProjection<Property<Any>?> {
 
@@ -152,6 +152,7 @@ private data class PropertyProjection(
         MokkeryOptions.Core.enableFirDiagnostics -> extension.enableFirDiagnostics
         MokkeryOptions.Stubs.allowClassInheritance -> extension.stubs.allowClassInheritance
         MokkeryOptions.Stubs.allowConcreteClassInstantiation -> extension.stubs.allowConcreteClassInstantiation
+        MokkeryOptions.Annotations.copyToMock -> extension.annotations.copyToMock
         else -> null
     } as? Property<Any>
 }

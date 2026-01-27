@@ -3,9 +3,12 @@ package dev.mokkery.internal.options
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryCompilerDefaults
 import dev.mokkery.annotations.InternalMokkeryApi
+import dev.mokkery.internal.options.MokkeryOptionType.Companion.annotationSelector
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.boolean
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.mockMode
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.verifyMode
+import dev.mokkery.options.AnnotationSelector
+import dev.mokkery.options.AnnotationSelector.Companion.all
 import dev.mokkery.verify.VerifyMode
 
 @InternalMokkeryApi
@@ -14,6 +17,7 @@ public object MokkeryOptions : MokkeryOptionsContainer() {
     init {
         this += Core
         this += Stubs
+        this += Annotations
     }
 
     @InternalMokkeryApi
@@ -63,6 +67,18 @@ public object MokkeryOptions : MokkeryOptionsContainer() {
             type = boolean,
             description = "Allows Mokkery to instantiate existing classes required for mocked class constructor.",
             defaultValue = false,
+        )
+    }
+
+    @InternalMokkeryApi
+    public object Annotations : MokkeryOptionsContainer() {
+
+        private val annotations by MokkeryNamespace.named
+
+        public val copyToMock: MokkeryOption<AnnotationSelector> by annotations.defaultSingleOption(
+            type = annotationSelector,
+            description = "Describes which annotations should be copied from type to mock to mock implementation.",
+            defaultValue = all
         )
     }
 }

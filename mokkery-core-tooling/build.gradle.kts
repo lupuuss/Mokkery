@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
     id("mokkery-publish")
+    alias(libs.plugins.poko)
 }
 
 kotlin {

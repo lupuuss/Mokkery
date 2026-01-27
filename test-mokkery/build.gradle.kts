@@ -14,6 +14,7 @@ configureCompilerPlugin(
     SubpluginOption("ignoreFinalMembers", "true"),
     SubpluginOption("stubs.allowConcreteClassInstantiation", "true"),
     SubpluginOption("stubs.allowClassInheritance", "true"),
+    SubpluginOption("annotations.copyToMock", """all - named("dev.mokkery.test.AnnotationB"|"dev.mokkery.test.AnnotationC")""")
 )
 
 dependencies {

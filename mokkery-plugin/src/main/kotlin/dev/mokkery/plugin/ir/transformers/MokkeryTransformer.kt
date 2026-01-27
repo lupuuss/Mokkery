@@ -92,7 +92,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
     private val matchersCompiler = MatchersCompiler(this)
 
     override fun visitClassNew(declaration: IrClass): IrStatement {
-        overrideMokkeryTestsScopeIfNotOverridden(declaration)
+        overrideMokkerySuiteScopeIfNotOverridden(declaration)
         return super.visitClassNew(declaration)
     }
 
@@ -131,7 +131,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         return result
     }
 
-    private fun overrideMokkeryTestsScopeIfNotOverridden(irClass: IrClass) {
+    private fun overrideMokkerySuiteScopeIfNotOverridden(irClass: IrClass) {
         if (!irClass.isClass) return
         if (irClass.superTypes.none { it.getClass() == mokkerySuiteScopeClass }) return
         val property = irClass.getProperty("mokkeryContext")

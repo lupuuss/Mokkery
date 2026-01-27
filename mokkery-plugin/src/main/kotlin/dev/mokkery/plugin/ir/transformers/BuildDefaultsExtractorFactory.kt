@@ -6,6 +6,7 @@ import dev.mokkery.plugin.ir.transformers.core.getFunction
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
+import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.irCall
@@ -14,6 +15,7 @@ import dev.mokkery.plugin.ir.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
+import dev.mokkery.plugin.ir.transformers.core.annotationSelector
 import dev.mokkery.plugin.ir.typeWith
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -76,10 +78,16 @@ private fun TransformerScope.buildDefaultsExtractorOrNull(
         defaultsExtractorClass.superTypes += pluginContext.irBuiltIns.anyType
     }
     defaultsExtractorClass.addDefaultsExtractorConstructor(this, classesToIntercept)
+    val annotationFilter = compilerConfig.annotationSelector.toFilter()
     classesToIntercept.flatMap { it.overridableFunctions }
         .groupBy(IrDeclaration::computeSignature)
         .map { (_, functions) ->
-            defaultsExtractorClass.addOverridingMethod(pluginContext, functions, parameterMap) { newFunc ->
+            defaultsExtractorClass.addOverridingMethod(
+                context = pluginContext,
+                functions = functions,
+                parameterMap = parameterMap,
+                annotationFilter = annotationFilter,
+            ) { newFunc ->
                 newFunc.returnType = irBuiltIns.nothingType
                 if (functions.any { func -> func.parameters.any(IrValueParameter::hasDefaultValue) }) {
                     +irCall(throwArgumentsFunction) {
@@ -100,6 +108,7 @@ private fun TransformerScope.buildDefaultsExtractorOrNull(
                 context = pluginContext,
                 properties = properties,
                 parameterMap = parameterMap,
+                annotationFilter = annotationFilter,
                 getterBlock = { +irCall(methodWithoutDefaultFunction) },
                 setterBlock = { +irCall(methodWithoutDefaultFunction) }
             )

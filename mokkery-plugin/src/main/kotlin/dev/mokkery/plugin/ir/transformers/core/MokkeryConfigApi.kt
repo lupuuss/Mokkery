@@ -3,6 +3,7 @@ package dev.mokkery.plugin.ir.transformers.core
 import dev.mokkery.MockMode
 import dev.mokkery.internal.options.MokkeryOption
 import dev.mokkery.internal.options.MokkeryOptions
+import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.configurationKey
 import dev.mokkery.plugin.ir.stubs.MokkeryStubsConfig
@@ -29,6 +30,9 @@ val CompilerConfiguration.stubsConfig: MokkeryStubsConfig
         allowClassInheritance = getSingleOrDefault(MokkeryOptions.Stubs.allowClassInheritance),
         allowConcreteClassInstantiation = getSingleOrDefault(MokkeryOptions.Stubs.allowConcreteClassInstantiation)
     )
+
+val CompilerConfiguration.annotationSelector: AnnotationSelector
+    get() = getSingleOrDefault(MokkeryOptions.Annotations.copyToMock)
 
 fun <T> CompilerConfiguration.getSingleOrDefault(option: MokkeryOption<T>): T {
     return get(option.configurationKey)

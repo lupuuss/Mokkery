@@ -1,5 +1,7 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.ir.annotations.AnnotationFilter
+import dev.mokkery.plugin.ir.annotations.deepApplyAnnotationsFilter
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
@@ -65,14 +67,16 @@ fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
 fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
     function: IrSimpleFunction,
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
-) = addOverridingMethod(context, listOf(function), parameterMap, block)
+) = addOverridingMethod(context, listOf(function), parameterMap, annotationFilter, block)
 
 fun IrClass.addOverridingMethod(
     context: IrGeneratorContext,
     functions: List<IrSimpleFunction>,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
 ) {
     val function = functions.first()
@@ -90,6 +94,8 @@ fun IrClass.addOverridingMethod(
         copyReturnTypeFrom(function, parameterMap)
         parameters = listOf(createDispatchReceiverParameterWithClassParent())
         copyNonDispatchParametersWithoutDefaultsFrom(function, parameterMap)
+        deepApplyAnnotationsFilter(annotationFilter)
+        metadata = function.metadata
         body = DeclarationIrBuilder(context, symbol)
             .irBlockBody { block(this@apply) }
     }
@@ -98,6 +104,7 @@ fun IrClass.addOverridingMethod(
 fun IrClass.overrideAllOverridableFunctions(
     context: IrGeneratorContext,
     superClass: IrClass,
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     override: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ) {
     superClass
@@ -106,6 +113,7 @@ fun IrClass.overrideAllOverridableFunctions(
             addOverridingMethod(
                 context = context,
                 function = overridableFun,
+                annotationFilter = annotationFilter,
                 parameterMap = superClass.typeParameters.zip(typeParameters).toMap(),
                 block = override
             )
@@ -120,6 +128,7 @@ fun IrType.indexIfParameterOrNull(parent: IrTypeParametersContainer): Int? {
 fun IrClass.overrideAllOverridableProperties(
     context: IrGeneratorContext,
     superClass: IrClass,
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ) {
@@ -130,6 +139,7 @@ fun IrClass.overrideAllOverridableProperties(
                 context = context,
                 property = property,
                 parameterMap = superClass.typeParameters.zip(typeParameters).toMap(),
+                annotationFilter = annotationFilter,
                 getterBlock = getterBlock,
                 setterBlock = setterBlock
             )
@@ -140,14 +150,16 @@ fun IrClass.addOverridingProperty(
     context: IrGeneratorContext,
     property: IrProperty,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-) = addOverridingProperty(context, listOf(property), parameterMap, getterBlock, setterBlock)
+) = addOverridingProperty(context, listOf(property), parameterMap, annotationFilter, getterBlock, setterBlock)
 
 fun IrClass.addOverridingProperty(
     context: IrGeneratorContext,
     properties: List<IrProperty>,
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
+    annotationFilter: AnnotationFilter = AnnotationFilter.all,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ) {
@@ -171,6 +183,7 @@ fun IrClass.addOverridingProperty(
             getter.parameters = listOf(getter.createDispatchReceiverParameterWithClassParent())
             getter.copyNonDispatchParametersWithoutDefaultsFrom(baseGetter, parameterMap)
             getter.copyAnnotationsFrom(baseGetter)
+            getter.deepApplyAnnotationsFilter(annotationFilter)
             getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
         val baseSetter = property.setter
@@ -184,6 +197,7 @@ fun IrClass.addOverridingProperty(
             setter.copyAnnotationsFrom(baseSetter)
             setter.overriddenSymbols = properties
                 .memoryOptimizedFlatMap { it.setter?.overriddenSymbols.orEmpty() + listOfNotNull(it.setter?.symbol) }
+            setter.deepApplyAnnotationsFilter(annotationFilter)
             setter.body = DeclarationIrBuilder(context, setter.symbol).irBlockBody { setterBlock(setter) }
         }
     }

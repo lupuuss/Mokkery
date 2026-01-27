@@ -1,6 +1,7 @@
 package dev.mokkery.gradle
 
 import dev.mokkery.MockMode
+import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.verify.VerifyMode
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
@@ -60,6 +61,12 @@ public interface MokkeryGradleExtension {
      */
     @get:Nested
     public val stubs: MokkeryStubsOptions
+
+    /**
+     * Allows adjusting how Mokkery handles annotations.
+     */
+    @get:Nested
+    public val annotations: MokkeryAnnotationsOptions
 }
 
 /**
@@ -102,4 +109,44 @@ public interface MokkeryStubsOptions {
      * @see [MokkeryStubsOptions]
      */
     public val allowClassInheritance: Property<Boolean>
+}
+
+/**
+ * Allows adjusting how Mokkery handles annotations.
+ */
+public interface MokkeryAnnotationsOptions {
+
+    /**
+     * Specifies the selector expression that determines which annotations
+     * will be copied from the type being mocked to the generated mock.
+     *
+     * Examples:
+     * ```kotlin
+     * import dev.mokkery.options.AnnotationSelector.Companion.all
+     * import dev.mokkery.options.AnnotationSelector.Companion.none
+     * import dev.mokkery.options.AnnotationSelector.Companion.named
+     * import dev.mokkery.options.AnnotationSelector.Companion.matches
+     *
+     * mokkery {
+     *     annotations {
+     *
+     *         // No annotations
+     *         copyToMock = none
+     *
+     *         // All annotations except "example.A"
+     *         copyToMock = all - named("example.A")
+     *
+     *         // Only "example.A"
+     *         copyToMock = named("example.A")
+     *
+     *         // All annotations matching the regex "internal.*"
+     *         copyToMock = matches(Regex("internal.*"))
+     *
+     *         // Combine rules: all except "example.A" and all annotations starting with "internal"
+     *         copyToMock = all - named("example.A") - matches(Regex("internal.*"))
+     *     }
+     * }
+     * ```
+     */
+    public val copyToMock: Property<AnnotationSelector>
 }

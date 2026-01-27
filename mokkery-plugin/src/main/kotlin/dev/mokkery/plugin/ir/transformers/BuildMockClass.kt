@@ -1,15 +1,10 @@
 package dev.mokkery.plugin.ir.transformers
 
-import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.ir.transformers.core.TransformerScope
-import dev.mokkery.plugin.ir.transformers.core.getClass
-import dev.mokkery.plugin.ir.transformers.core.getFunction
-import dev.mokkery.plugin.ir.transformers.core.getProperty
-import dev.mokkery.plugin.randomString
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
+import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
@@ -25,7 +20,13 @@ import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
+import dev.mokkery.plugin.ir.transformers.core.TransformerScope
+import dev.mokkery.plugin.ir.transformers.core.annotationSelector
+import dev.mokkery.plugin.ir.transformers.core.getClass
+import dev.mokkery.plugin.ir.transformers.core.getFunction
+import dev.mokkery.plugin.ir.transformers.core.getProperty
 import dev.mokkery.plugin.ir.typeWith
+import dev.mokkery.plugin.randomString
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -82,15 +83,20 @@ fun TransformerScope.buildMockClass(
         scopeInstanceClass = instanceScopeClass,
         classesToIntercept = listOf(classToMock),
     )
-    mockedClass.overrideAllOverridableFunctions(pluginContext, classToMock) {
+    val annotationFilter = compilerConfig
+        .annotationSelector
+        .toFilter()
+    mockedClass.overrideAllOverridableFunctions(pluginContext, classToMock, annotationFilter) {
         mockBody(this@buildMockClass, mokkeryKind, it)
     }
     mockedClass.overrideAllOverridableProperties(
         context = pluginContext,
         superClass = classToMock,
+        annotationFilter = annotationFilter,
         getterBlock = { mockBody(this@buildMockClass, mokkeryKind, it) },
         setterBlock = { mockBody(this@buildMockClass, mokkeryKind, it) }
     )
+    mockedClass.metadata = classToMock.metadata
     return mockedClass
 }
 
@@ -118,10 +124,16 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
+    val annotationFilter = compilerConfig.annotationSelector.toFilter()
     classesToMock.flatMap { it.overridableFunctions }
         .groupBy(IrDeclaration::computeSignature)
         .map { (_, functions) ->
-            mockedClass.addOverridingMethod(pluginContext, functions, parameterMap) {
+            mockedClass.addOverridingMethod(
+                context = pluginContext,
+                functions = functions,
+                parameterMap = parameterMap,
+                annotationFilter = annotationFilter
+            ) {
                 mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it)
             }
         }
@@ -132,6 +144,7 @@ fun TransformerScope.buildManyMockClass(classesToMock: List<IrClass>): IrClass {
                 context = pluginContext,
                 properties = properties,
                 parameterMap = parameterMap,
+                annotationFilter = annotationFilter,
                 getterBlock = { mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it) },
                 setterBlock = { mockBody(this@buildManyMockClass, IrMokkeryKind.Mock, it) }
             )

@@ -2,10 +2,12 @@ package dev.mokkery.internal.options
 
 import dev.mokkery.MockMode
 import dev.mokkery.annotations.InternalMokkeryApi
+import dev.mokkery.internal.serialization.AnnotationSelectorSerializer
 import dev.mokkery.internal.serialization.BooleanSerializer
 import dev.mokkery.internal.serialization.MokkerySerializer
 import dev.mokkery.internal.serialization.VerifyModeSerializer
 import dev.mokkery.internal.serialization.enumSerializer
+import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.verify.VerifyMode
 import kotlin.enums.enumEntries
 
@@ -28,6 +30,11 @@ public data class MokkeryOptionType<T>(
         )
 
         public val mockMode: MokkeryOptionType<MockMode> = enum<MockMode>()
+
+        public val annotationSelector: MokkeryOptionType<AnnotationSelector> = MokkeryOptionType(
+            description = "<annotations selector expression>",
+            serializer = AnnotationSelectorSerializer
+        )
 
         internal inline fun <reified T : Enum<T>> enum(): MokkeryOptionType<T> = MokkeryOptionType(
             description = enumEntries<T>().joinToString(separator = "|", prefix = "<", postfix = ">"),
