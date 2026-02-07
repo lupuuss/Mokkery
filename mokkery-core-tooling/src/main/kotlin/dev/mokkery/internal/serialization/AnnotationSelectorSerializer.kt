@@ -1,18 +1,14 @@
 package dev.mokkery.internal.serialization
 
-import dev.mokkery.internal.serialization.compiler.ast.EvaluationFactory
 import dev.mokkery.internal.serialization.compiler.ast.FunctionSymbol
 import dev.mokkery.internal.serialization.compiler.ast.Identifier
 import dev.mokkery.internal.serialization.compiler.ast.Parameter
-import dev.mokkery.internal.serialization.compiler.ast.Parser
-import dev.mokkery.internal.serialization.compiler.ast.ParserContext
 import dev.mokkery.internal.serialization.compiler.ast.PropertySymbol
 import dev.mokkery.internal.serialization.compiler.ast.SymbolTable
 import dev.mokkery.internal.serialization.compiler.ast.Type
 import dev.mokkery.internal.serialization.compiler.ast.constSymbolTable
-import dev.mokkery.internal.serialization.compiler.ast.parseUntilExhausted
+import dev.mokkery.internal.serialization.compiler.ast.parseAndEvaluate
 import dev.mokkery.internal.serialization.compiler.ast.plus
-import dev.mokkery.internal.serialization.compiler.core.asPeekStream
 import dev.mokkery.internal.serialization.compiler.lex.Lexer
 import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.options.AnnotationSelector.Companion.all
@@ -20,6 +16,7 @@ import dev.mokkery.options.AnnotationSelector.Companion.matches
 import dev.mokkery.options.AnnotationSelector.Companion.named
 import dev.mokkery.options.AnnotationSelector.Companion.none
 import dev.mokkery.options.AnnotationSelectorInternals
+import kotlin.error
 
 internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelector> {
 
@@ -27,13 +24,13 @@ internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelec
         obj.serializeInto(this)
     }
 
-    override fun deserialize(string: String): AnnotationSelector = try {
-        evaluate(string)
-    } catch (e: Throwable) {
-        throw IllegalArgumentException(
-            "Failed while interpreting ${AnnotationSelectorType.render()} expression [$string]!", e
-        )
-    }
+    override fun deserialize(
+        string: String
+    ): AnnotationSelector = parseAndEvaluate(
+        string = string,
+        type = AnnotationSelectorType,
+        symbolTable = SymbolTable.standard + annotationsRuleSymbolTable
+    ) ?: error("Empty expression is not allowed!")
 
     private fun AnnotationSelector.serializeInto(builder: StringBuilder) {
         when (this) {
@@ -93,19 +90,6 @@ internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelec
         separator = "|",
     )
 
-    private fun evaluate(string: String): AnnotationSelector {
-        val tokens = Lexer.default.lex(string.asPeekStream())
-        val expression = context(ParserContext.empty) {
-            Parser.default.parseUntilExhausted(tokens.asPeekStream())
-        } ?: return none
-        val evaluation = EvaluationFactory(annotationsRuleSymbolTable)
-            .createFrom(expression)
-        if (evaluation.type != AnnotationSelectorType) {
-            error("Expected ${AnnotationSelectorType.render()} type but got ${evaluation.type.render()}")
-        }
-        return evaluation.evaluate() as AnnotationSelector
-    }
-
     private val AnnotationSelectorType = Type.Simple("AnnotationSelector")
 
     private val RegexOptionEnumType = Type.Simple("RegexOption")
@@ -114,7 +98,7 @@ internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelec
         .map { PropertySymbol(name = it.name, type = RegexOptionEnumType, access = { it }) }
         .toTypedArray()
 
-    private val annotationsRuleSymbolTable = SymbolTable.standard + constSymbolTable(
+    private val annotationsRuleSymbolTable = constSymbolTable(
         *regexOptionSymbols,
         PropertySymbol(name = "all", type = AnnotationSelectorType, access = { all }),
         PropertySymbol(name = "none", type = AnnotationSelectorType, access = { none }),

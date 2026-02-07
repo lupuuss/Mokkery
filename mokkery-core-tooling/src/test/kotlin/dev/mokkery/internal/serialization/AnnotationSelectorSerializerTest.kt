@@ -6,6 +6,7 @@ import dev.mokkery.options.AnnotationSelector.Companion.named
 import dev.mokkery.options.AnnotationSelector.Companion.none
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 class AnnotationSelectorSerializerTest {
 
@@ -203,6 +204,13 @@ class AnnotationSelectorSerializerTest {
             -named("example.a"),
             serializer.deserialize("""-named("example.a")""")
         )
+    }
+
+    @Test
+    fun testFailsWhileDeserializingEmptyString() {
+        assertFails {
+            serializer.deserialize("")
+        }
     }
 
     @Test

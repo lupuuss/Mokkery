@@ -46,6 +46,7 @@ internal fun interface Lexer {
 }
 
 internal fun compositeExhaustiveLexer(vararg lexers: Lexer) = Lexer { stream ->
+    if (stream.peek() == null) return@Lexer emptyList()
     val tokens = mutableListOf<Token>()
     do {
         val initialPos = stream.position

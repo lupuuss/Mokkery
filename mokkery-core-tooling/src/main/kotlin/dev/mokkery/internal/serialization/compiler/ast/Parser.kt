@@ -60,14 +60,14 @@ internal inline fun <T> withContext(
 }
 
 context(context: ParserContext)
-internal fun Parser.parseUntilExhausted(
+internal fun Parser.parseAll(
     stream: PeekStream<Token>,
 ): Expression? {
     var left: Expression? = null
     while (stream.peek() != null) {
         val initialPos = stream.position
         withContext(left = left, parser = this) { left = this.parse(stream) }
-        if (stream.position == initialPos) error("Parser hanged!")
+        if (stream.position == initialPos) error("Unexpected token ${stream.peek()?.toString()}")
     }
     return left
 }
@@ -97,7 +97,7 @@ internal val groupingParser = Parser { stream ->
     withContext(left = null, precedence = Parser.Precedence.Lowest) {
         parserContext
             .parser
-            .parseUntilExhausted(inside.asPeekStream())
+            .parseAll(inside.asPeekStream())
     }
 }
 
@@ -121,7 +121,7 @@ internal val callParser = Parser { stream ->
         id = id,
         arguments = withContext(precedence = Parser.Precedence.Lowest) {
             cleansedArguments.map {
-                parserContext.parser.parseUntilExhausted(it.asPeekStream()) ?: error("Expected an argument")
+                parserContext.parser.parseAll(it.asPeekStream()) ?: error("Expected an argument")
             }
         }
     )
