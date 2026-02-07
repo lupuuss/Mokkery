@@ -25,19 +25,19 @@ public data class MokkeryOptionType<T>(
         )
 
         public val verifyMode: MokkeryOptionType<VerifyMode> = MokkeryOptionType(
-            description = $$"<ExhaustiveOrder|ExhaustiveSoft|Not|Order|Soft_$atLeast_$atMost>",
+            description = $$"VerifyMode expression <exhaustive|order|exhaustiveOrder|not|soft|atLeast($n)|atMost($n)|inRange($range)|exactly($n)>",
             serializer = VerifyModeSerializer
         )
 
         public val mockMode: MokkeryOptionType<MockMode> = enum<MockMode>()
 
         public val annotationSelector: MokkeryOptionType<AnnotationSelector> = MokkeryOptionType(
-            description = "<annotations selector expression>",
+            description = $$"AnnotationSelector expression <all|none|named($names)|matches($pattern|$options)|+|->",
             serializer = AnnotationSelectorSerializer
         )
 
         internal inline fun <reified T : Enum<T>> enum(): MokkeryOptionType<T> = MokkeryOptionType(
-            description = enumEntries<T>().joinToString(separator = "|", prefix = "<", postfix = ">"),
+            description = "enum ${T::class.simpleName}" + enumEntries<T>().joinToString(separator = "|", prefix = "<", postfix = ">"),
             serializer = enumSerializer<T>()
         )
     }
