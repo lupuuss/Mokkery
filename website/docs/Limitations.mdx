@@ -108,6 +108,20 @@ Mokkery uses the following strategies to supply constructor arguments:
 
 Mokkery selects the first applicable strategy based on the order listed above.
 
+### Kotlin Reflect
+
+Generated mocks do not work correctly with Kotlin Reflect:
+```kotlin
+val klass = mock<Foo>()::class
+klass.members // <- returns only members from kotlin.Any
+```
+
+This limitation could be solved in the future, but it requires further investigation.
+
+:::info
+Java reflection works correctly with mocks.
+:::
+
 ## Before Mokkery 3
 
 Given limitations affect **only** Mokkery 1 and 2 and they are **not** present in Mokkery 3.
