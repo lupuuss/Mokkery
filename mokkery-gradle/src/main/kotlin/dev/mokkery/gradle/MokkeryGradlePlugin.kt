@@ -112,12 +112,6 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun Project.configureDependencies() {
         afterEvaluate {
-            // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
-            configurations.matching {
-                it.name.startsWith("kotlin") && it.name.contains("CompilerPluginClasspath")
-            }.all {
-                it.isTransitive = true
-            }
             val rule = mokkery.rule.get()
             val applicableSourceSets = kotlinExtension
                 .sourceSets

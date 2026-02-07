@@ -10,6 +10,7 @@ kotlin {
 
 dependencies {
     testImplementation(project(":mokkery-plugin"))
+    testImplementation(project(":mokkery-core-tooling"))
 
     testImplementation(libs.kotlin.testJunit5)
     testImplementation(libs.kotlin.compilerTestFramework)

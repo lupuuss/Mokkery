@@ -14,11 +14,23 @@ kotlin.sourceSets.all {
     }
 }
 
+val embeddedClasspath: Configuration by configurations.creating { isTransitive = false }
+
 dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)
     compileOnly(libs.kotlin.compiler.embeddable)
     compileOnly(libs.kotlin.stdlib)
-    api(project(":mokkery-core"))
-    api(project(":mokkery-core-tooling"))
+    embedded(project(":mokkery-core"))
+    embedded(project(":mokkery-core-tooling"))
+}
+
+fun DependencyHandlerScope.embedded(dependency: Any) {
+    compileOnly(dependency)
+    embeddedClasspath(dependency)
+}
+
+tasks.jar {
+    from(embeddedClasspath.map(::zipTree))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

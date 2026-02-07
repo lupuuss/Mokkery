@@ -1,11 +1,6 @@
 package dev.mokkery.tests
 
-
-import dev.mokkery.annotations.InternalMokkeryApi
-import dev.mokkery.internal.options.MokkeryOption
-import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.plugin.MokkeryFirRegistrar
-import dev.mokkery.plugin.configurationKey
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
