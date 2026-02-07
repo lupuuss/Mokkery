@@ -1,5 +1,5 @@
 ---
-description: How to add Mokkery to your Gradle project rapidly!
+description: How to add Mokkery to your project!
 ---
 
 import Tabs from '@theme/Tabs';
@@ -7,6 +7,8 @@ import TabItem from '@theme/TabItem';
 import Admonition from '@theme/Admonition';
 
 # Setup
+
+## Gradle
 
 1. Apply Gradle plugin:
 
@@ -118,7 +120,7 @@ If neither `ApplicationRule.AllTests` nor `ApplicationRule.All` meets your requi
 **When selecting source sets manually, ensure that you include all source sets within a subtree.
 The Mokkery plugin does not automatically detect dependencies between source sets, as these dependencies may not always be present.**
 
-### Targets
+## Targets
 
 ✅ Supported:
 - ☕ JVM & Android
@@ -129,7 +131,7 @@ The Mokkery plugin does not automatically detect dependencies between source set
 
 You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/build-mokkery/src/main/kotlin/mokkery-multiplatform.gradle.kts) for more details.
 
-### Compatibility
+## Compatibility
 
 <Tabs
   groupId="kotlinVersion"
@@ -172,3 +174,4 @@ You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/buil
       | 2.0.0 – 2.2.0                      | 2.0.0 - 2.0.10                                         |
   </TabItem>
 </Tabs>
+
