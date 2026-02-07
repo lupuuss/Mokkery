@@ -27,8 +27,9 @@ import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridePropertyBackingField
-import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
+import dev.mokkery.verify.VerifyModeInternals
+import dev.mokkery.verify.VerifyModeInternals.Soft
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
@@ -273,13 +274,20 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
 
     private fun IrBuilderWithScope.irGetVerifyMode(verifyMode: VerifyMode): IrExpression {
         val expression = when (verifyMode) {
-            is SoftVerifyMode -> irCallConstructor(getIrClassOf(SoftVerifyMode::class).primaryConstructor!!) {
+            is Soft -> irCallConstructor(getVerifyModeIrClass(verifyMode).primaryConstructor!!) {
                 arguments[0] = irInt(verifyMode.atLeast)
                 arguments[1] = irInt(verifyMode.atMost)
             }
-            else -> irGetObject(getIrClassOf(verifyMode::class).symbol)
+            else -> irGetObject(getVerifyModeIrClass(verifyMode).symbol)
         }
         return expression
+    }
+
+    private fun getVerifyModeIrClass(verifyMode: VerifyMode): IrClass {
+        val simpleName = verifyMode::class.simpleName
+        return getIrClassOf(VerifyModeInternals::class)
+            .nestedClasses
+            .find { it.name.asString() == simpleName }!!
     }
 
     // probably works only for top level classes

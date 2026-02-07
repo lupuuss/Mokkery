@@ -3,12 +3,12 @@ package dev.mokkery.internal.verify
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.matcher.CallMatcherFactory
 import dev.mokkery.internal.verify.results.TemplateMatchingResultsComposer
-import dev.mokkery.verify.ExhaustiveOrderVerifyMode
-import dev.mokkery.verify.ExhaustiveSoftVerifyMode
-import dev.mokkery.verify.NotVerifyMode
-import dev.mokkery.verify.OrderVerifyMode
-import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
+import dev.mokkery.verify.VerifyModeInternals.Exhaustive
+import dev.mokkery.verify.VerifyModeInternals.ExhaustiveOrder
+import dev.mokkery.verify.VerifyModeInternals.Not
+import dev.mokkery.verify.VerifyModeInternals.Order
+import dev.mokkery.verify.VerifyModeInternals.Soft
 
 internal interface VerifierFactory {
 
@@ -26,23 +26,15 @@ private class VerifierFactoryImpl(
     override fun create(mode: VerifyMode, collection: MokkeryCollection): Verifier {
         val callMatcher = callMatcherFactory.create(collection)
         return when (mode) {
-            OrderVerifyMode -> OrderVerifier(
+            is Soft -> SoftVerifier(atLeast = mode.atLeast, atMost = mode.atMost, callMatcher = callMatcher)
+            Exhaustive -> ExhaustiveSoftVerifier(callMatcher = callMatcher)
+            Not -> NotVerifier(callMatcher = callMatcher)
+            Order -> OrderVerifier(
                 callMatcher = callMatcher,
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher)
             )
-            ExhaustiveOrderVerifyMode -> ExhaustiveOrderVerifier(
+            ExhaustiveOrder -> ExhaustiveOrderVerifier(
                 resultsComposer = TemplateMatchingResultsComposer(callMatcher),
-                callMatcher = callMatcher,
-            )
-            ExhaustiveSoftVerifyMode -> ExhaustiveSoftVerifier(
-                callMatcher = callMatcher,
-            )
-            NotVerifyMode -> NotVerifier(
-                callMatcher = callMatcher,
-            )
-            is SoftVerifyMode -> SoftVerifier(
-                atLeast = mode.atLeast,
-                atMost = mode.atMost,
                 callMatcher = callMatcher,
             )
         }

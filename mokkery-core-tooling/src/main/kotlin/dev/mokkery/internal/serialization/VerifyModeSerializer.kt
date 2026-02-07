@@ -8,25 +8,21 @@ import dev.mokkery.internal.serialization.compiler.ast.Type
 import dev.mokkery.internal.serialization.compiler.ast.constSymbolTable
 import dev.mokkery.internal.serialization.compiler.ast.parseAndEvaluate
 import dev.mokkery.internal.serialization.compiler.ast.plus
-import dev.mokkery.verify.ExhaustiveOrderVerifyMode
-import dev.mokkery.verify.ExhaustiveSoftVerifyMode
-import dev.mokkery.verify.NotVerifyMode
-import dev.mokkery.verify.OrderVerifyMode
-import dev.mokkery.verify.SoftVerifyMode
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verify.VerifyMode.Companion.atLeast
 import dev.mokkery.verify.VerifyMode.Companion.atMost
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verify.VerifyMode.Companion.inRange
+import dev.mokkery.verify.VerifyModeInternals
 
 internal object VerifyModeSerializer : MokkerySerializer<VerifyMode> {
 
     override fun serialize(obj: VerifyMode): String = when (obj) {
-        ExhaustiveOrderVerifyMode -> "exhaustiveOrder"
-        ExhaustiveSoftVerifyMode -> "exhaustive"
-        NotVerifyMode -> "not"
-        OrderVerifyMode -> "order"
-        is SoftVerifyMode -> when {
+        VerifyModeInternals.ExhaustiveOrder -> "exhaustiveOrder"
+        VerifyModeInternals.Exhaustive -> "exhaustive"
+        VerifyModeInternals.Not -> "not"
+        VerifyModeInternals.Order -> "order"
+        is VerifyModeInternals.Soft -> when {
             obj.atLeast == obj.atMost -> "exactly(${obj.atMost})"
             obj.atLeast == 1 && obj.atMost == Int.MAX_VALUE -> "soft"
             obj.atMost == Int.MAX_VALUE -> "atLeast(${obj.atLeast})"
