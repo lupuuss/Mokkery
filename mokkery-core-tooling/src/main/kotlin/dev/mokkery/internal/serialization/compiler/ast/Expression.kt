@@ -9,6 +9,7 @@ internal data class Identifier(val value: String) {
     companion object {
         val Plus = Identifier("+")
         val Minus = Identifier("-")
+        val Range = Identifier("..")
     }
 }
 
@@ -16,6 +17,10 @@ internal sealed interface Expression {
 
     data class StringLiteral(val value: String) : Expression {
         override fun toString(): String = "str[$value]"
+    }
+
+    data class IntLiteral(val value: Int) : Expression {
+        override fun toString(): String = "int[$value]"
     }
 
     data class Access(val id: Identifier) : Expression {

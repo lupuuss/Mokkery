@@ -12,22 +12,28 @@ internal fun interface Parser {
     context(context: ParserContext)
     fun parse(stream: PeekStream<Token>): Expression?
 
-    sealed class Precedence(val level: Int) : Comparable<Precedence> {
+    data class Precedence(val level: Int) : Comparable<Precedence> {
+
+        fun next(): Precedence = Precedence((level + 1).coerceAtMost(Highest.level))
 
         override fun compareTo(other: Precedence): Int = level.compareTo(other.level)
 
-        data object Lowest : Precedence(0)
-        data object Infix : Precedence(1)
-        data object BinaryOperator : Precedence(2)
-        data object Unary : Precedence(3)
-        data object Call : Precedence(4)
-        data object Primary : Precedence(5)
+        companion object {
+
+            val Lowest = Precedence(0)
+            val Infix = Precedence(1)
+            val Sum = Precedence(2)
+            val Product = Precedence(3)
+            val Prefix = Precedence(4)
+            val Call = Precedence(5)
+            val Highest = Precedence(6)
+        }
     }
 
     companion object {
 
         val default = compositeParser(
-            stringLiteralParser,
+            literalsParser,
             groupingParser,
             binaryOperatorParser,
             infixParser,
@@ -38,14 +44,6 @@ internal fun interface Parser {
 }
 
 internal val NoopParser = Parser { error("Noop parser called!") }
-
-internal inline fun parserWith(
-    precedence: Parser.Precedence,
-    crossinline parser: context(ParserContext)(stream: PeekStream<Token>) -> Expression?,
-): Parser = Parser {
-    if (parserContext.precedence > precedence) return@Parser null
-    parser(it)
-}
 
 context(context: ParserContext)
 internal inline val parserContext: ParserContext
@@ -80,11 +78,14 @@ internal fun compositeParser(vararg parsers: Parser) = Parser { stream ->
     }
 }
 
-internal val stringLiteralParser = Parser {
-    val token = it.peek()
-    if (token !is Token.StringLiteral) return@Parser null
+internal val literalsParser = Parser {
+    val result = when (val token = it.peek()) {
+        is Token.IntLiteral -> Expression.IntLiteral(token.value)
+        is Token.StringLiteral -> Expression.StringLiteral(token.value)
+        else -> return@Parser null
+    }
     it.consumed()
-    Expression.StringLiteral(token.value)
+    result
 }
 
 internal val groupingParser = Parser { stream ->
@@ -100,13 +101,14 @@ internal val groupingParser = Parser { stream ->
     }
 }
 
-internal val callParser = parserWith(Parser.Precedence.Call) { stream ->
+internal val callParser = Parser { stream ->
+    if (parserContext.precedence > Parser.Precedence.Call) return@Parser null
     val token = stream.peek()
-    if (token !is Token.Name) return@parserWith null
+    if (token !is Token.Name) return@Parser null
     val id = Identifier(token.value)
     stream.consumed()
     val next = stream.peek()
-    if (next != Token.Parenthesis.Left) return@parserWith Expression.Access(id)
+    if (next != Token.Parenthesis.Left) return@Parser Expression.Access(id)
     val arguments = stream.peekUntilClosingParenthesisOrNull() ?: error("Missing closing parenthesis")
     val cleansedArguments = arguments
         .removePrefix(Token.Parenthesis.Left)
@@ -119,55 +121,60 @@ internal val callParser = parserWith(Parser.Precedence.Call) { stream ->
         id = id,
         arguments = withContext(precedence = Parser.Precedence.Lowest) {
             cleansedArguments.map {
-                parserContext.parser.parse(it.asPeekStream()) ?: error("Expected an argument")
+                parserContext.parser.parseUntilExhausted(it.asPeekStream()) ?: error("Expected an argument")
             }
         }
     )
 }
 
-internal val unaryOperatorParser = parserWith(Parser.Precedence.Unary) {
+internal val unaryOperatorParser = Parser {
     val token = it.peek()
-    if (token !is Token.Operator) return@parserWith null
-    it.consumed()
+    if (token !is Token.Operator) return@Parser null
     val id = when (token) {
         Token.Operator.Minus -> Identifier.Minus
         Token.Operator.Plus -> Identifier.Plus
+        else -> return@Parser null
     }
+    it.consumed()
     Expression.UnaryOperator(
         id = id,
-        operand = withContext(precedence = Parser.Precedence.Call) {
+        operand = withContext(precedence = Parser.Precedence.Prefix.next()) {
             parserContext.parser.parse(it) ?: error("Expected an argument")
         }
     )
 }
 
-internal val binaryOperatorParser = parserWith(Parser.Precedence.BinaryOperator) {
-    val left = parserContext.left ?: return@parserWith null
+internal val binaryOperatorParser = Parser {
+    val left = parserContext.left ?: return@Parser null
     val token = it.peek()
-    if (token !is Token.Operator) return@parserWith null
-    it.consumed()
-    val id = when (token) {
-        Token.Operator.Minus -> Identifier.Minus
-        Token.Operator.Plus -> Identifier.Plus
+    if (token !is Token.Operator) return@Parser null
+    val (id, precedence) = when (token) {
+        Token.Operator.Minus -> Identifier.Minus to Parser.Precedence.Sum
+        Token.Operator.Plus -> Identifier.Plus to Parser.Precedence.Sum
+        Token.Operator.Range -> Identifier.Range to Parser.Precedence.Infix
     }
+    if (parserContext.precedence > precedence) return@Parser null
+    it.consumed()
     Expression.BinaryOperator(
         id = id,
         left = left,
-        right = withContext(precedence = Parser.Precedence.Unary, left = null) {
+        right = withContext(precedence = precedence.next(), left = null) {
             parserContext.parser.parse(it) ?: error("Expected an argument")
         }
     )
 }
 
-internal val infixParser = parserWith(Parser.Precedence.Infix) {
-    val left = parserContext.left ?: return@parserWith null
+internal val infixParser = Parser {
+    val precedence = Parser.Precedence.Infix
+    if (parserContext.precedence > precedence) return@Parser null
+    val left = parserContext.left ?: return@Parser null
     val token = it.peek()
-    if (token !is Token.Name) return@parserWith null
+    if (token !is Token.Name) return@Parser null
     it.consumed()
     Expression.Infix(
         id = Identifier(token.value),
         left = left,
-        right = withContext(precedence = Parser.Precedence.Unary, left = null) {
+        right = withContext(precedence = precedence.next(), left = null) {
             parserContext.parser.parse(it) ?: error("Expected an argument")
         }
     )

@@ -1,6 +1,7 @@
 package dev.mokkery.internal.serialization.compiler.lex
 
 import dev.mokkery.internal.serialization.compiler.core.PeekStream
+import dev.mokkery.internal.serialization.compiler.core.collectConsumedWhile
 import dev.mokkery.internal.serialization.compiler.core.consumedWhile
 import kotlin.collections.plusAssign
 
@@ -35,7 +36,11 @@ internal fun interface Lexer {
                 '(' to Token.Parenthesis.Left,
                 ')' to Token.Parenthesis.Right,
             ),
+            stringToTokenLexer(
+                ".." to Token.Operator.Range,
+            ),
             stringLiteralLexer,
+            numberLiteralLexer,
         )
     }
 }
@@ -84,6 +89,17 @@ internal fun charToTokenLexer(
     }
 }
 
+internal fun stringToTokenLexer(
+    vararg tokens: Pair<String, Token>,
+) = Lexer { stream ->
+    val (str, token) = tokens.find { (str) ->
+        var i = 0
+        str.all { it == stream.peek(i++) }
+    } ?: return@Lexer emptyList()
+    stream.consumed(str.length)
+    listOf(token)
+}
+
 internal val stringLiteralLexer = Lexer { stream ->
     val stringChar = '\"'
     if (stream.peek() != stringChar) return@Lexer emptyList()
@@ -102,7 +118,13 @@ internal val stringLiteralLexer = Lexer { stream ->
     error("Unexpected end of string literal!")
 }
 
-
+internal val numberLiteralLexer = Lexer { stream ->
+    if (stream.peek()?.isDigit() != true) return@Lexer emptyList()
+    val digits = stream.collectConsumedWhile { it.isDigit() }
+    val zeros = digits.takeWhile { it == '0' }
+    val number = digits.subList(zeros.size, digits.size).joinToString("").toInt()
+    return@Lexer zeros.map { Token.IntLiteral(0) } + Token.IntLiteral(number)
+}
 
 private fun takeSpecialChar(stream: PeekStream<Char>): Char {
     val specialPeek = stream.peek() ?: error("Unexpected end of special character sequence!")

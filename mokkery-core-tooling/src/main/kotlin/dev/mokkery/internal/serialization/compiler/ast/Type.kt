@@ -20,6 +20,8 @@ internal sealed interface Type {
 
     companion object {
         val String = Simple("String")
+        val Int = Simple("Int")
+        val IntRange = Simple("IntRange")
     }
 }
 

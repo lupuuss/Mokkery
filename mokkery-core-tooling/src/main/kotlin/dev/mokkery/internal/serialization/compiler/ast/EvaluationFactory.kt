@@ -26,6 +26,7 @@ internal fun EvaluationFactory(symbolTable: SymbolTable): EvaluationFactory = ob
     override fun createFrom(expression: Expression) = when (expression) {
         is Expression.Call -> createForFunction(expression.id, expression.arguments)
         is Expression.StringLiteral -> Evaluation(Type.String) { expression.value }
+        is Expression.IntLiteral -> Evaluation(Type.Int) { expression.value }
         is Expression.Access -> createForProperty(expression.id)
         is Expression.BinaryOperator -> createForFunction(expression.id, listOf(expression.left, expression.right))
         is Expression.UnaryOperator -> createForFunction(expression.id, listOf(expression.operand))

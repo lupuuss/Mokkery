@@ -9,6 +9,9 @@ internal sealed interface Token {
         data object Minus : Operator {
             override fun toString() = "<->"
         }
+        data object Range : Operator {
+            override fun toString() = "<..>"
+        }
     }
 
     sealed interface Parenthesis : Token {
@@ -26,6 +29,10 @@ internal sealed interface Token {
 
     data class StringLiteral(val value: String) : Token {
         override fun toString() = "<str|$value>"
+    }
+
+    data class IntLiteral(val value: Int) : Token {
+        override fun toString() = "<int|$value>"
     }
 
     data object Separator : Token {

@@ -7,9 +7,11 @@ import dev.mokkery.internal.serialization.compiler.ast.Parameter
 import dev.mokkery.internal.serialization.compiler.ast.Parser
 import dev.mokkery.internal.serialization.compiler.ast.ParserContext
 import dev.mokkery.internal.serialization.compiler.ast.PropertySymbol
+import dev.mokkery.internal.serialization.compiler.ast.SymbolTable
 import dev.mokkery.internal.serialization.compiler.ast.Type
 import dev.mokkery.internal.serialization.compiler.ast.constSymbolTable
 import dev.mokkery.internal.serialization.compiler.ast.parseUntilExhausted
+import dev.mokkery.internal.serialization.compiler.ast.plus
 import dev.mokkery.internal.serialization.compiler.core.asPeekStream
 import dev.mokkery.internal.serialization.compiler.lex.Lexer
 import dev.mokkery.options.AnnotationSelector
@@ -112,7 +114,7 @@ internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelec
         .map { PropertySymbol(name = it.name, type = RegexOptionEnumType, access = { it }) }
         .toTypedArray()
 
-    private val annotationsRuleSymbolTable = constSymbolTable(
+    private val annotationsRuleSymbolTable = SymbolTable.standard + constSymbolTable(
         *regexOptionSymbols,
         PropertySymbol(name = "all", type = AnnotationSelectorType, access = { all }),
         PropertySymbol(name = "none", type = AnnotationSelectorType, access = { none }),
@@ -156,24 +158,6 @@ internal object AnnotationSelectorSerializer : MokkerySerializer<AnnotationSelec
         ),
         FunctionSymbol(
             name = Identifier.Minus.value,
-            type = AnnotationSelectorType,
-            parameters = listOf(
-                Parameter(name = "left", type = AnnotationSelectorType),
-                Parameter(name = "right", type = AnnotationSelectorType)
-            ),
-            body = { (left: AnnotationSelector, right: AnnotationSelector) -> left - right }
-        ),
-        FunctionSymbol(
-            name = "plus",
-            type = AnnotationSelectorType,
-            parameters = listOf(
-                Parameter(name = "left", type = AnnotationSelectorType),
-                Parameter(name = "right", type = AnnotationSelectorType)
-            ),
-            body = { (left: AnnotationSelector, right: AnnotationSelector) -> left + right }
-        ),
-        FunctionSymbol(
-            name = "minus",
             type = AnnotationSelectorType,
             parameters = listOf(
                 Parameter(name = "left", type = AnnotationSelectorType),

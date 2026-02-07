@@ -8,7 +8,6 @@ internal interface Symbol {
     fun render(): String
 }
 
-
 internal data class Parameter(
     override val name: String,
     override val type: Type,
