@@ -165,7 +165,7 @@ By default, it is illegal to mock `open` or `abstract` types with `final` (`inli
 
 You can ignore those members with following Gradle options:
 
-```kotlin
+```kotlin title="build.gradle.kts"
 mokkery {
     ignoreInlineMembers.set(true) // ignores only inline members
     ignoreFinalMembers.set(true)  // ignores final members (inline included)
@@ -243,3 +243,63 @@ if (isTesting) allOpen { /* ... */ }
  If you run a task that depends on a test task but does not match `isTestingTask`, the `all-open` plugin will not be configured.
  Adjust the task name condition based on your project type and the tasks you use.
 :::
+
+
+### Annotations copying
+
+By default, Mokkery copies all the annotations from the type to mock to the implementation.
+This behaviour might be wanted, but also it could be problematic e.g. for some annotation based frameworks.
+You can change the default behavior using `annotations.copyToMock` option:
+
+```kotlin title="build.gradle.kts"
+import dev.mokkery.options.AnnotationSelector.Companion.all
+import dev.mokkery.options.AnnotationSelector.Companion.none
+import dev.mokkery.options.AnnotationSelector.Companion.named
+import dev.mokkery.options.AnnotationSelector.Companion.matches
+
+mokkery {
+     annotations {
+        // No annotations
+        copyToMock = none
+
+        // All annotations except "example.A"
+        copyToMock = all - named("example.A")
+
+        // Only "example.A"
+        copyToMock = named("example.A")
+
+        // All annotations matching the regex "internal.*"
+        copyToMock = matches(Regex("internal.*"))
+
+        // Combine rules: all except "example.A" and all annotations starting with "internal"
+        copyToMock = all - named("example.A") - matches(Regex("internal.*"))
+     }
+}
+```
+
+
+```kotlin title="build.gradle.kts"
+import dev.mokkery.options.AnnotationSelector.Companion.all
+import dev.mokkery.options.AnnotationSelector.Companion.none
+import dev.mokkery.options.AnnotationSelector.Companion.named
+import dev.mokkery.options.AnnotationSelector.Companion.matches
+
+mokkery {
+     annotations {
+        // No annotations
+        copyToMock = none
+
+        // All annotations except "example.A"
+        copyToMock = all - named("example.A")
+
+        // Only "example.A"
+        copyToMock = named("example.A")
+
+        // All annotations matching the regex "internal.*"
+        copyToMock = matches(Regex("internal.*"))
+
+        // Combine rules: all except "example.A" and all annotations starting with "internal"
+        copyToMock = all - named("example.A") - matches(Regex("internal.*"))
+     }
+}
+```
