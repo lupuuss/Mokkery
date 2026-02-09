@@ -8,13 +8,13 @@ description: Explore different answer types with clear examples!
 **To define a const answer, use `returns`:**
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } returns Book()
+every { mock.getAt(index = any()) } returns 100
 ```
 
 **To throw an exception, use `throws`:**
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } throws IllegalArgumentException()
+every { mock.getAt(index = any()) } throws IllegalArgumentException()
 ```
 
 **To provide more complex answer, use `calls`:**
@@ -22,13 +22,13 @@ everySuspend { repository.findById(id = any()) } throws IllegalArgumentException
 * For regular functions:
 
 ```kotlin
-every { repository.findAllByTitle(any()) } calls { (title: String) -> flowOf(Book(title = title)) }
+every { mock.getAt(index = any()) } calls { (index: Int) -> index + 1 }
 ```
 * For suspend functions:
 ```kotlin
-everySuspend { repository.findById(id = any()) } calls { (id: String) ->
+everySuspend { mock.fetchAt(index = any()) } calls { (index: Int) ->
     delay(1_000) // suspension is allowed here!
-    stubBook()
+    index + 1
 }
 ```
 
@@ -41,46 +41,46 @@ and one of two [CallDefinitionScope](pathname:///api_reference/mokkery-runtime/d
 
 **To return specific arg, use `returnsArgAt`:**
 ```kotlin
-everySuspend { repository.save(book = any()) } returnsArgAt 0
+every { mock.getAt(index = any()) } returnsArgAt 0
 
-repository.save(Book()) // returns Book that was passed as an argument
+mock.getAt(10) // returns 10 that was passed as an argument
 ```
 
 **If you need a more complex answer for functions that return `Result`, use `callsCatching` :**
 ```kotlin
-everySuspend { repository.findByIdAsResult(id = "1") } callsCatching { (id: String) ->
-   if (id == "1") error("Not found!")
-   Book(id = id)
+every { mock.getAtCatching(any()) } callsCatching { (index: Int) ->
+   if (index < 0) error("Negative index not allowed!")
+   index + 1
 }
-repository.findByIdAsResult("1") // returns failed Result
-repository.findByIdAsResult("2") // returns successful Result
+mock.getAtCatching(-1) // returns failed Result
+mock.getAtCatching(2) // returns successful Result
 ```
 
 **To return `Result.success` from functions that return `Result`, use `returnsSuccess`:**
 ```kotlin
-everySuspend { repository.findByIdAsResult(id = "1") } returnsSuccess Book(id = "1")
+every { mock.getAtCatching(index = 0) } returnsSuccess 1
 
-repository.findByIdAsResult("1") // returns successful Result with given Book
+mock.getAtCatching(0) // returns successful Result with 1
 ```
 
 **To return `Result.failure` from functions that return `Result`, use `returnsFailure`:**
 ```kotlin
-everySuspend { repository.findByIdAsResult(id = "1") } returnsFailure ElementNotFoundException(id = "1")
+every { mock.getAtCatching(index = 30) } returnsFailure IndexOutOfBoundsException()
 
-repository.findByIdAsResult("1") // returns failed Result with given exception
+mock.getAtCatching(30) // returns failed Result with IndexOutOfBoundsException
 ```
 
 **To return a value provided each time by a function, use `returnsBy`:**
 ```kotlin
-private var book = Book(...)
+private var number = 1
 
 // ...
 
-everySuspend { repository.findById(any()) } returnsBy ::book
+every { mock.getAt(any()) } returnsBy ::number
 
-repository.findById("1") // returns Book provided by `book` property
-book = book.copy(title = "New title")
-repository.findById("1") // returns Book provided by `book` property with changed title
+mock.getAt(0) // returns 1 provided by `number`
+number = 3
+mock.getAt(0) // returns 3 provided by updated `number`
 ```
 
 :::tip
@@ -89,15 +89,15 @@ For functions returning a `Result`, you can use `returnsSuccessBy` or `returnsFa
 
 **To throw an exception provided each time by a function, use `throwsBy`:**
 ```kotlin
-everySuspend { repository.findById(any()) } throwsBy ::IllegalStateException
+every { mock.getAt(any()) } throwsBy ::IllegalStateException
 
-runCatching { repository.findById("1") } // throws newly created IllegalStateException
-runCatching { repository.findById("1") } // throws newly created IllegalStateException
+runCatching { mock.getAt(0) } // throws newly created IllegalStateException
+runCatching { mock.getAt(0) } // throws newly created IllegalStateException
 ```
 
 **To throw `IllegalStateException` with specific message (just like [kotlin.error](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/error.html)), use `throwsErrorWith`:**
 ```kotlin
-everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
+every { mock.getAt(any()) } throwsErrorWith "Failed!"
 ```
 
 ### Sequence of answers
@@ -105,83 +105,83 @@ everySuspend { repository.findById(id = any()) } throwsErrorWith "Failed!"
 You can define a sequence of answers using `sequentially`:
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } sequentially {
-    returns(stubBook("1"))
-    calls { stubBook("2") }
+every { mock.getAt(any()) } sequentially {
+    returns(0)
+    calls { 1 }
     throws(IllegalStateException())
 }
-repository.findById("1") // returns stubBook("1")
-repository.findById("2") // returns stubBook("2")
-runCatching { repository.findById("3") } // throws IllegalStateException
-repository.findById("4") // fails - no more answers
+mock.getAt(0) // returns 0
+mock.getAt(1) // returns 1
+runCatching { mock.getAt(2) } // throws IllegalStateException
+mock.getAt(3) // fails - no more answers
 ```
 
 At the end of `sequentially` block you can repeat a sequence of answers with `repeat`:
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } sequentially {
-    returns(stubBook("1"))
-    repeat { returns(stubBook("2")) }
+every { mock.getAt(any()) } sequentially {
+    returns(0)
+    repeat { returns(1) }
 }
-repository.findById("1") // returns stubBook("1")
-repository.findById("2") // returns stubBook("2")
-repository.findById("3") // returns stubBook("2")
-repository.findById("4") // returns stubBook("2")
+mock.getAt(0) // returns 0
+mock.getAt(1) // returns 1
+mock.getAt(2) // returns 1
+mock.getAt(3) // returns 1
 ```
 
 You can use `sequentiallyRepeat` as a shorthand if you want to define repeating sequence:
 ```kotlin
-everySuspend { repository.findById(id = any()) } sequentiallyRepeat {
-    returns(stubBook("1"))
-    returns(stubBook("2"))
+every { mock.getAt(any()) } sequentiallyRepeat {
+    returns(0)
+    returns(1)
 }
-repository.findById("1") // returns stubBook("1")
-repository.findById("2") // returns stubBook("2")
-repository.findById("3") // returns stubBook("1")
-repository.findById("4") // returns stubBook("2")
+mock.getAt(0) // returns 0
+mock.getAt(1) // returns 1
+mock.getAt(2) // returns 0
+mock.getAt(3) // returns 1
 ```
 
 You can use `sequentiallyReturns` and `sequentiallyThrows` as a shorthand:
 ```kotlin
-everySuspend { repository.findById(id = any()) } sequentiallyReturns listOf(stubBook("1"), stubBook("2"))
-repository.findById("1") // returns stubBook("1")
-repository.findById("2") // returns stubBook("2")
-repository.findById("3") // fails - no more answers
+every { mock.getAt(any()) } sequentiallyReturns listOf(0, 1)
+mock.getAt(0) // returns 0
+mock.getAt(1) // returns 1
+mock.getAt(2) // fails - no more answers
 ```
 
 You can nest `sequentially` calls:
 
 ```kotlin
-everySuspend { repository.findById(id = any()) } sequentially {
-    returns(stubBook("1"))
+every { mock.getAt(any()) } sequentially {
+    returns(0)
     sequentially {
-        returns(stubBook("2"))
-        returns(stubBook("3"))
+        returns(1)
+        returns(2)
     }
-    returns(stubBook("4"))
+    returns(3)
 }
-repository.findById("1") // returns stubBook("1")
-repository.findById("2") // returns stubBook("2")
-repository.findById("3") // returns stubBook("3")
-repository.findById("4") // returns stubBook("4")
-repository.findById("5") // fails - no more answers
+mock.getAt(0) // returns 0
+mock.getAt(1) // returns 1
+mock.getAt(2) // returns 2
+mock.getAt(3) // returns 3
+mock.getAt(4) // fails - no more answers
 ```
 ### Calling original implementation
 
-The most straightforward way to call original method is to use `calls` overload:
+The most straightforward way to call original function is to use `calls` overload:
 
 ```kotlin
-everySuspend { repository.findById(any()) } calls original
+every { mock.getAt(any()) } calls original
 
-repository.findById("2") // this calls original method implementation with "2"
+mock.getAt(2) // this calls original function implementation with 2
 ```
 
 You can pass different arguments to original call:
 
 ```kotlin
-everySuspend { repository.findById(any()) } calls originalWith("3")
+every { mock.getAt(any()) } calls originalWith(3)
 
-repository.findById("2") // this calls original method implementation with "3"
+mock.getAt(2) // this calls original function implementation with 3
 ```
 
 :::info
@@ -191,34 +191,34 @@ If mocked type is an interface, the default implementation is called.
 #### Resolving ambiguity
 
 While using [multiple types mocking](./Mocking_multiple_types) usage of `original` might not be possible,
-because there are multiple super calls available for single method. Instead of `original` use `superOf<T>`
+because there are multiple super calls available for single function. Instead of `original` use `superOf<T>`
 with supertype specified.
 
 ```kotlin
 val mock = mockMany<A, B> {
-    every { t1.sharedMethod(any()) } calls superOf<A>()
+    every { t1.sharedFunction(any()) } calls superOf<A>()
 }
-mock.t1.sharedMethod(2) // this calls method implementation from A with 2
+mock.t1.sharedFunction(2) // this calls function implementation from A with 2
 ```
 
 You can pass different arguments to super call:
 
 ```kotlin
 val mock = mockMany<A, B> {
-    every { t1.sharedMethod(any()) } calls superWith<A>(3)
+    every { t1.sharedFunction(any()) } calls superWith<A>(3)
 }
-mock.t1.sharedMethod(2) // this calls method implementation from A with 3
+mock.t1.sharedFunction(2) // this calls function implementation from A with 3
 ```
 
 #### Super calls API in `calls`
 
 All of those features are accessible from `calls` scope:
 ```kotlin
-everySuspend { repository.findById(any()) } calls {
+every { mock.getAt(any()) } calls {
     callOriginal()
-    callOriginalWith("3")
-    callSuper(BaseRepository::class)
-    callSuperWith(BaseRepository::class, "3")
+    callOriginalWith(3)
+    callSuper(BaseFoo::class)
+    callSuperWith(BaseFoo::class, 3)
 }
 ```
 
@@ -228,24 +228,24 @@ When working with spies, you may want to call the real implementation while addi
 This can be done using `callSpied` from `calls`:
 
 ```kotlin
-everySuspend { repository.findById(any()) } calls {
+every { spy.getAt(any()) } calls {
     // ...
     callSpied()
 }
 ```
 
-If you need to override the arguments passed to the spied method, use `callSpiedWith`:
+If you need to override the arguments passed to the spied function, use `callSpiedWith`:
 
 ```kotlin
-everySuspend { repository.findById(any()) } calls {
+every { spy.getAt(any()) } calls {
     // ...
-    callSpiedWith("3")
+    callSpiedWith(3)
 }
 ```
 
 ### Extending answers API
 
-The answers API provides a way to define custom behavior for mocked method calls in Mokkery.
+The answers API provides a way to define custom behavior for mocked function calls in Mokkery.
 It is built around two core interfaces:
 
 - [AnsweringScope](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answering-scope/index.html)
@@ -276,9 +276,9 @@ It has two `call` overloads:
 - `call(MokkeryBlockingCallScope)` – used for regular (blocking) functions.
 - `call(MokkerySuspendCallScope)` – used for suspend functions.
 
-The `AnsweringScope` interface provides the `answers` method, which registers an `Answer` for a particular call.
+The `AnsweringScope` interface provides the `answers` function, which registers an `Answer` for a particular call.
 
-Some custom answers may work with both regular and suspend methods, while others support only one type.
+Some custom answers may work with both regular and suspend functions, while others support only one type.
 However, `AnsweringScope` itself does not enforce any restrictions - you can technically register any `Answer` for any call.
 
 This flexibility can lead to misuse, such as registering a suspend-only answer for a blocking call.
@@ -294,8 +294,8 @@ public interface SuspendAnsweringScope<T> : AnsweringScope<T>
 public interface BlockingAnsweringScope<T> : AnsweringScope<T>
 ```
 
-These are marker interfaces - they don’t add extra methods but indicate whether the context is for
-a regular method (`BlockingAnsweringScope`), or a suspend method (`SuspendAnsweringScope`).
+These are marker interfaces - they don’t add extra functions but indicate whether the context is for
+a regular function (`BlockingAnsweringScope`), or a suspend function (`SuspendAnsweringScope`).
 
 Mokkery uses them as follows:
 - `every` returns a `BlockingAnsweringScope`
@@ -322,14 +322,14 @@ private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T> {
 }
 
 // Usage:
-everySuspend { repository.findById(any()) } returnsDelayed stubBook()
+everySuspend { mock.fetchAt(any()) } returnsDelayed 10
 // ✅ compiles - suspend context
 
-every { repository.findAll() } returnsDelayed flowOf(stubBook())
+every { mock.getAt(any()) } returnsDelayed 10
 // ❌ does NOT compile - regular context
 ```
 
-Some answers are valid for both regular and suspend methods.
+Some answers are valid for both regular and suspend functions.
 For consistency, you should still declare an extension function, but this time use `AnsweringScope` as the receiver:
 
 ```kotlin
@@ -343,8 +343,8 @@ private class ReturnsAnswer<T>(private val value: T) : Answer<T> {
 }
 
 // Usage:
-everySuspend { repository.findById(any()) } returns stubBook() // suspend
-every { repository.findAll() } returns flowOf(stubBook())      // regular
+everySuspend { mock.fetchAt(any()) } returns 10 // suspend
+every { mock.getAt(any()) } returns 10          // regular
 // ✅ both compile
 ```
 
@@ -366,7 +366,7 @@ This is simpler and avoids extra boilerplate.
 
 #### Answer description
 
-The `Answer` interface lets you implement a `description()` method, which provides a human-readable explanation of the answer.
+The `Answer` interface lets you implement a `description()` function, which provides a human-readable explanation of the answer.
 This is especially useful for debugging, e.g., with [printMokkeryDebug](pathname:///api_reference/mokkery-runtime/dev.mokkery.debug/print-mokkery-debug.html)
 
 The description should resemble the code usage:
@@ -391,5 +391,5 @@ Provides a default blocking implementation that throws an exception.
 - [Answer.Blocking](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-blocking/index.html) - For blocking-only answers.
 Provides a default suspend implementation that throws an exception.
 - [Answer.Unified](pathname:///api_reference/mokkery-runtime/dev.mokkery.answering/-answer/-unified/index.html) - Adds a third `call` overload with `MokkeryCallScope`.
-The other two overloads delegate to this method, so you only need to implement one function.
+The other two overloads delegate to this function, so you only need to implement one function.
 Useful when the same logic applies to both blocking and suspend contexts.

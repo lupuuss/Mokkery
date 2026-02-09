@@ -44,30 +44,34 @@ transformation currently restricts those blocks from extracting their parts into
 parameter must always be a lambda expression (not function reference nor lambda assigned to a variable). Following code is illegal:
 
 ```kotlin
+private val foo = mock<Foo>()
+
 @Test
 fun test() {
     // ...
     verify {
-       foo()
+       extracted()
     }
 }
 
-private fun MokkeryMatcherScope.foo() {
-   repository.findAll()
+private fun MokkeryMatcherScope.extracted() {
+   foo.getAll()
 }
 ```
 
 However, it is perfectly fine to extract whole `verify` or `every` call to separate function:
 
 ```kotlin
+private val foo = mock<Foo>()
+
 @Test
 fun test() {
     // ...
-    foo()
+    extracted()
 }
-private fun foo() {
+private fun extracted() {
    verify {
-       repository.findAll()
+       foo.getAll()
    }
 }
 ```
@@ -101,12 +105,21 @@ Mokkery uses the following strategies to supply constructor arguments:
   By default, this works only for inline classes, `Throwable` subclasses, and classes from `kotlin.collections`, `kotlin.sequences`, and `kotlin.ranges`.
   **For other types, explicit permission is required because invoking constructors may execute unintended code during tests.**
   Public and internal constructors are supported, with default constructors preferred.
-  Enable this behavior in your Gradle build file using the `mokkery.stubs.allowConcreteClassInstantiation` flag.
+  Enable this behavior using the `stubs.allowConcreteClassInstantiation` flag.
 - Generating stub implementations for classes.
   **This requires explicit permission for the same reason as concrete classes instantiation.**
-  Enable this behavior in your Gradle build file using `mokkery.stubs.allowClassInheritance` flag.
+  Enable this behavior using the `mokkery.stubs.allowClassInheritance` flag.
 
 Mokkery selects the first applicable strategy based on the order listed above.
+
+```kotlin title="build.gradle.kts"
+mokkery {
+     stubs {
+        allowConcreteClassInstantiation = true
+        allowClassInheritance = true
+     }
+}
+```
 
 ### Kotlin Reflect
 
@@ -144,10 +157,10 @@ AutofillProvider.forInternals.types.register { ValueClass(null) }
 The biggest limitation is that you **must not** assign matchers to variables. Following code is illegal:
 
 ```kotlin
-everySuspend {
+every {
     val matcher = any<Int>()
-    reporitory.findById(matcher)
-} returns Book(...)
+    foo.getAt(matcher)
+} returns 1
 ```
 
 #### Composite matchers
@@ -155,11 +168,11 @@ everySuspend {
 When using composite matchers (whenever matcher accepts other matcher like logical matchers), you cannot use literals. Code below is illegal:
 
 ```kotlin
-everySuspend { repository.findById(or("1", "2")) } returns Book(...)
+every { foo.getAt(or(1, 2)) } returns 10
 ```
 You must use `eq` matcher explicitly:
 ```kotlin
-everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns Book(...)
+every { foo.getAt(or(eq(1), eq(2))) } returns 10
 ```
 
 #### Varargs matchers
@@ -167,13 +180,13 @@ everySuspend { repository.findById(or(eq("1"), eq("2"))) } returns Book(...)
 If you pass varargs as array, it might sometimes lead to ambiguity. Calls presented below are prohibited:
 
 ```kotlin
-everySuspend { repository.findAllById(ids = arrayOf("1", *anyVarargs(), "3")) } returns emptyList()
-everySuspend { repository.findAllById(ids = arrayOf("1", any())) } returns emptyList()
+everySuspend { foo.insertAll(numbers = intArrayOf(1, *anyVarargsInt(), 3)) } returns 0
+everySuspend { foo.insertAll(numbers = intArrayOf(1, any())) } returns 0
 ```
 
 While passing varargs as arrays make sure that you don't mix matchers with literals. Calls presented below are allowed:
 
 ```kotlin
-everySuspend { repository.findAllById(ids = arrayOf(eq("1"), *anyVarargs(), eq("3"))) } returns emptyList()
-everySuspend { repository.findAllById(ids = arrayOf(eq("1"), any())) } returns emptyList()
+everySuspend { foo.insertAll(numbers = intArrayOf(eq(1), *anyVarargsInt(), eq(3))) } returns 0
+everySuspend { foo.insertAll(numbers = intArrayOf(eq(1), any())) } returns 0
 ```

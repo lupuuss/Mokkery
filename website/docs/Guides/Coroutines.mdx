@@ -7,9 +7,9 @@ description: Learn how to work with Coroutines efficiently!
 Mokkery supports suspendable functions out of the box, making it easy to mock them right away with the [core answers](../Guides/Answers).
 
 ```kotlin
-everySuspend { repository.findById(any()) } calls { (id: String) ->
+everySuspend { mock.fetchAt(any()) } calls { (index: Int) ->
     delay(1_000)
-    Book(id = id)
+    index + 1
 }
 ```
 
@@ -41,14 +41,14 @@ dependencies {
 
 **To await a [Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/), use `awaits` overload:**
 ```kotlin
-val deferred = CompletableDeferred<Book>()
-everySuspend { repository.findById("1") } awaits deferred
+val deferred = CompletableDeferred<Int>()
+everySuspend { mock.fetchAt(any()) } awaits deferred
 ```
 
 **[Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) might be created on each call:**
 
 ```kotlin
-everySuspend { repository.findById(any()) } awaits { (id: String) -> createBookDeferred(id) }
+everySuspend { mock.fetchAt(any()) } awaits { (index: Int) -> createDeferred(index) }
 ```
 
 **To await multiple
@@ -56,27 +56,27 @@ everySuspend { repository.findById(any()) } awaits { (id: String) -> createBookD
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.all
 
-val deferred1 = CompletableDeferred<Book>()
-val deferred2 = CompletableDeferred<Book>()
-val deferred3 = CompletableDeferred<Book>()
+val deferred1 = CompletableDeferred<Int>()
+val deferred2 = CompletableDeferred<Int>()
+val deferred3 = CompletableDeferred<Int>()
 
-everySuspend { repository.findAll() } awaits all(deferred1, deferred2, deferred3)
+everySuspend { mock.fetchAll() } awaits all(deferred1, deferred2, deferred3)
 ```
 
 **To suspend indefinitely until coroutine is canceled, use `awaits cancellation`:**
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.cancellation
 
-everySuspend { repository.findById(any()) } awaits cancellation
+everySuspend { mock.fetchAll() } awaits cancellation
 ```
 **To await an element from a
 [Channel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.channels/-channel/), use `awaits receive(...)`:**
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.receive
 
-val channel = Channel<Book>()
+val channel = Channel<List<Int>>()
 
-everySuspend { repository.findById(any()) } awaits receive(from = channel)
+everySuspend { mock.fetchAll() } awaits receive(from = channel)
 ```
 
 **For `Unit`-returning functions, you can use `awaits send(...)` to send an element to
@@ -84,16 +84,16 @@ a [Channel](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-cor
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.send
 
-val channel = Channel<String>()
+val channel = Channel<Int>()
 
-everySuspend { repository.deleteById(any()) } awaits send(to = channel) { it.arg(0) } 
+everySuspend { mock.insert(any()) } awaits send(to = channel) { it.arg(0) }
 ```
 
 **To return a value after a delay, use `awaits delayed(...)`:**
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
 
-everySuspend { repository.findById(any()) } awaits delayed(value = Book(...)) // by default, the delay takes 1 second.
+everySuspend { mock.fetchAt(any()) } awaits delayed(value = 10) // by default, the delay takes 1 second.
 ```
 
 **The `delayed` also accepts a lambda:**
@@ -101,5 +101,5 @@ everySuspend { repository.findById(any()) } awaits delayed(value = Book(...)) //
 ```kotlin
 import dev.mokkery.coroutines.answering.Awaitable.Companion.delayed
 
-everySuspend { repository.findById(any()) } awaits delayed(by = 2.seconds) { (id: String) -> Book(id = id) }
+everySuspend { mock.fetchAt(any()) } awaits delayed(by = 2.seconds) { (index: Int) -> index + 1 }
 ```

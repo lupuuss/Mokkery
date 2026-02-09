@@ -15,39 +15,39 @@ val mock = mockMany<A, B, C>()
 * Only one class is allowed.
 * Functional types are not supported on JS.
 
-`mockMany` returns `MockManyN` type that is a marker for multiple types mock. To access methods from specific type,
+`mockMany` returns `MockManyN` type that is a marker for multiple types mock. To access member functions from specific type,
 explicit cast is required. You can achieve it with `tN` extensions:
 
 ```kotlin
 val mock = mockMany<A, B, C> {
     // t1 extension casts to A
-    every { t1.methodFromA() } returns Unit
+    every { t1.functionFromA() } returns Unit
     // t2 extension casts to B
-    every { t2.methodFromB() } returns Unit
+    every { t2.functionFromB() } returns Unit
     // t3 extension casts to C
-    every { t3.methodFromC() } returns Unit
+    every { t3.functionFromC() } returns Unit
 }
 
 val foo = Foo(a = mock.t1)
 ```
 
-### Shared methods
+### Shared functions
 
-If types share methods with the same signature, they are treated as one:
+If types share function with the same signature, they are treated as one:
 
 ```kotlin
 interface A {
     // ...
-    fun sharedMethod(i: Int): String
+    fun sharedFunction(i: Int): String
 }
 interface B {
     // ...
-    fun sharedMethod(i: Int): String
+    fun sharedFunction(i: Int): String
 }
 // ...
 val mock = mockMany<A, B> {
-    every { t1.sharedMethod(any()) } returns "Hello world!"
+    every { t1.sharedFunction(any()) } returns "Hello world!"
 }
 // ...
-mock.t2.sharedMethod(1) // returns "Hello world!"
+mock.t2.sharedFunction(1) // returns "Hello world!"
 ```

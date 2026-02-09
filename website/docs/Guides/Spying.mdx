@@ -11,12 +11,12 @@ Please read [limitations](../Limitations) section!
 :::
 
 ```kotlin
-val repository = BookRepositoryImpl()
-val spiedRepository = spy<BookRepository>(repository)
+val foo = FooImpl()
+val spiedFoo = spy<Foo>(foo)
 ```
-Ensure that you specify a type for the `spy`. In previous example inferred type would be `BookRepositoryImpl`,
+Ensure that you specify a type for the `spy`. In previous example inferred type would be `FooImpl`,
 which is very likely to be a final class, and it is not supported to spy them!
 
-By default, spy delegates all calls to spied object. However, you can change methods behaviour in [the same way as with mocks](../Guides/Mocking).
+By default, spy delegates all calls to spied object. However, you can change methods behavior in [the same way as with mocks](../Guides/Mocking).
 
 Read [verifying](../Guides/Verifying) section to learn how to verify calls on spy!

@@ -3,32 +3,19 @@ description: Learn how to create a mock object and define its behavior effortles
 ---
 # Mocking
 
-Let's assume we have given interface:
-
-```kotlin
-interface BooksRepository {
-
-    var cacheEnabled: Boolean
-
-    suspend fun findById(id: String): Book
-
-    suspend fun countAll(): Int
-
-    fun findAll(): Flow<Book>
-}
-```
 :::warning
 Please read [limitations](../Limitations) section!
 :::
 
-Mock tracks all method calls and allows [defining their answers](#defining-answers).
+Mock tracks all functions and properties calls and allows [defining their answers](#defining-answers).
 
-To create a mock of `BooksRepository` use `mock` function:
+To create a mock of `Foo`, use `mock` function:
 
 ```kotlin
-val repository = mock<BooksRepository>()
+val foo = mock<Foo>()
 ```
-If you call a method that has no defined behaviour, runtime exception is thrown. It's dictated by `MockMode.strict`.
+
+If you call a member function that has no defined behavior, runtime exception is thrown. It's dictated by `MockMode.strict`.
     
 ### Mock modes
 
@@ -41,16 +28,16 @@ It is the default mode that fails on missing answers.
 ```kotlin
 import dev.mokkery.MockMode.strict
 
-val repository = mock<BookRepository>(strict)
+val foo = mock<Foo>(strict)
 ```
 #### AutoUnit
 
-Just like [strict](#strict) but it does not fail on Unit returning methods.
+Just like [strict](#strict) but it does not fail on Unit returning functions.
 
 ```kotlin
 import dev.mokkery.MockMode.autoUnit
 
-val repository = mock<BookRepository>(autoUnit)
+val foo = mock<Foo>(autoUnit)
 ```
 
 #### Autofill
@@ -59,22 +46,22 @@ Returns empty values e.g. 0 for numbers, "" for string and null for complex type
 ```kotlin
 import dev.mokkery.MockMode.autofill
 
-val repository = mock<BookRepository>(autofill)
+val foo = mock<Foo>(autofill)
 ```
 
 #### Original
 
 Calls super implementation if available (default implementation for interface). Otherwise, it fails.
-Useful for mocking types highly dependant on default behaviour.
+Useful for mocking types highly dependant on default behavior.
 ```kotlin
 import dev.mokkery.MockMode.original
 
-val repository = mock<BookRepository>(original)
+val foo = mock<Foo>(original)
 ```
 
 #### Default mock mode
 
-It is possible to change the default `MockMode` on the Gradle plugin level like this:
+It is possible to change the default `MockMode` using `defaultMockMode` option:
 
 ```kotlin
 import dev.mokkery.MockMode
@@ -86,84 +73,117 @@ mokkery {
 
 ### Defining answers
 
-To define an answer for regular function, use `every`:
+To define an answer for regular member function, use `every`:
+
 ```kotlin
-every { repository.findAll() } returns flowOf(Book(...))
+every { foo.getAll() } returns listOf(1, 2, 3)
 ```
-For suspending function, use `everySuspend`:
-```kotlin
-everySuspend { repository.countAll() } returns 1
-```
-For properties, call getter or setter inside `every`:
+
+For property, call getter or setter inside `every`:
+
 ```kotlin
 // getter
-every { repository.cacheEnabled } returns true
+every { foo.values } returns listOf(1, 2, 3)
 
 // setter
-every { repository.cacheEnabled = any() } returns Unit
+every { foo.values = any() } returns Unit
 ```
+
+For suspending member function, use `everySuspend`:
+```kotlin
+everySuspend { foo.fetchAll() } returns listOf(1, 2, 3)
+```
+
 :::danger
-Make sure that you are calling a method of mock type! Mocking extension functions is not supported!
+Make sure that you are calling a member function of a mock type! Mocking extension functions is not supported!
 :::
 
 It's worth to notice that `everySuspend` is not suspending function, so it's possible to configure suspending functions in non-suspending context e.g. test class property.
 
-You can move your behaviour config to `mock` block:
+You can move your behavior config to `mock` block:
 
 ```kotlin
-val repository = mock<BookRepository>(autoUnit) {
-    every { findAll() } returns flowOf(Book(...))
-    everySuspend { countAll() } returns 1
+val mock = mock<Foo>(autoUnit) {
+    every { getAll() } returns listOf(1, 2, 3)
+    everySuspend { fetchAll() } returns listOf(1, 2, 3)
 }
 ```
-`returns` is quite simple and returns always the same value. If you want to discover other behaviours check [answers](../Guides/Answers) guide!
+`returns` is quite simple and returns always the same value. If you want to discover other behaviors, check [answers](../Guides/Answers) guide!
 
-If a method accepts parameters, you can define an answer only for specific parameters:
+If a member function accepts parameters, you can define an answer only for specific parameters:
 ```kotlin
-everySuspend { repository.findById("1") } returns Book(id = "1", ...)
-everySuspend { repository.findById("2") } returns Book(id = "2", ...)
+every { foo.getAt(0) } returns 1
+every { foo.getAt(1) } returns 2
 
-repository.findById("1") // returns Book(id = "1", ...)
-repository.findById("2") // returns Book(id = "2", ...)
-repository.findById("3") // error - answer not defined
+foo.getAt(0) // returns 1
+foo.getAt(1) // returns 2
+foo.getAt(2) // error - answer not defined
 ```
 
-To accept more broad range of parameter values use [matchers](../Guides/Matchers):
+To accept more broad range of parameter values, use [matchers](../Guides/Matchers):
 ```kotlin
-everySuspend { repository.findById(any()) } returns Book(id = "1", ...)
+every { foo.getAt(any()) } returns 0
 
-repository.findById("1") // returns Book(id = "1", ...)
-repository.findById("2") // returns Book(id = "1", ...)
-repository.findById("3") // returns Book(id = "1", ...)
+foo.getAt(0) // returns 0
+foo.getAt(1) // returns 0
+foo.getAt(2) // returns 0
 ```
 
 In case of a call that matches more than one answer, the later defined takes precedence:
 
 ```kotlin
 // this answer is unreachable as the later defined matches all possible calls
-everySuspend { repository.findById("1") } returns Book(id = "1", ...) 
-everySuspend { repository.findById(any()) } returns Book(id = "2", ...)
+every { foo.getAt(0) } returns 1
+every { foo.getAt(any()) } returns 2
 
-repository.findById("1") // returns Book(id = "2", ...)
+foo.getAt(0) // returns 2
 ```
+
+For member function with extension parameter, you need to use special `ext` function:
+```kotlin
+import dev.mokkery.templating.ext
+
+// ...
+
+every { foo.ext { any<String>().toNumber() } } returns 10
+
+foo.run { "10".toNumber() } // returns 10
+```
+
+For member function with context parameters, you need to use special `ctx` function:
+```kotlin
+import dev.mokkery.templating.ctx
+
+// ...
+
+every { ctx(any<FooContext>()) { foo.getAllWithContext() } } returns listOf(1, 2, 3)
+
+context(FooContext()) {
+    foo.getAllWithContext() // returns listOf(1, 2, 3)
+}
+```
+
+:::danger
+`ext` and `ctx` behave like standard Kotlin scope functions, but they must be used exclusively!
+:::
 
 ### Resetting answers
 
 To reset all defined answers use `resetAnswers`:
 
 ```kotlin
-everySuspend { repository.findById("1") } returns Book(id = "1", ...)
+every { foo.getAt(0) } returns 1
 
-resetAnswers(repository)
+resetAnswers(mock)
 
-repository.findById("1") // error - answer not defined
+foo.getAt(0) // error - answer not defined
 ```
 
 ### Abstract/open class with final members
 
 By default, it is illegal to mock `open` or `abstract` types with `final` (`inline` included) members.
 
-You can ignore those members with following Gradle options:
+You can ignore those members with following options:
 
 ```kotlin title="build.gradle.kts"
 mokkery {
@@ -172,8 +192,8 @@ mokkery {
 }
 ```
 
-With given flags, Mokkery ignores illegal members, but it's still not possible to change their behaviour or
-track them. It's possible only for overridable methods.
+With given flags, Mokkery ignores illegal members, but it's still not possible to change their behavior or
+track them. It's possible only for overridable member functions.
 
 ### Final classes
 
@@ -248,35 +268,8 @@ if (isTesting) allOpen { /* ... */ }
 ### Annotations copying
 
 By default, Mokkery copies all the annotations from the type to mock to the implementation.
-This behaviour might be wanted, but also it could be problematic e.g. for some annotation based frameworks.
+This behavior might be wanted, but also it could be problematic e.g. for some annotation based frameworks.
 You can change the default behavior using `annotations.copyToMock` option:
-
-```kotlin title="build.gradle.kts"
-import dev.mokkery.options.AnnotationSelector.Companion.all
-import dev.mokkery.options.AnnotationSelector.Companion.none
-import dev.mokkery.options.AnnotationSelector.Companion.named
-import dev.mokkery.options.AnnotationSelector.Companion.matches
-
-mokkery {
-     annotations {
-        // No annotations
-        copyToMock = none
-
-        // All annotations except "example.A"
-        copyToMock = all - named("example.A")
-
-        // Only "example.A"
-        copyToMock = named("example.A")
-
-        // All annotations matching the regex "internal.*"
-        copyToMock = matches(Regex("internal.*"))
-
-        // Combine rules: all except "example.A" and all annotations starting with "internal"
-        copyToMock = all - named("example.A") - matches(Regex("internal.*"))
-     }
-}
-```
-
 
 ```kotlin title="build.gradle.kts"
 import dev.mokkery.options.AnnotationSelector.Companion.all
