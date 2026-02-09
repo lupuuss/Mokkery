@@ -417,6 +417,12 @@ public class MokkeryDiagnosticTestGenerated extends AbstractMokkeryDiagnosticTes
     }
 
     @Test
+    @TestMetadata("FunctionReferenceChainMustNotBePassedToEvery.kt")
+    public void testFunctionReferenceChainMustNotBePassedToEvery() {
+      runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/FunctionReferenceChainMustNotBePassedToEvery.kt");
+    }
+
+    @Test
     @TestMetadata("FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt")
     public void testFunctionReferenceIncorrectTypeMustNotBePassedToEvery() {
       runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt");
@@ -432,6 +438,12 @@ public class MokkeryDiagnosticTestGenerated extends AbstractMokkeryDiagnosticTes
     @TestMetadata("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt")
     public void testMustNotDeclareFunctionsAcceptingMokkeryTemplatingScope() {
       runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt");
+    }
+
+    @Test
+    @TestMetadata("PropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery.kt")
+    public void testPropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery() {
+      runTest("test-mokkery-compiler/src/test/data/diagnostic/templating/PropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery.kt");
     }
 
     @Test

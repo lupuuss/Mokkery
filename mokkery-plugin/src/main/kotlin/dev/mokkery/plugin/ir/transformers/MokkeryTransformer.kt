@@ -55,6 +55,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.getClass
@@ -331,7 +332,7 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         everyCall: IrCall,
         functionReference: IrFunctionReference,
     ): IrFunctionExpression {
-        val function = functionReference.symbol.owner as IrSimpleFunction
+        val (mockObj, function) = functionReference.extractMockObjectAndFunction()
         val builtIns = pluginContext.irBuiltIns
         val lambdaType = pluginContext
             .irBuiltIns
@@ -343,7 +344,6 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
         }
         return irLambdaOf(lambdaType) { func ->
             +irCall(runTemplateFun) {
-                val mockObj = functionReference.arguments[0]!!
                 typeArguments[0] = everyCall.typeArguments[0]
                 arguments[0] = irGet(func.parameters[0])
                 arguments[1] = mockObj
@@ -391,6 +391,20 @@ class MokkeryTransformer(compilerPluginScope: CompilerPluginScope) : CoreTransfo
             keyType = templatingParameter.defaultType,
             valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
         )
+    }
+
+    private fun IrFunctionReference.extractMockObjectAndFunction(): Pair<IrExpression, IrSimpleFunction> {
+        // it handles 2 cases:
+        // * this::property::get/this::property::set
+        // * this::function
+        return when (val dispatchArgument = arguments[0]!!) {
+            is IrPropertyReference -> dispatchArgument.arguments[0]!! to when {
+                symbol.owner.name.asString() == "get" -> dispatchArgument.getter!!.owner
+                symbol.owner.name.asString() == "set" -> dispatchArgument.setter!!.owner
+                else -> error("Only reference to getter and setter is allowed on property!")
+            }
+            else -> dispatchArgument to symbol.owner as IrSimpleFunction
+        }
     }
 }
 

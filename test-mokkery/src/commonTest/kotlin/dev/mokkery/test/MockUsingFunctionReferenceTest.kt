@@ -47,6 +47,17 @@ class MockUsingFunctionReferenceTest {
         assertEquals(2, mock.callGeneric(2))
     }
 
+    @Test
+    fun testEveryWithGetter() {
+        val mock = mock<PropertiesInterface> { every(this::primitiveProperty::get) returns 1 }
+        assertEquals(1, mock.primitiveProperty)
+    }
+
+    @Test
+    fun testEveryWithSetter() {
+        val mock = mock<PropertiesInterface> { every(this::primitiveProperty::set) returns Unit }
+        mock.primitiveProperty = 1
+    }
 }
 
 

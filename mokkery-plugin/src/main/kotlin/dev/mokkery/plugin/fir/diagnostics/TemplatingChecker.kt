@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error0
 import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.error2
 import org.jetbrains.kotlin.diagnostics.error3
@@ -18,10 +19,12 @@ import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
+import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.name.Name
@@ -80,9 +83,9 @@ class TemplatingChecker(
             a = funSymbol.name,
             b = funSymbol.valueParameterSymbols.last(),
         )
-        val referenceFunction = argument.calleeReference.toResolvedFunctionSymbol()
+        val referenceFunction = argument.calleeReference.toResolvedFunctionSymbol() ?: return
         val isTemplatingForSuspend = funSymbol.name.asString().endsWith("Suspend")
-        if (referenceFunction != null && referenceFunction.isSuspend != isTemplatingForSuspend) {
+        if (referenceFunction.isSuspend != isTemplatingForSuspend) {
             return reporter.reportOn(
                 source = source,
                 factory = Diagnostics.FUNCTION_REFERENCE_INCORRECT_TYPE,
@@ -98,6 +101,24 @@ class TemplatingChecker(
                 a = funSymbol.name,
             )
         }
+        val receiver = argument.dispatchReceiver
+        if (receiver !is FirCallableReferenceAccess) return
+        val symbol = receiver.toResolvedCallableSymbol() as? FirPropertySymbol
+        val functionName = referenceFunction.name.asString()
+        when {
+            symbol != null && functionName in setOf("get", "set") -> {
+                if (receiver.dispatchReceiver !is FirCallableReferenceAccess) return
+            }
+            symbol != null -> return reporter.reportOn(
+                source = source,
+                factory = Diagnostics.PROPERTY_FUNCTION_REFERENCE_MUST_BE_ACCESSOR,
+                a = referenceFunction.name
+            )
+        }
+        return reporter.reportOn(
+            source = source,
+            factory = Diagnostics.FUNCTION_REFERENCE_CHAIN_NOT_ALLOWED,
+        )
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
@@ -129,5 +150,7 @@ class TemplatingChecker(
         val FUNCTIONAL_PARAM_MUST_BE_REFERENCE by error2<KtElement, Name, FirValueParameterSymbol>()
         val FUNCTION_REFERENCE_INCORRECT_TYPE by error3<KtElement, Name, String, String>()
         val FUNCTION_REFERENCE_NOT_BOUND by error1<KtElement, Name>()
+        val FUNCTION_REFERENCE_CHAIN_NOT_ALLOWED by error0<KtElement>()
+        val PROPERTY_FUNCTION_REFERENCE_MUST_BE_ACCESSOR by error1<KtElement, Name>()
     }
 }

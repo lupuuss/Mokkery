@@ -33,5 +33,14 @@ class TemplatingDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Function reference passed to ''{0}'' must be bound to a dispatch receiver.",
             rendererA = CommonRenderers.NAME,
         )
+        it.put(
+            factory = Diagnostics.FUNCTION_REFERENCE_CHAIN_NOT_ALLOWED,
+            message = "Function references chain is not allowed.",
+        )
+        it.put(
+            factory = Diagnostics.PROPERTY_FUNCTION_REFERENCE_MUST_BE_ACCESSOR,
+            message = "Invalid property accessor reference ''{0}''. Only ''get'' and ''set'' are supported.",
+            rendererA = CommonRenderers.NAME,
+        )
     }
 }
