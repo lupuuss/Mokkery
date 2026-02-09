@@ -36,6 +36,22 @@ For suspending member function, use `everySuspend`:
 everySuspend { foo.fetchAll() } returns listOf(1, 2, 3)
 ```
 
+`every` and `everySuspend` can be used with function references as a shorthand:
+
+```kotlin
+every(foo::getAll) returns listOf(1, 2)
+every(foo::values::get) returns listOf(2, 3)
+every(foo::values::set) returns Unit
+everySuspend(foo::fetchAt) returns 10
+
+foo.getAll()             // returns listOf(1, 2)
+foo.values               // returns listOf(2, 3)
+foo.values = emptyList() // returns Unit
+foo.fetchAt(0)           // returns 10
+foo.fetchAt(1)           // returns 10
+foo.fetchAt(2)           // returns 10
+```
+
 :::danger
 Make sure that you are calling a member function of a mock type! Mocking extension functions is not supported!
 :::
