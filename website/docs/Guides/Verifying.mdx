@@ -42,7 +42,7 @@ mokkery {
 
 ### Soft modes family
 
-By default `verify` uses `VerifyMode.soft`. It checks only if calls from the verification block happened and marks all
+By default, `verify` uses `VerifyMode.soft`. It checks only if calls from the verification block happened and marks all
 matching calls as verified.
 
 ```kotlin
@@ -94,7 +94,7 @@ In conclusion, there is no point of putting duplicated patterns in `verify` with
 
 :::warning
 Exhaustiveness is only checked for mocks called within the verification block!
-To enforce stricter exhaustiveness checks, see [this chapter](./Strict_exhaustiveness).
+To enforce stricter behavior, check [strict exhaustiveness chapter](./Strict_exhaustiveness).
 :::
 
 ```kotlin
@@ -142,7 +142,7 @@ what is specified for verification.
 
 :::warning
 Exhaustiveness is only checked for mocks called within the verification block!
-To enforce stricter exhaustiveness checks, see [this chapter](./Strict_exhaustiveness).
+To enforce stricter behavior, check [strict exhaustiveness chapter](./Strict_exhaustiveness).
 :::
 
 ```kotlin
@@ -168,7 +168,7 @@ verify(soft) {
     mock.getAt(1)
     // ✅
 }
-verifyNoMoreCalls(mock) // ❌ - `findAll` was not verified!
+verifyNoMoreCalls(mock) // ❌ - `getAll` was not verified!
 ```
 
 ### Resetting registered calls

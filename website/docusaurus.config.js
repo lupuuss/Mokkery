@@ -35,7 +35,11 @@ const config = {
     organizationName: 'lupuuss',
     projectName: 'Mokkery',
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'warn',
+    markdown: {
+        hooks: {
+            onBrokenMarkdownLinks: 'warn'
+        }
+    },
     customFields: {description: tagLine},
     i18n: {
         defaultLocale: 'en',

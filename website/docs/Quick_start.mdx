@@ -9,7 +9,7 @@ Please read [limitations](../docs/Limitations) section!
 
 ### Mocking
 
-To create a mock of `Foo`, use `mock` function:
+To create a mock of given type, use `mock` function:
 
 ```kotlin
 val foo = mock<Foo>()
@@ -142,8 +142,8 @@ Each verification is performed on unverified calls. In result, repeated verifica
 ```kotlin
 foo.getAt(1)
 
-verify { foo.getAt(1) } // succeeds
-verify { foo.getAt(1) } // fails - no matching calls
+verify { foo.getAt(1) } // ✅
+verify { foo.getAt(1) } // ❌ - no matching calls
 ```
 
 By default, verification works in [soft](../docs/Guides/Verifying#soft-modes-family) mode. It checks if each call pattern occurred at least once.
@@ -154,20 +154,20 @@ In this mode, each check is performed independently so in example below, both ch
 foo.getAll()
 foo.getAll()
 
-// verification passes, because `getAll` was called at least once
 verify {
     foo.getAll()
+    // ✅ - `getAll` was called at least once
 }
 ```
 ```kotlin
 foo.getAll()
 foo.getAll()
 
-// verification passes, because `getAll` was called at least once
-// the only difference is that `getAll` check is duplicated
 verify {
     foo.getAll()
     foo.getAll()
+    // ✅ - `getAll` was called at least once
+    // the only difference is that `getAll` check is duplicated
 }
 ```
 
