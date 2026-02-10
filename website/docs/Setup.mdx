@@ -8,7 +8,10 @@ import Admonition from '@theme/Admonition';
 
 # Setup
 
-## Gradle
+## Gradle plugin
+
+The recommended way to work with Mokkery is to use the Mokkery Gradle plugin.
+If you can’t use it, see [the alternative setups section](#alternative-setups).
 
 1. Apply Gradle plugin:
 
@@ -175,3 +178,37 @@ You can refer to [this file](https://github.com/lupuuss/Mokkery/blob/master/buil
   </TabItem>
 </Tabs>
 
+## Alternative setups
+
+Since version 3.2.0, it should be easier to use Mokkery without the Gradle plugin.
+
+In general, you should follow these steps:
+
+1. Add [a compatible compiler plugin artifact](https://central.sonatype.com/artifact/dev.mokkery/mokkery-plugin).
+   For the command-line compiler, use `-XPlugin=path/to/mokkery-plugin.jar` flag.
+2. Add [the runtime dependency with the same version](https://central.sonatype.com/search?q=mokkery-runtime) adequately for your platform.
+   For the command-line Kotlin/JVM compiler, add `-classpath` with the `mokkery-runtime-jvm` and its dependency JARs.
+3. Optionally, specify [compiler plugin options](#compiler-plugin-options).
+   For the command-line compiler, use `-P plugin:dev.mokkery:option=value`
+
+:::info
+Before Mokkery 3.2.0 it should also be possible to use, but it might be less convenient.
+Version 3.2.0 introduces:
+- Mokkery plugin is published as a fat JAR
+- Improved compiler options syntax
+:::
+
+### Compiler plugin options
+
+When using other build systems or the command-line compiler, additional Mokkery configuration can be specified via compiler plugin options. Available options include:
+
+* `defaultVerifyMode` - [verify mode](../docs/Guides/Verifying) expression, e.g. `inRange(2..5)`, `exhaustive`.
+* `defaultMockMode` - name of the [mock mode](../docs/Guides/Mocking#mock-modes), e.g. `strict`, `autoUnit`.
+* `ignoreInlineMembers` - `true` or `false`.
+* `ignoreFinalMembers` - `true` or `false`.
+* `enableFirDiagnostics` - `true` or `false`.
+* `stubs.allowClassInheritance` - `true` or `false`.
+* `stubs.allowConcreteClassInstantiation` - `true` or `false`.
+* `annotations.copyToMock` - annotation selector expression, e.g. `all - named("annotation.A"|"annotation.B")`.
+   Note that usage of `,` was replaced by `|`. Mokkery can parse both, but
+   [currently commas must not be a part of a plugin option.](https://youtrack.jetbrains.com/issue/KT-74872/Support-symbols-escaping-in-values-of-plugin-arguments-passed-with-P))
