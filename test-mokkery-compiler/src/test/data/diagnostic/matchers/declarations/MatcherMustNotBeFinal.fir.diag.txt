@@ -1,0 +1,1 @@
+/MatcherMustNotBeFinal.kt:(48,97): error: Matcher must not be external.

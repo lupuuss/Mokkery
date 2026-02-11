@@ -33,16 +33,13 @@ public object CollectionArgMatchers {
      */
     @DelicateMokkeryApi
     @Poko
-    public class ContentEquals(public val array: Any): ArgMatcher<Any> {
+    public class ContentEquals(public val array: Any): ArrayArgMatcher<Any?>() {
 
         private val elements = requireNotNull(array.asListOrNull()) {
             "ContentEquals expects array but received $array!"
         }
 
-        override fun matches(arg: Any): Boolean {
-            val actual = arg.asListOrNull() ?: return false
-            return actual == elements
-        }
+        override fun matchesElements(elements: List<Any?>): Boolean = elements == this.elements
 
         override fun toString(): String = "contentEq(${array.asListOrNull().orEmpty().joinToString()})"
     }

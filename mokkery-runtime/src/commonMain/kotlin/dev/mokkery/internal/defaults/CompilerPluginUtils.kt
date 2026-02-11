@@ -2,7 +2,7 @@
 
 package dev.mokkery.internal.defaults
 
-import dev.mokkery.internal.utils.mokkeryRuntimeError
+import dev.mokkery.internal.mokkeryRuntimeError
 
 internal inline fun methodWithoutDefaultsError(): Nothing = mokkeryRuntimeError(
     "This method does not have defaults and should not be called!"

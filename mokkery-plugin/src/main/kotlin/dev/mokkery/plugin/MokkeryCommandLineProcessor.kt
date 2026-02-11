@@ -1,91 +1,38 @@
 package dev.mokkery.plugin
 
 import com.google.auto.service.AutoService
-import dev.mokkery.MockMode
 import dev.mokkery.MokkeryConfig
-import dev.mokkery.verify.VerifyMode
-import dev.mokkery.verify.VerifyModeSerializer
+import dev.mokkery.internal.options.MokkeryOptions
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
-import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.CompilerConfigurationKey
-
-val MOCK_MODE_KEY = CompilerConfigurationKey<List<MockMode>>("mockMode")
-val VERIFY_MODE_KEY = CompilerConfigurationKey<List<VerifyMode>>("verifyMode")
-val IGNORE_INLINE_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreInlineMembers")
-val IGNORE_FINAL_MEMBERS = CompilerConfigurationKey<List<Boolean>>("ignoreFinalMembers")
-val ENABLE_FIR_DIAGNOSTICS = CompilerConfigurationKey<List<Boolean>>("enableFirDiagnostics")
-val STUBS_ALLOW_CLASS_INHERITANCE = CompilerConfigurationKey<List<Boolean>>("stubs.allowClassInheritance")
-val STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION = CompilerConfigurationKey<List<Boolean>>("stubs.allowConcreteClassInstantiation")
+import org.jetbrains.kotlin.config.messageCollector
 
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {
 
     override val pluginId = MokkeryConfig.PLUGIN_ID
 
-    override val pluginOptions: Collection<AbstractCliOption> = listOf(
-        CliOption(
-            optionName = MOCK_MODE_KEY.toString(),
-            valueDescription = "enum class dev.mokkery.MockMode",
-            description = "Default MockMode for every mock.",
-            required = false,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
-            optionName = VERIFY_MODE_KEY.toString(),
-            valueDescription = "sealed class dev.mokkery.VerifyMode",
-            description = "Default VerifyMode for every verify block.",
-            required = false,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
-            optionName = IGNORE_INLINE_MEMBERS.toString(),
-            valueDescription = "Boolean",
-            description = "Ignores inline members of mocked class if raised.",
-            required = false,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
-            optionName = IGNORE_FINAL_MEMBERS.toString(),
-            valueDescription = "Boolean",
-            description = "Ignores final members of mocked class if raised.",
-            required = false,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
-            optionName = ENABLE_FIR_DIAGNOSTICS.toString(),
-            valueDescription = "Boolean",
-            description = "Enables FIR diagnostics if raised.",
-            required = false,
-            allowMultipleOccurrences = false
-        ),
-        CliOption(
-            optionName = STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION.toString(),
-            valueDescription = "Boolean",
-            description = "Allows Mokkery to instantiate existing classes required for mocked class constructor.",
-            required = false,
-            allowMultipleOccurrences = false,
-        ),
-        CliOption(
-            optionName = STUBS_ALLOW_CLASS_INHERITANCE.toString(),
-            valueDescription = "Boolean",
-            description = "Allows Mokkery to inherit from existing classes when required for mocked class constructor.",
-            required = false,
-            allowMultipleOccurrences = false,
-        )
-    )
+    override val pluginOptions: Collection<AbstractCliOption> = MokkeryOptions.map { it.cliOption }
 
-    override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {
-        return when (option.optionName) {
-            MOCK_MODE_KEY.toString() -> configuration.add(MOCK_MODE_KEY, MockMode.valueOf(value))
-            VERIFY_MODE_KEY.toString() -> configuration.add(VERIFY_MODE_KEY, VerifyModeSerializer.deserialize(value))
-            IGNORE_INLINE_MEMBERS.toString() -> configuration.add(IGNORE_INLINE_MEMBERS, value.toBoolean())
-            IGNORE_FINAL_MEMBERS.toString() -> configuration.add(IGNORE_FINAL_MEMBERS, value.toBoolean())
-            ENABLE_FIR_DIAGNOSTICS.toString() -> configuration.add(ENABLE_FIR_DIAGNOSTICS, value.toBoolean())
-            STUBS_ALLOW_CLASS_INHERITANCE.toString() -> configuration.add(STUBS_ALLOW_CLASS_INHERITANCE, value.toBoolean())
-            STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION.toString() -> configuration.add(STUBS_ALLOW_CONCRETE_CLASS_INSTANTIATION, value.toBoolean())
-            else -> error("Unknown config option: $option")
+    override fun processOption(
+        option: AbstractCliOption,
+        value: String,
+        configuration: CompilerConfiguration
+    ) {
+        val option = MokkeryOptions[option.optionName] ?: error("Unknown Mokkery CLI option: ${option.optionName}")
+        val key = option.configurationKey
+        try {
+            val deserialized = option.type
+                .serializer
+                .deserialize(value)
+            configuration.add(key, deserialized)
+        } catch (e: Throwable) {
+            throw IllegalStateException(
+                "Could not deserialize value for Mokkery CLI option ${option.name} = <$value> Expected: ${option.type.description}",
+                e
+            )
         }
     }
 }

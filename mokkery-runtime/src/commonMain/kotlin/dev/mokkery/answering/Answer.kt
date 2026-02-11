@@ -7,6 +7,7 @@ import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.context.argValues
 import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkeryScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
 import dev.mokkery.callOriginal
@@ -16,7 +17,7 @@ import dev.mokkery.context.argValue
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
-import dev.mokkery.internal.utils.description
+import dev.mokkery.internal.context.tools
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -118,7 +119,7 @@ public interface Answer<out T> {
 
         override fun call(scope: MokkeryCallScope): T = value
 
-        override fun description(): String = "returns ${value.description()}"
+        override fun description(): String = "returns ${MokkeryScope.global.tools.renderers.description.render(value)}"
     }
 
     /**

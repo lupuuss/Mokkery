@@ -1,0 +1,3 @@
+/FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt:(227,236): error: Function reference passed to 'every' must be bound to a dispatch receiver.
+
+/FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt:(265,281): error: Function reference passed to 'everySuspend' must be bound to a dispatch receiver.

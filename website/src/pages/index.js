@@ -38,7 +38,7 @@ const setupTabBlockK2 = `plugins {
 `
 
 const extensibleMatchersTabBlock = `// For any type!
-inline fun <reified T : List<*>> MokkeryMatcherScope.hasSize(size: Int): T = matches(
+fun <T : List<*>> MokkeryMatcherScope.hasSize(size: Int): T = matches(
     toString = { "hasSize($size)" }, // prettify its presence!
     predicate = { it.size == size }
 )

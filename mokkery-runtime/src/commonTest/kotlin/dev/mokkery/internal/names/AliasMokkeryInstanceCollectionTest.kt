@@ -3,6 +3,8 @@ package dev.mokkery.internal.names
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.instanceId
+import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
@@ -65,3 +67,19 @@ class AliasMokkeryInstanceCollectionTest {
         assertEquals(MokkeryInstanceId("package.foo", 0), aliasMocks.mapAliasToOriginal(MokkeryInstanceId("foo", 0)))
     }
 }
+
+private fun AliasMokkeryCollection.aliasTraces(
+    traces: List<CallTrace>
+): List<CallTrace> = traces.map { aliasTrace(it) }
+
+private fun AliasMokkeryCollection.aliasTemplates(
+    templates: List<CallTemplate>
+): List<CallTemplate> = templates.map { aliasTemplate(it) }
+
+private fun AliasMokkeryCollection.aliasTrace(
+    trace: CallTrace
+) = trace.copy(instanceId = mapOriginalToAlias(trace.instanceId))
+
+private fun AliasMokkeryCollection.aliasTemplate(
+    template: CallTemplate
+) = template.copy(instanceId = mapOriginalToAlias(template.instanceId))

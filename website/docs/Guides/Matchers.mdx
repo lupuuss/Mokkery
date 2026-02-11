@@ -15,7 +15,7 @@ Full list of matchers with documentation is available [here](pathname:///api_ref
 Logical matchers allows combining regular matchers into logical expressions. 
 
 ```kotlin
-everySuspend { repository.findById(or("1", not("2"))) } returns stubBook()
+every { mock.getAt(or(1, not(2))) } returns 10
 ```
 
 Full list of logical matchers is available [here](pathname:///api_reference/mokkery-runtime/dev.mokkery.matcher.logical/index.html).
@@ -25,50 +25,50 @@ Full list of logical matchers is available [here](pathname:///api_reference/mokk
 To match a method with varargs you can use regular matchers:
 
 ```kotlin
-everySuspend { repository.findAllById("1", any(), "3") } returns emptyList()
+everySuspend { mock.insertAll(1, any(), 3) } returns 0
 ```
 
 The problem with regular matchers here is that the number of varargs is always fixed. Answer definition above works only
-for calls with `"1"` at index 0, any arg at index 1 and `"3"` at index 2.
+for calls with `1` at index 0, any arg at index 1 and `3` at index 2.
 
 To solve this problem you can use any matcher that accepts array with spread (`*`) operator. For example
 you can use `any()` to accept **any** arguments in between.
 
 ```kotlin
-everySuspend { repository.findAllById("1", *any(), "3") } returns emptyList()
+everySuspend { mock.insertAll(1, *any(), 3) } returns 0
 ```
 
-Now all `findAllById` calls with `"1"` as the first argument and `"3"` as the last argument return an empty list.
+Now all `insertAll` calls with `1` as the first argument and `3` as the last argument return 0.
 
 Mokkery provides several array-specific matchers, such as `containsAllElements`
 (with numeric variants like `containsAllInts`, `containsAllFloats`, etc.) that also can be used with spread operator:
 
 ```kotlin
-everySuspend { repository.findAllById("1", *containsAllElements { it != "2" }, "3") } returns emptyList()
+everySuspend { mock.insertAll(1, *containsAllInts { it != 2 }, 3) } returns 0
 
-repository.findAllById("1", "3", "3", "3") // returns empty list
-repository.findAllById("1", "2", "3", "3") // fails - method not mocked
+mock.insertAll(1, 3, 3, 3) // returns 0
+mock.insertAll(1, 2, 3, 3) // fails - method not mocked
 ```
 
 You can provide custom matcher for spread operator:
 
 ```kotlin
-everySuspend { repository.findAllById("1", *matches { it.size == 2 }, "3") } returns emptyList()
+everySuspend { mock.insertAll(1, *matches { it.size == 2 }, 3) } returns 0
 
-repository.findAllById("1", "2", "2", "3") // returns empty list
-repository.findAllById("1", "5", "5", "3") // returns empty list
-repository.findAllById("1", "2", "2", "2", "3") // fails - method not mocked
-repository.findAllById("1", "2", "3") // fails - method not mocked
+mock.insertAll(1, 2, 2, 3) // returns 0
+mock.insertAll(1, 5, 5, 3) // returns 0
+mock.insertAll(1, 2, 2, 2, 3) // fails - method not mocked
+mock.insertAll(1, 2, 3) // fails - method not mocked
 ```
 
 Spread operator can be used with composite matchers (e.g. [logical matchers](#logical-matchers)):
 
 ```kotlin
-everySuspend { repository.findAllById(*any()) } returns listOf(stubBook("1"))
-everySuspend { repository.findAllById(*not(containsAllElements { it == "2" })) } returns listOf(stubBook("2"))
+everySuspend { mock.insertAll(*any()) } returns 1
+everySuspend { mock.insertAll(*not(containsAllElements { it == "2" })) } returns 2
 
-repository.findAllById("2", "2", "2") // returns listOf(stubBook("1"))
-repository.findAllById("1", "2", "2") // returns listOf(stubBook("2"))
+mock.insertAll(2, 2, 2) // returns 1
+mock.insertAll(1, 2, 2) // returns 2
 ```
 
 ### Custom matchers
@@ -82,7 +82,7 @@ fun MokkeryMatcherScope.regex(
 ): String = matches(toString = { "regex($regex)" }, predicate = regex::matches)
 
 // for any type
-inline fun <reified T> MokkeryMatcherScope.eqAnyOf(
+fun <T> MokkeryMatcherScope.eqAnyOf(
     vararg values: T
 ): T = matches(
     toString = { "eqAnyOf(${values.contentToString()})" },
@@ -100,53 +100,53 @@ and pass its instance as an argument to [MokkeryMatcherScope.matches](pathname:/
 Arguments capturing allows accessing arguments passed to mocks:
 
 ```kotlin
-val slot = Capture.slot<String>() // stores only the latest value
-everySuspend { repository.findById(capture(slot)) } returns stubBook()
+val slot = Capture.slot<Int>() // stores only the latest value
+every { mock.getAt(capture(slot)) } returns 1
 
-repository.findById("1")
+mock.getAt(1)
 
-println(slot.get()) // prints "1"
+println(slot.get()) // prints 1
 ```
 
-By default `capture` matches any argument. You can change it by providing a different matcher:
+By default, `capture` matches any argument. You can change it by providing a different matcher:
 
 ```kotlin
-val slot = Capture.slot<String>()
-everySuspend { repository.findById(capture(slot, not("1"))) } returns stubBook()
+val slot = Capture.slot<Int>()
+every { mock.getAt(capture(slot, not(1))) } returns 0
 
-repository.findById("2")
+mock.getAt(2)
 
-println(slot.get()) // prints "2"
+println(slot.get()) // prints 2
 
-repository.findById("1") // fails - no answer provided for arg "1"
+mock.getAt(1) // fails - no answer provided for arg 1
 ```
 
 Argument capture occurs only if given definition is actually used to provide an answer for a call:
 
 ```kotlin
 
-val container = Capture.container<String>() // stores multiple values
+val container = Capture.container<Int>() // stores multiple values
 
-everySuspend { repository.findByName(query = any(), limit = any()) } returns listOf(stubBook())
-everySuspend { repository.findByName(query = capture(container), limit = 10) } returns listOf(stubBook())
-everySuspend { repository.findByName(query = "Book 3", limit = any()) } returns listOf(stubBook())
+every { mock.getAtOrDefault(index = any(), default = any()) } returns 0
+every { mock.getAtOrDefault(index = capture(container), default = 10) } returns 0
+every { mock.getAtOrDefault(index = 3, default = any()) } returns 0
 
-repository.findByName(query = "Book 1", limit = 10) // `query` arg is captured
-repository.findByName(query = "Book 2", limit = 20) // `limit` parameter does not match - argument is not captured
-repository.findByName(query = "Book 3", limit = 10) // answer defined later is selected here - argument is not captured
+mock.getAtOrDefault(index = 1, default = 10) // `index` arg is captured
+mock.getAtOrDefault(index = 2, default = 20) // `default` parameter does not match - argument is not captured
+mock.getAtOrDefault(index = 3, default = 10) // answer defined later is selected here - argument is not captured
 
-println(container.values) // prints ["Book 1"]
+println(container.values) // prints [1]
 ```
 
 Argument capturing works with vararg matchers (including matchers with spread operator):
 
 ```kotlin
-val slot = Capture.slot<Array<String>>()
+val slot = Capture.slot<Array<Int>>()
 
-everySuspend { repository.findAllById(*capture(slot)) } returns listOf(stubBook("1"))
+everySuspend { mock.insertAll(*capture(slot)) } returns 1
 
-repository.findAllById("1", "2", "3")
-// slot contains arrayOf("1", "2", "3")
+mock.insertAll(1, 2, 3)
+// slot contains intArrayOf(1, 2, 3)
 ```
 
 For positional vararg matchers syntax is exactly the same as for regular matchers.

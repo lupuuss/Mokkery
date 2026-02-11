@@ -1,0 +1,7 @@
+/TemplatingMustNotBeNested.kt:(240,254): error: 'every' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:(259,275): error: 'everySuspend' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:(280,290): error: 'verify' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:(295,312): error: 'verifySuspend' calls cannot be nested in templating functions or matcher declarations.

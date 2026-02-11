@@ -14,12 +14,12 @@ configureCompilerPlugin(
     SubpluginOption("ignoreFinalMembers", "true"),
     SubpluginOption("stubs.allowConcreteClassInstantiation", "true"),
     SubpluginOption("stubs.allowClassInheritance", "true"),
+    SubpluginOption("annotations.copyToMock", """all - named("dev.mokkery.test.AnnotationB"|"dev.mokkery.test.AnnotationC")""")
 )
 
 dependencies {
     kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
     kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
-    kotlinNativeCompilerPluginClasspath(project(":mokkery-core"))
     commonMainImplementation(project(":mokkery-runtime"))
     commonMainImplementation(project(":mokkery-coroutines"))
     commonTestImplementation(kotlin("test"))

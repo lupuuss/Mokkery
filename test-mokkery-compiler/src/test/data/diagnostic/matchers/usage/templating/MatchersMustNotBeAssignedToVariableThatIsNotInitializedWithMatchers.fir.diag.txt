@@ -1,0 +1,3 @@
+/MatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers.kt:(238,254): error: 'local var foo: Int' is not initialized with a matcher and therefore cannot be reassigned using one.
+
+/MatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers.kt:(329,345): error: 'local var foo: Int' is not initialized with a matcher and therefore cannot be reassigned using one.

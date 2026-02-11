@@ -1,0 +1,5 @@
+/TypeParametersCannotBeUsedWithMockFunctions.kt:(154,155): error: 'T (of fun <T : Any> myMock)' is a type parameter. Specific type expected for a 'mock' call.
+
+/TypeParametersCannotBeUsedWithMockFunctions.kt:(209,210): error: 'T (of fun <T : Any> mySpy)' is a type parameter. Specific type expected for a 'spy' call.
+
+/TypeParametersCannotBeUsedWithMockFunctions.kt:(277,278): error: 'T (of fun <T : Any> myMockMany)' is a type parameter. Specific type expected for a 'mockMany' call.

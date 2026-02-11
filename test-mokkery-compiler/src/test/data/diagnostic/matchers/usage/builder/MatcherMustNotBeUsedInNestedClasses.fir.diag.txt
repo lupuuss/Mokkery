@@ -1,0 +1,3 @@
+/MatcherMustNotBeUsedInNestedClasses.kt:(164,174): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'class Foo : Any'.
+
+/MatcherMustNotBeUsedInNestedClasses.kt:(303,313): error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.

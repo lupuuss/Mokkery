@@ -1,7 +1,7 @@
 package dev.mokkery.context
 
 import dev.mokkery.internal.context.CombinedContext
-import dev.mokkery.internal.utils.mokkeryRuntimeError
+import dev.mokkery.internal.mokkeryRuntimeError
 
 /**
  *  A set of [MokkeryContext.Element]s.

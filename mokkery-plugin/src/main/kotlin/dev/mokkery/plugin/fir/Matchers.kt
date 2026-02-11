@@ -1,6 +1,6 @@
 package dev.mokkery.plugin.fir
 
-import dev.mokkery.plugin.core.Mokkery
+import dev.mokkery.plugin.Mokkery
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.declarations.hasAnnotation

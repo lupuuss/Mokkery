@@ -1,14 +1,14 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.verify.Verifier.Result.Failure
+import dev.mokkery.internal.verify.Verifier.Result.Success
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
 import dev.mokkery.test.TestCallMatcher
-import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class ExhaustiveSoftVerifierTest {
 
@@ -24,22 +24,30 @@ class ExhaustiveSoftVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val testRenderer = TestRenderer<ExhaustiveSoftVerifier.Error> { "RENDERED_ERROR" }
-    private val verifier = ExhaustiveSoftVerifier(callMatcher = callMatcher, errorRenderer = testRenderer)
+    private val verifier = ExhaustiveSoftVerifier(callMatcher = callMatcher)
 
     @Test
     fun testSuccessWhenAllCallsMatch() {
-        verifier.verify(listOf(trace1, trace2), listOf(template1, template2))
+        assertEquals(
+            expected = Success(listOf(trace1, trace2)),
+            actual = verifier.verify(listOf(trace1, trace2), listOf(template1, template2)),
+        )
     }
 
     @Test
     fun testSuccessWhenAllCallsInChangedOrder() {
-        verifier.verify(listOf(trace2, trace1), listOf(template1, template2))
+        assertEquals(
+            expected = Success(listOf(trace2, trace1)),
+            actual = verifier.verify(listOf(trace2, trace1), listOf(template1, template2)),
+        )
     }
 
     @Test
     fun testSuccessWhenAllCallsMatchWithMultipleMatchesPerTemplate() {
-        verifier.verify(listOf(trace2, trace2, trace1, trace1), listOf(template1, template2))
+        assertEquals(
+            expected = Success(listOf(trace2, trace2, trace1, trace1)),
+            actual = verifier.verify(listOf(trace2, trace2, trace1, trace1), listOf(template1, template2)),
+        )
     }
 
     @Test
@@ -47,9 +55,9 @@ class ExhaustiveSoftVerifierTest {
         val trace3 = fakeCallTrace(name = "call3")
         val traces = listOf(trace1, trace2, trace3)
         val templates = listOf(template1, template2)
-        val error = assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
-        assertEquals(ExhaustiveSoftVerifier.Error.UnverifiedCalls(listOf(trace3)), testRenderer.recordedCalls.single())
-        assertEquals("RENDERED_ERROR", error.message)
+        val actual = verifier.verify(traces, templates)
+        val expected = Failure(ExhaustiveSoftVerifier.Error.UnverifiedCalls(listOf(trace3)))
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -57,9 +65,9 @@ class ExhaustiveSoftVerifierTest {
         val trace3 = fakeCallTrace(name = "call3")
         val traces = listOf(trace2, trace1, trace3)
         val templates = listOf(template1, template2)
-        val error = assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
-        assertEquals(ExhaustiveSoftVerifier.Error.UnverifiedCalls(listOf(trace3)), testRenderer.recordedCalls.single())
-        assertEquals("RENDERED_ERROR", error.message)
+        val actual = verifier.verify(traces, templates)
+        val expected = Failure(ExhaustiveSoftVerifier.Error.UnverifiedCalls(listOf(trace3)))
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -67,19 +75,15 @@ class ExhaustiveSoftVerifierTest {
         val template3 = fakeCallTemplate(name = "call3")
         val traces = listOf(trace2, trace1)
         val templates = listOf(template1, template2, template3)
-        val error = assertFailsWith<AssertionError> { verifier.verify(traces, templates) }
-        val results = TemplateGroupedMatchingResults(
-            template = template3,
-            calls = mapOf(CallMatchResult.NotMatching to listOf(trace2, trace1))
+        val actual = verifier.verify(traces, templates)
+        val expected = Failure(
+            error = ExhaustiveSoftVerifier.Error.NoMatch(
+                templateMatchingResults = TemplateGroupedMatchingResults(
+                    template = template3,
+                    calls = mapOf(CallMatchResult.NotMatching to listOf(trace2, trace1))
+                )
+            )
         )
-        assertEquals(ExhaustiveSoftVerifier.Error.NoMatch(results), testRenderer.recordedCalls.single())
-        assertEquals("RENDERED_ERROR", error.message)
-    }
-
-    @Test
-    fun testReturnsAllTracesOnSuccess() {
-        val traces = listOf(trace2, trace1)
-        val verified = verifier.verify(traces, listOf(template1, template2))
-        assertEquals(traces, verified)
+        assertEquals(expected, actual)
     }
 }

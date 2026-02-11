@@ -1,0 +1,1 @@
+/MockManyWithTypeDuplicatesCannotBeMocked.kt:(70,83): error: Type 'AutoCloseable' for 'mockMany' must occur only once, but it occurs 2 times.

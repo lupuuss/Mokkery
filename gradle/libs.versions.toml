@@ -1,14 +1,13 @@
 [versions]
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
 buildconfig = "5.7.0"
 google-autoservice = "1.1.1"
-atomicfu = "0.29.0"
+atomicfu = "0.31.0"
 dokka = "2.1.0"
 poko = "0.20.2"
 vanniktech-publish-plugin = "0.34.0"
 gradle-portal-publish = "2.0.0"
-kctesting = "0.12.0-alpha01"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
@@ -18,10 +17,18 @@ kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "ko
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
 
 [libraries]
-kctesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kctesting" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-dom-api-compat = { module = "org.jetbrains.kotlin:kotlin-dom-api-compat", version.ref = "kotlin" }
+
+# Kotlin compiler test dependencies
+kotlin-annotationsJvm = { module = "org.jetbrains.kotlin:kotlin-annotations-jvm", version.ref = "kotlin" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
+kotlin-compilerTestFramework = { module = "org.jetbrains.kotlin:kotlin-compiler-internal-test-framework", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-scriptRuntime = { module = "org.jetbrains.kotlin:kotlin-script-runtime", version.ref = "kotlin" }
+kotlin-testJunit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+# Kotlin compiler test dependencies
 
 vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-publish-plugin" }
 

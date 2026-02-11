@@ -1,0 +1,3 @@
+/MatchersMustNotBeAssignedToOuterScopeVars.kt:(231,247): error: 'var foo: Int' is defined outside the templating scope and cannot be assigned using matchers.
+
+/MatchersMustNotBeAssignedToOuterScopeVars.kt:(297,313): error: 'var foo: Int' is defined outside the templating scope and cannot be assigned using matchers.

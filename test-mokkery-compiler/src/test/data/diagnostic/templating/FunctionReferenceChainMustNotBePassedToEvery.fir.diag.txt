@@ -1,0 +1,5 @@
+/FunctionReferenceChainMustNotBePassedToEvery.kt:(248,267): error: Function references chain is not allowed.
+
+/FunctionReferenceChainMustNotBePassedToEvery.kt:(289,318): error: Function references chain is not allowed.
+
+/FunctionReferenceChainMustNotBePassedToEvery.kt:(340,368): error: Function references chain is not allowed.

@@ -1,0 +1,3 @@
+/FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt:(277,293): error: Function reference passed to 'every' is suspend function but regular function is expected.
+
+/FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt:(322,331): error: Function reference passed to 'everySuspend' is regular function but suspend function is expected.

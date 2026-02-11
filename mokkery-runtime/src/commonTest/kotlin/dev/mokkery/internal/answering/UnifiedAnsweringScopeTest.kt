@@ -16,7 +16,7 @@ class UnifiedAnsweringScopeTest {
     fun testAddsAnswerForGivenTemplate() {
         val answer = Answer.Const(1)
         scope.answers(answer)
-        assertEquals(answer, answering.answers[template])
+        assertEquals(answer, answering.answers.find { it.first == template }?.second)
     }
 
     @Test
@@ -24,6 +24,6 @@ class UnifiedAnsweringScopeTest {
         scope.answers(Answer.Const(1))
         val answer = Answer.Const(0)
         scope.answers(answer)
-        assertEquals(answer, answering.answers[template])
+        assertEquals(answer, answering.answers.find { it.first == template }?.second)
     }
 }

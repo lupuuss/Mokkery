@@ -1,0 +1,5 @@
+/PrimitiveTypesMustNotBeMocked.kt:(126,129): error: Type 'Int' is primitive and cannot be used with 'spy'.
+
+/PrimitiveTypesMustNotBeMocked.kt:(142,145): error: Type 'Int' is primitive and cannot be used with 'mock'.
+
+/PrimitiveTypesMustNotBeMocked.kt:(162,165): error: Type 'Int' is primitive and cannot be used with 'mockMany'.

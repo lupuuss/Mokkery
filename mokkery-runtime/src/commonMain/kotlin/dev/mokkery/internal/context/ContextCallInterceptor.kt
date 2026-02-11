@@ -19,16 +19,17 @@ internal interface ContextCallInterceptor : MokkeryCallInterceptor, MokkeryConte
     companion object Key : MokkeryContext.Key<ContextCallInterceptor>
 }
 
-internal fun ContextCallInterceptor(interceptors: List<MokkeryCallInterceptor>): ContextCallInterceptor {
-    return RecursiveContextCallInterceptor(0, interceptors.toTypedArray())
-}
-internal fun ContextCallInterceptor(vararg interceptors: MokkeryCallInterceptor): ContextCallInterceptor {
-    return RecursiveContextCallInterceptor(0, interceptors)
-}
+internal fun ContextCallInterceptor(
+    interceptors: List<MokkeryCallInterceptor>
+): ContextCallInterceptor = RecursiveContextCallInterceptor(0, interceptors)
+
+internal fun ContextCallInterceptor(
+    vararg interceptors: MokkeryCallInterceptor
+): ContextCallInterceptor = RecursiveContextCallInterceptor(0, interceptors.asList())
 
 private class RecursiveContextCallInterceptor(
     private val index: Int,
-    private val interceptors: Array<out MokkeryCallInterceptor>,
+    private val interceptors: List<MokkeryCallInterceptor>,
 ) : ContextCallInterceptor {
 
     private val next = if (index + 1 < interceptors.size) {

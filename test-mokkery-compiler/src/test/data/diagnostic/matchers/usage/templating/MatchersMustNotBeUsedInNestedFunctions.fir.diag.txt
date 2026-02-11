@@ -1,0 +1,7 @@
+/MatchersMustNotBeUsedInNestedFunctions.kt:(253,260): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'let@fun <anonymous>(it: Int): Int <inline=Inline, kind=EXACTLY_ONCE>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:(301,311): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'fun nested(): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:(375,382): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'let@fun <anonymous>(it: Int): Int <inline=Inline, kind=EXACTLY_ONCE>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:(424,434): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'fun nested(): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.

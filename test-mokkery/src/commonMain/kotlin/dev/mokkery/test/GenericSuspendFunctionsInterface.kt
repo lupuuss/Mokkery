@@ -2,6 +2,8 @@ package dev.mokkery.test
 
 interface GenericSuspendFunctionsInterface<Type> {
 
+    suspend fun call(input: Type): Type
+
     suspend fun <R> callGeneric(input: Type): R
 
     suspend fun <R : Any> callGenericNullabilityMarkers(input: Type & Any): R?

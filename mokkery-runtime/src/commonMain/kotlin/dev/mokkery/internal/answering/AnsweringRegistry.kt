@@ -13,27 +13,27 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.toCallTrace
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.Renderers
+import dev.mokkery.internal.render.callTrace
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.tracing.toCallTrace
 import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.self
 import dev.mokkery.supers
-import kotlinx.atomicfu.locks.reentrantLock
-import kotlinx.atomicfu.locks.withLock
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 
 internal interface AnsweringRegistry : MokkeryContext.Element {
 
     override val key: MokkeryContext.Key<*>
         get() = Key
 
-    val answers: Map<CallTemplate, Answer<*>>
+    val answers: List<Pair<CallTemplate, Answer<*>>>
 
     fun resolveAnswer(scope: MokkeryCallScope): Answer<*>
 
@@ -51,23 +51,22 @@ internal fun AnsweringRegistry(): AnsweringRegistry = AnsweringRegistryImpl()
 
 private class AnsweringRegistryImpl : AnsweringRegistry {
 
-    private val lock = reentrantLock()
-    private val _answers = linkedMapOf<CallTemplate, Answer<*>>()
+    private val _answers = atomic(emptyList<Pair<CallTemplate, Answer<*>>>())
 
-    override val answers: Map<CallTemplate, Answer<*>> get() = lock.withLock {
-        _answers.toMutableMap()
-    }
+    override val answers: List<Pair<CallTemplate, Answer<*>>>
+        get() = _answers.value
 
     override fun setup(template: CallTemplate, answer: Answer<*>) {
-        lock.withLock {
-            _answers += template to answer
+        _answers.update { old ->
+            buildList(old.size + 1) {
+                add(template to answer)
+                old.forEach { if (it.first != template) add(it) }
+            }
         }
     }
 
     override fun reset() {
-        lock.withLock {
-            _answers.clear()
-        }
+        _answers.value = emptyList()
     }
 
     override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
@@ -76,14 +75,11 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             .requireInstanceScope()
             .toMokkeryCollection()
         val callMatcher = scope.tools.callMatcherFactory.create(collection)
-        return lock.withLock {
-            _answers
-                .keys
-                .reversed()
-                .find { callMatcher.match(trace, it).isMatching }
-                ?.also { it.applyCapture(trace) }
-                ?.let { _answers.getValue(it) }
-        } ?: handleMissingAnswer(scope, collection, trace)
+        val answers = _answers.value
+        val result = answers
+            .find { (template) -> callMatcher.match(trace, template).isMatching }
+        result?.first?.applyCapture(trace)
+        return result?.second ?: handleMissingAnswer(scope, collection, trace)
     }
 
     private fun handleMissingAnswer(
@@ -98,8 +94,12 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
             else -> {
                 val aliases = collection.withShorterNames(scope.tools.namesShortener)
-                val renderer = Renderers.callTraceAlias(from = aliases)
-                throw CallNotMockedException(renderer.render(trace))
+                throw CallNotMockedException(
+                    name = scope.tools
+                        .renderers
+                        .callTrace(aliases = aliases)
+                        .render(trace)
+                )
             }
         }
     }

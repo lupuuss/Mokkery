@@ -1,0 +1,1 @@
+/MockManyWithGenericTypeDuplicatesCannotBeMocked.kt:(66,78): error: Type 'List<E (of interface List<out E>)>' for 'mockMany' must occur only once, but it occurs 3 times.

@@ -32,20 +32,16 @@ internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Em
 
 internal fun MokkeryBlockingCallScope.withContext(
     with: MokkeryContext = MokkeryContext.Empty
-): MokkeryBlockingCallScope {
-    return when {
-        with === MokkeryContext.Empty -> this
-        else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
-    }
+): MokkeryBlockingCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
 }
 
 internal fun MokkerySuspendCallScope.withContext(
     with: MokkeryContext = MokkeryContext.Empty
-): MokkerySuspendCallScope {
-    return when {
-        with === MokkeryContext.Empty -> this
-        else -> MokkerySuspendCallScope(this.mokkeryContext + with)
-    }
+): MokkerySuspendCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkerySuspendCallScope(this.mokkeryContext + with)
 }
 
 internal fun MokkeryInstanceScope.createBlockingCallScope(

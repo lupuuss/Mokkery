@@ -1,9 +1,6 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.MokkeryCollection
-import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.render.Renderers
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.NotVerifier
@@ -18,16 +15,4 @@ internal class NotVerifierErrorRenderer(
         append(traceListRenderer.render(value.unexpectedCalls))
     }
 
-    companion object {
-
-        fun lazy(
-            nameShortener: NameShortener,
-            collection: MokkeryCollection
-        ) = lazyVerifyRenderer(nameShortener, collection) {
-            NotVerifierErrorRenderer(
-                templateRenderer = callTemplateAliasRenderer,
-                traceListRenderer = Renderers.points(item = callTraceAliasRenderer)
-            )
-        }
-    }
 }

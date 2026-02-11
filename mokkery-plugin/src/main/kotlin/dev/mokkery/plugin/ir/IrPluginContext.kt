@@ -1,6 +1,6 @@
 package dev.mokkery.plugin.ir
 
-import dev.mokkery.plugin.core.Kotlin
+import dev.mokkery.plugin.Kotlin
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.Name

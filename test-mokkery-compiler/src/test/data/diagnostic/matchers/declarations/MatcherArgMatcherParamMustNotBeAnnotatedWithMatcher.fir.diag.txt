@@ -1,0 +1,5 @@
+/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:(197,205): error: Parameter of type 'ArgMatcher<T (of context() fun <T> MokkeryMatcherScope.matcherCtx)>' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:(285,302): error: Parameter of type 'ArgMatcher<T (of fun <T> ArgMatcher<T>.matcherExt)>' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:(415,423): error: Parameter of type 'ArgMatcher<T (of fun <T> MokkeryMatcherScope.matcherValue)>' cannot be marked with @dev.mokkery.annotations.Matcher

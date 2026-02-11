@@ -1,0 +1,15 @@
+/MethodsCannotBeInvokedOnMatchers.kt:(246,253): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(273,283): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(303,310): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(323,333): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(424,431): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(451,461): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(481,488): error: Invoking methods on matchers is illegal.
+
+/MethodsCannotBeInvokedOnMatchers.kt:(501,511): error: Invoking methods on matchers is illegal.

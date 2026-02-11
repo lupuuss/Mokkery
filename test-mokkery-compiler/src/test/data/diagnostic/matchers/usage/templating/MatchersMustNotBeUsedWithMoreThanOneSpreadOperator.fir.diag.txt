@@ -1,0 +1,7 @@
+/MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt:(318,326): error: Only one vararg matcher is allowed.
+
+/MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt:(449,457): error: Only one vararg matcher is allowed.
+
+/MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt:(491,499): error: Only one vararg matcher is allowed.
+
+/MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt:(501,512): error: Only one vararg matcher is allowed.

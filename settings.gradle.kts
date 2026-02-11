@@ -32,9 +32,10 @@ dependencyResolutionManagement {
 }
 includeBuild("build-mokkery")
 include(":mokkery-core")
+include(":mokkery-core-tooling")
 include(":mokkery-gradle")
 include(":mokkery-plugin")
 include(":mokkery-runtime")
 include(":mokkery-coroutines")
 include(":test-mokkery")
-include(":test-mokkery-diagnostics")
+include(":test-mokkery-compiler")

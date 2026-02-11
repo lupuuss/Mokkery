@@ -1,1 +1,3 @@
 website/** linguist-vendored
+test-mokkery-compiler/**/*.java linguist-generated=true
+test-mokkery-compiler/**/*.fir.diag.txt linguist-generated=true

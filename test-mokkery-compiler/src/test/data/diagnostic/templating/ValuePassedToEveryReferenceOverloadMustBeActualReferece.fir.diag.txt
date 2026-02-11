@@ -1,0 +1,3 @@
+/ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt:(332,335): error: Argument passed to 'every' for param 'function: KFunction<T>' must be a method reference expression.
+
+/ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt:(364,374): error: Argument passed to 'everySuspend' for param 'function: KFunction<T>' must be a method reference expression.

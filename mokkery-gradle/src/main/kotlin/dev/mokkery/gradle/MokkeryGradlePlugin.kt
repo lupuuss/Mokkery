@@ -2,12 +2,15 @@
 
 package dev.mokkery.gradle
 
-import dev.mokkery.MokkeryCompilerDefaults
 import dev.mokkery.MokkeryConfig
 import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
 import dev.mokkery.MokkeryConfig.VERSION
-import dev.mokkery.verify.VerifyModeSerializer
+import dev.mokkery.internal.options.MokkeryOption
+import dev.mokkery.internal.options.MokkeryOptionProjection
+import dev.mokkery.internal.options.MokkeryOptions
+import dev.mokkery.internal.options.get
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -27,15 +30,14 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
         target.checkKotlinSetup()
-        val mokkery = target.extensions.create("mokkery", MokkeryGradleExtension::class.java)
-        mokkery.defaultMockMode.convention(MokkeryCompilerDefaults.mockMode)
-        mokkery.defaultVerifyMode.convention(MokkeryCompilerDefaults.verifyMode)
+        val mokkery = target
+            .extensions
+            .create("mokkery", MokkeryGradleExtension::class.java)
         mokkery.rule.convention(ApplicationRule.AllTests)
-        mokkery.ignoreInlineMembers.convention(false)
-        mokkery.ignoreFinalMembers.convention(false)
-        mokkery.enableFirDiagnostics.convention(true)
-        mokkery.stubs.allowConcreteClassInstantiation.convention(false)
-        mokkery.stubs.allowClassInheritance.convention(false)
+        val projection = GradlePropertyProjection(target)
+        MokkeryOptions.forEach {
+            it.get(projection)?.convention(it.defaultValue)
+        }
         target.configureDependencies()
         super.apply(target)
     }
@@ -44,33 +46,11 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
         target.project.provider {
-            listOf(
-                SubpluginOption(key = "mockMode", value = project.mokkery.defaultMockMode.get().toString()),
-                SubpluginOption(
-                    key = "verifyMode",
-                    value = VerifyModeSerializer.serialize(project.mokkery.defaultVerifyMode.get())
-                ),
-                SubpluginOption(
-                    key = "ignoreFinalMembers",
-                    value = project.mokkery.ignoreFinalMembers.get().toString()
-                ),
-                SubpluginOption(
-                    key = "ignoreInlineMembers",
-                    value = project.mokkery.ignoreInlineMembers.get().toString()
-                ),
-                SubpluginOption(
-                    key = "enableFirDiagnostics",
-                    value = project.mokkery.enableFirDiagnostics.get().toString()
-                ),
-                SubpluginOption(
-                    key = "stubs.allowClassInheritance",
-                    value = project.mokkery.stubs.allowClassInheritance.get().toString()
-                ),
-                SubpluginOption(
-                    key = "stubs.allowConcreteClassInstantiation",
-                    value = project.mokkery.stubs.allowConcreteClassInstantiation.get().toString()
-                )
-            )
+            val property = GradlePropertyProjection(project)
+            MokkeryOptions.mapNotNull {
+                val value = it.get(property)?.get() ?: return@mapNotNull null
+                SubpluginOption(it.name, it.type.serializer.serialize(value))
+            }
         }
     }
 
@@ -132,12 +112,6 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun Project.configureDependencies() {
         afterEvaluate {
-            // https://youtrack.jetbrains.com/issue/KT-53477/Native-Gradle-plugin-doesnt-add-compiler-plugin-transitive-dependencies-to-compiler-plugin-classpath
-            configurations.matching {
-                it.name.startsWith("kotlin") && it.name.contains("CompilerPluginClasspath")
-            }.all {
-                it.isTransitive = true
-            }
             val rule = mokkery.rule.get()
             val applicableSourceSets = kotlinExtension
                 .sourceSets
@@ -153,7 +127,28 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)
 
     private fun KotlinVersion(string: String): KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
 }
+
+private data class GradlePropertyProjection(
+    val project: Project
+) : MokkeryOptionProjection<Property<Any>?> {
+
+    private val extension get() = project.mokkery
+
+    @Suppress("UNCHECKED_CAST")
+    override fun create(option: MokkeryOption<*>): Property<Any>? = when (option) {
+        MokkeryOptions.Core.defaultMockMode -> extension.defaultMockMode
+        MokkeryOptions.Core.defaultVerifyMode -> extension.defaultVerifyMode
+        MokkeryOptions.Core.ignoreFinalMembers -> extension.ignoreFinalMembers
+        MokkeryOptions.Core.ignoreInlineMembers -> extension.ignoreInlineMembers
+        MokkeryOptions.Core.enableFirDiagnostics -> extension.enableFirDiagnostics
+        MokkeryOptions.Stubs.allowClassInheritance -> extension.stubs.allowClassInheritance
+        MokkeryOptions.Stubs.allowConcreteClassInstantiation -> extension.stubs.allowConcreteClassInstantiation
+        MokkeryOptions.Annotations.copyToMock -> extension.annotations.copyToMock
+        else -> null
+    } as? Property<Any>
+}
+
+private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)

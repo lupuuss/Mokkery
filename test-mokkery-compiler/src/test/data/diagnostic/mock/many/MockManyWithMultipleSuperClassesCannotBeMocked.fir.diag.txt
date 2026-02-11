@@ -1,0 +1,1 @@
+/MockManyWithMultipleSuperClassesCannotBeMocked.kt:(162,176): error: Only one super class is acceptable for 'mockMany' type. Detected super classes: AbstractClass1, AbstractClass2, AbstractClass3

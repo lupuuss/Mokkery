@@ -2,6 +2,7 @@ package dev.mokkery.gradle
 
 import dev.mokkery.MokkeryConfig
 import org.gradle.testkit.runner.GradleRunner
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -54,6 +55,7 @@ class MokkeryGradlePluginFunctionalTest {
     }
 }
 
+@Language("kts")
 private val settingsFileContent = """
     pluginManagement {
         val kotlinVersion: String by settings
@@ -94,11 +96,15 @@ private val settingsFileContent = """
         }
     }
     """.trimIndent()
+
+@Language("kts")
 private val buildFileContent = $$"""
     @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
 
     import dev.mokkery.gradle.ApplicationRule
     import dev.mokkery.gradle.mokkery
+    import dev.mokkery.options.AnnotationSelector.Companion.all
+    import dev.mokkery.options.AnnotationSelector.Companion.named
     import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
     import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
     import org.jetbrains.kotlin.konan.target.HostManager
@@ -119,6 +125,7 @@ private val buildFileContent = $$"""
         rule = ApplicationRule.All
         stubs.allowConcreteClassInstantiation = true
         stubs.allowClassInheritance = true
+        annotations.copyToMock = all - named("dev.mokkery.test.AnnotationB", "dev.mokkery.test.AnnotationC")
     }
 
     kotlin {

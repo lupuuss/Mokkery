@@ -1,14 +1,13 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatchResult
-import dev.mokkery.test.StubRenderer
+import dev.mokkery.internal.verify.Verifier.Result.Failure
+import dev.mokkery.internal.verify.Verifier.Result.Success
 import dev.mokkery.test.TestCallMatcher
-import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class NotVerifierTest {
 
@@ -27,34 +26,35 @@ class NotVerifierTest {
             else -> CallMatchResult.NotMatching
         }
     }
-    private val testRenderer = TestRenderer<NotVerifier.Error> { "RENDERED_ERROR" }
-    private val verifier = NotVerifier(callMatcher = callMatcher, errorRenderer = testRenderer)
+    private val verifier = NotVerifier(callMatcher = callMatcher)
 
     @Test
     fun testFailsWhenMultipleCallsMatch() {
-        val error = assertFailsWith<AssertionError> {
-            verifier.verify(listOf(trace1, trace1, trace3), listOf(template1, template2))
-        }
-        assertEquals(NotVerifier.Error(template1, listOf(trace1, trace1)), testRenderer.recordedCalls.single())
-        assertEquals("RENDERED_ERROR", error.message)
+        val actual = verifier.verify(listOf(trace1, trace1, trace3), listOf(template1, template2))
+        val expected = Failure(NotVerifier.Error(template1, listOf(trace1, trace1)))
+        assertEquals(expected, actual)
     }
 
     @Test
     fun testFailsWhenOneCallMatch() {
-        val error = assertFailsWith<AssertionError> {
-            verifier.verify(listOf(trace3, trace2), listOf(template1, template2))
-        }
-        assertEquals(NotVerifier.Error(template2, listOf(trace2)), testRenderer.recordedCalls.single())
-        assertEquals("RENDERED_ERROR", error.message)
+        val actual = verifier.verify(listOf(trace3, trace2), listOf(template1, template2))
+        val expected = Failure(NotVerifier.Error(template2, listOf(trace2)))
+        assertEquals(expected, actual)
     }
 
     @Test
     fun testSuccessWhenNoMatchingCalls() {
-        verifier.verify(listOf(trace3, trace3), listOf(template1, template2))
+        assertEquals(
+            expected = Success(emptyList()),
+            actual = verifier.verify(listOf(trace3, trace3), listOf(template1, template2))
+        )
     }
 
     @Test
     fun testSuccessWhenNoCalls() {
-        verifier.verify(listOf(), listOf(template1, template2))
+        assertEquals(
+            expected = Success(emptyList()),
+            actual = verifier.verify(listOf(), listOf(template1, template2))
+        )
     }
 }
