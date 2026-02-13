@@ -6,7 +6,7 @@ google-autoservice = "1.1.1"
 atomicfu = "0.31.0"
 dokka = "2.1.0"
 poko = "0.20.2"
-vanniktech-publish-plugin = "0.34.0"
+vanniktech-publish-plugin = "0.36.0"
 gradle-portal-publish = "2.0.0"
 
 [plugins]

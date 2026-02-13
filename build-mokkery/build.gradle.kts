@@ -9,4 +9,4 @@ dependencies {
     api(libs.vanniktech.publish.plugin)
 }
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(11))
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
