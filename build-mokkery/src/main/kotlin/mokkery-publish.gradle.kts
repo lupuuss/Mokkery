@@ -22,6 +22,16 @@ dokka.dokkaSourceSets.configureEach {
     }
 }
 
+publishing.repositories {
+    maven {
+        name = "testing"
+        url = rootProject.layout
+            .buildDirectory
+            .dir("testing-repository")
+            .let(::uri)
+    }
+}
+
 mavenPublishing {
     val isCentralPublishing = gradle.startParameter.taskNames.any { it.contains("MavenCentral") }
     coordinates(project.group.toString(), project.name, project.version.toString())

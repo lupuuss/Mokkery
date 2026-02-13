@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("jvm")
+    id("com.github.gmazzo.buildconfig")
     id("mokkery-publish")
     alias(libs.plugins.gradle.portal.publish)
 }
@@ -32,17 +33,27 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
         testTask.configure {
             testLogging.showStandardStreams = true
             mustRunAfter("test")
-            val repoName = "MavenLocal"
+            val repoName = "TestingRepository"
             dependsOnPublishMultiplatformTo(":mokkery-core", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-runtime", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-coroutines", repoName)
+            dependsOnGradlePublishTo(":mokkery-gradle", repoName)
             dependsOnPublishTo(":mokkery-core-tooling", repoName)
             dependsOnPublishTo(":mokkery-plugin", repoName)
-            dependsOnPublishTo(":mokkery-gradle", repoName)
         }
     }
     dependencies {
         implementation(gradleTestKit())
+    }
+}
+
+buildConfig {
+    functionalTest.sources {
+        packageName("${project.group}.gradle")
+        val testingRepository = publishing.repositories
+            .find { it.name == "testing" }
+            .let { it as MavenArtifactRepository }
+        buildConfigField("TESTING_REPO_URL", testingRepository.url)
     }
 }
 
@@ -64,7 +75,6 @@ gradlePlugin {
                     "mock",
                     "test",
                     "kotlin-multiplatform",
-                    "kotlin-multiplatform-mobile",
                     "kotlin-compiler-plugin"
                 )
             )
@@ -74,7 +84,12 @@ gradlePlugin {
 }
 
 private fun Test.dependsOnPublishTo(project: String, repoName: String) {
-    dependsOn(project(project).tasks.named("publishTo$repoName"))
+    dependsOn(project(project).tasks.named("publishMavenPublicationTo$repoName"))
+}
+
+private fun Test.dependsOnGradlePublishTo(project: String, repoName: String) {
+    dependsOn(project(project).tasks.named("publishMavenPublicationTo$repoName"))
+    dependsOn(project(project).tasks.named("publishMokkeryPluginMarkerMavenPublicationTo$repoName"))
 }
 
 private fun Test.dependsOnPublishMultiplatformTo(project: String, repoName: String) {
