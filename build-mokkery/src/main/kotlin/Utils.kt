@@ -24,10 +24,10 @@ fun Project.loadLocalProperties() {
     }
 }
 
-fun Project.configureCompilerPlugin(id: String, vararg options: SubpluginOption) {
+fun Project.configureCompilerPlugin(id: String, vararg options: Pair<String, String>) {
     val compilerOptions = CompilerPluginOptions().apply {
-        options.forEach {
-            addPluginArgument(id, it)
+        options.forEach { (name, value) ->
+            addPluginArgument(id, SubpluginOption(name, value))
         }
     }
     tasks.withType<AbstractKotlinCompile<*>> {

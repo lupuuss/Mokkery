@@ -11,10 +11,10 @@ allOpen {
 
 configureCompilerPlugin(
     "dev.mokkery",
-    SubpluginOption("ignoreFinalMembers", "true"),
-    SubpluginOption("stubs.allowConcreteClassInstantiation", "true"),
-    SubpluginOption("stubs.allowClassInheritance", "true"),
-    SubpluginOption("annotations.copyToMock", """all - named("dev.mokkery.test.AnnotationB"|"dev.mokkery.test.AnnotationC")""")
+    "ignoreFinalMembers" to "true",
+    "stubs.allowConcreteClassInstantiation" to "true",
+    "stubs.allowClassInheritance" to "true",
+    "annotations.copyToMock" to """all - named("dev.mokkery.test.AnnotationB"|"dev.mokkery.test.AnnotationC")"""
 )
 
 dependencies {
