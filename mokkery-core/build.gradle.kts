@@ -1,6 +1,6 @@
 plugins {
-    id("mokkery-publish")
     id("mokkery-multiplatform")
+    id("mokkery-publish")
 }
 
 kotlin {

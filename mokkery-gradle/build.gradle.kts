@@ -24,14 +24,6 @@ kotlin {
     }
 }
 
-fun Test.dependsOnPublishToMavenLocalOf(project: String) {
-    dependsOn(project(project).tasks.named("publishToMavenLocal"))
-}
-
-fun Test.dependsOnPublishPublicationToMavenLocalOf(project: String, name: String) {
-    dependsOn(project(project).tasks.named("publish${name}PublicationToMavenLocal"))
-}
-
 val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     val compilations = kotlin.target.compilations
     compilations.getByName("functionalTest").associateWith(compilations.getByName("main"))
@@ -40,32 +32,13 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
         testTask.configure {
             testLogging.showStandardStreams = true
             mustRunAfter("test")
-            listOf(
-                ":mokkery-core",
-                ":mokkery-runtime",
-                ":mokkery-coroutines"
-            ).forEach {
-                dependsOnPublishPublicationToMavenLocalOf(it, "KotlinMultiplatform")
-                dependsOnPublishPublicationToMavenLocalOf(it, "Jvm")
-                dependsOnPublishPublicationToMavenLocalOf(it, "WasmJs")
-                dependsOnPublishPublicationToMavenLocalOf(it, "Js")
-                when (HostManager.host) {
-                    is KonanTarget.LINUX_X64 -> dependsOnPublishPublicationToMavenLocalOf(it, "LinuxX64")
-                    is KonanTarget.LINUX_ARM64 -> dependsOnPublishPublicationToMavenLocalOf(it, "LinuxArm64")
-                    is KonanTarget.MACOS_X64 -> {
-                        dependsOnPublishPublicationToMavenLocalOf(it, "MacosX64")
-                    }
-                    is KonanTarget.MACOS_ARM64 -> {
-                        dependsOnPublishPublicationToMavenLocalOf(it, "MacosArm64")
-                        dependsOnPublishPublicationToMavenLocalOf(it, "IosSimulatorArm64")
-                    }
-                    is KonanTarget.MINGW_X64 -> dependsOnPublishPublicationToMavenLocalOf(it, "MingwX64")
-                    else -> error("Unsupported target ${HostManager.host}")
-                }
-            }
-            dependsOnPublishToMavenLocalOf(":mokkery-core-tooling")
-            dependsOnPublishToMavenLocalOf(":mokkery-plugin")
-            dependsOnPublishToMavenLocalOf(":mokkery-gradle")
+            val repoName = "MavenLocal"
+            dependsOnPublishMultiplatformTo(":mokkery-core", repoName)
+            dependsOnPublishMultiplatformTo(":mokkery-runtime", repoName)
+            dependsOnPublishMultiplatformTo(":mokkery-coroutines", repoName)
+            dependsOnPublishTo(":mokkery-core-tooling", repoName)
+            dependsOnPublishTo(":mokkery-plugin", repoName)
+            dependsOnPublishTo(":mokkery-gradle", repoName)
         }
     }
     dependencies {
@@ -98,4 +71,34 @@ gradlePlugin {
         }
     }
     testSourceSet(functionalTest.sources)
+}
+
+private fun Test.dependsOnPublishTo(project: String, repoName: String) {
+    dependsOn(project(project).tasks.named("publishTo$repoName"))
+}
+
+private fun Test.dependsOnPublishMultiplatformTo(project: String, repoName: String) {
+    fun dependsOnPublishPublicationTo(name: String) = dependsOn(
+        project(project)
+            .tasks
+            .named("publish${name}PublicationTo$repoName")
+    )
+
+    dependsOnPublishPublicationTo("KotlinMultiplatform")
+    dependsOnPublishPublicationTo("Jvm")
+    dependsOnPublishPublicationTo("WasmJs")
+    dependsOnPublishPublicationTo("Js")
+    when (HostManager.host) {
+        is KonanTarget.LINUX_X64 -> dependsOnPublishPublicationTo("LinuxX64")
+        is KonanTarget.LINUX_ARM64 -> dependsOnPublishPublicationTo("LinuxArm64")
+        is KonanTarget.MACOS_X64 -> {
+            dependsOnPublishPublicationTo("MacosX64")
+        }
+        is KonanTarget.MACOS_ARM64 -> {
+            dependsOnPublishPublicationTo("MacosArm64")
+            dependsOnPublishPublicationTo("IosSimulatorArm64")
+        }
+        is KonanTarget.MINGW_X64 -> dependsOnPublishPublicationTo("MingwX64")
+        else -> error("Unsupported target ${HostManager.host}")
+    }
 }

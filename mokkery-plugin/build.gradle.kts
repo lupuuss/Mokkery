@@ -1,7 +1,7 @@
 plugins {
-    id("mokkery-publish")
     kotlin("jvm")
     kotlin("kapt")
+    id("mokkery-publish")
 }
 
 kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
