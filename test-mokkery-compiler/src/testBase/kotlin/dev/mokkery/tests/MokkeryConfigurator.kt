@@ -13,10 +13,10 @@ import org.jetbrains.kotlin.test.services.TestServices
 import java.io.File
 import java.io.File.pathSeparator
 
-private val mokkeryRuntimeClasspath = System.getProperty("mokkeryRuntime.classpath")
+private val mokkeryRuntimeClasspath = System.getProperty("mokkery.runtimeClasspath")
     ?.split(pathSeparator)
     ?.map(::File)
-    ?: error("Unable to get a classpath from 'mokkeryRuntime.classpath'!")
+    ?: error("Unable to get a classpath from 'mokkery.runtimeClasspath'!")
 
 class MokkeryConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
 
