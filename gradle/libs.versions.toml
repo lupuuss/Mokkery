@@ -1,6 +1,6 @@
 [versions]
 kotlinMininumSupported = "2.3.0"
-kotlin = "2.3.20-Beta2"
+kotlin = "2.3.20-RC"
 kotlinx-coroutines = "1.10.2"
 buildconfig = "5.7.0"
 google-autoservice = "1.1.1"
