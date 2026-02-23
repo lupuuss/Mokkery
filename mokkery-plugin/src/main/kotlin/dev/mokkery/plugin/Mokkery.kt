@@ -1,6 +1,5 @@
 package dev.mokkery.plugin
 
-import dev.mokkery.plugin.ir.fqName
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -11,6 +10,7 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_verify by fqName
     val dev_mokkery_annotations by fqName
     val dev_mokkery_internal_annotations by fqName
     val dev_mokkery_templating by fqName
@@ -53,27 +53,29 @@ object Mokkery {
         val MokkeryTemplatingScope by dev_mokkery_templating.classId
         val Matcher by dev_mokkery_annotations.classId
         val ArgMatcher by dev_mokkery_matcher.classId
-        val ArgMatcherComposite = ClassId(
-            packageFqName = dev_mokkery_matcher,
-            relativeClassName = FqName.fromSegments(listOf("ArgMatcher", "Composite")),
-            isLocal = false
-        )
+        val ArgMatcherComposite = dev_mokkery_matcher.nestedClassId("ArgMatcher", "Composite")
         val Templating by dev_mokkery_internal_annotations.classId
     }
 }
 
 val FqName.callableId: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, CallableId>>
     get() = PropertyDelegateProvider { _: Any?, property ->
-        ReadOnlyProperty { _, _ ->
-            CallableId(this, Name.identifier(property.name))
-        }
+        val callableId = callableId(property.name)
+        ReadOnlyProperty { _, _ -> callableId }
     }
 
 val FqName.classId: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassId>>
     get() = PropertyDelegateProvider { _: Any?, property ->
-        ReadOnlyProperty { _, _ ->
-            ClassId(this, Name.identifier(property.name))
-        }
+        val classId = classId(property.name)
+        ReadOnlyProperty { _, _ -> classId }
     }
 
+fun FqName.callableId(identifier: String) = CallableId(this, Name.identifier(identifier))
 
+fun FqName.classId(identifier: String) = ClassId(this, Name.identifier(identifier))
+
+fun FqName.nestedClassId(vararg segments: String) = ClassId(
+    packageFqName = this,
+    relativeClassName = FqName.fromSegments(listOf(*segments)),
+    isLocal = false
+)

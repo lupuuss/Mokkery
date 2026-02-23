@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
+import org.jetbrains.kotlin.ir.builders.declarations.addSetter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
@@ -22,6 +23,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeOrNull
@@ -32,6 +34,7 @@ import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassPare
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
@@ -40,10 +43,18 @@ import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
 
-fun IrClass.getProperty(name: String): IrProperty {
+fun IrClass.requirePropertyOwner(name: String): IrProperty {
     val nameId = Name.identifier(name)
     return properties.first { it.name == nameId }
 }
+
+fun IrClass.requirePropertyGetterOwner(name: String): IrSimpleFunction = requirePropertyOwner(name).getter!!
+
+fun IrClass.requireSimpleFunction(name: String): IrSimpleFunctionSymbol {
+    return getSimpleFunction(name)!!
+}
+
+fun IrClass.requireSimpleFunctionOwner(name: String): IrSimpleFunction = requireSimpleFunction(name).owner
 
 fun IrClass.getEnumEntry(name: String): IrEnumEntry {
     return declarations

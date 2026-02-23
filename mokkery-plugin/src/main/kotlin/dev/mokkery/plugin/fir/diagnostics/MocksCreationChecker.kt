@@ -1,11 +1,11 @@
 package dev.mokkery.plugin.fir.diagnostics
 
-import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.Kotlin
+import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.Mokkery.Callable
-import dev.mokkery.plugin.ir.transformers.core.stubsConfig
-import dev.mokkery.plugin.ir.transformers.core.validationMode
 import dev.mokkery.plugin.fir.declaredMembers
+import dev.mokkery.plugin.stubsConfig
+import dev.mokkery.plugin.validationMode
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassKind

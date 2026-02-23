@@ -2,6 +2,7 @@ package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.util.copyTo
@@ -36,3 +37,7 @@ fun IrSimpleFunction.isSuperCallFor(originalFunction: IrFunction): Boolean {
         .orEmpty()
     return parent.defaultTypeErased in originalFunctionParentSupertypes
 }
+
+fun IrSimpleFunction.findExtensionParam() = parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
+
+fun IrSimpleFunction.findRegularParameters() = parameters.filter { it.kind == IrParameterKind.Regular }

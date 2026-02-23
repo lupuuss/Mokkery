@@ -1,6 +1,5 @@
 package dev.mokkery.plugin
 
-import dev.mokkery.plugin.ir.transformers.core.enableFirDiagnostics
 import dev.mokkery.plugin.fir.diagnostics.MatchersDeclarationChecker
 import dev.mokkery.plugin.fir.diagnostics.MatchersUsageReporterVisitor
 import dev.mokkery.plugin.fir.diagnostics.MocksCreationChecker
