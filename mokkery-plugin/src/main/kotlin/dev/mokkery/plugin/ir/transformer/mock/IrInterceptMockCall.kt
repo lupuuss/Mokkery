@@ -16,6 +16,7 @@ import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
 import dev.mokkery.plugin.ir.transformer.core.referenced
+import dev.mokkery.plugin.ir.transformer.core.referencedGetter
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -69,9 +70,9 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
     typeParamsContainer: IrTypeParametersContainer,
     function: IrSimpleFunction,
 ): IrCall {
-    val interceptorProperty = referenced(MokkeryIr.Property.callInterceptor).getter!!
+    val interceptorProperty = referencedGetter(MokkeryIr.Property.callInterceptor)
     val interceptorClass = interceptorProperty.returnType.classOrFail
-    val getSpiedObject = referenced(MokkeryIr.Property.spiedObject).getter!!
+    val getSpiedObject = referencedGetter(MokkeryIr.Property.spiedObject)
     val interceptFun = interceptorClass
         .functions
         .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }

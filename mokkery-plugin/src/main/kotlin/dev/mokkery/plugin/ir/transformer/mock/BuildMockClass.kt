@@ -23,11 +23,13 @@ import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import dev.mokkery.plugin.ir.pluginContext
 import dev.mokkery.plugin.ir.requirePropertyOwner
+import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.addToCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.referenced
+import dev.mokkery.plugin.ir.transformer.core.referencedGetterSymbol
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
 import dev.mokkery.plugin.randomString
@@ -236,10 +238,14 @@ private fun IrClass.addMockClassConstructor(
             +irInvokeIfNotNull(irGet(parameters[2]), false, irGet(thisReceiver!!))
         }
     }
-    addOverridingMethod(pluginContext, irBuiltIns.memberToString.owner) {
-        +irReturn(irCall(referenced(MokkeryIr.Property.instanceIdString).getter!!.symbol) {
-            arguments[0] = irGet(it.parameters[0])
-        })
+    val toString = irBuiltIns.anyClass.owner.requireSimpleFunctionOwner("toString")
+    addOverridingMethod(pluginContext, toString) {
+        val instanceIdString = referencedGetterSymbol(MokkeryIr.Property.instanceIdString)
+        +irReturn(
+            irCall(instanceIdString) {
+                arguments[0] = irGet(it.parameters[0])
+            }
+        )
     }
 }
 

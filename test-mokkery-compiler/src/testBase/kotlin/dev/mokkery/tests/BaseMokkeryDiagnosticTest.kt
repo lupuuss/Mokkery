@@ -8,9 +8,11 @@ import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirective
 import org.jetbrains.kotlin.test.runners.AbstractFirLightTreeDiagnosticsTest
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 
-open class AbstractMokkeryDiagnosticTest : AbstractFirLightTreeDiagnosticsTest() {
+open class BaseMokkeryDiagnosticTest(
+    private val pathProvider: KotlinStandardLibrariesPathProvider
+) : AbstractFirLightTreeDiagnosticsTest() {
 
-    override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider = ClasspathBasedStandardLibrariesPathProvider
+    override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider = pathProvider
 
     override fun configure(builder: TestConfigurationBuilder) {
         super.configure(builder)

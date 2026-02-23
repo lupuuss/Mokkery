@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir
 
+import dev.mokkery.plugin.ir.compat.LOCAL_FUNCTION_FOR_LAMBDA_COMPAT
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
@@ -99,7 +100,7 @@ fun IrBuilderWithScope.irLambdaOf(
         this.returnType = returnType
         this.isSuspend = lambdaType.isSuspendFunction()
         visibility = DescriptorVisibilities.LOCAL
-        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA_COMPAT
     }.apply {
         val bodyBuilder = DeclarationIrBuilder(context, symbol, startOffset, endOffset)
         params.forEachIndexed { i, it ->
