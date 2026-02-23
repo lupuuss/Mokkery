@@ -1,7 +1,6 @@
 package dev.mokkery.context
 
 import dev.mokkery.test.TestContextElement
-import dev.mokkery.test.assertContainsExactly
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails

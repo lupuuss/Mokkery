@@ -10,7 +10,8 @@ kotlin {
 
 dependencies {
     commonMainCompileOnly(libs.kotlin.stdlib)
-    commonTestImplementation(libs.kotlin.stdlib)
-
     jsMainCompileOnly(libs.kotlin.dom.api.compat)
+
+    commonTestImplementation(libs.kotlin.stdlib)
+    commonTestImplementation(kotlin("test"))
 }

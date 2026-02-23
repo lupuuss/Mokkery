@@ -1,6 +1,10 @@
 package dev.mokkery.context
 
 import dev.mokkery.test.TestContextElement
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 
 class MemoizedContextTest {
 

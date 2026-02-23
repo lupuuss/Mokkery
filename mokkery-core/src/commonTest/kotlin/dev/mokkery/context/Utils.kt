@@ -1,6 +1,5 @@
-package dev.mokkery.test
+package dev.mokkery.context
 
-import dev.mokkery.context.MokkeryContext
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
