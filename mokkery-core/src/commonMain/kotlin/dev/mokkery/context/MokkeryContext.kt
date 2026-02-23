@@ -1,7 +1,9 @@
 package dev.mokkery.context
 
+import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
-import dev.mokkery.internal.mokkeryRuntimeError
+import dev.mokkery.internal.context.MemoizedContext
 
 /**
  *  A set of [MokkeryContext.Element]s.
@@ -58,23 +60,33 @@ public interface MokkeryContext {
     }
 }
 
-internal fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
-    return get(key) ?: mokkeryRuntimeError("Element for key = $key is required, but not found in the context!")
+/**
+ * Returns an element for a given [key] if present. Throws [MokkeryRuntimeException] otherwise.
+ */
+public fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryContext.Key<T>): T {
+    return get(key) ?: throw MokkeryRuntimeException("Element for key = $key is required, but not found in the context!")
 }
 
-internal inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
+@InternalMokkeryApi
+public fun MokkeryContext.memoized(): MokkeryContext = MemoizedContext(this)
+
+@InternalMokkeryApi
+public inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
     fold(Unit) { _, element -> block(element) }
 }
 
-internal fun MokkeryContext.toMap(): Map<MokkeryContext.Key<*>, MokkeryContext.Element> {
+@InternalMokkeryApi
+public fun MokkeryContext.toMap(): Map<MokkeryContext.Key<*>, MokkeryContext.Element> {
     val map = LinkedHashMap<MokkeryContext.Key<*>, MokkeryContext.Element>()
     forEach { map[it.key] = it }
     return map
 }
 
-internal fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toCollection(collection: T): T {
+@InternalMokkeryApi
+public fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toCollection(collection: T): T {
     forEach(collection::add)
     return collection
 }
 
-internal fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())
+@InternalMokkeryApi
+public fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())

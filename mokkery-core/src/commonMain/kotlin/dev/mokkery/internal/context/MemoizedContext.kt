@@ -3,10 +3,8 @@ package dev.mokkery.internal.context
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.toMap
 
-internal fun MokkeryContext.memoized(): MokkeryContext = MemoizedContext(this)
-
 @Suppress("UNCHECKED_CAST")
-private class MemoizedContext(private val originalContext: MokkeryContext): MokkeryContext {
+internal class MemoizedContext(private val originalContext: MokkeryContext): MokkeryContext {
 
     private val memoized = originalContext.toMap()
 
@@ -30,3 +28,4 @@ private class MemoizedContext(private val originalContext: MokkeryContext): Mokk
 
     override fun toString(): String = originalContext.toString()
 }
+
