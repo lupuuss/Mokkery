@@ -2,7 +2,6 @@ package dev.mokkery.tests
 
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 import java.io.File
-import kotlin.text.get
 
 object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPathProvider {
     private val SEP = "\\${File.separator}"
@@ -53,6 +52,8 @@ object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPath
     override fun defaultJsStdlib(): File = getFile("kotlin-stdlib-js")
 
     override fun kotlinTestJsKLib(): File = getFile("kotlin-test-js")
+
+    override fun webStdlibForTests(): File = getFile("kotlin-stdlib-web")
 
     override fun scriptingPluginFilesForTests(): Collection<File> = TODO()
 }
