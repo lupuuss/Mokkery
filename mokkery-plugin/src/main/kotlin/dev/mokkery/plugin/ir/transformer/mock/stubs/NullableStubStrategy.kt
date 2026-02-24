@@ -6,9 +6,9 @@ import org.jetbrains.kotlin.ir.util.isNullable
 
 object NullableStubStrategy : StubStrategy {
 
-    context(context: StubStrategyScope)
+    context(scope: StubStrategyScope)
     override fun provide(type: IrType): Stub? = when {
-        type.isNullable() -> stub(context.builder.irNull(type))
+        type.isNullable() -> stub(scope.builder.irNull(type))
         else -> null
     }
 }
