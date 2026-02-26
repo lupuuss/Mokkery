@@ -11,12 +11,18 @@ import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.builders.irGetObject
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.findDeclaration
+import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.name.Name
 
 context(scope: TransformerScope)
 inline fun <T> declarationIrBuilder(
@@ -78,3 +84,36 @@ fun IrBuilderWithScope.irGetMokkeryScopeGlobal(): IrCall {
         .requirePropertyGetterOwner("global")
         .let { irCall(it) { arguments[0] = irGetObject(scopeCompanion.symbol) } }
 }
+
+context(scope: TransformerScope)
+inline fun findOrBuildClassInCurrentFile(
+    nameBase: String,
+    nameHashSource: List<IrClass> = emptyList(),
+    builder: (Name) -> IrClass
+): IrClass {
+    val name = generatedClassNameInCurrentFile(nameBase, nameHashSource)
+    return currentFileValue.findDeclaration<IrClass> { it.name == name } ?: builder(name)
+}
+
+context(scope: TransformerScope)
+fun generatedClassNameInCurrentFile(base: String, implements: List<IrClass>): Name {
+    val prefix = when {
+        implements.size == 1 -> "${implements[0].name}_${base}"
+        else -> base
+    }
+    val hash = implements
+        .map { it.kotlinFqName.asString() }
+        .plus(currentFileValue.kotlinFqNameStringWithName())
+        .hexHashString()
+    return Name.identifier("${prefix}_${hash}")
+}
+
+private fun List<String>.hexHashString(): String {
+    var hash = 0xcbf29ce484222325UL
+    forEach {
+        it.forEach { c -> hash = (hash xor c.code.toULong()) * 0x100000001b3UL }
+    }
+    return hash.toString(36)
+}
+
+private fun IrFile.kotlinFqNameStringWithName() = kotlinFqName.asString() + "." + this.name

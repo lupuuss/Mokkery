@@ -20,6 +20,7 @@ import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.addToCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
+import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
@@ -46,31 +47,36 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
 context(scope: TransformerScope)
-fun buildDefaultsExtractorFactoryIfRequired(
-    className: Name,
+fun findOrBuildDefaultsExtractorFactoryIfRequired(
     classesToIntercept: List<IrClass>,
     bodyBuilder: IrBlockBodyBuilder,
 ): IrExpression? {
-    val defaultsExtractor = buildDefaultsExtractorOrNull(className, classesToIntercept) ?: return null
-    val defaultsFactoryClass = buildDefaultsFactoryClassWith(className, defaultsExtractor.primaryConstructor!!)
-    return bodyBuilder.run {
-        irCallConstructor(defaultsFactoryClass.primaryConstructor!!)
-    }
-}
-
-context(scope: TransformerScope)
-private fun buildDefaultsExtractorOrNull(
-    className: Name,
-    classesToIntercept: List<IrClass>
-): IrClass? {
     val anyDefaults = classesToIntercept.any { clazz ->
         clazz.functions.any { it.parameters.any(IrValueParameter::hasDefaultValue) }
     }
     if (!anyDefaults) return null
+    val defaultsExtractor = findOrBuildClassInCurrentFile(
+        nameBase = "DE",
+        nameHashSource = classesToIntercept,
+        builder = { buildDefaultsExtractor(it, classesToIntercept) }
+    )
+    val defaultsFactoryClass = findOrBuildClassInCurrentFile(
+        nameBase = "DEF",
+        nameHashSource = classesToIntercept,
+        builder = { buildDefaultsExtractorFactoryClass(it, defaultsExtractor.primaryConstructor!!) }
+    )
+    return bodyBuilder.run { irCallConstructor(defaultsFactoryClass.primaryConstructor!!) }
+}
+
+context(scope: TransformerScope)
+private fun buildDefaultsExtractor(
+    name: Name,
+    classesToIntercept: List<IrClass>
+): IrClass {
     val throwArgumentsFunction = referenced(MokkeryIr.Function.throwArguments)
     val methodWithoutDefaultFunction = referenced(MokkeryIr.Function.methodWithoutDefaultsError)
     val irBuiltIns = irBuiltIns
-    val defaultsExtractorClass = irFactory.buildClass { name = Name.identifier("DE${className.asString()}") }
+    val defaultsExtractorClass = irFactory.buildClass { this.name = name }
     classesToIntercept.forEach(defaultsExtractorClass::copyTypeParametersFrom)
     defaultsExtractorClass.addToCurrentFile()
     defaultsExtractorClass.createThisReceiverParameter()
@@ -121,11 +127,9 @@ private fun buildDefaultsExtractorOrNull(
 }
 
 context(scope: TransformerScope)
-private fun buildDefaultsFactoryClassWith(className: Name, constructor: IrConstructor): IrClass {
+private fun buildDefaultsExtractorFactoryClass(name: Name, constructor: IrConstructor): IrClass {
     val defaultsExtractorFactoryInterface = referenced(MokkeryIr.Class.DefaultsExtractorFactory)
-    val defaultsExtractorFactoryClassImpl = irFactory.buildClass {
-        name = Name.identifier("DEF${className.asString()}")
-    }
+    val defaultsExtractorFactoryClassImpl = irFactory.buildClass { this.name = name }
     defaultsExtractorFactoryClassImpl.superTypes = listOf(
         defaultsExtractorFactoryInterface.defaultType,
         irBuiltIns.anyType

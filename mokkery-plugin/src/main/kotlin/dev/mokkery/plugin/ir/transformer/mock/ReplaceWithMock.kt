@@ -1,10 +1,7 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.Cache
-import dev.mokkery.plugin.caches
 import dev.mokkery.plugin.context.configuration
 import dev.mokkery.plugin.defaultMockMode
-import dev.mokkery.plugin.ir.Caches
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -19,6 +16,7 @@ import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.platform
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
+import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -36,10 +34,10 @@ fun IrCall.replaceMockCall(): IrExpression {
     val typeToMock = typeArguments.firstOrNull() ?: return this
     val classToMock = typeToMock.getClass() ?: return this
     if (platform.isJs() && classToMock.defaultType.isAnyFunction()) return buildMockJsFunction(this, Mock)
-    val mockedClass = cachedMockImplementationClass(
-        typeToMock = classToMock,
-        cacheKey = Caches.mockClasses,
-        builder = { buildMockClass(Mock, it) }
+    val mockedClass = findOrBuildClassInCurrentFile(
+        nameBase = "Mock",
+        nameHashSource = listOf(classToMock),
+        builder = { buildMockClass(it, Mock, classToMock) }
     )
     return declarationIrBuilder {
         irMockConstructorCall(mockedClass, this@replaceMockCall)
@@ -48,12 +46,12 @@ fun IrCall.replaceMockCall(): IrExpression {
 
 context(scope: TransformerScope)
 fun IrCall.replaceMockManyCall(): IrExpression {
-    val classes = typeArguments.mapNotNullTo(mutableSetOf()) { it?.getClass() }
-    if (classes.isEmpty()) return this
-    val mockedClass = cachedMockImplementationClass(
-        typeToMock = classes,
-        cacheKey = Caches.mockManyClasses,
-        builder = { buildManyMockClass(it.toList()) }
+    val classesToMock = typeArguments.mapNotNull { it?.getClass() }
+    if (classesToMock.isEmpty()) return this
+    val mockedClass = findOrBuildClassInCurrentFile(
+        nameBase = "MockMany${classesToMock.size}",
+        nameHashSource = classesToMock,
+        builder = { buildManyMockClass(it, classesToMock) }
     )
     return declarationIrBuilder {
         irMockConstructorCall(mockedClass, this@replaceMockManyCall)
@@ -63,12 +61,12 @@ fun IrCall.replaceMockManyCall(): IrExpression {
 context(scope: TransformerScope)
 fun IrCall.replaceSpyCall(): IrExpression {
     val typeToMock = typeArguments.firstOrNull() ?: return this
-    val classToMock = typeToMock.getClass() ?: return this
-    if (platform.isJs() && classToMock.defaultType.isAnyFunction()) return buildMockJsFunction(this, Spy)
-    val spiedClass = cachedMockImplementationClass(
-        typeToMock = classToMock,
-        cacheKey = Caches.spyClasses,
-        builder = { buildMockClass(Spy, it) }
+    val classToSpy = typeToMock.getClass() ?: return this
+    if (platform.isJs() && classToSpy.defaultType.isAnyFunction()) return buildMockJsFunction(this, Spy)
+    val spiedClass = findOrBuildClassInCurrentFile(
+        nameBase = "Spy",
+        nameHashSource = listOf(classToSpy),
+        builder = { buildMockClass(it, Spy, classToSpy) }
     )
     return declarationIrBuilder {
         irSpyConstructorCall(spiedClass, this@replaceSpyCall)
@@ -117,18 +115,4 @@ private fun IrBuilderWithScope.irSpyConstructorCall(
         .forEachIndexedTypeArgument { index, it ->
             arguments[4 + index] = kClassReference(it ?: anyType)
         }
-}
-
-context(scope: TransformerScope)
-private fun <T> cachedMockImplementationClass(
-    typeToMock: T,
-    cacheKey: Cache.Key<T, IrClass>,
-    builder: (T) -> IrClass
-): IrClass {
-    val cache = caches[cacheKey]
-    val cached = cache[typeToMock]
-    if (cached != null) return cached
-    val newClass = builder(typeToMock)
-    cache[typeToMock] = newClass
-    return newClass
 }

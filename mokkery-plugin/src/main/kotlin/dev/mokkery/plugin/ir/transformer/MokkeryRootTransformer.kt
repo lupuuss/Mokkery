@@ -1,8 +1,6 @@
 package dev.mokkery.plugin.ir.transformer
 
 import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.caches
-import dev.mokkery.plugin.ir.Caches
 import dev.mokkery.plugin.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
@@ -20,7 +18,6 @@ import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifySuspend
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -64,13 +61,6 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
             else -> expression
         }
-    }
-
-    override fun visitFileNew(declaration: IrFile): IrFile {
-        caches[Caches.mockClasses].clear()
-        caches[Caches.spyClasses].clear()
-        caches[Caches.mockManyClasses].clear()
-        return declaration.applyTransformChildrenVoid()
     }
 
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {

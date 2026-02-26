@@ -32,7 +32,6 @@ import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedGetterSymbol
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
-import dev.mokkery.plugin.randomString
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -58,17 +57,17 @@ import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
 fun buildMockClass(
+    name: Name,
     mokkeryKind: IrMokkeryKind,
     classToMock: IrClass,
 ): IrClass {
     val instanceScopeClass = referenced(MokkeryIr.Class.MokkeryInstanceScope)
-    val mockedClass = irFactory.buildClass { name = classToMock.name.createUniqueMockName(mokkeryKind.name) }
+    val mockedClass = irFactory.buildClass { this.name = name }
     mockedClass.addToCurrentFile()
     mockedClass.copyTypeParametersFrom(classToMock)
     val typedClassToMock = classToMock.symbol.typeWithParameters(mockedClass.typeParameters)
@@ -102,12 +101,10 @@ fun buildMockClass(
 }
 
 context(scope: TransformerScope)
-fun buildManyMockClass(classesToMock: List<IrClass>): IrClass {
+fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
     val manyMocksMarkerClass = referenced(MokkeryIr.Class.mockMany(classesToMock.size))
     val mokkeryInstanceClass = referenced(MokkeryIr.Class.MokkeryInstanceScope)
-    val mockedClass = irFactory.buildClass {
-        name = manyMocksMarkerClass.kotlinFqName.createUniqueManyMockName()
-    }
+    val mockedClass = irFactory.buildClass { this.name = name }
     mockedClass.addToCurrentFile()
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)
     mockedClass.createThisReceiverParameter()
@@ -223,8 +220,7 @@ private fun IrClass.addMockClassConstructor(
                     arguments[4] = irGet(thisReceiver!!)
                     arguments[5] = irGet(parameters[1])
                     arguments[6] = spyParam?.let(::irGet) ?: irNull()
-                    arguments[7] = buildDefaultsExtractorFactoryIfRequired(
-                        className = this@addMockClassConstructor.name,
+                    arguments[7] = findOrBuildDefaultsExtractorFactoryIfRequired(
                         classesToIntercept = classesToIntercept,
                         bodyBuilder = this@irBlockBody
                     )
@@ -252,12 +248,3 @@ private fun IrConstructor.addSpyParameter(classesToIntercept: List<IrClass>): Ir
     val classToSpy = classesToIntercept.singleOrNull() ?: error("Spy is not supported for intercepting multiple types!")
     return addValueParameter("obj", classToSpy.symbol.typeWithParameters(parentAsClass.typeParameters))
 }
-
-private fun Name.createUniqueMockName(type: String) = asString()
-    .plus("_$type}_${randomString()}")
-    .let(Name::identifier)
-
-private fun FqName.createUniqueManyMockName() = shortName()
-    .asString()
-    .plus("_${randomString()}")
-    .let(Name::identifier)
