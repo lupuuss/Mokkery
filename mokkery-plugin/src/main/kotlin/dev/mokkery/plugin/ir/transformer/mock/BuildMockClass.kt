@@ -98,7 +98,6 @@ fun buildMockClass(
         getterBlock = { mockMemberFunctionBody(mokkeryKind, it) },
         setterBlock = { mockMemberFunctionBody(mokkeryKind, it) }
     )
-    mockedClass.metadata = classToMock.metadata
     return mockedClass
 }
 
