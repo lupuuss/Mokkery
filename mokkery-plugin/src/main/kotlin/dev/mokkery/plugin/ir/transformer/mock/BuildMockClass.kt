@@ -254,10 +254,10 @@ private fun IrConstructor.addSpyParameter(classesToIntercept: List<IrClass>): Ir
 }
 
 private fun Name.createUniqueMockName(type: String) = asString()
-    .plus($$"$$$type$$${randomString()}")
+    .plus("_$type}_${randomString()}")
     .let(Name::identifier)
 
 private fun FqName.createUniqueManyMockName() = shortName()
     .asString()
-    .plus($$"$$${randomString()}")
+    .plus("_${randomString()}")
     .let(Name::identifier)
