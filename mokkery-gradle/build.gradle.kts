@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("jvm")
@@ -49,7 +49,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
 
 buildConfig {
     functionalTest.sources {
-        packageName("${project.group}.gradle")
+        packageName("dev.mokkery.gradle")
         val testingRepository = publishing.repositories
             .find { it.name == "testing" }
             .let { it as MavenArtifactRepository }
@@ -68,7 +68,7 @@ gradlePlugin {
             displayName = MokkeryAttributes.DisplayName
             description = MokkeryAttributes.Description
             version = project.version
-            implementationClass = "${project.group}.gradle.MokkeryGradlePlugin"
+            implementationClass = "dev.mokkery.gradle.MokkeryGradlePlugin"
             tags.set(
                 listOf(
                     "kotlin",

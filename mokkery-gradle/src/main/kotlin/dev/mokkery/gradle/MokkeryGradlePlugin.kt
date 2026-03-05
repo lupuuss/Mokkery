@@ -2,9 +2,9 @@
 
 package dev.mokkery.gradle
 
-import dev.mokkery.MokkeryConfig
-import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
-import dev.mokkery.MokkeryConfig.VERSION
+import dev.mokkery.internal.MokkeryConfig
+import dev.mokkery.internal.MokkeryConfig.RUNTIME_DEPENDENCY
+import dev.mokkery.internal.MokkeryConfig.VERSION
 import dev.mokkery.internal.options.MokkeryOptionProjection
 import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.internal.options.get

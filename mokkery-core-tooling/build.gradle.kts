@@ -20,7 +20,7 @@ dependencies {
 
 buildConfig {
     val pluginProject = project(":mokkery-plugin")
-    packageName(rootProject.group.toString())
+    packageName("dev.mokkery.internal")
     buildConfigField("String", "GROUP", str(rootProject.group))
     buildConfigField("String", "VERSION", str(rootProject.version))
     buildConfigField("String", "RUNTIME", str("mokkery-runtime"))

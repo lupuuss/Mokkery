@@ -1,4 +1,4 @@
-package dev.mokkery
+package dev.mokkery.internal
 
 import dev.mokkery.annotations.InternalMokkeryApi
 
