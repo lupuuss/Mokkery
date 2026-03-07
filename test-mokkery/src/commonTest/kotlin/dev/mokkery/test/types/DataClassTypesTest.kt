@@ -6,6 +6,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.DataClass
+import dev.mokkery.test.EnumClass
 import dev.mokkery.verify
 import dev.mokkery.verifyNoMoreCalls
 import kotlin.test.Test
@@ -19,8 +20,10 @@ class DataClassTypesTest {
             every { complexField1 } returns ComplexType
         }
         every { mock.primitiveField } returns 2
+        every { mock.enumField } returns EnumClass.D
         assertEquals(ComplexType, mock.complexField1)
         assertEquals(2, mock.primitiveField)
+        assertEquals(EnumClass.D, mock.enumField)
     }
 
     @Test
