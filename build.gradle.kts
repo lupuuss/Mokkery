@@ -62,6 +62,7 @@ dokka {
     }
     dependencies {
         dokka(project(":mokkery-core"))
+        dokka(project(":mokkery-core-tooling"))
         dokka(project(":mokkery-runtime"))
         dokka(project(":mokkery-coroutines"))
         dokka(project(":mokkery-gradle"))
