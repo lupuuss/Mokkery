@@ -17,8 +17,5 @@ dependencies {
     kotlinNativeCompilerPluginClasspath(project(":mokkery-core-tooling"))
     commonMainApi(project(":mokkery-core"))
     commonMainCompileOnly(libs.kotlin.stdlib)
-
-    jsMainCompileOnly(libs.kotlin.dom.api.compat)
-
     commonTestImplementation(kotlin("test"))
 }

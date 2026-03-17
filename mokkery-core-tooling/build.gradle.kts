@@ -15,6 +15,7 @@ kotlin {
 
 dependencies {
     api(project(":mokkery-core"))
+    compileOnly(libs.kotlin.stdlib)
     testImplementation(kotlin("test"))
 }
 
