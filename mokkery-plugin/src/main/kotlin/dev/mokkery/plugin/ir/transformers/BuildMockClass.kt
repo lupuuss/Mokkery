@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
+import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.name.FqName
@@ -239,7 +240,7 @@ private fun IrClass.addMockClassConstructor(
             +irInvokeIfNotNull(irGet(parameters[2]), false, irGet(thisReceiver!!))
         }
     }
-    addOverridingMethod(context, context.irBuiltIns.memberToString.owner) {
+    addOverridingMethod(context, context.irBuiltIns.anyClass.owner.getSimpleFunction("toString")!!.owner) {
         +irReturn(irCall(transformer.getProperty(MokkeryIr.Property.instanceIdString).getter!!.symbol) {
             arguments[0] = irGet(it.parameters[0])
         })

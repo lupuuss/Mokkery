@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
@@ -112,8 +112,8 @@ class MatchersUsageReporterVisitor(
         functionsStack -= anonymousFunction.symbol
     }
 
-    override fun visitSimpleFunction(simpleFunction: FirSimpleFunction) {
-        visitFunction(simpleFunction)
+    override fun visitNamedFunction(namedFunction: FirNamedFunction) {
+        visitFunction(namedFunction)
     }
 
     override fun visitFunction(function: FirFunction) {

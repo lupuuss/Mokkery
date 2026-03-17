@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFunctionChecker
 import org.jetbrains.kotlin.fir.declarations.FirFunction
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isExternal
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.resolve.defaultType
@@ -67,7 +67,7 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkOrigin(declaration: FirFunction) {
-        if (declaration !is FirSimpleFunction) {
+        if (declaration !is FirNamedFunction) {
             reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION)
         }
     }
