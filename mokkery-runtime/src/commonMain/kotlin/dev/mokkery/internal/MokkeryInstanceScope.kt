@@ -6,12 +6,12 @@ import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.memoized
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.memoized
 import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory

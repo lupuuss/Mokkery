@@ -4,14 +4,15 @@ import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import kotlin.reflect.KClass
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import dev.mokkery.test.EnumClass
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.startCoroutineUninterceptedOrReturn
+import kotlin.reflect.KClass
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class StubsTest {
 
@@ -33,7 +34,7 @@ private data class DataClassToStub<T : Number>(
     val nullable: FinalPrivate?,
     val generic: T,
     val primitivesToStub: Primitives,
-    val enumToStub: Enum,
+    val enumToStub: EnumClass,
     val lambdasToStub: Lambdas,
     val arraysToStub: Arrays,
     val collectionsToStub: Collections,
@@ -46,7 +47,7 @@ private data class DataClassToStub<T : Number>(
         assertEquals(null, nullable)
         assertEquals(0 as Number, generic)
         primitivesToStub.assertExpected()
-        assertEquals(Enum.A, enumToStub)
+        assertEquals(EnumClass.A, enumToStub)
         lambdasToStub.assertExpected()
         arraysToStub.assertExpected()
         collectionsToStub.assertExpected()
@@ -179,9 +180,6 @@ private data class Collections(
     }
 }
 
-private enum class Enum {
-    A, B, C, D, E
-}
 private class FinalPrivate private constructor(i: Int)
 private data class FinalPublic(val i: Int) {
     fun assertExpected() {

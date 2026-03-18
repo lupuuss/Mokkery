@@ -13,7 +13,7 @@ val MokkeryOption<*>.cliOption: CliOption
 val <T> MokkeryOption<T>.configurationKey: CompilerConfigurationKey<List<T>>
     get() = get(ConfigurationKeyProjection) as CompilerConfigurationKey<List<T>>
 
-private val CliOptionProjection = MokkeryOptionProjection {
+private val CliOptionProjection = MokkeryOptionProjection.cached {
     CliOption(
         optionName = it.name,
         valueDescription = it.type.description,
@@ -23,6 +23,6 @@ private val CliOptionProjection = MokkeryOptionProjection {
     )
 }
 
-private val ConfigurationKeyProjection = MokkeryOptionProjection<CompilerConfigurationKey<List<Any?>>> {
+private val ConfigurationKeyProjection = MokkeryOptionProjection.cached<CompilerConfigurationKey<List<Any?>>> {
     CompilerConfigurationKey.create(it.name)
 }

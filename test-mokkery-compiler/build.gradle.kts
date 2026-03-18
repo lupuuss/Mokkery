@@ -1,59 +1,92 @@
+import org.gradle.kotlin.dsl.libs
+
 plugins {
     kotlin("jvm")
 }
 
-val mokkeryRuntimeClasspath: Configuration by configurations.creating
 
 kotlin {
     optInMokkeryDelicateAndInternals()
 }
 
+val mokkeryRuntimeClasspath by configurations.registering
+
+val testBase by sourceSets.registering
+
 dependencies {
-    testImplementation(project(":mokkery-plugin"))
-    testImplementation(project(":mokkery-core-tooling"))
-
-    testImplementation(libs.kotlin.testJunit5)
-    testImplementation(libs.kotlin.compilerTestFramework)
-    testImplementation(libs.kotlin.compiler)
-
+    val testBaseCompileOnly by configurations
+    testBaseCompileOnly(project(":mokkery-plugin"))
+    testBaseCompileOnly(project(":mokkery-core-tooling"))
+    testBaseCompileOnly(libs.kotlin.compiler)
+    testBaseCompileOnly(libs.kotlin.compiler.test.framework)
     mokkeryRuntimeClasspath(project(":mokkery-runtime"))
-
-    // Dependencies required to run the internal test framework.
-    testRuntimeOnly(kotlin("test"))
-    testRuntimeOnly(libs.kotlin.reflect)
-    testRuntimeOnly(libs.kotlin.scriptRuntime)
-    testRuntimeOnly(libs.kotlin.annotationsJvm)
 }
 
-tasks.register<JavaExec>("generateTests") {
+testVariant(kotlinVersion = libs.versions.kotlin.get(), alias = "Default")
+testVariant(kotlinVersion = libs.versions.kotlinMininumSupported.get(), alias = "Minimum")
+
+val generateTests by tasks.registering {
     group = "verification"
-    systemProperty("mokkeryRuntime.classpath", mokkeryRuntimeClasspath.asPath)
-    inputs
-        .dir(layout.projectDirectory.dir("src/test/data"))
-        .withPropertyName("testData")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs
-        .dir(layout.projectDirectory.dir("src/test/java"))
-        .withPropertyName("generatedTests")
-    classpath = sourceSets.test.get().runtimeClasspath
-    mainClass.set("dev.mokkery.tests.GenerateTestsKt")
-    workingDir = rootDir
+    dependsOn(tasks.named("generateTestsDefault"))
+    dependsOn(tasks.named("generateTestsMinimum"))
+}
+tasks.test {
+    dependsOn(tasks.named("testDefault"))
+    dependsOn(tasks.named("testMinimum"))
 }
 
-tasks.withType<Test> {
-    dependsOn(mokkeryRuntimeClasspath)
-    inputs
-        .dir(layout.projectDirectory.dir("src/test/data"))
-        .withPropertyName("testData")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
+fun Project.testVariant(kotlinVersion: String, alias: String = "") {
+    val sourceSet = sourceSets.register("test$alias") {
+        java.srcDir("src/test$alias/java")
+        java.srcDir("src/test$alias/kotlin")
+        compileClasspath += testBase.get().output
+        runtimeClasspath += testBase.get().output
+    }
+    dependencies {
+        val testImplementation by configurations.named(sourceSet.get().implementationConfigurationName)
+        val testRuntimeOnly by configurations.named(sourceSet.get().runtimeOnlyConfigurationName)
+        testImplementation(project(":mokkery-plugin"))
+        testImplementation(project(":mokkery-core-tooling"))
+        testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion")
+        testImplementation("org.jetbrains.kotlin:kotlin-compiler-internal-test-framework:$kotlinVersion")
+        testImplementation(libs.kotlin.test.junit5)
+        testRuntimeOnly(libs.kotlin.reflect)
+        testRuntimeOnly(libs.kotlin.script.runtime)
+        testRuntimeOnly(libs.kotlin.annotations.jvm)
+    }
 
-    workingDir = rootDir
+    tasks.register<JavaExec>("generateTests$alias") {
+        group = "verification"
+        val testData = layout.projectDirectory.dir("src/${testBase.get().name}/data")
+        val testsRoot = layout.projectDirectory.dir("src/test$alias/java")
+        systemProperty("testDataRoot", testData.asFile.relativeTo(rootDir))
+        systemProperty("testsRoot", testsRoot.asFile.relativeTo(rootDir))
+        systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
+        inputs
+            .dir(testData)
+            .withPropertyName("testData")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        outputs
+            .dir(testsRoot)
+            .withPropertyName("generatedTestsRoot")
+        classpath += sourceSet.get().runtimeClasspath
+        mainClass.set("dev.mokkery.tests.GenerateTestsKt")
+        workingDir = rootDir
+    }
 
-    useJUnitPlatform()
-
-    systemProperty("mokkeryRuntime.classpath", mokkeryRuntimeClasspath.asPath)
-
-    // Properties required to run the internal test framework.
-    systemProperty("idea.ignore.disabled.plugins", "true")
-    systemProperty("idea.home.path", rootDir)
+    tasks.register("test$alias", Test::class) {
+        group = "verification"
+        testClassesDirs += sourceSet.get().output.classesDirs
+        classpath += sourceSet.get().runtimeClasspath
+        dependsOn(mokkeryRuntimeClasspath)
+        inputs
+            .dir(layout.projectDirectory.dir("src/${testBase.get().name}/data"))
+            .withPropertyName("testData")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        workingDir = rootDir
+        useJUnitPlatform()
+        systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
+        systemProperty("idea.ignore.disabled.plugins", "true")
+        systemProperty("idea.home.path", rootDir)
+    }
 }

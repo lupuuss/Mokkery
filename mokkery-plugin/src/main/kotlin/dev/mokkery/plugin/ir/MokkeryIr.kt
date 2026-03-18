@@ -10,6 +10,8 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
+import dev.mokkery.plugin.Mokkery.dev_mokkery_verify
+import dev.mokkery.plugin.nestedClassId
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -22,32 +24,35 @@ import kotlin.properties.ReadOnlyProperty
 
 object MokkeryIr {
     object Class {
-        val Matcher by dev_mokkery_annotations.klass
-        val MockMode by dev_mokkery.klass
-        val MokkeryScope by dev_mokkery.klass
-        val MokkeryMatcherScope by dev_mokkery_matcher.klass
-        val ArgMatcher by dev_mokkery_matcher.klass
-        val CompositeVarArgMatcher by dev_mokkery_internal_matcher.klass
-        val DefaultValuesMatcher by dev_mokkery_internal_matcher.klass
-        val MockMany2 by dev_mokkery.klass
-        val MockMany3 by dev_mokkery.klass
-        val MockMany4 by dev_mokkery.klass
-        val MockMany5 by dev_mokkery.klass
+        val Matcher by dev_mokkery_annotations.refClass
+        val MockMode by dev_mokkery.refClass
+        val MokkeryScope by dev_mokkery.refClass
+        val MokkeryMatcherScope by dev_mokkery_matcher.refClass
+        val ArgMatcher by dev_mokkery_matcher.refClass
+        val ArgMatcherComposite = dev_mokkery_matcher.refNestedClass("ArgMatcher", "Composite")
+        val ArgMatcherEquals = dev_mokkery_matcher.refNestedClass("ArgMatcher", "Equals")
+        val CompositeVarArgMatcher by dev_mokkery_internal_matcher.refClass
+        val DefaultValuesMatcher by dev_mokkery_internal_matcher.refClass
+        val MockMany2 by dev_mokkery.refClass
+        val MockMany3 by dev_mokkery.refClass
+        val MockMany4 by dev_mokkery.refClass
+        val MockMany5 by dev_mokkery.refClass
 
-        val MokkerySuiteScope by dev_mokkery.klass
+        val MokkerySuiteScope by dev_mokkery.refClass
 
-        val MokkeryInstanceScope by dev_mokkery.klass
+        val MokkeryInstanceScope by dev_mokkery.refClass
+        val VerifyModeInternals by dev_mokkery_verify.refClass
 
-        val CallArgument by dev_mokkery_context.klass
-        val SuiteName by dev_mokkery_internal_context.klass
+        val CallArgument by dev_mokkery_context.refClass
+        val SuiteName by dev_mokkery_internal_context.refClass
 
-        val MokkeryTemplatingScope by dev_mokkery_templating.klass
-        val TemplatingParameter by dev_mokkery_internal_templating.klass
-        val RunTemplateResult by dev_mokkery_internal_templating.klass
+        val MokkeryTemplatingScope by dev_mokkery_templating.refClass
+        val TemplatingParameter by dev_mokkery_internal_templating.refClass
+        val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
-        val DefaultsExtractorFactory by dev_mokkery_internal_defaults.klass
+        val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
 
-        fun mockMany(value: Int): ClassResolver {
+        fun mockMany(value: Int): IrClassReferencer {
             return mockManyMap[value]
                 ?: error("Unsupported types number! Expected value: in ${2..5}; Actual value: $value")
         }
@@ -61,35 +66,35 @@ object MokkeryIr {
     }
 
     object Function {
-        val internalEvery by dev_mokkery_internal.function
-        val internalEverySuspend by dev_mokkery_internal.function
-        val internalVerify by dev_mokkery_internal.function
-        val internalVerifySuspend by dev_mokkery_internal.function
-        val runTemplate by dev_mokkery_internal_templating.function
-        val runTemplateSuspend by dev_mokkery_internal_templating.function
-        val checkNotMock by dev_mokkery_internal_templating.function
-        val MokkerySuiteScope by dev_mokkery.function
-        val createInstanceScope by dev_mokkery_internal.function
-        val createInstanceContext by dev_mokkery_internal.function
-        val initializeInJsFunctionMock by dev_mokkery_internal.function
-        val typeArgumentAt by dev_mokkery_internal.function
-        val invokeInstantiationListener by dev_mokkery_internal_context.function
-        val createBlockingCallScope by dev_mokkery_internal.function
-        val createSuspendCallScope by dev_mokkery_internal.function
-        val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.function
-        val throwArguments by dev_mokkery_internal_defaults.function
-        val methodWithoutDefaultsError by dev_mokkery_internal_defaults.function
-        val matches by dev_mokkery_matcher.function { it.owner.parameters.size == 2 }
-        val matchesComposite by dev_mokkery_matcher.function
-        val spread by dev_mokkery_internal_matcher.function
-        val mokkeryRuntimeError by dev_mokkery_internal.function
+        val internalEvery by dev_mokkery_internal.refFunction
+        val internalEverySuspend by dev_mokkery_internal.refFunction
+        val internalVerify by dev_mokkery_internal.refFunction
+        val internalVerifySuspend by dev_mokkery_internal.refFunction
+        val runTemplate by dev_mokkery_internal_templating.refFunction
+        val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
+        val checkNotMock by dev_mokkery_internal_templating.refFunction
+        val MokkerySuiteScope by dev_mokkery.refFunction
+        val createInstanceScope by dev_mokkery_internal.refFunction
+        val createInstanceContext by dev_mokkery_internal.refFunction
+        val initializeInJsFunctionMock by dev_mokkery_internal.refFunction
+        val typeArgumentAt by dev_mokkery_internal.refFunction
+        val invokeInstantiationListener by dev_mokkery_internal_context.refFunction
+        val createBlockingCallScope by dev_mokkery_internal.refFunction
+        val createSuspendCallScope by dev_mokkery_internal.refFunction
+        val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
+        val throwArguments by dev_mokkery_internal_defaults.refFunction
+        val methodWithoutDefaultsError by dev_mokkery_internal_defaults.refFunction
+        val matches by dev_mokkery_matcher.refFunction { it.owner.parameters.size == 2 }
+        val matchesComposite by dev_mokkery_matcher.refFunction
+        val spread by dev_mokkery_internal_matcher.refFunction
+        val mokkeryRuntimeError by dev_mokkery_internal.refFunction
     }
 
     object Property {
 
-        val instanceIdString by dev_mokkery_internal.property
-        val spiedObject by dev_mokkery_internal.property
-        val callInterceptor by dev_mokkery_internal_context.property
+        val instanceIdString by dev_mokkery_internal.refProperty
+        val spiedObject by dev_mokkery_internal.refProperty
+        val callInterceptor by dev_mokkery_internal_context.refProperty
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)
@@ -99,29 +104,32 @@ object MokkeryIr {
     }
 }
 
-val FqName.klass: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, ClassResolver>>
+val FqName.refClass: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, IrClassReferencer>>
     get() = PropertyDelegateProvider { _: Any?, property ->
-        val resolver = ClassById(ClassId(this, Name.identifier(property.name)))
+        val resolver = IrClassById(ClassId(this, Name.identifier(property.name)))
         ReadOnlyProperty { _, _ -> resolver }
     }
 
-val FqName.function: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, FunctionResolver>>
+fun FqName.refNestedClass(vararg segments: String): IrClassReferencer {
+    return IrClassById(this.nestedClassId(*segments))
+}
+val FqName.refFunction: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, IrFunctionReferencer>>
     get() = PropertyDelegateProvider { _: Any?, property ->
-        val resolver = FunctionById(CallableId(this, Name.identifier(property.name)))
+        val resolver = IrFunctionById(CallableId(this, Name.identifier(property.name)))
         ReadOnlyProperty { _, _ -> resolver }
     }
 
-val FqName.property: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, PropertyResolver>>
+val FqName.refProperty: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, IrPropertyReferencer>>
     get() = PropertyDelegateProvider { _: Any?, property ->
-        val resolver = PropertyById(CallableId(this, Name.identifier(property.name)))
+        val resolver = IrPropertyById(CallableId(this, Name.identifier(property.name)))
         ReadOnlyProperty { _, _ -> resolver }
     }
 
-fun FqName.function(
+fun FqName.refFunction(
     predicate: (IrSimpleFunctionSymbol) -> Boolean
-): PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, FunctionResolver>> {
+): PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, IrFunctionReferencer>> {
     return PropertyDelegateProvider { _: Any?, property ->
-        val resolver = FunctionById(CallableId(this, Name.identifier(property.name)), predicate)
+        val resolver = IrFunctionById(CallableId(this, Name.identifier(property.name)), predicate)
         ReadOnlyProperty { _, _ -> resolver }
     }
 }

@@ -1,6 +1,6 @@
 package dev.mokkery.gradle
 
-import dev.mokkery.MokkeryConfig
+import dev.mokkery.internal.MokkeryConfig
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 

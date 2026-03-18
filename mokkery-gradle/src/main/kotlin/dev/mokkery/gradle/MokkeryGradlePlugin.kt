@@ -2,10 +2,9 @@
 
 package dev.mokkery.gradle
 
-import dev.mokkery.MokkeryConfig
-import dev.mokkery.MokkeryConfig.RUNTIME_DEPENDENCY
-import dev.mokkery.MokkeryConfig.VERSION
-import dev.mokkery.internal.options.MokkeryOption
+import dev.mokkery.internal.MokkeryConfig
+import dev.mokkery.internal.MokkeryConfig.RUNTIME_DEPENDENCY
+import dev.mokkery.internal.MokkeryConfig.VERSION
 import dev.mokkery.internal.options.MokkeryOptionProjection
 import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.internal.options.get
@@ -34,9 +33,9 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
             .extensions
             .create("mokkery", MokkeryGradleExtension::class.java)
         mokkery.rule.convention(ApplicationRule.AllTests)
-        val projection = GradlePropertyProjection(target)
+        val gradleProperty = gradlePropertyProjection(target)
         MokkeryOptions.forEach {
-            it.get(projection)?.convention(it.defaultValue)
+            it.get(gradleProperty)?.convention(it.defaultValue)
         }
         target.configureDependencies()
         super.apply(target)
@@ -46,9 +45,9 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> = kotlinCompilation.run {
         target.project.provider {
-            val property = GradlePropertyProjection(project)
+            val gradleProperty = gradlePropertyProjection(project)
             MokkeryOptions.mapNotNull {
-                val value = it.get(property)?.get() ?: return@mapNotNull null
+                val value = it.get(gradleProperty)?.get() ?: return@mapNotNull null
                 SubpluginOption(it.name, it.type.serializer.serialize(value))
             }
         }
@@ -131,24 +130,24 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
     private fun KotlinVersion(string: String): KotlinVersion = KotlinToolingVersion(string).toKotlinVersion()
 }
 
-private data class GradlePropertyProjection(
-    val project: Project
+@Suppress("UNCHECKED_CAST")
+private fun gradlePropertyProjection(
+    project: Project
 ) : MokkeryOptionProjection<Property<Any>?> {
-
-    private val extension get() = project.mokkery
-
-    @Suppress("UNCHECKED_CAST")
-    override fun create(option: MokkeryOption<*>): Property<Any>? = when (option) {
-        MokkeryOptions.Core.defaultMockMode -> extension.defaultMockMode
-        MokkeryOptions.Core.defaultVerifyMode -> extension.defaultVerifyMode
-        MokkeryOptions.Core.ignoreFinalMembers -> extension.ignoreFinalMembers
-        MokkeryOptions.Core.ignoreInlineMembers -> extension.ignoreInlineMembers
-        MokkeryOptions.Core.enableFirDiagnostics -> extension.enableFirDiagnostics
-        MokkeryOptions.Stubs.allowClassInheritance -> extension.stubs.allowClassInheritance
-        MokkeryOptions.Stubs.allowConcreteClassInstantiation -> extension.stubs.allowConcreteClassInstantiation
-        MokkeryOptions.Annotations.copyToMock -> extension.annotations.copyToMock
-        else -> null
-    } as? Property<Any>
+    val extension = project.mokkery
+    return MokkeryOptionProjection {
+        when (it) {
+            MokkeryOptions.Core.defaultMockMode -> extension.defaultMockMode
+            MokkeryOptions.Core.defaultVerifyMode -> extension.defaultVerifyMode
+            MokkeryOptions.Core.ignoreFinalMembers -> extension.ignoreFinalMembers
+            MokkeryOptions.Core.ignoreInlineMembers -> extension.ignoreInlineMembers
+            MokkeryOptions.Core.enableFirDiagnostics -> extension.enableFirDiagnostics
+            MokkeryOptions.Stubs.allowClassInheritance -> extension.stubs.allowClassInheritance
+            MokkeryOptions.Stubs.allowConcreteClassInstantiation -> extension.stubs.allowConcreteClassInstantiation
+            MokkeryOptions.Annotations.copyToMock -> extension.annotations.copyToMock
+            else -> null
+        } as? Property<Any>
+    }
 }
 
 private val Project.mokkery get() = extensions.getByType(MokkeryGradleExtension::class.java)

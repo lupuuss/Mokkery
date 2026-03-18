@@ -1,6 +1,6 @@
 package dev.mokkery.gradle
 
-import dev.mokkery.MokkeryConfig
+import dev.mokkery.internal.MokkeryConfig
 import org.gradle.testkit.runner.GradleRunner
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -9,6 +9,7 @@ import java.io.File
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
 
+@OptIn(ExperimentalPathApi::class)
 class MokkeryGradlePluginFunctionalTest {
 
     @field:TempDir
@@ -16,7 +17,6 @@ class MokkeryGradlePluginFunctionalTest {
 
     private val buildFile by lazy { testProjectDir.resolve("build.gradle.kts") }
     private val settingsFile by lazy { testProjectDir.resolve("settings.gradle.kts") }
-    private val localPropertiesFile by lazy { testProjectDir.resolve("local.properties") }
 
     @Test
     fun `test minimum Kotlin version`() {
@@ -27,10 +27,6 @@ class MokkeryGradlePluginFunctionalTest {
     private fun test(kotlinVersion: String) {
         settingsFile.writeText(settingsFileContent)
         buildFile.writeText(buildFileContent)
-        File("../local.properties")
-            .takeIf { it.exists() }
-            ?.copyTo(localPropertiesFile)
-
         File("../test-mokkery/src").toPath()
             .copyToRecursively(
                 testProjectDir
@@ -49,6 +45,7 @@ class MokkeryGradlePluginFunctionalTest {
                 "clean",
                 "kotlinUpgradeYarnLock",
                 "allTests",
+                "--parallel",
             )
             .forwardOutput()
             .build()
@@ -65,34 +62,30 @@ private val settingsFileContent = """
             id("org.jetbrains.kotlin.plugin.allopen") version kotlinVersion
             id("dev.mokkery") version mokkeryVersion
         }
-        repositories {
-            mavenCentral  {
-                content {
-                    excludeGroup("dev.mokkery")
-                }
-            }
-            google {
-                content {
-                    excludeGroup("dev.mokkery")
-                }
-            }
-            mavenLocal()
-        }
-    }
-
-    dependencyResolutionManagement {
-        repositories {
+        repositories { 
             mavenCentral {
                 content {
                     excludeGroup("dev.mokkery")
                 }
             }
-            google {
+            maven {
+                name = "testing"
+                url = uri("${BuildConfig.TESTING_REPO_URL}")
+            }
+        }
+    }
+
+    dependencyResolutionManagement {
+        repositories { 
+            mavenCentral {
                 content {
                     excludeGroup("dev.mokkery")
                 }
             }
-            mavenLocal()
+            maven {
+                name = "testing"
+                url = uri("${BuildConfig.TESTING_REPO_URL}")
+            }
         }
     }
     """.trimIndent()

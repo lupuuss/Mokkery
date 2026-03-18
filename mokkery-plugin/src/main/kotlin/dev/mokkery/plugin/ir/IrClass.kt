@@ -2,6 +2,9 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.ir.annotations.AnnotationFilter
 import dev.mokkery.plugin.ir.annotations.deepApplyAnnotationsFilter
+import dev.mokkery.plugin.ir.compat.DEFAULT_PROPERTY_ACCESSOR_COMPAT
+import dev.mokkery.plugin.ir.compat.DEFINED_COMPAT
+import dev.mokkery.plugin.ir.compat.addBackingFieldCompat
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
@@ -11,6 +14,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
+import org.jetbrains.kotlin.ir.builders.declarations.addSetter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
@@ -22,6 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeOrNull
@@ -32,6 +37,7 @@ import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassPare
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
@@ -40,10 +46,18 @@ import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.utils.memoryOptimizedZip
 
-fun IrClass.getProperty(name: String): IrProperty {
+fun IrClass.requirePropertyOwner(name: String): IrProperty {
     val nameId = Name.identifier(name)
     return properties.first { it.name == nameId }
 }
+
+fun IrClass.requirePropertyGetterOwner(name: String): IrSimpleFunction = requirePropertyOwner(name).getter!!
+
+fun IrClass.requireSimpleFunction(name: String): IrSimpleFunctionSymbol {
+    return getSimpleFunction(name)!!
+}
+
+fun IrClass.requireSimpleFunctionOwner(name: String): IrSimpleFunction = requireSimpleFunction(name).owner
 
 fun IrClass.getEnumEntry(name: String): IrEnumEntry {
     return declarations
@@ -84,7 +98,7 @@ fun IrClass.addOverridingMethod(
         updateFrom(function)
         name = function.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
         isFakeOverride = false
     }.apply {
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
@@ -168,7 +182,7 @@ fun IrClass.addOverridingProperty(
         updateFrom(property)
         name = property.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
         isFakeOverride = false
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
@@ -208,17 +222,17 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
         name = property.name
         isVar = property.isVar
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED
+        origin = IrDeclarationOrigin.DEFINED_COMPAT
     }.apply {
         val returnType = property.getter!!.returnType
-        addBackingField {
+        addBackingFieldCompat {
             type = returnType
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
         addGetter {
             this.returnType = returnType
-            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR_COMPAT
         }.apply {
             parameters = listOf(createDispatchReceiverParameterWithClassParent())
             body = DeclarationIrBuilder(context, symbol).irBlockBody {

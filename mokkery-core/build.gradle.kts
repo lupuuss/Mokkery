@@ -1,6 +1,6 @@
 plugins {
-    id("mokkery-publish")
     id("mokkery-multiplatform")
+    id("mokkery-publish")
 }
 
 kotlin {
@@ -10,6 +10,6 @@ kotlin {
 
 dependencies {
     commonMainCompileOnly(libs.kotlin.stdlib)
-
-    jsMainCompileOnly(libs.kotlin.dom.api.compat)
+    commonTestImplementation(libs.kotlin.stdlib)
+    commonTestImplementation(kotlin("test"))
 }

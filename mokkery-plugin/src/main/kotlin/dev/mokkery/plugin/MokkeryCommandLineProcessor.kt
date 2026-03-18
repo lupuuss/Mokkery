@@ -1,13 +1,11 @@
 package dev.mokkery.plugin
 
 import com.google.auto.service.AutoService
-import dev.mokkery.MokkeryConfig
+import dev.mokkery.internal.MokkeryConfig
 import dev.mokkery.internal.options.MokkeryOptions
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.messageCollector
 
 @AutoService(CommandLineProcessor::class)
 class MokkeryCommandLineProcessor : CommandLineProcessor {

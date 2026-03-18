@@ -3,6 +3,7 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
+import dev.mokkery.plugin.fir.compat.isSimpleFunctionCompat
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
 import dev.mokkery.plugin.fir.isSpread
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -20,7 +21,7 @@ import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
@@ -86,11 +87,15 @@ class MatchersUsageReporterVisitor(
     private val callAssociatedLambdas = mutableMapOf<FirFunctionSymbol<*>, FirFunctionCall?>()
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
 
-    override fun visitElement(element: FirElement) = element.acceptChildren(this)
+    override fun visitElement(element: FirElement) {
+        // backward compat - cannot override removed type so it's handled here
+        if (element is FirFunction && element.isSimpleFunctionCompat()) return visitFunction(element)
+        element.acceptChildren(this)
+    }
 
     override fun visitAnonymousObject(anonymousObject: FirAnonymousObject) {
         nestedClassStack.add(anonymousObject.symbol)
-        super.visitAnonymousObject(anonymousObject)
+        anonymousObject.acceptChildren(this)
         nestedClassStack.popLast()
     }
 
@@ -100,40 +105,40 @@ class MatchersUsageReporterVisitor(
 
     override fun visitClass(klass: FirClass) {
         nestedClassStack.add(klass.symbol)
-        super.visitClass(klass)
+        klass.acceptChildren(this)
         nestedClassStack.popLast()
     }
 
     override fun visitAnonymousFunction(anonymousFunction: FirAnonymousFunction) {
         functionsStack += anonymousFunction.symbol
         callAssociatedLambdas[anonymousFunction.symbol] = currentCallsStack.lastOrNull()
-        super.visitAnonymousFunction(anonymousFunction)
+        anonymousFunction.acceptChildren(this)
         callAssociatedLambdas.remove(anonymousFunction.symbol)
         functionsStack -= anonymousFunction.symbol
     }
 
-    override fun visitSimpleFunction(simpleFunction: FirSimpleFunction) {
-        visitFunction(simpleFunction)
+    override fun visitNamedFunction(namedFunction: FirNamedFunction) {
+        visitFunction(namedFunction)
     }
 
     override fun visitFunction(function: FirFunction) {
         functionsStack += function.symbol
-        super.visitFunction(function)
+        function.acceptChildren(this)
         functionsStack -= function.symbol
     }
 
     override fun visitProperty(property: FirProperty) {
         matchersProcessor.processVariable(property)
-        super.visitProperty(property)
+        property.acceptChildren(this)
     }
 
     override fun visitVariableAssignment(variableAssignment: FirVariableAssignment) = context(context) {
         val variableSymbol = variableAssignment
             .calleeReference
             ?.toResolvedVariableSymbol()
-            ?: return@context super.visitVariableAssignment(variableAssignment)
-        if (variableAssignment.dispatchReceiver != null) return@context super.visitVariableAssignment(variableAssignment)
-        if (!matchersProcessor.isMatcher(variableAssignment.rValue)) return@context super.visitVariableAssignment(variableAssignment)
+            ?: return@context variableAssignment.acceptChildren(this)
+        if (variableAssignment.dispatchReceiver != null) return@context variableAssignment.acceptChildren(this)
+        if (!matchersProcessor.isMatcher(variableAssignment.rValue)) return@context variableAssignment.acceptChildren(this)
         when (matchersProcessor.getResultFor(variableSymbol)) {
             null -> reporter.reportOn(
                 source = variableAssignment.source,
@@ -147,7 +152,7 @@ class MatchersUsageReporterVisitor(
             )
             else -> Unit
         }
-        return@context super.visitVariableAssignment(variableAssignment)
+        return@context variableAssignment.acceptChildren(this)
     }
 
     override fun visitWhenExpression(whenExpression: FirWhenExpression) = context(context) {
@@ -161,11 +166,12 @@ class MatchersUsageReporterVisitor(
             .forEachMatcher {
                 reporter.reportOn(it.source, Diagnostics.ILLEGAL_MATCHER_IN_CONDITION)
             }
-        super.visitWhenExpression(whenExpression)
+        whenExpression.acceptChildren(this)
     }
 
     override fun visitWhileLoop(whileLoop: FirWhileLoop) {
-        visitLoop(whileLoop)    }
+        visitLoop(whileLoop)
+    }
 
     override fun visitDoWhileLoop(doWhileLoop: FirDoWhileLoop) {
         visitLoop(doWhileLoop)
@@ -175,7 +181,7 @@ class MatchersUsageReporterVisitor(
         if (matchersProcessor.isMatcher(loop.condition)) {
             reporter.reportOn(loop.condition.source, Diagnostics.ILLEGAL_MATCHER_IN_CONDITION)
         }
-        super.visitLoop(loop)
+        loop.acceptChildren(this)
     }
 
     override fun visitTypeOperatorCall(typeOperatorCall: FirTypeOperatorCall) = context(context) {
@@ -184,7 +190,7 @@ class MatchersUsageReporterVisitor(
                 reporter.reportOn(it.source, Diagnostics.ILLEGAL_OPERATOR_USAGE, typeOperatorCall.operation.operator)
             }
         }
-        super.visitTypeOperatorCall(typeOperatorCall)
+        typeOperatorCall.acceptChildren(this)
     }
 
     override fun visitEqualityOperatorCall(equalityOperatorCall: FirEqualityOperatorCall) = context(context) {
@@ -197,7 +203,7 @@ class MatchersUsageReporterVisitor(
                 )
             }
         }
-        super.visitEqualityOperatorCall(equalityOperatorCall)
+        equalityOperatorCall.acceptChildren(this)
     }
 
     override fun visitBooleanOperatorExpression(
@@ -208,7 +214,7 @@ class MatchersUsageReporterVisitor(
                 reporter.reportOn(it.source, Diagnostics.ILLEGAL_OPERATOR_USAGE, booleanOperatorExpression.kind.token)
             }
         }
-        super.visitBooleanOperatorExpression(booleanOperatorExpression)
+        booleanOperatorExpression.acceptChildren(this)
     }
 
     override fun visitTryExpression(tryExpression: FirTryExpression) = context(context) {
@@ -223,24 +229,24 @@ class MatchersUsageReporterVisitor(
         if (matchersProcessor.isMatcher(tryExpression.finallyBlock?.lastExpression)) {
             reporter.reportOn(tryExpression.source, Diagnostics.ILLEGAL_TRY_CATCH)
         }
-        super.visitTryExpression(tryExpression)
+        tryExpression.acceptChildren(this)
     }
 
     override fun visitGetClassCall(getClassCall: FirGetClassCall) = context(context) {
         if (matchersProcessor.isMatcher(getClassCall.argument)) {
             reporter.reportOn(getClassCall.argument.source, Diagnostics.ILLEGAL_OPERATOR_USAGE, "::class")
         }
-        super.visitGetClassCall(getClassCall)
+        getClassCall.acceptChildren(this)
     }
 
     override fun visitFunctionCall(functionCall: FirFunctionCall): Unit = context(context) {
         val callee = functionCall.calleeReference as? FirResolvedNamedReference
-            ?: return super.visitFunctionCall(functionCall)
+            ?: return functionCall.acceptChildren(this)
         val symbol = callee.resolvedSymbol as? FirFunctionSymbol<*>
-            ?: return super.visitFunctionCall(functionCall)
+            ?: return functionCall.acceptChildren(this)
         if (symbol.callableId in templatingFunctions) {
             reporter.reportOn(functionCall.source, Diagnostics.ILLEGAL_NESTED_TEMPLATING, symbol.name)
-            return super.visitFunctionCall(functionCall)
+            return functionCall.acceptChildren(this)
         }
         val dispatchReceiver = functionCall.dispatchReceiver
         when {
@@ -258,7 +264,7 @@ class MatchersUsageReporterVisitor(
             }
         }
         currentCallsStack.add(functionCall)
-        super.visitFunctionCall(functionCall)
+        functionCall.acceptChildren(this)
         currentCallsStack.removeLast()
     }
 

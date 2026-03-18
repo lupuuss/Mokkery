@@ -1,14 +1,6 @@
 package dev.mokkery.plugin.ir
 
-import dev.mokkery.plugin.Kotlin
-import dev.mokkery.plugin.ir.transformers.core.TransformerScope
-import dev.mokkery.plugin.ir.transformers.core.getClass
-import dev.mokkery.plugin.ir.transformers.core.getFunction
-import dev.mokkery.plugin.ir.transformers.core.stubsConfig
-import dev.mokkery.plugin.ir.stubs.ConstructableClassStubStrategy
-import dev.mokkery.plugin.ir.stubs.StubStrategy
-import dev.mokkery.plugin.ir.stubs.StubStrategyScope
-import dev.mokkery.plugin.ir.stubs.provideConstructorWithStubs
+import dev.mokkery.plugin.ir.compat.LOCAL_FUNCTION_FOR_LAMBDA_COMPAT
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.backend.common.lower.irNot
@@ -22,7 +14,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
-import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irSetField
@@ -36,7 +27,6 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -59,16 +49,9 @@ import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.BodyPrintingStrategy
-import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
-import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
-import org.jetbrains.kotlin.ir.util.isVararg
-import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
 // use until resolved https://youtrack.jetbrains.com/issue/KT-66178/kClassReference-extension-returns-incorrect-IrClassReferenceImpl
@@ -96,48 +79,6 @@ fun IrBuilder.irCallConstructor(
     block: IrConstructorCall.() -> Unit = { }
 ) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments).apply { block() }
 
-fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
-    transformer: TransformerScope,
-    irClass: IrClass?
-): IrDelegatingConstructorCall {
-    val defaultConstructor = irClass?.defaultConstructor
-    return when {
-        irClass == null -> irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.primaryConstructor!!)
-        defaultConstructor != null -> irDelegatingConstructorCall(defaultConstructor)
-        else -> {
-            val provider = StubStrategy.default(transformer.compilerConfig.stubsConfig)
-            val scope = StubStrategyScope(
-                strategy = provider,
-                compilerConfig = transformer.compilerConfig,
-                pluginContext = transformer.pluginContext,
-                builder = this
-            )
-            context(scope) {
-                val constructor = provider
-                    .provideConstructorWithStubs(
-                        cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities
-                    ) ?: failedToProvideStubsError(irClass)
-
-                irDelegatingConstructorWithStubs(constructor)
-            }
-        }
-    }
-}
-
-private fun failedToProvideStubsError(irClass: IrClass): Nothing {
-    val dumpOptions = KotlinLikeDumpOptions(bodyPrintingStrategy = BodyPrintingStrategy.NO_BODIES)
-    val constructorsDump = irClass
-        .constructors
-        .joinToString {
-            it.dumpKotlinLike(options = dumpOptions)
-                .removeSuffix("\n")
-        }
-    error("Failed to mock `${irClass.name.asString()}`. " +
-            "Mokkery is unable to supply all required arguments for any declared constructor: $constructorsDump")
-
-}
-
 fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
     return irIfThen(
         condition = irNot(irEqualsNull(argument = arg)),
@@ -159,7 +100,7 @@ fun IrBuilderWithScope.irLambdaOf(
         this.returnType = returnType
         this.isSuspend = lambdaType.isSuspendFunction()
         visibility = DescriptorVisibilities.LOCAL
-        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA_COMPAT
     }.apply {
         val bodyBuilder = DeclarationIrBuilder(context, symbol, startOffset, endOffset)
         params.forEachIndexed { i, it ->
@@ -242,21 +183,6 @@ fun IrBuilder.irSetPropertyField(
     return irSetField(irGet(thisParam), property.backingField!!, value)
 }
 
-fun IrBuilder.irCallListOf(
-    transformerScope: TransformerScope,
-    type: IrType,
-    elements: List<IrVarargElement>
-): IrCall {
-    val listOf = transformerScope
-        .pluginContext
-        .referenceFunctions(Kotlin.Name.listOf)
-        .first { it.owner.parameters.firstOrNull()?.isVararg == true }
-    return irCall(listOf) {
-        arguments[0] = irVararg(elementType = type, elements = elements)
-        typeArguments[0] = type
-    }
-}
-
 fun IrBuilder.irVararg(elementType: IrType, elements: List<IrVarargElement>): IrVararg = IrVarargImpl(
     startOffset = startOffset,
     endOffset = endOffset,
@@ -264,36 +190,3 @@ fun IrBuilder.irVararg(elementType: IrType, elements: List<IrVarargElement>): Ir
     varargElementType = elementType,
     elements = elements
 )
-
-fun IrBuilder.irCallMapOf(
-    transformer: TransformerScope,
-    pairs: List<Pair<IrExpression, IrExpression>>,
-    keyType: IrType,
-    valueType: IrType
-): IrCall {
-    val mapOf = transformer.pluginContext
-        .referenceFunctions(Kotlin.Name.mapOf)
-        .first { it.owner.parameters.firstOrNull()?.isVararg == true }
-    return irCall(mapOf) {
-        val varargs = irVararg(
-            elementType = transformer.getClass(KotlinIr.Class.Pair).typeWith(keyType, valueType),
-            elements = pairs.map { irCreatePair(transformer, it.first, it.second) }
-        )
-        typeArguments[0] = keyType
-        typeArguments[1] = valueType
-        arguments[0] = varargs
-    }
-}
-
-private fun IrBuilder.irCreatePair(
-    transformer: TransformerScope,
-    first: IrExpression,
-    second: IrExpression
-): IrExpression {
-    return irCall(transformer.getFunction(KotlinIr.Function.to)) {
-        typeArguments[0] = first.type
-        typeArguments[1] = second.type
-        arguments[0] = first
-        arguments[1] = second
-    }
-}

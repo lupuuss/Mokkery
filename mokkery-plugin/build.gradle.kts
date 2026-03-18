@@ -1,7 +1,7 @@
 plugins {
-    id("mokkery-publish")
     kotlin("jvm")
     kotlin("kapt")
+    id("mokkery-publish")
 }
 
 kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
@@ -14,23 +14,20 @@ kotlin.sourceSets.all {
     }
 }
 
-val embeddedClasspath: Configuration by configurations.creating { isTransitive = false }
+val embedded by configurations.registering { isTransitive = false }
+
+configurations.compileOnly { extendsFrom(embedded.get()) }
 
 dependencies {
     kapt(libs.google.autoservice)
     compileOnly(libs.google.autoservice.annotations)
-    compileOnly(libs.kotlin.compiler.embeddable)
+    compileOnly(libs.kotlin.compiler)
     compileOnly(libs.kotlin.stdlib)
     embedded(project(":mokkery-core"))
     embedded(project(":mokkery-core-tooling"))
 }
 
-fun DependencyHandlerScope.embedded(dependency: Any) {
-    compileOnly(dependency)
-    embeddedClasspath(dependency)
-}
-
 tasks.jar {
-    from(embeddedClasspath.map(::zipTree))
+    from(embedded.get().map(::zipTree))
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -3,6 +3,8 @@ import MokkeryAttributes.GitDevConnectionUrl
 import MokkeryAttributes.GitHttpsUrl
 import MokkeryAttributes.GitIssuesUrl
 import MokkeryAttributes.WebsiteUrl
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.SourcesJar
 import java.net.URI
 
 plugins {
@@ -20,10 +22,25 @@ dokka.dokkaSourceSets.configureEach {
     }
 }
 
+publishing.repositories {
+    maven {
+        name = "testing"
+        url = rootProject.layout
+            .buildDirectory
+            .dir("testing-repository")
+            .let(::uri)
+    }
+}
+
 mavenPublishing {
+    val isCentralPublishing = gradle.startParameter.taskNames.any { it.contains("MavenCentral") }
     coordinates(project.group.toString(), project.name, project.version.toString())
-    if (gradle.startParameter.taskNames.any { it.contains("MavenCentral") }) {
+    // keeps signing, source jar and doc jar configured only for Maven Central
+    if (isCentralPublishing) {
         signAllPublications()
+    } else {
+        @Suppress("UnstableApiUsage")
+        configureBasedOnAppliedPlugins(sourcesJar = SourcesJar.None(), javadocJar = JavadocJar.None())
     }
     publishToMavenCentral(automaticRelease = false)
     pom {
