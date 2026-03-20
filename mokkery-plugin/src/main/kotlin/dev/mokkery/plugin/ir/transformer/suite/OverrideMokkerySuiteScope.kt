@@ -30,7 +30,7 @@ fun IrClass.overrideMokkerySuiteScopeIfNotOverridden() {
     val newProperty = irClass.overridePropertyBackingField(context = pluginContext, property = baseProperty)
     val constructor = irClass.primaryConstructor!!
     val oldBody = constructor.body
-    constructor.body = declarationIrBuilder {
+    constructor.body = constructor.symbol.declarationIrBuilder {
         irBlockBody {
             val testScopeFun = referenced(MokkeryIr.Function.MokkerySuiteScope)
             val getContext = irCall(baseProperty.getter!!) {

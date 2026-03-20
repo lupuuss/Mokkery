@@ -25,19 +25,24 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.Name
 
 context(scope: TransformerScope)
-inline fun <T> declarationIrBuilder(
-    context: IrGeneratorContext = pluginContext,
-    block: DeclarationIrBuilder.() -> T
-) = DeclarationIrBuilder(context, currentScopeValue.scope.scopeOwnerSymbol).run(block)
-
-context(scope: TransformerScope)
 inline fun <T> IrSymbol.declarationIrBuilder(
     context: IrGeneratorContext = pluginContext,
     block: DeclarationIrBuilder.() -> T
 ) = DeclarationIrBuilder(context, this).run(block)
 
 context(scope: TransformerScope)
-inline val  IrSymbol.declarationIrBuilder: DeclarationIrBuilder
+inline fun <T> IrExpression.replaceDeclarationIrBuilder(
+    context: IrGeneratorContext = pluginContext,
+    block: DeclarationIrBuilder.() -> T
+) = DeclarationIrBuilder(
+    generatorContext = context,
+    symbol = currentScopeValue.scope.scopeOwnerSymbol,
+    startOffset = this.startOffset,
+    endOffset = this.endOffset
+).run(block)
+
+context(scope: TransformerScope)
+inline val IrSymbol.declarationIrBuilder: DeclarationIrBuilder
     get() = declarationIrBuilder { this }
 
 

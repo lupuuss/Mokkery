@@ -15,10 +15,10 @@ import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.platform
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
 import dev.mokkery.plugin.ir.transformer.core.referenced
+import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -39,7 +39,7 @@ fun IrCall.replaceMockCall(): IrExpression {
         nameHashSource = listOf(classToMock),
         builder = { buildMockClass(it, Mock, classToMock) }
     )
-    return declarationIrBuilder {
+    return this.replaceDeclarationIrBuilder {
         irMockConstructorCall(mockedClass, this@replaceMockCall)
     }
 }
@@ -53,7 +53,7 @@ fun IrCall.replaceMockManyCall(): IrExpression {
         nameHashSource = classesToMock,
         builder = { buildManyMockClass(it, classesToMock) }
     )
-    return declarationIrBuilder {
+    return this.replaceDeclarationIrBuilder {
         irMockConstructorCall(mockedClass, this@replaceMockManyCall)
     }
 }
@@ -68,7 +68,7 @@ fun IrCall.replaceSpyCall(): IrExpression {
         nameHashSource = listOf(classToSpy),
         builder = { buildMockClass(it, Spy, classToSpy) }
     )
-    return declarationIrBuilder {
+    return this.replaceDeclarationIrBuilder {
         irSpyConstructorCall(spiedClass, this@replaceSpyCall)
     }
 }

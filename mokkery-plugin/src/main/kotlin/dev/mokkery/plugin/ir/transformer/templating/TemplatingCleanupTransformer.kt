@@ -8,8 +8,8 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.transformArguments
 import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.referenced
+import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irImplicitCoercionToUnit
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -91,7 +91,7 @@ class TemplatingCleanupTransformer(
             return expression.transformPostfix {
                 val unitType = irBuiltIns.unitType
                 type = unitType
-                value = declarationIrBuilder { irImplicitCoercionToUnit(value) }
+                value = value.replaceDeclarationIrBuilder { irImplicitCoercionToUnit(value) }
             }
         }
         // while visiting IrReturn we cannot make a decision if returned value should be unwrapped or not
@@ -132,7 +132,7 @@ class TemplatingCleanupTransformer(
     }
 
     private fun IrExpression.unwrapResultIfPossible() = when (val arg = this) {
-        is IrCall if arg.type.isTemplatingResult() -> declarationIrBuilder {
+        is IrCall if arg.type.isTemplatingResult() -> arg.replaceDeclarationIrBuilder {
             irCall(valueGetter) { arguments[0] = arg }
         }
         else -> arg

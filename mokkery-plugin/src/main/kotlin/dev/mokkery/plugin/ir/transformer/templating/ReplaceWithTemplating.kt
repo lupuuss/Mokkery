@@ -13,11 +13,11 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedDefaultType
+import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verify.VerifyModeInternals.Soft
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
@@ -90,7 +90,7 @@ private fun replaceWithInternalEvery(
     originalCall: IrCall,
     toBeReplacedWith: IrSimpleFunctionSymbol,
     matchersCompiler: MatchersCompiler
-) = declarationIrBuilder {
+) = originalCall.replaceDeclarationIrBuilder {
     irBlock {
         +irCall(toBeReplacedWith) {
             val templatingArgument = originalCall.arguments[0]
@@ -109,7 +109,7 @@ private fun replaceWithInternalVerify(
     originalCall: IrCall,
     toBeReplacedWith: IrSimpleFunctionSymbol,
     matchersCompiler: MatchersCompiler
-): IrExpression = declarationIrBuilder {
+): IrExpression = originalCall.replaceDeclarationIrBuilder {
     val mokkeryScopeParam = originalCall.symbol.owner.findExtensionParam()
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     val mode = originalCall.arguments[regularParams[0]]

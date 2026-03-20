@@ -13,11 +13,11 @@ import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedPrimaryConstructor
+import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.ir.inline
 import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -91,7 +91,7 @@ class TemplatingTransformer(
         if (receiver is IrCall) receiver.transformChildrenVoid()
         val functionToReplace = expression.symbol.owner
         val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
-        return declarationIrBuilder {
+        return expression.replaceDeclarationIrBuilder {
             irCall(runTemplateFun) {
                 typeArguments[0] = expression.type
                 arguments[0] = irGet(templatingScopeParam)
@@ -112,7 +112,7 @@ class TemplatingTransformer(
         }
     }
 
-    private fun inlineContextFunction(call: IrCall) = declarationIrBuilder {
+    private fun inlineContextFunction(call: IrCall) = call.replaceDeclarationIrBuilder {
         val callArguments = call.arguments
         val blockParam = callArguments.last() as IrFunctionExpression
         irBlock {
@@ -172,7 +172,7 @@ class TemplatingTransformer(
                 transformer = object : IrElementTransformerVoid() {
                     override fun visitCall(expression: IrCall) = expression.transformPostfix {
                         val dispatcher = dispatchReceiver ?: return@transformPostfix
-                        dispatchReceiver = declarationIrBuilder {
+                        dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
                             irCall(checkNotMockFun, type = dispatcher.type) {
                                 arguments[0] = dispatcher
                                 typeArguments[0] = dispatcher.type

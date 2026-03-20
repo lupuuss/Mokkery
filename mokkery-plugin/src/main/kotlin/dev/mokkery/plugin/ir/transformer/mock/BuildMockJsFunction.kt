@@ -12,10 +12,10 @@ import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.requirePropertyGetterOwner
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedCompanion
+import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
@@ -44,7 +44,7 @@ fun buildMockJsFunction(
     val typeArguments = typeToMock.let { it as IrSimpleType }
         .arguments
         .map { it.typeOrFail.eraseTypeParameters() }
-    return declarationIrBuilder {
+    return expression.replaceDeclarationIrBuilder {
         irBlock {
             val mockFun = expression.symbol.owner
             val extMockParam = mockFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
