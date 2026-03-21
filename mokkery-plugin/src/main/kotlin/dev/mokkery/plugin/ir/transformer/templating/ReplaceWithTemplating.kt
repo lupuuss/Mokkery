@@ -14,7 +14,7 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
+import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedDefaultType
@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nestedClasses
@@ -195,16 +194,15 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
             arguments[1] = dispatchReceiver
             arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
             arguments[3] = irString(memberFunction.name.asString())
-            arguments[4] = if (!memberFunction.hasNonDispatchParameters()) {
-                irNull()
-            } else {
-                irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+            arguments[4] = when {
+                !memberFunction.hasNonDispatchParameters() -> irNull()
+                else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
                     val typeParameters = dispatchReceiver
                         .type
                         .classOrFail
                         .owner
                         .typeParameters
-                    +irReturn(irCallMapOfTemplatingArguments(memberFunction, typeParameters))
+                    +irReturn(irCallListOfTemplatingArguments(it, memberFunction, typeParameters))
                 }
             }
             arguments[5] = irNull()
@@ -214,32 +212,34 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
 }
 
 context(scope: TransformerScope)
-private fun IrBuilderWithScope.irCallMapOfTemplatingArguments(
+private fun IrBuilderWithScope.irCallListOfTemplatingArguments(
+    lambda: IrSimpleFunction,
     function: IrSimpleFunction,
     parentClassTypeParameters: List<IrTypeParameter>,
 ): IrCall {
-    val templatingParameter = referenced(MokkeryIr.Class.TemplatingParameter)
+    val functionParameterFun = referenced(MokkeryIr.Function.templatingFunctionParameter)
     val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
     val anyMatcherObject = argMatcherClass
         .nestedClasses
         .single { it.name.asString() == "Any" }
-    val templatingParameterConstructor = templatingParameter.primaryConstructor!!
-    return irCallMapOf(
+    return irCallListOfPairs(
         pairs = function.nonDispatchParameters.memoryOptimizedMap {
-            val param = irCallConstructor(templatingParameterConstructor) {
-                arguments[0] = irString(it.name.asString())
-                arguments[1] = irBoolean(it.isVararg)
+            val param = irCall(functionParameterFun) {
+                arguments[0] = irGet(lambda.parameters[0])
+                arguments[1] = irGet(lambda.parameters[1])
+                arguments[2] = irString(it.name.asString())
+                arguments[3] = irBoolean(it.isVararg)
                 val typeParam = it.type.asTypeParamOrNull()
                 if (typeParam in parentClassTypeParameters) {
-                    arguments[3] = irInt(typeParam!!.index)
+                    arguments[5] = irInt(typeParam!!.index)
                 } else {
-                    arguments[2] = kClassReference(it.type.eraseTypeParameters())
+                    arguments[4] = kClassReference(it.type.eraseTypeParameters())
                 }
             }
             param to irGetObject(anyMatcherObject.symbol)
         },
-        keyType = templatingParameter.defaultType,
-        valueType = argMatcherClass.typeWith(irBuiltIns.anyNType)
+        firstType = referencedDefaultType(MokkeryIr.Class.FunctionParameter),
+        secondType = argMatcherClass.typeWith(irBuiltIns.anyNType)
     )
 }
 

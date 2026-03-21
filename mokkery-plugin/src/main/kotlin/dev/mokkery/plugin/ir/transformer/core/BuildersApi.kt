@@ -61,6 +61,21 @@ fun IrBuilder.irCallMapOf(
     arguments[0] = varargs
 }
 
+context(scope: TransformerScope)
+fun IrBuilder.irCallListOfPairs(
+    pairs: List<Pair<IrExpression, IrExpression>>,
+    firstType: IrType,
+    secondType: IrType
+) = irCall(referenced(KotlinIr.Function.listOf)) {
+    val pairType = referenced(KotlinIr.Class.Pair).typeWith(firstType, secondType)
+    val varargs = irVararg(
+        elementType = pairType,
+        elements = pairs.map { irCreatePair(it.first, it.second) }
+    )
+    typeArguments[0] = pairType
+    arguments[0] = varargs
+}
+
 
 context(scope: TransformerScope)
 fun IrBuilder.irCallListOf(

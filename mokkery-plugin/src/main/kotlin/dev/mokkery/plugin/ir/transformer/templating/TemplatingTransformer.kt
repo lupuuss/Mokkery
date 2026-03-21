@@ -15,7 +15,7 @@ import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
+import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
 import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.core.referencedPrimaryConstructor
 import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.builders.parent
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -69,10 +70,10 @@ class TemplatingTransformer(
     private val templatingScopeParam: IrValueParameter,
 ) : CoreTransformer(pluginScope) {
 
-    private val templatingParameterClass = referenced(MokkeryIr.Class.TemplatingParameter)
+    private val functionParameterClass = referenced(MokkeryIr.Class.FunctionParameter)
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
     private val argMatcherEqualsConstructor = referencedPrimaryConstructor(MokkeryIr.Class.ArgMatcherEquals)
-    private val templatingParameterConstructor = referencedPrimaryConstructor(MokkeryIr.Class.TemplatingParameter)
+    private val templatingParameterFun = referenced(MokkeryIr.Function.templatingFunctionParameter)
     private val defaultValuesMatcherConstructor = referencedPrimaryConstructor(MokkeryIr.Class.DefaultValuesMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
     private val runTemplateSuspendFun = referenced(MokkeryIr.Function.runTemplateSuspend)
@@ -99,17 +100,15 @@ class TemplatingTransformer(
                 arguments[1] = expression.arguments[0]
                 arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
                 arguments[3] = irString(functionToReplace.name.asString())
-                arguments[4] = if (!functionToReplace.hasNonDispatchParameters()) {
-                    irNull()
-                } else {
-                    irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
-                        createTemplatingArgumentsLambdaBody(expression)
+                arguments[4] = when {
+                    !functionToReplace.hasNonDispatchParameters() -> irNull()
+                    else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                        createTemplatingArgumentsLambdaBody(it, expression)
                     }
                 }
-                arguments[5] = if (expression.usesMatchers) {
-                    irNull()
-                } else {
-                    irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
+                arguments[5] = when {
+                    expression.usesMatchers -> irNull()
+                    else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
                         +irReturn(expression.deepCopyWithSymbols(initialParent = it))
                     }
                 }
@@ -128,7 +127,7 @@ class TemplatingTransformer(
         }
     }
 
-    private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(expression: IrCall) {
+    private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(lambda: IrSimpleFunction, expression: IrCall) {
         val calledFunc = expression.symbol.owner
         val hasDefaults = expression.arguments.any { it == null }
         val defaultsMatcherVar = when {
@@ -136,23 +135,25 @@ class TemplatingTransformer(
             else -> null
         }
         +irReturn(
-            irCallMapOf(
+            irCallListOfPairs(
                 pairs = calledFunc.nonDispatchParameters.memoryOptimizedMap {
-                    val param = irCallConstructor(templatingParameterConstructor) {
-                        arguments[0] = irString(it.name.asString())
-                        arguments[1] = irBoolean(it.isVararg)
+                    val param = irCall(templatingParameterFun) {
+                        arguments[0] = irGet(lambda.parameters[0])
+                        arguments[1] = irGet(lambda.parameters[1])
+                        arguments[2] = irString(it.name.asString())
+                        arguments[3] = irBoolean(it.isVararg)
                         val typeParam = it.type.asTypeParamOrNull()
                         if (typeParam in expression.arguments[0]!!.type.classOrFail.owner.typeParameters) {
-                            arguments[3] = irInt(typeParam!!.index)
+                            arguments[5] = irInt(typeParam!!.index)
                         } else {
-                            arguments[2] = kClassReference(it.type.eraseTypeParameters())
+                            arguments[4] = kClassReference(it.type.eraseTypeParameters())
                         }
                     }
                     val argument = expression.arguments[it].wrapDispatchersWithNotMockCheck()
                     param to replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
                 },
-                keyType = templatingParameterClass.defaultType,
-                valueType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
+                firstType = functionParameterClass.defaultType,
+                secondType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
             )
         )
     }

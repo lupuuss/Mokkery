@@ -44,10 +44,10 @@ object MokkeryIr {
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
         val CallArgument by dev_mokkery_context.refClass
+        val FunctionParameter = dev_mokkery_context.refNestedClass("Function", "Parameter")
         val SuiteName by dev_mokkery_internal_context.refClass
 
         val MokkeryTemplatingScope by dev_mokkery_templating.refClass
-        val TemplatingParameter by dev_mokkery_internal_templating.refClass
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
@@ -72,6 +72,7 @@ object MokkeryIr {
         val internalVerifySuspend by dev_mokkery_internal.refFunction
         val runTemplate by dev_mokkery_internal_templating.refFunction
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
+        val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkNotMock by dev_mokkery_internal_templating.refFunction
         val MokkerySuiteScope by dev_mokkery.refFunction
         val createInstanceScope by dev_mokkery_internal.refFunction
