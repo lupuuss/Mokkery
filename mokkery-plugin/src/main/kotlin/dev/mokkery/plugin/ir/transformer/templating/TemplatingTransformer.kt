@@ -6,6 +6,7 @@ import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -98,8 +99,12 @@ class TemplatingTransformer(
                 arguments[1] = expression.arguments[0]
                 arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
                 arguments[3] = irString(functionToReplace.name.asString())
-                arguments[4] = irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
-                    createTemplatingLambdaBody(expression)
+                arguments[4] = if (!functionToReplace.hasNonDispatchParameters()) {
+                    irNull()
+                } else {
+                    irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                        createTemplatingArgumentsLambdaBody(expression)
+                    }
                 }
                 arguments[5] = if (expression.usesMatchers) {
                     irNull()
@@ -123,7 +128,7 @@ class TemplatingTransformer(
         }
     }
 
-    private fun IrBlockBodyBuilder.createTemplatingLambdaBody(expression: IrCall) {
+    private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(expression: IrCall) {
         val calledFunc = expression.symbol.owner
         val hasDefaults = expression.arguments.any { it == null }
         val defaultsMatcherVar = when {

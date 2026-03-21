@@ -30,14 +30,14 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     mock: Any,
     mockedType: KClass<*>,
     functionName: String,
-    templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
+    arguments: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (suspend () -> R)? = null
 ): RunTemplateResult<R> {
     if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
         return RunTemplateResult.Original(original())
     } else {
-        templatingRegistry.register(mock, mockedType, functionName, templating!!())
+        templatingRegistry.register(mock, mockedType, functionName, arguments?.invoke().orEmpty())
         return RunTemplateResult.Empty
     }
 }
@@ -46,14 +46,14 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
     mock: Any,
     mockedType: KClass<*>,
     functionName: String,
-    templating: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
+    arguments: (() -> Map<TemplatingParameter, ArgMatcher<Any?>>)? = null,
     original: (() -> R)? = null
 ): RunTemplateResult<R> {
     if (mock.isNotMock) {
         if (original == null) mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
         return RunTemplateResult.Original(original())
     } else {
-        templatingRegistry.register(mock, mockedType, functionName, templating!!())
+        templatingRegistry.register(mock, mockedType, functionName, arguments?.invoke().orEmpty())
         return RunTemplateResult.Empty
     }
 }

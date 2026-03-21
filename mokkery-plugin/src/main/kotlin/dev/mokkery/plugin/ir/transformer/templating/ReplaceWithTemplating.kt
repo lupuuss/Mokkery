@@ -7,6 +7,7 @@ import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
+import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -194,13 +195,17 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
             arguments[1] = dispatchReceiver
             arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
             arguments[3] = irString(memberFunction.name.asString())
-            arguments[4] = irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
-                val typeParameters = dispatchReceiver
-                    .type
-                    .classOrFail
-                    .owner
-                    .typeParameters
-                +irReturn(irCallMapOfTemplatingParameters(memberFunction, typeParameters))
+            arguments[4] = if (!memberFunction.hasNonDispatchParameters()) {
+                irNull()
+            } else {
+                irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                    val typeParameters = dispatchReceiver
+                        .type
+                        .classOrFail
+                        .owner
+                        .typeParameters
+                    +irReturn(irCallMapOfTemplatingArguments(memberFunction, typeParameters))
+                }
             }
             arguments[5] = irNull()
         }
@@ -209,7 +214,7 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
 }
 
 context(scope: TransformerScope)
-private fun IrBuilderWithScope.irCallMapOfTemplatingParameters(
+private fun IrBuilderWithScope.irCallMapOfTemplatingArguments(
     function: IrSimpleFunction,
     parentClassTypeParameters: List<IrTypeParameter>,
 ): IrCall {
