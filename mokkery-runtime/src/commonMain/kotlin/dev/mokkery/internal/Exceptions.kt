@@ -24,7 +24,38 @@ internal class ObjectIsNotSpyException(obj: Any?) : MokkeryRuntimeException("$ob
 
 internal class ObjectIsNotMockException(obj: Any?) : MokkeryRuntimeException("$obj must be a mock for this operation, but it is a spy!")
 
-internal class NotSingleCallInEveryBlockException : MokkeryRuntimeException("Each 'every' block requires single mock call!")
+internal class SingleCallInEveryBlockRequiredException(
+    templates: List<String>,
+) : MokkeryRuntimeException(
+    buildString {
+        append("Each 'every' block requires exactly one call to a mock,")
+        when {
+            templates.isEmpty() -> {
+                appendLine(" but there are no calls to any mock!")
+                appendLine()
+                appendLine(noTemplatesCommonReasons)
+            }
+            else -> {
+                appendLine(" but there are more calls than expected:")
+                templates.forEachIndexed { index, template ->
+                    append(index + 1)
+                    append(". ")
+                    appendLine(template)
+                }
+            }
+        }
+    }
+)
+internal class SuspiciousEmptyVerifyBlockException : MokkeryRuntimeException(
+    "Given 'verify' block does not contain any call to a mock. It's very suspicious and most probably caused by misuse.\n\n$noTemplatesCommonReasons"
+)
+
+private val noTemplatesCommonReasons = """
+    Possible reasons:
+    * You are calling an object that is not a mock.
+    * You are calling a mock, but the member function is final.
+    * You are calling a mock, but it's an extension function instead of a member function.
+""".trimIndent()
 
 internal class SuspendingAnswerBlockingCallException : MokkeryRuntimeException(
     message = "Regular function was mocked with answer that is for suspending functions only!"
@@ -84,4 +115,24 @@ internal class MokkerySuiteScopeNotImplementedException : MokkeryRuntimeExceptio
         If you're seeing this error, it likely means that the Mokkery plugin is either not applied or incorrectly configured.
         Another possible cause is that `MokkerySuiteScope` is inherited indirectly through another interface. In this case, you can either inherit `MokkerySuiteScope` directly or manually implement it by delegating to an instance created with the `MokkerySuiteScope` function.  
     """.trimIndent()
+)
+
+internal class MockMemberCallResultAccessException(
+    obj: Any,
+    functionName: String,
+) : MokkeryRuntimeException(
+    """
+        The result of calling `$functionName` on $obj must not be accessed inside `every` or `verify`.
+        
+        If you're trying to mock a member function with an extension receiver or context parameters, use `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` instead of Kotlin scope functions (e.g. `let`, `run`). 
+        Otherwise, using scope functions here is not supported.
+        """.trimIndent()
+)
+
+internal class MockCallExpectedException(
+    mock: Any,
+    mockedType: KClass<*>,
+    call: String,
+) : MokkeryRuntimeException(
+    "Call to `$call` was expected to be performed on a mock of ${mockedType.simpleName ?: "anonymous"} type, but the receiver was not a mock - it was an instance of ${mock::class.simpleName ?: "anonymous"} type => $mock"
 )

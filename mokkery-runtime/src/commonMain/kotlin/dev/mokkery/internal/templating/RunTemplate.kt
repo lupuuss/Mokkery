@@ -3,9 +3,10 @@
 package dev.mokkery.internal.templating
 
 import dev.mokkery.context.Function
+import dev.mokkery.internal.MockCallExpectedException
+import dev.mokkery.internal.MockMemberCallResultAccessException
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.isMock
-import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.matcher.ArgMatcher
@@ -16,16 +17,16 @@ internal sealed interface RunTemplateResult<out T> {
 
     val value: T
 
-    data class Original<T>(override val value: T): RunTemplateResult<T>
+    data class Original<T>(override val value: T) : RunTemplateResult<T>
 
-    data object Empty : RunTemplateResult<Nothing> {
+    data class Empty(val obj: Any, val functionName: String) : RunTemplateResult<Nothing> {
         override val value: Nothing
-            get() = mockMethodCallResultAccessError()
+            get() = throw MockMemberCallResultAccessException(obj, functionName)
     }
 }
 
-internal fun <T> checkNotMock(obj: T): T {
-    if (obj.isMock) mockMethodCallResultAccessError()
+internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, functionName: String): T {
+    if (obj.isMock) throw MockMemberCallResultAccessException(obj, functionName)
     return obj
 }
 
@@ -55,9 +56,9 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
 ): RunTemplateResult<R> = when {
     mock.isMock -> {
         templatingRegistry.register(mock, functionName, arguments?.invoke(mock, mockedType).orEmpty())
-        RunTemplateResult.Empty
+        RunTemplateResult.Empty(mock, functionName)
     }
-    original == null -> mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
+    original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())
 }
 
@@ -70,17 +71,19 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
 ): RunTemplateResult<R> = when {
     mock.isMock -> {
         templatingRegistry.register(mock, functionName, arguments?.invoke(mock, mockedType).orEmpty())
-        RunTemplateResult.Empty
+        RunTemplateResult.Empty(mock, functionName)
     }
-    original == null -> mokkeryRuntimeError("Using matchers with types that are not mocks is illegal!")
+    original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())
 }
 
-@Suppress("NOTHING_TO_INLINE")
-private inline fun mockMethodCallResultAccessError(): Nothing {
-    mokkeryRuntimeError(
-        "The result of a mock method must not be accessed inside `every` or `verify`." +
-                " If you're trying to invoke a method with an extension receiver or context parameters," +
-                " use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead."
-    )
-}
+private fun mockCallExpectedError(
+    mock: Any,
+    mockedType: KClass<*>,
+    functionName: String,
+): Nothing = throw MockCallExpectedException(
+    mock = mock,
+    mockedType = mockedType,
+    call = functionName
+)
+

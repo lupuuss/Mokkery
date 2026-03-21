@@ -77,7 +77,6 @@ class TemplatingTransformer(
     private val defaultValuesMatcherConstructor = referencedPrimaryConstructor(MokkeryIr.Class.DefaultValuesMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
     private val runTemplateSuspendFun = referenced(MokkeryIr.Function.runTemplateSuspend)
-    private val checkNotMockFun = referenced(MokkeryIr.Function.checkNotMock)
     private val inlineLiteralsAsMatchersFun = referenced(MokkeryIr.Function.inlineLiteralsAsMatchers)
 
     private val contextFunctions = setOf(Mokkery.Name.ext, Mokkery.Name.ctx)
@@ -179,8 +178,12 @@ class TemplatingTransformer(
                     override fun visitCall(expression: IrCall) = expression.transformPostfix {
                         val dispatcher = dispatchReceiver ?: return@transformPostfix
                         dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
-                            irCall(checkNotMockFun, type = dispatcher.type) {
+                            irCall(
+                                func = referenced(MokkeryIr.Function.checkMockMemberCallResultAccess),
+                                type = dispatcher.type
+                            ) {
                                 arguments[0] = dispatcher
+                                arguments[1] = irString(expression.symbol.owner.name.asString())
                                 typeArguments[0] = dispatcher.type
                             }
                         }
