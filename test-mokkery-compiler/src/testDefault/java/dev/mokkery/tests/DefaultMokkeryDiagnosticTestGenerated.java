@@ -3,8 +3,8 @@
 package dev.mokkery.tests;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.jetbrains.kotlin.test.TestMetadata;
+import org.jetbrains.kotlin.test.util.KtTestUtil;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -240,6 +240,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         @TestMetadata("MatchersMustNotBeUsedInNestedFunctions.kt")
         public void testMatchersMustNotBeUsedInNestedFunctions() {
           runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedInNestedFunctions.kt");
+        }
+
+        @Test
+        @TestMetadata("MatchersMustNotBeUsedWithFinalClasses.kt")
+        public void testMatchersMustNotBeUsedWithFinalClasses() {
+          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedWithFinalClasses.kt");
         }
 
         @Test

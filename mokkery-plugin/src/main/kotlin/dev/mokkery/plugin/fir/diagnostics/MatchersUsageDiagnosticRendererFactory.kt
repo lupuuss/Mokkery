@@ -85,6 +85,11 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
+            factory = Diagnostics.MATCHER_USED_WITH_FINAL_CLASS,
+            message = "Methods from ''{0}'' must not be used with matchers, because this class is final and cannot be mocked.",
+            rendererA = FirDiagnosticRenderers.SYMBOL
+        )
+        it.put(
             factory = Diagnostics.MATCHES_WITH_COMPOSITE_ARG,
             message = "`dev.mokkery.matcher.matches` cannot be used with `ArgMatcher.Composite` matchers. To register composite matcher use `dev.mokkery.matcher.matchesComposite`."
         )
