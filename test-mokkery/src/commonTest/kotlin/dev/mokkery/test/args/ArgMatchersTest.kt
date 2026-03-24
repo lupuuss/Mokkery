@@ -87,7 +87,7 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testMatchingMatcher() {
         every { mock.callPrimitive(matching { it % 2 == 0 }) } returns 3
@@ -99,7 +99,7 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testMatchingWithToStringMatcher() {
         every { mock.callPrimitive(matching(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
@@ -111,7 +111,7 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testMatchingByMatcher() {
         fun Int.isEven() = this % 2 == 0
@@ -134,7 +134,7 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 1.0) }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testDeprecatedEqualityMatchers() {
         every { mock.callManyPrimitives(eq(1), neq(1.0)) } returns ComplexType
@@ -156,7 +156,7 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ref2) }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testDeprecatedRefEqualityMatchers() {
         val ref1 = ComplexType("a")
@@ -526,5 +526,5 @@ private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsA
 
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private fun <T> dev.mokkery.matcher.ArgMatchersScope.deprecatedEq(value: T) = matches<T> { it == value }

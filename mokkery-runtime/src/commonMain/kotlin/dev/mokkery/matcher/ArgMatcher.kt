@@ -95,7 +95,7 @@ public fun interface ArgMatcher<in T> {
      * **DEPRECATED: This API is obsolete and will be removed!**
      */
     @Poko
-    @Deprecated("This API is obsolete and will be removed!")
+    @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
     public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg != value
@@ -107,7 +107,7 @@ public fun interface ArgMatcher<in T> {
      * Matches an argument whose reference is not equal to [value]'s reference.
      * **DEPRECATED: This API is obsolete and will be removed!**
      */
-    @Deprecated("This API is obsolete and will be removed!")
+    @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
     public class NotEqualRef<T>(public val value: T) : ArgMatcher<T> {
 
         override fun matches(arg: T): Boolean = arg !== value
@@ -121,7 +121,7 @@ public fun interface ArgMatcher<in T> {
      *  **DEPRECATED: This API is considered obsolete. Implement `ArgMatcher` instead.**
      */
     @Poko
-    @Deprecated("This API is considered obsolete. Implement `ArgMatcher` instead.")
+    @Deprecated("This API is considered obsolete. Implement `ArgMatcher` instead.", level = DeprecationLevel.ERROR)
     public class Matching<T>(
         public val predicate: (T) -> Boolean,
         public val toStringFun: (() -> String)

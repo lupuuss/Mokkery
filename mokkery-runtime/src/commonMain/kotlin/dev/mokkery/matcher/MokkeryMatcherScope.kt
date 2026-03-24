@@ -13,7 +13,8 @@ public interface MokkeryMatcherScope : MokkeryScope
  * **DEPRECATED: It was renamed to `MokkeryMatcherScope`**
  */
 @Deprecated(
-    "Renamed to MokkeryMatcherScope",
-    replaceWith = ReplaceWith("MokkeryMatcherScope", "dev.mokkery.matcher.MokkeryMatcherScope")
+    message = "Renamed to MokkeryMatcherScope",
+    replaceWith = ReplaceWith("MokkeryMatcherScope", "dev.mokkery.matcher.MokkeryMatcherScope"),
+    level = DeprecationLevel.ERROR,
 )
 public typealias ArgMatchersScope = MokkeryMatcherScope

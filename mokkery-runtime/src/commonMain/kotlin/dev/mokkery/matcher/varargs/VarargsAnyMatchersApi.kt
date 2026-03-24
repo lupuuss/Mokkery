@@ -3,11 +3,11 @@
 package dev.mokkery.matcher.varargs
 
 import dev.mokkery.matcher.MokkeryMatcherScope
-import dev.mokkery.matcher.collections.containsAnyElement
 import dev.mokkery.matcher.collections.containsAnyBoolean
 import dev.mokkery.matcher.collections.containsAnyByte
 import dev.mokkery.matcher.collections.containsAnyChar
 import dev.mokkery.matcher.collections.containsAnyDouble
+import dev.mokkery.matcher.collections.containsAnyElement
 import dev.mokkery.matcher.collections.containsAnyFloat
 import dev.mokkery.matcher.collections.containsAnyInt
 import dev.mokkery.matcher.collections.containsAnyLong
@@ -22,7 +22,8 @@ import dev.mokkery.matcher.collections.containsAnyUShort
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyElement(predicate)", "dev.mokkery.matcher.collections.containsAnyElement")
+    ReplaceWith("containsAnyElement(predicate)", "dev.mokkery.matcher.collections.containsAnyElement"),
+    DeprecationLevel.ERROR
 )
 public inline fun <reified T> MokkeryMatcherScope.varargsAny(
     noinline predicate: (T) -> Boolean
@@ -34,7 +35,8 @@ public inline fun <reified T> MokkeryMatcherScope.varargsAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyBoolean(predicate)", "dev.mokkery.matcher.collections.containsAnyBoolean")
+    ReplaceWith("containsAnyBoolean(predicate)", "dev.mokkery.matcher.collections.containsAnyBoolean"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsBooleanAny(
     predicate: (Boolean) -> Boolean
@@ -45,7 +47,8 @@ public fun MokkeryMatcherScope.varargsBooleanAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyChar(predicate)", "dev.mokkery.matcher.collections.containsAnyChar")
+    ReplaceWith("containsAnyChar(predicate)", "dev.mokkery.matcher.collections.containsAnyChar"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsCharAny(
     predicate: (Char) -> Boolean
@@ -56,7 +59,8 @@ public fun MokkeryMatcherScope.varargsCharAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyByte(predicate)", "dev.mokkery.matcher.collections.containsAnyByte")
+    ReplaceWith("containsAnyByte(predicate)", "dev.mokkery.matcher.collections.containsAnyByte"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsByteAny(
     predicate: (Byte) -> Boolean
@@ -67,7 +71,8 @@ public fun MokkeryMatcherScope.varargsByteAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyUByte(predicate)", "dev.mokkery.matcher.collections.containsAnyUByte")
+    ReplaceWith("containsAnyUByte(predicate)", "dev.mokkery.matcher.collections.containsAnyUByte"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsUByteAny(
     predicate: (UByte) -> Boolean
@@ -78,7 +83,8 @@ public fun MokkeryMatcherScope.varargsUByteAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyShort(predicate)", "dev.mokkery.matcher.collections.containsAnyShort")
+    ReplaceWith("containsAnyShort(predicate)", "dev.mokkery.matcher.collections.containsAnyShort"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsShortAny(
     predicate: (Short) -> Boolean
@@ -89,7 +95,8 @@ public fun MokkeryMatcherScope.varargsShortAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyUShort(predicate)", "dev.mokkery.matcher.collections.containsAnyUShort")
+    ReplaceWith("containsAnyUShort(predicate)", "dev.mokkery.matcher.collections.containsAnyUShort"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsUShortAny(
     predicate: (UShort) -> Boolean
@@ -100,7 +107,8 @@ public fun MokkeryMatcherScope.varargsUShortAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyInt(predicate)", "dev.mokkery.matcher.collections.containsAnyInt")
+    ReplaceWith("containsAnyInt(predicate)", "dev.mokkery.matcher.collections.containsAnyInt"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsIntAny(
     predicate: (Int) -> Boolean
@@ -111,7 +119,8 @@ public fun MokkeryMatcherScope.varargsIntAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyUInt(predicate)", "dev.mokkery.matcher.collections.containsAnyUInt")
+    ReplaceWith("containsAnyUInt(predicate)", "dev.mokkery.matcher.collections.containsAnyUInt"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsUIntAny(
     predicate: (UInt) -> Boolean
@@ -122,7 +131,8 @@ public fun MokkeryMatcherScope.varargsUIntAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyLong(predicate)", "dev.mokkery.matcher.collections.containsAnyLong")
+    ReplaceWith("containsAnyLong(predicate)", "dev.mokkery.matcher.collections.containsAnyLong"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsLongAny(
     predicate: (Long) -> Boolean
@@ -133,7 +143,8 @@ public fun MokkeryMatcherScope.varargsLongAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyULong(predicate)", "dev.mokkery.matcher.collections.containsAnyULong")
+    ReplaceWith("containsAnyULong(predicate)", "dev.mokkery.matcher.collections.containsAnyULong"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsULongAny(
     predicate: (ULong) -> Boolean
@@ -144,7 +155,8 @@ public fun MokkeryMatcherScope.varargsULongAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyFloat(predicate)", "dev.mokkery.matcher.collections.containsAnyFloat")
+    ReplaceWith("containsAnyFloat(predicate)", "dev.mokkery.matcher.collections.containsAnyFloat"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsFloatAny(
     predicate: (Float) -> Boolean
@@ -155,7 +167,8 @@ public fun MokkeryMatcherScope.varargsFloatAny(
  */
 @Deprecated(
     OBSOLETE_VARARGS_MESSAGE,
-    ReplaceWith("containsAnyDouble(predicate)", "dev.mokkery.matcher.collections.containsAnyDouble")
+    ReplaceWith("containsAnyDouble(predicate)", "dev.mokkery.matcher.collections.containsAnyDouble"),
+    DeprecationLevel.ERROR
 )
 public fun MokkeryMatcherScope.varargsDoubleAny(
     predicate: (Double) -> Boolean
