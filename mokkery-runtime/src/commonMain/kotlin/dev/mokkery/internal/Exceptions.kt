@@ -95,7 +95,7 @@ internal class IncorrectArgsForSpiedMethodException(expectedCount: Int, actualCo
     "Spied call requires $expectedCount arguments but $actualCount provided!"
 )
 
-internal class MissingSpyMethodException() : MokkeryRuntimeException("Spied method not found!")
+internal class MissingSpyMethodException : MokkeryRuntimeException("Spied method not found!")
 
 internal class SuperTypeMustBeSpecifiedException(
     reason: String
@@ -118,11 +118,11 @@ internal class MokkerySuiteScopeNotImplementedException : MokkeryRuntimeExceptio
 )
 
 internal class MockMemberCallResultAccessException(
-    obj: Any,
+    receiver: String,
     functionName: String,
 ) : MokkeryRuntimeException(
     """
-        The result of calling `$functionName` on $obj must not be accessed inside `every` or `verify`.
+        The result of calling `$functionName` on $receiver must not be accessed inside `every` or `verify`.
         
         If you're trying to mock a member function with an extension receiver or context parameters, use `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` instead of Kotlin scope functions (e.g. `let`, `run`). 
         Otherwise, using scope functions here is not supported.
@@ -130,11 +130,11 @@ internal class MockMemberCallResultAccessException(
 )
 
 internal class MockFinalMemberCallException(
-    obj: Any,
+    receiver: String,
     functionName: String,
 ) : MokkeryRuntimeException(
     """
-        `$functionName` is final and cannot be mocked on $obj.
+        `$functionName` is final and cannot be mocked on $receiver.
         Only non-final member functions can be intercepted inside `every` or `verify`.
         """.trimIndent()
 )

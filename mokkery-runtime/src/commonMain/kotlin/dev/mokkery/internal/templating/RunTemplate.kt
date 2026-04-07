@@ -2,13 +2,17 @@
 
 package dev.mokkery.internal.templating
 
+import dev.mokkery.MokkeryScope
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MockCallExpectedException
 import dev.mokkery.internal.MockFinalMemberCallException
 import dev.mokkery.internal.MockMemberCallResultAccessException
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.isMock
+import dev.mokkery.internal.render.functionName
 import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.shortInstanceIdString
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -22,17 +26,26 @@ internal sealed interface RunTemplateResult<out T> {
 
     data class Empty(val obj: Any, val functionName: String) : RunTemplateResult<Nothing> {
         override val value: Nothing
-            get() = throw MockMemberCallResultAccessException(obj, functionName)
+            get() = throw MockMemberCallResultAccessException(
+                receiver = obj.requireInstanceScope().shortInstanceIdString,
+                functionName = functionName.renderFunctionName(MokkeryScope.global),
+            )
     }
 }
 
 internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, functionName: String): T {
-    if (obj.isMock) throw MockMemberCallResultAccessException(obj, functionName)
+    if (obj.isMock) throw MockMemberCallResultAccessException(
+        receiver = obj.requireInstanceScope().shortInstanceIdString,
+        functionName = functionName.renderFunctionName(MokkeryScope.global),
+    )
     return obj
 }
 
 internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T {
-    if (obj.isMock) throw MockFinalMemberCallException(obj, functionName)
+    if (obj.isMock) throw MockFinalMemberCallException(
+        receiver = obj.requireInstanceScope().shortInstanceIdString,
+        functionName = functionName.renderFunctionName(MokkeryScope.global),
+    )
     return obj
 }
 
@@ -93,3 +106,7 @@ private fun mockCallExpectedError(
     call = functionName
 )
 
+private fun String.renderFunctionName(scope: MokkeryScope): String {
+    val renderer = scope.tools.renderers.functionName()
+    return renderer.render(this)
+}

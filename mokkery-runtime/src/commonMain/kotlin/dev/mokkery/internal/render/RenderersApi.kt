@@ -3,6 +3,7 @@ package dev.mokkery.internal.render
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.render.descriptor.CallRenderDescriptor
+import dev.mokkery.internal.render.descriptor.FunctionRenderDescriptor
 import dev.mokkery.internal.render.descriptor.asCallRenderDescriptor
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
@@ -32,4 +33,10 @@ internal fun Renderers.callTemplate(descriptorRenderer: Renderer<CallRenderDescr
 
 internal fun Renderers.callTrace(descriptorRenderer: Renderer<CallRenderDescriptor>) = Renderer<CallTrace> {
     descriptorRenderer.render(it.asCallRenderDescriptor())
+}
+
+internal fun Renderers.functionName(
+    descriptorRenderer: Renderer<FunctionRenderDescriptor> = functionDescriptor()
+) = Renderer<String> {
+    descriptorRenderer.render(FunctionRenderDescriptor.parse(it))
 }

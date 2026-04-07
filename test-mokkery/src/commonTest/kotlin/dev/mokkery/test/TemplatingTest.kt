@@ -13,6 +13,7 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -20,7 +21,12 @@ import kotlin.test.assertFailsWith
 @OptIn(InternalMokkeryApi::class)
 class TemplatingTest {
 
-    private val mock = mock<RegularMethodsInterface>()
+    @BeforeTest
+    fun before() {
+        MokkeryScope.global
+            .mokkeryInternals
+            .resetMocksCounter()
+    }
 
     @Test
     fun testEmptyEveryCall() {
@@ -74,7 +80,7 @@ class TemplatingTest {
     @Test
     fun testFinalMockCallInEveryBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "finalMethod") {
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {
             every { mock.finalMethod() }
         }
     }
@@ -82,7 +88,7 @@ class TemplatingTest {
     @Test
     fun testFinalMockCallInVerifyBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "finalMethod") {
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {
             verify { mock.finalMethod() }
         }
     }
@@ -90,7 +96,7 @@ class TemplatingTest {
     @Test
     fun testInlineMockCallInEveryBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "inlineMethod") {
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "inlineMethod") {
             every { mock.inlineMethod() }
         }
     }
@@ -98,7 +104,7 @@ class TemplatingTest {
     @Test
     fun testInlineMockCallInVerifyBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "inlineMethod") {
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "inlineMethod") {
             verify { mock.inlineMethod() }
         }
     }
@@ -106,7 +112,7 @@ class TemplatingTest {
     @Test
     fun testInlinePropertyMockCallInEveryBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "<get-inlineProperty>") {
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "get inlineProperty") {
             every { mock.inlineProperty }
         }
     }
@@ -114,13 +120,14 @@ class TemplatingTest {
     @Test
     fun testInlinePropertyMockCallInVerifyBlock() {
         val mock = mock<AbstractClassLevel1>()
-        assertFailsWithMockFinalCall(mock, "<get-inlineProperty>") {
-            verify { mock.inlineProperty }
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "set inlineProperty") {
+            verify { mock.inlineProperty = any() }
         }
     }
 
     @Test
     fun testUnwrapping() {
+        val mock = mock<RegularMethodsInterface>()
         val mocks = listOf(mock)
         every { mocks[0].callPrimitive(or(1, 2, 3)) } returnsArgAt 0
         assertEquals(1, mocks[0].callPrimitive(1))
@@ -136,7 +143,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsAccessingMockCallResultInVariable() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 val variable = mock.callPrimitive(0)
             }
@@ -145,7 +153,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInWhen() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 when (true) {
                     true -> mock.callPrimitive(1)
@@ -158,7 +167,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInNestedFunction() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 fun nested() = mock.callPrimitive(1)
                 nested()
@@ -169,7 +179,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenWrappingMockCallInScopeFunction() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             every {
                 1.let { mock.callPrimitive(it) }
             }
@@ -178,7 +189,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInAnotherCall() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 listOf(mock.callPrimitive(1))
             }
@@ -187,7 +199,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultInCondition() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 if (mock.callPrimitive(1) == 1) return@verify
             }
@@ -196,7 +209,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultAsIfCondition() {
-        assertFailsWithResultAccessError(mock, "callBoolean") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callBoolean") {
             verify {
                 if (mock.callBoolean(false)) return@verify
             }
@@ -205,7 +219,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenAccessingMockCallResultAsLoopCondition() {
-        assertFailsWithResultAccessError(mock, "callBoolean") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callBoolean") {
             verify {
                 while (mock.callBoolean(false)) return@verify
             }
@@ -214,7 +229,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenPassingMockCallResultToOtherMock() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
                 mock.callPrimitive(mock.callPrimitive(1))
             }
@@ -224,7 +240,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenPassingNestedMockCallResultToOtherMethodCall() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             val list = listOf<Int>()
             verify {
                 mock.callPrimitive(list.getOrElse(mock.callPrimitive(1)) { 0 })
@@ -234,7 +251,8 @@ class TemplatingTest {
 
     @Test
     fun testFailsWhenPassingMockCallResultToMethodCall() {
-        assertFailsWithResultAccessError(mock, "callPrimitive") {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             val list = listOf<Int>()
             verify {
                 list[mock.callPrimitive(1)]
@@ -285,6 +303,7 @@ class TemplatingTest {
 
     @Test
     fun testArgMatchersScopeAccess() {
+        val mock = mock<RegularMethodsInterface>()
         verify(not) {
             mock.callPrimitive(1)
             println(this)
@@ -295,10 +314,10 @@ class TemplatingTest {
         }
     }
 
-    private fun assertFailsWithResultAccessError(obj: Any, functionName: String, block: () -> Unit) {
+    private fun assertFailsWithResultAccessError(receiver: String, functionName: String, block: () -> Unit) {
         assertMokkeryError(
             expectedMessage = """
-                The result of calling `$functionName` on $obj must not be accessed inside `every` or `verify`.
+                The result of calling `$functionName` on $receiver must not be accessed inside `every` or `verify`.
                 
                 If you're trying to mock a member function with an extension receiver or context parameters, use `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` instead of Kotlin scope functions (e.g. `let`, `run`). 
                 Otherwise, using scope functions here is not supported.
@@ -307,10 +326,10 @@ class TemplatingTest {
         )
     }
 
-    private fun assertFailsWithMockFinalCall(obj: Any, functionName: String, block: () -> Unit) {
+    private fun assertFailsWithMockFinalCall(receiver: String, functionName: String, block: () -> Unit) {
         assertMokkeryError(
             """
-                `$functionName` is final and cannot be mocked on $obj.
+                `$functionName` is final and cannot be mocked on $receiver.
                 Only non-final member functions can be intercepted inside `every` or `verify`.
             """.trimIndent()
         ) {
