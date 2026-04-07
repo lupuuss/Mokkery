@@ -21,6 +21,7 @@ import dev.mokkery.plugin.ir.transformer.core.referencedPrimaryConstructor
 import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.ir.inline
 import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
@@ -89,6 +90,9 @@ class TemplatingTransformer(
         val receiver = expression.dispatchReceiver
         val cls = receiver?.type?.getClass()
         if (receiver == null || cls?.isFinalClass == true) return expression.applyTransformChildrenVoid()
+        if (expression.symbol.owner.modality == Modality.FINAL) {
+            return expression.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockFinalMemberCall))
+        }
         if (receiver is IrCall) receiver.transformChildrenVoid()
         val functionToReplace = expression.symbol.owner
         val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
@@ -148,7 +152,9 @@ class TemplatingTransformer(
                             arguments[4] = kClassReference(it.type.eraseTypeParameters())
                         }
                     }
-                    val argument = expression.arguments[it].wrapDispatchersWithNotMockCheck()
+                    val argument = expression
+                        .arguments[it]
+                        ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
                     param to replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
                 },
                 firstType = functionParameterClass.defaultType,
@@ -171,7 +177,7 @@ class TemplatingTransformer(
         else -> callEqMatcher(arg)
     }
 
-    private fun IrExpression?.wrapDispatchersWithNotMockCheck(): IrExpression? {
+    private fun IrExpression.wrapDispatchersWithMockCheck(func: IrSimpleFunction): IrExpression {
         if (this is IrCall) {
             return this.transform(
                 transformer = object : IrElementTransformerVoid() {
@@ -179,7 +185,7 @@ class TemplatingTransformer(
                         val dispatcher = dispatchReceiver ?: return@transformPostfix
                         dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
                             irCall(
-                                func = referenced(MokkeryIr.Function.checkMockMemberCallResultAccess),
+                                func = func,
                                 type = dispatcher.type
                             ) {
                                 arguments[0] = dispatcher

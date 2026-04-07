@@ -72,6 +72,54 @@ class TemplatingTest {
     }
 
     @Test
+    fun testFinalMockCallInEveryBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "finalMethod") {
+            every { mock.finalMethod() }
+        }
+    }
+
+    @Test
+    fun testFinalMockCallInVerifyBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "finalMethod") {
+            verify { mock.finalMethod() }
+        }
+    }
+
+    @Test
+    fun testInlineMockCallInEveryBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "inlineMethod") {
+            every { mock.inlineMethod() }
+        }
+    }
+
+    @Test
+    fun testInlineMockCallInVerifyBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "inlineMethod") {
+            verify { mock.inlineMethod() }
+        }
+    }
+
+    @Test
+    fun testInlinePropertyMockCallInEveryBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "<get-inlineProperty>") {
+            every { mock.inlineProperty }
+        }
+    }
+
+    @Test
+    fun testInlinePropertyMockCallInVerifyBlock() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall(mock, "<get-inlineProperty>") {
+            verify { mock.inlineProperty }
+        }
+    }
+
+    @Test
     fun testUnwrapping() {
         val mocks = listOf(mock)
         every { mocks[0].callPrimitive(or(1, 2, 3)) } returnsArgAt 0
@@ -257,6 +305,17 @@ class TemplatingTest {
             """.trimIndent(),
             block = block
         )
+    }
+
+    private fun assertFailsWithMockFinalCall(obj: Any, functionName: String, block: () -> Unit) {
+        assertMokkeryError(
+            """
+                `$functionName` is final and cannot be mocked on $obj.
+                Only non-final member functions can be intercepted inside `every` or `verify`.
+            """.trimIndent()
+        ) {
+            block()
+        }
     }
 
     private fun assertFailsWithSingleEveryCallButNoCallsAtAll(block: () -> Unit) {

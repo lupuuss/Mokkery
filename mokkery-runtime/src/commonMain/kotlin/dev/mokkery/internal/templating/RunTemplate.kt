@@ -4,6 +4,7 @@ package dev.mokkery.internal.templating
 
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MockCallExpectedException
+import dev.mokkery.internal.MockFinalMemberCallException
 import dev.mokkery.internal.MockMemberCallResultAccessException
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.isMock
@@ -27,6 +28,11 @@ internal sealed interface RunTemplateResult<out T> {
 
 internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, functionName: String): T {
     if (obj.isMock) throw MockMemberCallResultAccessException(obj, functionName)
+    return obj
+}
+
+internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T {
+    if (obj.isMock) throw MockFinalMemberCallException(obj, functionName)
     return obj
 }
 

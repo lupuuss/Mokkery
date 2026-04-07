@@ -129,6 +129,16 @@ internal class MockMemberCallResultAccessException(
         """.trimIndent()
 )
 
+internal class MockFinalMemberCallException(
+    obj: Any,
+    functionName: String,
+) : MokkeryRuntimeException(
+    """
+        `$functionName` is final and cannot be mocked on $obj.
+        Only non-final member functions can be intercepted inside `every` or `verify`.
+        """.trimIndent()
+)
+
 internal class MockCallExpectedException(
     mock: Any,
     mockedType: KClass<*>,

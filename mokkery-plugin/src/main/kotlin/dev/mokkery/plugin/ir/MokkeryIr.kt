@@ -74,6 +74,7 @@ object MokkeryIr {
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
         val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
+        val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
         val MokkerySuiteScope by dev_mokkery.refFunction
         val createInstanceScope by dev_mokkery_internal.refFunction
         val createInstanceContext by dev_mokkery_internal.refFunction
