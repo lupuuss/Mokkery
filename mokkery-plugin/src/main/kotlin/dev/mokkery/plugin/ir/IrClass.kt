@@ -2,9 +2,6 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.ir.annotations.AnnotationFilter
 import dev.mokkery.plugin.ir.annotations.deepApplyAnnotationsFilter
-import dev.mokkery.plugin.ir.compat.DEFAULT_PROPERTY_ACCESSOR_COMPAT
-import dev.mokkery.plugin.ir.compat.DEFINED_COMPAT
-import dev.mokkery.plugin.ir.compat.addBackingFieldCompat
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
@@ -65,14 +62,6 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
         .first { it.name == Name.identifier(name) }
 }
 
-fun IrType.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
-    (this as? IrSimpleType)
-        ?.arguments
-        ?.forEachIndexed { index, it ->
-            block(index, it.typeOrNull?.eraseTypeParameters())
-        }
-}
-
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
     memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
         .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
@@ -98,7 +87,7 @@ fun IrClass.addOverridingMethod(
         updateFrom(function)
         name = function.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED_COMPAT
+        origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
     }.apply {
         overriddenSymbols = function.overriddenSymbols + functions.map(IrSimpleFunction::symbol)
@@ -182,7 +171,7 @@ fun IrClass.addOverridingProperty(
         updateFrom(property)
         name = property.name
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED_COMPAT
+        origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
@@ -222,17 +211,17 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
         name = property.name
         isVar = property.isVar
         modality = Modality.FINAL
-        origin = IrDeclarationOrigin.DEFINED_COMPAT
+        origin = IrDeclarationOrigin.DEFINED
     }.apply {
         val returnType = property.getter!!.returnType
-        addBackingFieldCompat {
+        addBackingField {
             type = returnType
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
         addGetter {
             this.returnType = returnType
-            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR_COMPAT
+            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
         }.apply {
             parameters = listOf(createDispatchReceiverParameterWithClassParent())
             body = DeclarationIrBuilder(context, symbol).irBlockBody {

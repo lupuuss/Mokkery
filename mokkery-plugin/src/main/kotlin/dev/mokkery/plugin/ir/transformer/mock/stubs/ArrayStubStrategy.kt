@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.plugin.Kotlin
-import dev.mokkery.plugin.core.ir.compat.referenceFunctionsCompat
 import dev.mokkery.plugin.core.ir.pluginContext
 import dev.mokkery.plugin.ir.irCall
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -26,7 +25,8 @@ object ArrayStubStrategy : StubStrategy {
         }
         return stub {
             val arrayFunc = pluginContext
-                .referenceFunctionsCompat(CallableId(Kotlin.kotlin, Name.identifier(name)))
+                .finderForBuiltins()
+                .findFunctions(CallableId(Kotlin.kotlin, Name.identifier(name)))
                 .first()
             scope.builder.irCall(arrayFunc) {
                 val typeArgs = (type as IrSimpleType).arguments

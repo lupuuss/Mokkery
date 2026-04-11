@@ -1,10 +1,10 @@
 package dev.mokkery.tests
 
+import org.jetbrains.kotlin.platform.wasm.WasmTarget
 import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 import java.io.File
-import kotlin.text.get
 
-object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPathProvider() {
+object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPathProvider {
     private val SEP = "\\${File.separator}"
 
     private val GRADLE_DEPENDENCY =
@@ -53,6 +53,12 @@ object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPath
     override fun defaultJsStdlib(): File = getFile("kotlin-stdlib-js")
 
     override fun kotlinTestJsKLib(): File = getFile("kotlin-test-js")
+
+    override fun fullWasmStdlib(target: WasmTarget): File = getFile("kotlin.wasm.stdlib.${target.alias}.path")
+
+    override fun kotlinTestWasmKLib(target: WasmTarget): File = getFile("kotlin.wasm.test.${target.alias}.path")
+
+    override fun webStdlibForTests(): File = getFile("kotlin-stdlib-web")
 
     override fun scriptingPluginFilesForTests(): Collection<File> = TODO()
 }

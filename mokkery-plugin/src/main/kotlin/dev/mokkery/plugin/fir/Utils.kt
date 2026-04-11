@@ -10,8 +10,8 @@ import org.jetbrains.kotlin.fir.expressions.FirSpreadArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirWrappedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
 import org.jetbrains.kotlin.fir.expressions.unwrapExpression
+import org.jetbrains.kotlin.fir.resolve.isArrayOfCall
 import org.jetbrains.kotlin.fir.resolve.toClassLikeSymbol
-import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirArrayOfCallTransformer.Companion.isArrayOfCall
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
@@ -31,8 +31,8 @@ fun FirFunctionCall.allNonDispatchArgumentsMapping(symbol: FirFunctionSymbol<*>)
                 + symbol.valueParameterSymbols.size
                 + if (receiverParameterSymbol != null) 1 else 0
     )
-    for (i in 0..<contextSymbols.size) {
-        map[contextSymbols[i]] = contextArguments[i]
+    for ((i, element) in contextSymbols.withIndex()) {
+        map[element] = contextArguments[i]
     }
     if (receiverParameterSymbol != null) {
         map[receiverParameterSymbol] = extensionReceiver!!

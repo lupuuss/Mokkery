@@ -16,7 +16,11 @@
 
 /MatchersMustNotBeUsedAsConditions.kt:(1024,1031): error: Matcher cannot be used as a condition.
 
+/MatchersMustNotBeUsedAsConditions.kt:(1033,1037): warning: Expression is unused.
+
 /MatchersMustNotBeUsedAsConditions.kt:(1053,1067): error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:(1069,1073): warning: Expression is unused.
 
 /MatchersMustNotBeUsedAsConditions.kt:(1096,1103): error: Matcher cannot be used as a condition.
 
@@ -24,7 +28,11 @@
 
 /MatchersMustNotBeUsedAsConditions.kt:(1238,1245): error: Matcher cannot be used as a condition.
 
+/MatchersMustNotBeUsedAsConditions.kt:(1247,1251): warning: Expression is unused.
+
 /MatchersMustNotBeUsedAsConditions.kt:(1267,1281): error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:(1283,1287): warning: Expression is unused.
 
 /MatchersMustNotBeUsedAsConditions.kt:(1310,1317): error: Matcher cannot be used as a condition.
 

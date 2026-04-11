@@ -3,7 +3,6 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
-import dev.mokkery.plugin.fir.compat.isSimpleFunctionCompat
 import dev.mokkery.plugin.fir.dispatchReceiverClassLikeSymbolOrNull
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
 import dev.mokkery.plugin.fir.isSpread
@@ -88,8 +87,6 @@ class MatchersUsageReporterVisitor(
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
 
     override fun visitElement(element: FirElement) {
-        // backward compat - cannot override removed type so it's handled here
-        if (element is FirFunction && element.isSimpleFunctionCompat()) return visitFunction(element)
         element.acceptChildren(this)
     }
 
