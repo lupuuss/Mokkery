@@ -1,6 +1,11 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.context.configuration
+import dev.mokkery.plugin.core.context.configuration
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.platform
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
@@ -8,17 +13,12 @@ import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.platform
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass

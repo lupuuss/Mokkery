@@ -1,12 +1,12 @@
 package dev.mokkery.plugin.ir.transformer
 
 import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
+import dev.mokkery.plugin.core.ir.transformer.log
+import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
-import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
-import dev.mokkery.plugin.ir.transformer.core.log
-import dev.mokkery.plugin.ir.transformer.core.referenced
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall

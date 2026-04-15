@@ -11,6 +11,12 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_verify
+import dev.mokkery.plugin.core.ir.IrClassById
+import dev.mokkery.plugin.core.ir.IrClassReferencer
+import dev.mokkery.plugin.core.ir.IrFunctionById
+import dev.mokkery.plugin.core.ir.IrFunctionReferencer
+import dev.mokkery.plugin.core.ir.IrPropertyById
+import dev.mokkery.plugin.core.ir.IrPropertyReferencer
 import dev.mokkery.plugin.nestedClassId
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin

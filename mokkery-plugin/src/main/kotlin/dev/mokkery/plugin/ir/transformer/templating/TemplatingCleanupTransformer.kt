@@ -1,15 +1,15 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
-import dev.mokkery.plugin.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.collectReturns
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.transformArguments
-import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irImplicitCoercionToUnit
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock

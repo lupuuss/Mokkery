@@ -1,19 +1,19 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
-import dev.mokkery.plugin.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
+import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.collectReturns
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irVararg
-import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.referencedDefaultType
-import dev.mokkery.plugin.ir.transformer.core.referencedPrimaryConstructor
-import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock

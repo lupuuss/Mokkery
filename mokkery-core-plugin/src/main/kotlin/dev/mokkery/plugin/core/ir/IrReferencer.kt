@@ -1,8 +1,8 @@
-package dev.mokkery.plugin.ir
+package dev.mokkery.plugin.core.ir
 
-import dev.mokkery.plugin.ir.compat.referenceClassCompat
-import dev.mokkery.plugin.ir.compat.referenceFunctionsCompat
-import dev.mokkery.plugin.ir.compat.referencePropertiesCompat
+import dev.mokkery.plugin.core.ir.compat.referenceClassCompat
+import dev.mokkery.plugin.core.ir.compat.referenceFunctionsCompat
+import dev.mokkery.plugin.core.ir.compat.referencePropertiesCompat
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty

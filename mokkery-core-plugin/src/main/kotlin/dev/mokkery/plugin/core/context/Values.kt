@@ -1,7 +1,7 @@
-package dev.mokkery.plugin.context
+package dev.mokkery.plugin.core.context
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.plugin.MokkeryPluginScope
+import dev.mokkery.plugin.core.MokkeryPluginScope
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 context(scope: MokkeryPluginScope)

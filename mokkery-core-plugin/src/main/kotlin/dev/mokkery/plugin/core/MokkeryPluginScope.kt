@@ -1,4 +1,4 @@
-package dev.mokkery.plugin
+package dev.mokkery.plugin.core
 
 import dev.mokkery.context.MokkeryContext
 

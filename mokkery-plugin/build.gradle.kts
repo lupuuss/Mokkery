@@ -25,6 +25,7 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     embedded(project(":mokkery-core"))
     embedded(project(":mokkery-core-tooling"))
+    embedded(project(":mokkery-core-plugin"))
 }
 
 tasks.jar {

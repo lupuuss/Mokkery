@@ -1,11 +1,11 @@
-package dev.mokkery.plugin.ir
+package dev.mokkery.plugin.core.ir
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.plugin.MokkeryPluginScope
-import dev.mokkery.plugin.context.asMokkeryContext
-import dev.mokkery.plugin.context.configuration
-import dev.mokkery.plugin.context.createValueKey
-import dev.mokkery.plugin.context.readValue
+import dev.mokkery.plugin.core.MokkeryPluginScope
+import dev.mokkery.plugin.core.context.asMokkeryContext
+import dev.mokkery.plugin.core.context.configuration
+import dev.mokkery.plugin.core.context.createValueKey
+import dev.mokkery.plugin.core.context.readValue
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.messageCollector
 import org.jetbrains.kotlin.ir.IrBuiltIns

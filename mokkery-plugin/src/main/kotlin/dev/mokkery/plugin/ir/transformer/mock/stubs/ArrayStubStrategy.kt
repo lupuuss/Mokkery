@@ -1,9 +1,9 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.plugin.Kotlin
-import dev.mokkery.plugin.ir.compat.referenceFunctionsCompat
+import dev.mokkery.plugin.core.ir.compat.referenceFunctionsCompat
+import dev.mokkery.plugin.core.ir.pluginContext
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.pluginContext
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail

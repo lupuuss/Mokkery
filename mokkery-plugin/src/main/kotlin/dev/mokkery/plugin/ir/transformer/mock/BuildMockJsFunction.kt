@@ -1,21 +1,21 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.context.configuration
+import dev.mokkery.plugin.core.context.configuration
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.requirePropertyGetterOwner
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.referencedCompanion
-import dev.mokkery.plugin.ir.transformer.core.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
