@@ -7,6 +7,8 @@ import dev.mokkery.internal.options.MokkeryOptionType.Companion.annotationSelect
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.boolean
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.mockMode
 import dev.mokkery.internal.options.MokkeryOptionType.Companion.verifyMode
+import dev.mokkery.internal.options.MokkeryOptionsNamespace.Companion.named
+import dev.mokkery.internal.options.MokkeryOptionsNamespace.Companion.root
 import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.options.AnnotationSelector.Companion.all
 import dev.mokkery.verify.VerifyMode
@@ -22,8 +24,6 @@ public object MokkeryOptions : MokkeryOptionsContainer() {
 
     @InternalMokkeryApi
     public object Core : MokkeryOptionsContainer() {
-
-        private val root = MokkeryNamespace.root
 
         public val defaultVerifyMode: MokkeryOption<VerifyMode> by root.defaultSingleOption(
             type = verifyMode,
@@ -56,7 +56,7 @@ public object MokkeryOptions : MokkeryOptionsContainer() {
     @InternalMokkeryApi
     public object Stubs : MokkeryOptionsContainer() {
 
-        private val stubs by MokkeryNamespace.named
+        private val stubs by named
 
         public val allowClassInheritance: MokkeryOption<Boolean> by stubs.defaultSingleOption(
             type = boolean,
@@ -73,7 +73,7 @@ public object MokkeryOptions : MokkeryOptionsContainer() {
     @InternalMokkeryApi
     public object Annotations : MokkeryOptionsContainer() {
 
-        private val annotations by MokkeryNamespace.named
+        private val annotations by named
 
         public val copyToMock: MokkeryOption<AnnotationSelector> by annotations.defaultSingleOption(
             type = annotationSelector,

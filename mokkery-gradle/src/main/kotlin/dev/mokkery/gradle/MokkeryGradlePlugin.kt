@@ -35,7 +35,7 @@ public class MokkeryGradlePlugin : KotlinCompilerPluginSupportPlugin {
         mokkery.rule.convention(ApplicationRule.AllTests)
         val gradleProperty = gradlePropertyProjection(target)
         MokkeryOptions.forEach {
-            it.get(gradleProperty)?.convention(it.defaultValue)
+            it.get(gradleProperty)?.convention(it.defaultValues.singleOrNull())
         }
         target.configureDependencies()
         super.apply(target)
