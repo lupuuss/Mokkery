@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.libs
-
 plugins {
     kotlin("jvm")
 }
@@ -22,17 +20,19 @@ dependencies {
     mokkeryRuntimeClasspath(project(":mokkery-runtime"))
 }
 
+val generateMinimum = libs.versions.kotlin.get() != libs.versions.kotlinMininumSupported.get()
+
 testVariant(kotlinVersion = libs.versions.kotlin.get(), alias = "Default")
-testVariant(kotlinVersion = libs.versions.kotlinMininumSupported.get(), alias = "Minimum")
+if (generateMinimum) testVariant(kotlinVersion = libs.versions.kotlinMininumSupported.get(), alias = "Minimum")
 
 val generateTests by tasks.registering {
     group = "verification"
     dependsOn(tasks.named("generateTestsDefault"))
-    dependsOn(tasks.named("generateTestsMinimum"))
+    if (generateMinimum) dependsOn(tasks.named("generateTestsMinimum"))
 }
 tasks.test {
     dependsOn(tasks.named("testDefault"))
-    dependsOn(tasks.named("testMinimum"))
+    if (generateMinimum) dependsOn(tasks.named("testMinimum"))
 }
 
 fun Project.testVariant(kotlinVersion: String, alias: String = "") {
