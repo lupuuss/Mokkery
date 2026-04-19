@@ -22,6 +22,7 @@ class MokkeryGradlePluginFunctionalTest {
             projectName = "test-mokkery",
             kotlinVersion = kotlinVersion,
             extraKotlinPlugins = listOf("org.jetbrains.kotlin.plugin.allopen"),
+            extraMokkeryPlugins = listOf("dev.mokkery.mockable"),
         )
         file("build.gradle.kts", buildScript)
         copyRecursively(File("../test-mokkery/src"), "src")
@@ -45,6 +46,7 @@ private val buildScript = $$"""
     plugins {
         kotlin("multiplatform")
         id("dev.mokkery")
+        id("dev.mokkery.mockable")
         id("org.jetbrains.kotlin.plugin.allopen")
     }
 
@@ -60,6 +62,9 @@ private val buildScript = $$"""
         stubs.allowConcreteClassInstantiation = true
         stubs.allowClassInheritance = true
         annotations.copyToMock = all - named("dev.mokkery.test.AnnotationB", "dev.mokkery.test.AnnotationC")
+        mockable {
+            annotations(*defaultAnnotations, "dev.mokkery.test.CustomMockable")
+        }
     }
 
     kotlin {

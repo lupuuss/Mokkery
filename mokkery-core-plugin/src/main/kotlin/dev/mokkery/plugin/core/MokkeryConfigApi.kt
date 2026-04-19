@@ -10,3 +10,6 @@ fun <T> CompilerConfiguration.getSingleOrDefault(option: MokkeryOption<T>): T {
         ?: option.defaultValues.singleOrNull()
         ?: error("No value for ${option.configurationKey}")
 }
+
+fun <T> CompilerConfiguration.getAllOrDefault(option: MokkeryOption<T>): List<T> = get(option.configurationKey)
+    ?: option.defaultValues
