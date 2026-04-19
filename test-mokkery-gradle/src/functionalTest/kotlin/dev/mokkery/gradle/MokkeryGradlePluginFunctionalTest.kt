@@ -1,5 +1,8 @@
+@file:OptIn(InternalMokkeryApi::class)
+
 package dev.mokkery.gradle
 
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.MokkeryConfig
 import org.gradle.testkit.runner.GradleRunner
 import org.intellij.lang.annotations.Language
@@ -61,6 +64,7 @@ private val settingsFileContent = """
             kotlin("multiplatform") version kotlinVersion
             id("org.jetbrains.kotlin.plugin.allopen") version kotlinVersion
             id("dev.mokkery") version mokkeryVersion
+            id("dev.mokkery.mockable") version mokkeryVersion
         }
         repositories { 
             mavenCentral {
@@ -106,6 +110,7 @@ private val buildFileContent = $$"""
     plugins {
         kotlin("multiplatform")
         id("dev.mokkery")
+        id("dev.mokkery.mockable")
         id("org.jetbrains.kotlin.plugin.allopen")
     }
 
@@ -119,6 +124,9 @@ private val buildFileContent = $$"""
         stubs.allowConcreteClassInstantiation = true
         stubs.allowClassInheritance = true
         annotations.copyToMock = all - named("dev.mokkery.test.AnnotationB", "dev.mokkery.test.AnnotationC")
+        mockable {
+            annotations(*defaultAnnotations, "dev.mokkery.test.CustomMockable")
+        }
     }
 
     kotlin {

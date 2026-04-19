@@ -9,16 +9,20 @@ kotlin {
 }
 
 val mokkeryRuntimeClasspath by configurations.registering
+val mokkeryMockableRuntimeClasspath by configurations.registering
 
 val testBase by sourceSets.registering
 
 dependencies {
     val testBaseCompileOnly by configurations
-    testBaseCompileOnly(project(":mokkery-plugin"))
     testBaseCompileOnly(project(":mokkery-core-tooling"))
+    testBaseCompileOnly(project(":mokkery-mockable-tooling"))
+    testBaseCompileOnly(project(":mokkery-plugin"))
+    testBaseCompileOnly(project(":mokkery-mockable-plugin"))
     testBaseCompileOnly(libs.kotlin.compiler)
     testBaseCompileOnly(libs.kotlin.compiler.test.framework)
     mokkeryRuntimeClasspath(project(":mokkery-runtime"))
+    mokkeryMockableRuntimeClasspath(project(":mokkery-mockable-annotations"))
 }
 
 
@@ -52,8 +56,10 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
     dependencies {
         val testImplementation by configurations.named(sourceSet.get().implementationConfigurationName)
         val testRuntimeOnly by configurations.named(sourceSet.get().runtimeOnlyConfigurationName)
-        testImplementation(project(":mokkery-plugin"))
         testImplementation(project(":mokkery-core-tooling"))
+        testImplementation(project(":mokkery-mockable-tooling"))
+        testImplementation(project(":mokkery-plugin"))
+        testImplementation(project(":mokkery-mockable-plugin"))
         testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion")
         testImplementation("org.jetbrains.kotlin:kotlin-compiler-internal-test-framework:$kotlinVersion")
         testImplementation(libs.kotlin.test.junit5)
@@ -69,6 +75,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         systemProperty("testDataRoot", testData.asFile.relativeTo(project.isolated.rootProject.projectDirectory.asFile))
         systemProperty("testsRoot", testsRoot.asFile.relativeTo(project.isolated.rootProject.projectDirectory.asFile))
         systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
+        systemProperty("mokkery.mockable.runtimeClasspath", mokkeryMockableRuntimeClasspath.get().asPath)
         inputs
             .dir(testData)
             .withPropertyName("testData")
@@ -87,6 +94,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         classpath += sourceSet.get().runtimeClasspath
         this.enabled = enabled
         dependsOn(mokkeryRuntimeClasspath)
+        dependsOn(mokkeryMockableRuntimeClasspath)
         inputs
             .dir(layout.projectDirectory.dir("src/${testBase.get().name}/data"))
             .withPropertyName("testData")
@@ -94,6 +102,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         workingDir = project.isolated.rootProject.projectDirectory.asFile
         useJUnitPlatform()
         systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
+        systemProperty("mokkery.mockable.runtimeClasspath", mokkeryMockableRuntimeClasspath.get().asPath)
         systemProperty("idea.ignore.disabled.plugins", "true")
         systemProperty("idea.home.path", project.isolated.rootProject.projectDirectory.asFile)
     }

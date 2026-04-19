@@ -450,6 +450,40 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
   }
 
   @Nested
+  @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mockable")
+  @TestDataPath("$PROJECT_ROOT")
+  public class Mockable {
+    @Test
+    public void testAllFilesPresentInMockable() {
+      KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mockable"), Pattern.compile("^(.+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("FirDiagnosticsNotReportedWhenDisabled.kt")
+    public void testFirDiagnosticsNotReportedWhenDisabled() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/FirDiagnosticsNotReportedWhenDisabled.kt");
+    }
+
+    @Test
+    @TestMetadata("InnerClassCannotBeMockable.kt")
+    public void testInnerClassCannotBeMockable() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/InnerClassCannotBeMockable.kt");
+    }
+
+    @Test
+    @TestMetadata("LocalClassCannotBeMockable.kt")
+    public void testLocalClassCannotBeMockable() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/LocalClassCannotBeMockable.kt");
+    }
+
+    @Test
+    @TestMetadata("SuperClassMustBeMockable.kt")
+    public void testSuperClassMustBeMockable() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/SuperClassMustBeMockable.kt");
+    }
+  }
+
+  @Nested
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/templating")
   @TestDataPath("$PROJECT_ROOT")
   public class Templating {

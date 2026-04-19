@@ -29,6 +29,7 @@ dependencies {
     testImplementation(gradleApi())
     testImplementation(libs.kotlin.plugin)
     testImplementation(project(":mokkery-gradle"))
+    testImplementation(project(":mokkery-mockable-gradle"))
     testImplementation(libs.kotlin.test.junit5)
 }
 
@@ -44,9 +45,13 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
             dependsOnPublishMultiplatformTo(":mokkery-core", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-runtime", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-coroutines", repoName)
+            dependsOnPublishMultiplatformTo(":mokkery-mockable-annotations", repoName)
             dependsOnGradlePublishTo(":mokkery-gradle", repoName, "Mokkery")
+            dependsOnGradlePublishTo(":mokkery-mockable-gradle", repoName, "MokkeryMockable")
             dependsOnPublishTo(":mokkery-core-tooling", repoName)
+            dependsOnPublishTo(":mokkery-mockable-tooling", repoName)
             dependsOnPublishTo(":mokkery-plugin", repoName)
+            dependsOnPublishTo(":mokkery-mockable-plugin", repoName)
         }
     }
     dependencies {

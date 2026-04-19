@@ -1,3 +1,4 @@
+@file:Suppress("UnstableApiUsage")
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.extra

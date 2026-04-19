@@ -1,0 +1,1 @@
+/LocalClassCannotBeMockable.kt:(67,92): error: Local class cannot be made mockable.
