@@ -20,22 +20,28 @@ dependencies {
     mokkeryRuntimeClasspath(project(":mokkery-runtime"))
 }
 
-val generateMinimum = libs.versions.kotlin.get() != libs.versions.kotlinMininumSupported.get()
 
-testVariant(kotlinVersion = libs.versions.kotlin.get(), alias = "Default")
-if (generateMinimum) testVariant(kotlinVersion = libs.versions.kotlinMininumSupported.get(), alias = "Minimum")
+testVariant(
+    kotlinVersion = libs.versions.kotlin.get(),
+    alias = "Default"
+)
+testVariant(
+    kotlinVersion = libs.versions.kotlinMininumSupported.get(),
+    alias = "Minimum",
+    enabled = libs.versions.kotlin.get() != libs.versions.kotlinMininumSupported.get(),
+)
 
 val generateTests by tasks.registering {
     group = "verification"
     dependsOn(tasks.named("generateTestsDefault"))
-    if (generateMinimum) dependsOn(tasks.named("generateTestsMinimum"))
+    dependsOn(tasks.named("generateTestsMinimum"))
 }
 tasks.test {
     dependsOn(tasks.named("testDefault"))
-    if (generateMinimum) dependsOn(tasks.named("testMinimum"))
+    dependsOn(tasks.named("testMinimum"))
 }
 
-fun Project.testVariant(kotlinVersion: String, alias: String = "") {
+fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Boolean = true) {
     val sourceSet = sourceSets.register("test$alias") {
         java.srcDir("src/test$alias/java")
         java.srcDir("src/test$alias/kotlin")
@@ -78,6 +84,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "") {
         group = "verification"
         testClassesDirs += sourceSet.get().output.classesDirs
         classpath += sourceSet.get().runtimeClasspath
+        this.enabled = enabled
         dependsOn(mokkeryRuntimeClasspath)
         inputs
             .dir(layout.projectDirectory.dir("src/${testBase.get().name}/data"))
