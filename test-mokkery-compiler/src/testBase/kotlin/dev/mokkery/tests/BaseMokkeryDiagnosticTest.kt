@@ -1,6 +1,5 @@
 package dev.mokkery.tests
 
-import dev.mokkery.mockable.tests.config.MokkeryMockableConfigurator
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives.RENDER_DIAGNOSTICS_FULL_TEXT
@@ -19,8 +18,8 @@ open class BaseMokkeryDiagnosticTest(
         super.configure(builder)
         with(builder) {
             useConfigurators(
-                ::MokkeryConfigurator,
                 ::MokkeryMockableConfigurator,
+                ::MokkeryConfigurator,
             )
             useCustomRuntimeClasspathProviders(
                 MokkeryConfigurator::PathProvider,

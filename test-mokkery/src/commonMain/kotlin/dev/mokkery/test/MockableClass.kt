@@ -5,8 +5,8 @@ import dev.mokkery.mockable.annotations.Mockable
 class NotMockableClass
 
 @Mockable
-class MockableClass(
-    private val arg: NotMockableClass,
+class MockableClass private constructor(
+    arg: NotMockableClass,
 ) {
     init {
         error("FAILED!")
@@ -16,7 +16,7 @@ class MockableClass(
 }
 
 @Mockable
-open class OpenMockableClass {
+abstract class AbstractMockableClass {
     init {
         error("FAILED!")
     }
@@ -25,7 +25,7 @@ open class OpenMockableClass {
 }
 
 @Mockable
-class MockableDependingClass : OpenMockableClass() {
+class MockableDependingClass : AbstractMockableClass() {
     fun call(): Int = 1
 }
 
@@ -55,6 +55,6 @@ class CustomMockableDependingOnCustomClass : OpenCustomMockableClass() {
 }
 
 @Mockable
-class CustomMockableDependingOnStandardClass : OpenMockableClass() {
+class CustomMockableDependingOnStandardClass : AbstractMockableClass() {
     fun call(): Int = 1
 }
