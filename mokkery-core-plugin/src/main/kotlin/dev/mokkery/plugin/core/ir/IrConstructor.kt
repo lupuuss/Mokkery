@@ -10,6 +10,6 @@ import org.jetbrains.kotlin.ir.util.constructors
 fun IrClass.findMokkeryConstructor(): IrConstructor? = constructors.find { it.isMokkeryConstructor() }
 
 fun IrConstructor.isMokkeryConstructor(): Boolean {
-    val valueParam = parameters.find { it.kind == IrParameterKind.Regular } ?: return false
-    return valueParam.name == MokkeryCore.Names.mockableConstructorMarkerParam && valueParam.type.isUnit()
+    val param = parameters.find { it.kind == IrParameterKind.Regular } ?: return false
+    return param.name == MokkeryCore.Names.mockableConstructorMarkerParam && param.type.isUnit()
 }

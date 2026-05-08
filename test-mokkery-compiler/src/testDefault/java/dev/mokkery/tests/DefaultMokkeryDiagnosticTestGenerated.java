@@ -325,6 +325,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     }
 
     @Test
+    @TestMetadata("AllowMockableAnnotatedToBeMocked.kt")
+    public void testAllowMockableAnnotatedToBeMocked() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/AllowMockableAnnotatedToBeMocked.kt");
+    }
+
+    @Test
     @TestMetadata("FinalTypesMustNotBeMocked.kt")
     public void testFinalTypesMustNotBeMocked() {
       run("FinalTypesMustNotBeMocked.kt");
@@ -456,6 +462,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     @Test
     public void testAllFilesPresentInMockable() {
       KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mockable"), Pattern.compile("^(.+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("AllowStubbingMockableWithoutPermission.kt")
+    public void testAllowStubbingMockableWithoutPermission() {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/AllowStubbingMockableWithoutPermission.kt");
     }
 
     @Test

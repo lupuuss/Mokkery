@@ -1,8 +1,8 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.plugin.Kotlin
+import dev.mokkery.plugin.core.ir.findMokkeryConstructor
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.ir.irCallConstructor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeOrNull
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.packageFqName
@@ -33,11 +32,8 @@ class ConstructableClassStubStrategy(
                 || cls.packageFqName?.isSubpackageOf(Kotlin.kotlin_collections) == true
                 || cls.packageFqName?.isSubpackageOf(Kotlin.kotlin_sequences) == true
                 || cls.packageFqName?.isSubpackageOf(Kotlin.kotlin_ranges) == true
+                || cls.findMokkeryConstructor() != null
         if (!allowInstantiation) return null
-        val defaultConstructor = cls.defaultConstructor
-        if (defaultConstructor != null && defaultConstructor.visibility in acceptedVisibilities) return stub {
-            scope.builder.irCallConstructor(defaultConstructor, type.toTypeArgumentsOf(defaultConstructor))
-        }
         return strategy
             .provideConstructorWithStubs(cls, acceptedVisibilities)
             ?.let {
