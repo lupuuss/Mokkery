@@ -1,6 +1,5 @@
 package dev.mokkery.tests
 
-import dev.mokkery.mockable.tests.config.MokkeryMockableConfigurator
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.generators.dsl.junit5.generateTestGroupSuiteWithJUnit5
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder

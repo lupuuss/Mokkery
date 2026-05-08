@@ -4,7 +4,9 @@ import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
+import dev.mokkery.test.AbstractMockableClass
 import dev.mokkery.test.EnumClass
+import dev.mokkery.test.MockableClass
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
@@ -42,6 +44,8 @@ private data class DataClassToStub<T : Number>(
     val finalClassToStub: FinalPublic,
     val openClassToStub: OpenClass,
     val abstractClassToStub: AbstractClass,
+    val mockable: MockableClass,
+    val abstractMockable: AbstractMockableClass,
 ) {
     init {
         assertEquals(null, nullable)

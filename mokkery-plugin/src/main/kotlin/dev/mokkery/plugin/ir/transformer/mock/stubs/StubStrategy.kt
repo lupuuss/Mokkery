@@ -5,6 +5,7 @@ import dev.mokkery.plugin.core.context.asMokkeryContext
 import dev.mokkery.plugin.core.context.createValueKey
 import dev.mokkery.plugin.core.context.readValue
 import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.isMokkeryConstructor
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -17,6 +18,7 @@ import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.hasDefaultValue
+import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.substitute
 
 interface StubStrategyScope : TransformerScope
@@ -46,15 +48,24 @@ fun StubStrategy.provideConstructorWithStubs(
     cls: IrClass,
     visibilities: Set<DescriptorVisibility>,
     substitution: Map<IrTypeParameterSymbol, IrType> = emptyMap(),
-): Pair<IrConstructor, List<Stub?>>? = cls.constructors.firstNotNullOfOrNull { ctor ->
-    if (ctor.visibility !in visibilities) return@firstNotNullOfOrNull null
-    val stubs = ctor.parameters.map { param ->
-        when {
-            param.hasDefaultValue() -> null
-            else -> this.provide(param.type.substitute(substitution)) ?: return@firstNotNullOfOrNull null
+): Pair<IrConstructor, List<Stub?>>? = cls.constructors
+    .sortedBy(IrConstructor::mokkeryPriority)
+    .firstNotNullOfOrNull { ctor ->
+        if (ctor.visibility !in visibilities) return@firstNotNullOfOrNull null
+        val stubs = ctor.parameters.map { param ->
+            when {
+                param.hasDefaultValue() -> null
+                else -> this.provide(param.type.substitute(substitution)) ?: return@firstNotNullOfOrNull null
+            }
         }
+        ctor to stubs
     }
-    ctor to stubs
+
+private fun IrConstructor.mokkeryPriority(): Int = when {
+    isMokkeryConstructor() -> 0
+    parameters.isEmpty() -> 1
+    nonDispatchParameters.all { it.defaultValue != null } -> 2
+    else -> 3
 }
 
 fun StubStrategyScope.with(builder: IrBuilderWithScope) = stubStrategyScope(

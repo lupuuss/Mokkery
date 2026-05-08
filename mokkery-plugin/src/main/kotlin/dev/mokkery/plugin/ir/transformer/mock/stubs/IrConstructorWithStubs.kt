@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.plugin.core.context.configuration
-import dev.mokkery.plugin.core.ir.findMokkeryConstructor
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -10,7 +9,6 @@ import dev.mokkery.plugin.stubsConfig
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
-import org.jetbrains.kotlin.ir.builders.irUnit
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -19,7 +17,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.BodyPrintingStrategy
 import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
@@ -27,28 +24,18 @@ context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
     irClass: IrClass?,
     subClass: IrClass,
-): IrDelegatingConstructorCall {
-    val mokkeryMockableConstructor = irClass?.findMokkeryConstructor()
-    val defaultConstructor = irClass?.defaultConstructor
-    return when {
-        irClass == null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
-        mokkeryMockableConstructor != null -> irDelegatingConstructorCall(mokkeryMockableConstructor).apply {
-            mokkeryMockableConstructor
-                .parameters
-                .forEach { arguments[it] = irUnit() }
-        }
-        defaultConstructor != null -> irDelegatingConstructorCall(defaultConstructor)
-        else -> {
-            val strategy = StubStrategy.default(configuration.stubsConfig)
-            context(stubStrategyScope(strategy = strategy, builder = this)) {
-                val constructor = strategy
-                    .provideConstructorWithStubs(
-                        cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
-                        substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
-                    ) ?: failedToProvideStubsError(irClass)
-                irDelegatingConstructorWithStubs(constructor)
-            }
+): IrDelegatingConstructorCall = when (irClass) {
+    null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
+    else -> {
+        val strategy = StubStrategy.default(configuration.stubsConfig)
+        context(stubStrategyScope(strategy = strategy, builder = this)) {
+            val constructorWithStubs = strategy
+                .provideConstructorWithStubs(
+                    cls = irClass,
+                    visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
+                    substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
+                ) ?: failedToProvideStubsError(irClass)
+            irDelegatingConstructorWithStubs(constructorWithStubs)
         }
     }
 }

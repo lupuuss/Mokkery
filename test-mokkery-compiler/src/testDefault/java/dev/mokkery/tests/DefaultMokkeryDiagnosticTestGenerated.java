@@ -337,6 +337,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     }
 
     @Test
+    @TestMetadata("AllowMockableAnnotatedToBeMocked.kt")
+    public void testAllowMockableAnnotatedToBeMocked() {
+      run("AllowMockableAnnotatedToBeMocked.kt");
+    }
+
+    @Test
     @TestMetadata("AnonymousTypesMustNotBeMocked.kt")
     public void testAnonymousTypesMustNotBeMocked() {
       run("AnonymousTypesMustNotBeMocked.kt");
@@ -515,33 +521,43 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mockable")
   @TestDataPath("$PROJECT_ROOT")
   public class Mockable {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/" + fileName);
+    }
+
     @Test
     public void testAllFilesPresentInMockable() {
       KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mockable"), Pattern.compile("^(.+)\\.kt$"), null, true);
     }
 
     @Test
+    @TestMetadata("AllowStubbingMockableWithoutPermission.kt")
+    public void testAllowStubbingMockableWithoutPermission() {
+      run("AllowStubbingMockableWithoutPermission.kt");
+    }
+
+    @Test
     @TestMetadata("FirDiagnosticsNotReportedWhenDisabled.kt")
     public void testFirDiagnosticsNotReportedWhenDisabled() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/FirDiagnosticsNotReportedWhenDisabled.kt");
+      run("FirDiagnosticsNotReportedWhenDisabled.kt");
     }
 
     @Test
     @TestMetadata("InnerClassCannotBeMockable.kt")
     public void testInnerClassCannotBeMockable() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/InnerClassCannotBeMockable.kt");
+      run("InnerClassCannotBeMockable.kt");
     }
 
     @Test
     @TestMetadata("LocalClassCannotBeMockable.kt")
     public void testLocalClassCannotBeMockable() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/LocalClassCannotBeMockable.kt");
+      run("LocalClassCannotBeMockable.kt");
     }
 
     @Test
     @TestMetadata("SuperClassMustBeMockable.kt")
     public void testSuperClassMustBeMockable() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mockable/SuperClassMustBeMockable.kt");
+      run("SuperClassMustBeMockable.kt");
     }
   }
 

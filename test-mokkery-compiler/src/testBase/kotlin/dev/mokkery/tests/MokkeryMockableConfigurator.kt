@@ -1,9 +1,8 @@
-package dev.mokkery.mockable.tests.config
+package dev.mokkery.tests
 
 import dev.mokkery.mockable.internal.options.MokkeryMockableOptions
 import dev.mokkery.mockable.plugin.MokkeryMockableFirRegistrar
 import dev.mokkery.plugin.core.configurationKey
-import dev.mokkery.tests.MokkeryMockableDirectives
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
