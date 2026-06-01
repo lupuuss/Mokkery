@@ -8,9 +8,6 @@ plugins {
 kotlin {
     explicitApi()
     optInMokkeryDelicateAndInternals()
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
 }
 
 dependencies {

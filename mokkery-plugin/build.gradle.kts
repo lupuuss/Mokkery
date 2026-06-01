@@ -4,8 +4,6 @@ plugins {
     id("mokkery-publish")
 }
 
-kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
-
 kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")

@@ -1,5 +1,7 @@
 /MatchersMustNotBeUsedWithOperators.kt:(252,265): error: Operators cannot be used with matchers, but '::class' operator is used.
 
+/MatchersMustNotBeUsedWithOperators.kt:(281,295): warning: Expression is unused.
+
 /MatchersMustNotBeUsedWithOperators.kt:(281,288): error: Operators cannot be used with matchers, but '::class' operator is used.
 
 /MatchersMustNotBeUsedWithOperators.kt:(304,317): error: Operators cannot be used with matchers, but '==' operator is used.
@@ -11,6 +13,8 @@
 /MatchersMustNotBeUsedWithOperators.kt:(383,390): error: Operators cannot be used with matchers, but '===' operator is used.
 
 /MatchersMustNotBeUsedWithOperators.kt:(487,500): error: Operators cannot be used with matchers, but '::class' operator is used.
+
+/MatchersMustNotBeUsedWithOperators.kt:(516,530): warning: Expression is unused.
 
 /MatchersMustNotBeUsedWithOperators.kt:(516,523): error: Operators cannot be used with matchers, but '::class' operator is used.
 

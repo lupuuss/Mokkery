@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.backend.jvm.codegen.AnnotationCodegen.Companion.anno
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
-import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrAnnotation
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.removeAnnotations
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.name.FqName
 
 fun interface AnnotationFilter {
 
-    fun filter(annotations: List<IrConstructorCall>): List<IrConstructorCall>
+    fun filter(annotations: List<IrAnnotation>): List<IrAnnotation>
 
     companion object {
 

@@ -1,8 +1,5 @@
 package dev.mokkery.plugin.core.ir
 
-import dev.mokkery.plugin.core.ir.compat.referenceClassCompat
-import dev.mokkery.plugin.core.ir.compat.referenceFunctionsCompat
-import dev.mokkery.plugin.core.ir.compat.referencePropertiesCompat
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -27,20 +24,25 @@ class IrFunctionById(
     private val id: CallableId,
     private val predicate: (IrSimpleFunctionSymbol) -> Boolean = { true }
 ) : IrFunctionReferencer {
-    override fun reference(context: IrPluginContext): IrSimpleFunction = context.referenceFunctionsCompat(id)
+
+
+    override fun reference(context: IrPluginContext): IrSimpleFunction = context.finderForBuiltins()
+        .findFunctions(id)
         .find(predicate)
         ?.owner
         ?: runtimeDependencyError(id.toString())
 }
 
 class IrClassById(private val id: ClassId) : IrClassReferencer {
-    override fun reference(context: IrPluginContext): IrClass = context.referenceClassCompat(id)
+    override fun reference(context: IrPluginContext): IrClass = context.finderForBuiltins()
+        .findClass(id)
         ?.owner
         ?: runtimeDependencyError(id.toString())
 }
 
 class IrPropertyById(private val id: CallableId) : IrPropertyReferencer {
-    override fun reference(context: IrPluginContext): IrProperty = context.referencePropertiesCompat(id)
+    override fun reference(context: IrPluginContext): IrProperty = context.finderForBuiltins()
+        .findProperties(id)
         .firstOrNull()
         ?.owner
         ?: runtimeDependencyError(id.toString())

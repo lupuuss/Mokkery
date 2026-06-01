@@ -3,8 +3,6 @@ plugins {
     // no publishing - it's embedded into the plugin
 }
 
-kotlin.compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
-
 kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")

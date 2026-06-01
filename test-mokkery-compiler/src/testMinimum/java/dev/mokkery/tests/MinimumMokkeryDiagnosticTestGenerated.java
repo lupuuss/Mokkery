@@ -16,6 +16,10 @@ import java.util.regex.Pattern;
 @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic")
 @TestDataPath("$PROJECT_ROOT")
 public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokkeryDiagnosticTest {
+  private void run(String fileName) {
+    runTest("test-mokkery-compiler/src/testBase/data/diagnostic/" + fileName);
+  }
+
   @Test
   public void testAllFilesPresentInDiagnostic() {
     KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -24,13 +28,17 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
   @Test
   @TestMetadata("FirDiagnosticsNotReportedWhenDisabled.kt")
   public void testFirDiagnosticsNotReportedWhenDisabled() {
-    runTest("test-mokkery-compiler/src/testBase/data/diagnostic/FirDiagnosticsNotReportedWhenDisabled.kt");
+    run("FirDiagnosticsNotReportedWhenDisabled.kt");
   }
 
   @Nested
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers")
   @TestDataPath("$PROJECT_ROOT")
   public class Matchers {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/" + fileName);
+    }
+
     @Test
     public void testAllFilesPresentInMatchers() {
       KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -40,6 +48,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations")
     @TestDataPath("$PROJECT_ROOT")
     public class Declarations {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/" + fileName);
+      }
+
       @Test
       public void testAllFilesPresentInDeclarations() {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -48,31 +60,31 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       @Test
       @TestMetadata("MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt")
       public void testMatcherArgMatcherParamMustNotBeAnnotatedWithMatcher() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt");
+        run("MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt");
       }
 
       @Test
       @TestMetadata("MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt")
       public void testMatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt");
+        run("MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt");
       }
 
       @Test
       @TestMetadata("MatcherMustBeFinal.kt")
       public void testMatcherMustBeFinal() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/MatcherMustBeFinal.kt");
+        run("MatcherMustBeFinal.kt");
       }
 
       @Test
       @TestMetadata("MatcherMustBeRegularFunction.kt")
       public void testMatcherMustBeRegularFunction() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/MatcherMustBeRegularFunction.kt");
+        run("MatcherMustBeRegularFunction.kt");
       }
 
       @Test
       @TestMetadata("MatcherMustNotBeFinal.kt")
       public void testMatcherMustNotBeFinal() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/declarations/MatcherMustNotBeFinal.kt");
+        run("MatcherMustNotBeFinal.kt");
       }
     }
 
@@ -80,6 +92,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage")
     @TestDataPath("$PROJECT_ROOT")
     public class Usage {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/" + fileName);
+      }
+
       @Test
       public void testAllFilesPresentInUsage() {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -89,6 +105,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder")
       @TestDataPath("$PROJECT_ROOT")
       public class Builder {
+        private void run(String fileName) {
+          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/" + fileName);
+        }
+
         @Test
         public void testAllFilesPresentInBuilder() {
           KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -97,85 +117,85 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         @Test
         @TestMetadata("MatcherMustNotBeAssignedToOuterScopeVar.kt")
         public void testMatcherMustNotBeAssignedToOuterScopeVar() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBeAssignedToOuterScopeVar.kt");
+          run("MatcherMustNotBeAssignedToOuterScopeVar.kt");
         }
 
         @Test
         @TestMetadata("MatcherMustNotBeAssignedToVariableThatIsNotInitializedWithMatcher.kt")
         public void testMatcherMustNotBeAssignedToVariableThatIsNotInitializedWithMatcher() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBeAssignedToVariableThatIsNotInitializedWithMatcher.kt");
+          run("MatcherMustNotBeAssignedToVariableThatIsNotInitializedWithMatcher.kt");
         }
 
         @Test
         @TestMetadata("MatcherMustNotBePassedToNonMatcherParams.kt")
         public void testMatcherMustNotBePassedToNonMatcherParams() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBePassedToNonMatcherParams.kt");
+          run("MatcherMustNotBePassedToNonMatcherParams.kt");
         }
 
         @Test
         @TestMetadata("MatcherMustNotBeReturnedFromTryCatch.kt")
         public void testMatcherMustNotBeReturnedFromTryCatch() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBeReturnedFromTryCatch.kt");
+          run("MatcherMustNotBeReturnedFromTryCatch.kt");
         }
 
         @Test
         @TestMetadata("MatcherMustNotBeUsedAsCondition.kt")
         public void testMatcherMustNotBeUsedAsCondition() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBeUsedAsCondition.kt");
+          run("MatcherMustNotBeUsedAsCondition.kt");
         }
 
         @Test
         @TestMetadata("MatcherMustNotBeUsedInNestedClasses.kt")
         public void testMatcherMustNotBeUsedInNestedClasses() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatcherMustNotBeUsedInNestedClasses.kt");
+          run("MatcherMustNotBeUsedInNestedClasses.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBePassedToMethods.kt")
         public void testMatchersMustNotBePassedToMethods() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchersMustNotBePassedToMethods.kt");
+          run("MatchersMustNotBePassedToMethods.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBePassedToRegularFunctions.kt")
         public void testMatchersMustNotBePassedToRegularFunctions() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchersMustNotBePassedToRegularFunctions.kt");
+          run("MatchersMustNotBePassedToRegularFunctions.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedAsWhenSubject.kt")
         public void testMatchersMustNotBeUsedAsWhenSubject() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchersMustNotBeUsedAsWhenSubject.kt");
+          run("MatchersMustNotBeUsedAsWhenSubject.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedInNestedFunctions.kt")
         public void testMatchersMustNotBeUsedInNestedFunctions() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchersMustNotBeUsedInNestedFunctions.kt");
+          run("MatchersMustNotBeUsedInNestedFunctions.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedWithOperators.kt")
         public void testMatchersMustNotBeUsedWithOperators() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchersMustNotBeUsedWithOperators.kt");
+          run("MatchersMustNotBeUsedWithOperators.kt");
         }
 
         @Test
         @TestMetadata("MatchesMustNotBeUsedWithCompositeMatchers.kt")
         public void testMatchesMustNotBeUsedWithCompositeMatchers() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MatchesMustNotBeUsedWithCompositeMatchers.kt");
+          run("MatchesMustNotBeUsedWithCompositeMatchers.kt");
         }
 
         @Test
         @TestMetadata("MethodsCannotBeInvokedOnMatchers.kt")
         public void testMethodsCannotBeInvokedOnMatchers() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/MethodsCannotBeInvokedOnMatchers.kt");
+          run("MethodsCannotBeInvokedOnMatchers.kt");
         }
 
         @Test
         @TestMetadata("TemplatingMustNotBeNested.kt")
         public void testTemplatingMustNotBeNested() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder/TemplatingMustNotBeNested.kt");
+          run("TemplatingMustNotBeNested.kt");
         }
       }
 
@@ -183,6 +203,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating")
       @TestDataPath("$PROJECT_ROOT")
       public class Templating {
+        private void run(String fileName) {
+          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/" + fileName);
+        }
+
         @Test
         public void testAllFilesPresentInTemplating() {
           KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -191,97 +215,97 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         @Test
         @TestMetadata("MatchersMustNotBeAssignedToOuterScopeVars.kt")
         public void testMatchersMustNotBeAssignedToOuterScopeVars() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeAssignedToOuterScopeVars.kt");
+          run("MatchersMustNotBeAssignedToOuterScopeVars.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers.kt")
         public void testMatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers.kt");
+          run("MatchersMustNotBeAssignedToVariableThatIsNotInitializedWithMatchers.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBePassedToNonMatcherParam.kt")
         public void testMatchersMustNotBePassedToNonMatcherParam() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBePassedToNonMatcherParam.kt");
+          run("MatchersMustNotBePassedToNonMatcherParam.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBePassedToRegularFunctions.kt")
         public void testMatchersMustNotBePassedToRegularFunctions() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBePassedToRegularFunctions.kt");
+          run("MatchersMustNotBePassedToRegularFunctions.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeReturnedFromTryCatch.kt")
         public void testMatchersMustNotBeReturnedFromTryCatch() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeReturnedFromTryCatch.kt");
+          run("MatchersMustNotBeReturnedFromTryCatch.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedAsConditions.kt")
         public void testMatchersMustNotBeUsedAsConditions() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedAsConditions.kt");
+          run("MatchersMustNotBeUsedAsConditions.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedAsWhenSubject.kt")
         public void testMatchersMustNotBeUsedAsWhenSubject() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedAsWhenSubject.kt");
+          run("MatchersMustNotBeUsedAsWhenSubject.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedInNestedClasses.kt")
         public void testMatchersMustNotBeUsedInNestedClasses() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedInNestedClasses.kt");
+          run("MatchersMustNotBeUsedInNestedClasses.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedInNestedFunctions.kt")
         public void testMatchersMustNotBeUsedInNestedFunctions() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedInNestedFunctions.kt");
+          run("MatchersMustNotBeUsedInNestedFunctions.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedWithFinalClasses.kt")
         public void testMatchersMustNotBeUsedWithFinalClasses() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedWithFinalClasses.kt");
+          run("MatchersMustNotBeUsedWithFinalClasses.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedWithFinalMethods.kt")
         public void testMatchersMustNotBeUsedWithFinalMethods() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedWithFinalMethods.kt");
+          run("MatchersMustNotBeUsedWithFinalMethods.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt")
         public void testMatchersMustNotBeUsedWithMoreThanOneSpreadOperator() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt");
+          run("MatchersMustNotBeUsedWithMoreThanOneSpreadOperator.kt");
         }
 
         @Test
         @TestMetadata("MatchersMustNotBeUsedWithOperators.kt")
         public void testMatchersMustNotBeUsedWithOperators() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchersMustNotBeUsedWithOperators.kt");
+          run("MatchersMustNotBeUsedWithOperators.kt");
         }
 
         @Test
         @TestMetadata("MatchesMustNotBeUsedWithCompositeMatchers.kt")
         public void testMatchesMustNotBeUsedWithCompositeMatchers() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MatchesMustNotBeUsedWithCompositeMatchers.kt");
+          run("MatchesMustNotBeUsedWithCompositeMatchers.kt");
         }
 
         @Test
         @TestMetadata("MethodsCannotBeInvokedOnMatchers.kt")
         public void testMethodsCannotBeInvokedOnMatchers() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/MethodsCannotBeInvokedOnMatchers.kt");
+          run("MethodsCannotBeInvokedOnMatchers.kt");
         }
 
         @Test
         @TestMetadata("TemplatingMustNotBeNested.kt")
         public void testTemplatingMustNotBeNested() {
-          runTest("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating/TemplatingMustNotBeNested.kt");
+          run("TemplatingMustNotBeNested.kt");
         }
       }
     }
@@ -291,6 +315,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock")
   @TestDataPath("$PROJECT_ROOT")
   public class Mock {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/" + fileName);
+    }
+
     @Test
     public void testAllFilesPresentInMock() {
       KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -299,61 +327,65 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     @Test
     @TestMetadata("FinalTypesMustNotBeMocked.kt")
     public void testFinalTypesMustNotBeMocked() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/FinalTypesMustNotBeMocked.kt");
+      run("FinalTypesMustNotBeMocked.kt");
     }
 
     @Test
     @TestMetadata("IgnoresFinalMembersWhenFlagIgnoreFinalMembersRaised.kt")
     public void testIgnoresFinalMembersWhenFlagIgnoreFinalMembersRaised() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/IgnoresFinalMembersWhenFlagIgnoreFinalMembersRaised.kt");
+      run("IgnoresFinalMembersWhenFlagIgnoreFinalMembersRaised.kt");
     }
 
     @Test
     @TestMetadata("IgnoresInlineMembersWhenIgnoreInlineMembersRaised.kt")
     public void testIgnoresInlineMembersWhenIgnoreInlineMembersRaised() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/IgnoresInlineMembersWhenIgnoreInlineMembersRaised.kt");
+      run("IgnoresInlineMembersWhenIgnoreInlineMembersRaised.kt");
     }
 
     @Test
     @TestMetadata("OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt")
     public void testOverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt");
+      run("OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt");
     }
 
     @Test
     @TestMetadata("OverridableTypesWithFinalMembersCannotBeMocked.kt")
     public void testOverridableTypesWithFinalMembersCannotBeMocked() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/OverridableTypesWithFinalMembersCannotBeMocked.kt");
+      run("OverridableTypesWithFinalMembersCannotBeMocked.kt");
     }
 
     @Test
     @TestMetadata("PrimitiveTypesMustNotBeMocked.kt")
     public void testPrimitiveTypesMustNotBeMocked() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/PrimitiveTypesMustNotBeMocked.kt");
+      run("PrimitiveTypesMustNotBeMocked.kt");
     }
 
     @Test
     @TestMetadata("PrivateConstructorTypesMustNotBeMocked.kt")
     public void testPrivateConstructorTypesMustNotBeMocked() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/PrivateConstructorTypesMustNotBeMocked.kt");
+      run("PrivateConstructorTypesMustNotBeMocked.kt");
     }
 
     @Test
     @TestMetadata("SealedTypesMustNotBeMocked.kt")
     public void testSealedTypesMustNotBeMocked() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/SealedTypesMustNotBeMocked.kt");
+      run("SealedTypesMustNotBeMocked.kt");
     }
 
     @Test
     @TestMetadata("TypeParametersCannotBeUsedWithMockFunctions.kt")
     public void testTypeParametersCannotBeUsedWithMockFunctions() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/TypeParametersCannotBeUsedWithMockFunctions.kt");
+      run("TypeParametersCannotBeUsedWithMockFunctions.kt");
     }
 
     @Nested
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many")
     @TestDataPath("$PROJECT_ROOT")
     public class Many {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many/" + fileName);
+      }
+
       @Test
       public void testAllFilesPresentInMany() {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -362,19 +394,19 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       @Test
       @TestMetadata("MockManyWithGenericTypeDuplicatesCannotBeMocked.kt")
       public void testMockManyWithGenericTypeDuplicatesCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many/MockManyWithGenericTypeDuplicatesCannotBeMocked.kt");
+        run("MockManyWithGenericTypeDuplicatesCannotBeMocked.kt");
       }
 
       @Test
       @TestMetadata("MockManyWithMultipleSuperClassesCannotBeMocked.kt")
       public void testMockManyWithMultipleSuperClassesCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many/MockManyWithMultipleSuperClassesCannotBeMocked.kt");
+        run("MockManyWithMultipleSuperClassesCannotBeMocked.kt");
       }
 
       @Test
       @TestMetadata("MockManyWithTypeDuplicatesCannotBeMocked.kt")
       public void testMockManyWithTypeDuplicatesCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many/MockManyWithTypeDuplicatesCannotBeMocked.kt");
+        run("MockManyWithTypeDuplicatesCannotBeMocked.kt");
       }
     }
 
@@ -382,6 +414,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized")
     @TestDataPath("$PROJECT_ROOT")
     public class Parameterized {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized/" + fileName);
+      }
+
       @Test
       public void testAllFilesPresentInParameterized() {
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -390,25 +426,25 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       @Test
       @TestMetadata("ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt")
       public void testParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized/ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt");
+        run("ParameterizedConstructorClassWithClassWithoutPublicConstructorCannotBeMocked.kt");
       }
 
       @Test
       @TestMetadata("ParameterizedConstructorClassWithRecursionCannotBeMocked.kt")
       public void testParameterizedConstructorClassWithRecursionCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized/ParameterizedConstructorClassWithRecursionCannotBeMocked.kt");
+        run("ParameterizedConstructorClassWithRecursionCannotBeMocked.kt");
       }
 
       @Test
       @TestMetadata("ParametrizedConstructorNoConstructorToStubClassInheritenceEnabledCannotBeMocked.kt")
       public void testParametrizedConstructorNoConstructorToStubClassInheritenceEnabledCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized/ParametrizedConstructorNoConstructorToStubClassInheritenceEnabledCannotBeMocked.kt");
+        run("ParametrizedConstructorNoConstructorToStubClassInheritenceEnabledCannotBeMocked.kt");
       }
 
       @Test
       @TestMetadata("ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt")
       public void testParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked() {
-        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/parameterized/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt");
+        run("ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt");
       }
     }
   }
@@ -417,6 +453,10 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/templating")
   @TestDataPath("$PROJECT_ROOT")
   public class Templating {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/" + fileName);
+    }
+
     @Test
     public void testAllFilesPresentInTemplating() {
       KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/templating"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -425,43 +465,43 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     @Test
     @TestMetadata("FunctionReferenceChainMustNotBePassedToEvery.kt")
     public void testFunctionReferenceChainMustNotBePassedToEvery() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/FunctionReferenceChainMustNotBePassedToEvery.kt");
+      run("FunctionReferenceChainMustNotBePassedToEvery.kt");
     }
 
     @Test
     @TestMetadata("FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt")
     public void testFunctionReferenceIncorrectTypeMustNotBePassedToEvery() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt");
+      run("FunctionReferenceIncorrectTypeMustNotBePassedToEvery.kt");
     }
 
     @Test
     @TestMetadata("FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt")
     public void testFunctionReferenceWithoutBoundObjectMustNotBePassedToEvery() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt");
+      run("FunctionReferenceWithoutBoundObjectMustNotBePassedToEvery.kt");
     }
 
     @Test
     @TestMetadata("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt")
     public void testMustNotDeclareFunctionsAcceptingMokkeryTemplatingScope() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt");
+      run("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt");
     }
 
     @Test
     @TestMetadata("PropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery.kt")
     public void testPropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/PropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery.kt");
+      run("PropertyFunctionReferenceThatIsNotAccessorMustNotBePassedToEvery.kt");
     }
 
     @Test
     @TestMetadata("TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt")
     public void testTemplatingLambdasMustNotBePassedToTemplatingFunctions() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt");
+      run("TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt");
     }
 
     @Test
     @TestMetadata("ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt")
     public void testValuePassedToEveryReferenceOverloadMustBeActualReferece() {
-      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/templating/ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt");
+      run("ValuePassedToEveryReferenceOverloadMustBeActualReferece.kt");
     }
   }
 }
