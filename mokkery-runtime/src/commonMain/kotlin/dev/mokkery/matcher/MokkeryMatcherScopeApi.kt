@@ -112,7 +112,8 @@ public inline fun <reified T> MokkeryMatcherScope.ofType(): T = matches(ArgMatch
  */
 @Deprecated(
     "This API is considered obsolete. Literals can be used in all contexts now, so this matcher usage can be omitted.",
-    ReplaceWith("value")
+    ReplaceWith("value"),
+    DeprecationLevel.ERROR
 )
 public fun <T> MokkeryMatcherScope.eq(value: T): T = matches(ArgMatcher.Equals(value))
 
@@ -121,7 +122,8 @@ public fun <T> MokkeryMatcherScope.eq(value: T): T = matches(ArgMatcher.Equals(v
  */
 @Deprecated(
     "This API is considered obsolete. `not` matcher should be used instead as it's more flexible - allows using matchers.",
-    ReplaceWith("not(value)", "dev.mokkery.matcher.logical.not")
+    ReplaceWith("not(value)", "dev.mokkery.matcher.logical.not"),
+    DeprecationLevel.ERROR
 )
 public fun <T> MokkeryMatcherScope.neq(value: T): T = not(value)
 
@@ -130,7 +132,8 @@ public fun <T> MokkeryMatcherScope.neq(value: T): T = not(value)
  */
 @Deprecated(
     "Renamed to `ref`",
-    ReplaceWith("ref(value)", "dev.mokkery.matcher.ref")
+    ReplaceWith("ref(value)", "dev.mokkery.matcher.ref"),
+    DeprecationLevel.ERROR
 )
 public fun <T> MokkeryMatcherScope.eqRef(value: T): T = ref(value)
 
@@ -139,14 +142,15 @@ public fun <T> MokkeryMatcherScope.eqRef(value: T): T = ref(value)
  */
 @Deprecated(
     "This API is considered obsolete. Use `not(ref(...)).`",
-    ReplaceWith("not(ref(value))", "dev.mokkery.matcher.ref", "dev.mokkery.matcher.logical.not")
+    ReplaceWith("not(ref(value))", "dev.mokkery.matcher.ref", "dev.mokkery.matcher.logical.not"),
+    DeprecationLevel.ERROR
 )
 public fun <T> MokkeryMatcherScope.neqRef(value: T): T = not(ref(value))
 
 /**
  * **DEPRECATED: This API is considered obsolete. Use [matches] instead.**
  */
-@Deprecated("This API is considered obsolete. Use `matches` instead.",  ReplaceWith("matches(predicate)", "dev.mokkery.matcher.matches"))
+@Deprecated("This API is considered obsolete. Use `matches` instead.", ReplaceWith("matches(predicate)", "dev.mokkery.matcher.matches"), DeprecationLevel.ERROR)
 public fun <T> MokkeryMatcherScope.matching(
     predicate: (T) -> Boolean,
 ): T = matches({ "matching(...)" }, predicate)
@@ -154,7 +158,7 @@ public fun <T> MokkeryMatcherScope.matching(
 /**
  * **DEPRECATED: This API is considered obsolete. Use [matches] instead.**
  */
-@Deprecated("This API is considered obsolete. Use `matches` instead.",  ReplaceWith("matches(toString, predicate)", "dev.mokkery.matcher.matches"))
+@Deprecated("This API is considered obsolete. Use `matches` instead.", ReplaceWith("matches(toString, predicate)", "dev.mokkery.matcher.matches"), DeprecationLevel.ERROR)
 public fun <T> MokkeryMatcherScope.matching(
     toString: () -> String,
     predicate: (T) -> Boolean,
@@ -163,7 +167,7 @@ public fun <T> MokkeryMatcherScope.matching(
 /**
  * **DEPRECATED: Renamed to [matchesBy]**
  */
-@Deprecated("Renamed to `matchesBy`.", ReplaceWith("matchesBy(function)", "dev.mokkery.matcher.matchesBy"))
+@Deprecated("Renamed to `matchesBy`.", ReplaceWith("matchesBy(function)", "dev.mokkery.matcher.matchesBy"), DeprecationLevel.ERROR)
 public fun <T> MokkeryMatcherScope.matchingBy(
     function: KFunction1<T, Boolean>
 ): T = matchesBy(function)

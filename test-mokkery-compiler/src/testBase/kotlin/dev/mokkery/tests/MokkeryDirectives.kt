@@ -3,7 +3,7 @@ package dev.mokkery.tests
 import dev.mokkery.internal.options.MokkeryOption
 import dev.mokkery.internal.options.MokkeryOptions.Core
 import dev.mokkery.internal.options.MokkeryOptions.Stubs
-import dev.mokkery.plugin.configurationKey
+import dev.mokkery.plugin.core.configurationKey
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.test.directives.model.Directive
 import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability

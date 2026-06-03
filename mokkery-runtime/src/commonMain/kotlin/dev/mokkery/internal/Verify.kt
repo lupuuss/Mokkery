@@ -26,11 +26,13 @@ internal fun MokkeryScope.internalVerify(
 ) {
     val scope = createTemplatingScope().apply(block)
     val instances = scope.participatingInstances
+    val templates = scope.registeredTemplates
+    if (templates.isEmpty()) throw SuspiciousEmptyVerifyBlockException()
     instances.withVerifySession {
         val result = tools
             .verifierFactory
             .create(mode, instances)
-            .verify(this.unverified, scope.registeredTemplates)
+            .verify(this.unverified, templates)
         when (result) {
             is Verifier.Result.Success -> result.verified.forEach { this.markVerified(it) }
             is Verifier.Result.Failure -> {

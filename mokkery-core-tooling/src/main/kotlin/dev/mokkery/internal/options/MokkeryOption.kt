@@ -9,7 +9,7 @@ public data class MokkeryOption<T>(
     public val required: Boolean,
     public val allowMultipleOccurrences: Boolean,
     public val type: MokkeryOptionType<T>,
-    public val defaultValue: T?,
+    public val defaultValues: List<T>,
 )
 
 @InternalMokkeryApi

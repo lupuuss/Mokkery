@@ -8,7 +8,11 @@
 
 /MatcherMustNotBeUsedAsCondition.kt:(536,543): error: Matcher cannot be used as a condition.
 
+/MatcherMustNotBeUsedAsCondition.kt:(545,549): warning: Expression is unused.
+
 /MatcherMustNotBeUsedAsCondition.kt:(561,575): error: Matcher cannot be used as a condition.
+
+/MatcherMustNotBeUsedAsCondition.kt:(577,581): warning: Expression is unused.
 
 /MatcherMustNotBeUsedAsCondition.kt:(600,607): error: Matcher cannot be used as a condition.
 

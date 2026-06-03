@@ -1,11 +1,11 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
+import dev.mokkery.plugin.core.ir.transformer.referencedSymbol
 import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.irBuiltIns
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.referencedDefaultType
-import dev.mokkery.plugin.ir.transformer.core.referencedSymbol
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.irAttribute

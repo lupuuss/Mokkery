@@ -1,5 +1,6 @@
 package dev.mokkery.test
 
+import dev.mokkery.MokkeryRuntimeException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -17,4 +18,10 @@ internal inline fun assertVerifiedWith(message: String, crossinline block: () ->
         println(it.message)
         assertEquals(message, it.message)
     }
+}
+
+internal inline fun assertMokkeryError(expectedMessage: String, block: () -> Unit) {
+    val error = assertFailsWith<MokkeryRuntimeException> { block() }
+    assertEquals(expectedMessage, error.message)
+    println(error.message)
 }

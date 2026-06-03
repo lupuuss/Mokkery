@@ -1,12 +1,12 @@
-package dev.mokkery.plugin.ir.transformer.core
+package dev.mokkery.plugin.core.ir.transformer
 
-import dev.mokkery.plugin.caches
-import dev.mokkery.plugin.getOrPut
-import dev.mokkery.plugin.ir.Caches
-import dev.mokkery.plugin.ir.IrClassReferencer
-import dev.mokkery.plugin.ir.IrFunctionReferencer
-import dev.mokkery.plugin.ir.IrPropertyReferencer
-import dev.mokkery.plugin.ir.pluginContext
+import dev.mokkery.plugin.core.caches
+import dev.mokkery.plugin.core.getOrPut
+import dev.mokkery.plugin.core.ir.Caches
+import dev.mokkery.plugin.core.ir.IrClassReferencer
+import dev.mokkery.plugin.core.ir.IrFunctionReferencer
+import dev.mokkery.plugin.core.ir.IrPropertyReferencer
+import dev.mokkery.plugin.core.ir.pluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrProperty

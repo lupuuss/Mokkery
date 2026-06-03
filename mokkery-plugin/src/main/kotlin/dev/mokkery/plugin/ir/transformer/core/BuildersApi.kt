@@ -1,15 +1,16 @@
 package dev.mokkery.plugin.ir.transformer.core
 
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.currentFileValue
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
 import dev.mokkery.plugin.ir.KotlinIr
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irVararg
-import dev.mokkery.plugin.ir.pluginContext
 import dev.mokkery.plugin.ir.requirePropertyGetterOwner
-import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -17,29 +18,11 @@ import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.Name
-
-context(scope: TransformerScope)
-inline fun <T> declarationIrBuilder(
-    context: IrGeneratorContext = pluginContext,
-    block: DeclarationIrBuilder.() -> T
-) = DeclarationIrBuilder(context, currentScopeValue.scope.scopeOwnerSymbol).run(block)
-
-context(scope: TransformerScope)
-inline fun <T> IrSymbol.declarationIrBuilder(
-    context: IrGeneratorContext = pluginContext,
-    block: DeclarationIrBuilder.() -> T
-) = DeclarationIrBuilder(context, this).run(block)
-
-context(scope: TransformerScope)
-inline val  IrSymbol.declarationIrBuilder: DeclarationIrBuilder
-    get() = declarationIrBuilder { this }
-
 
 context(scope: TransformerScope)
 fun IrBuilder.irCallMapOf(
@@ -53,6 +36,21 @@ fun IrBuilder.irCallMapOf(
     )
     typeArguments[0] = keyType
     typeArguments[1] = valueType
+    arguments[0] = varargs
+}
+
+context(scope: TransformerScope)
+fun IrBuilder.irCallListOfPairs(
+    pairs: List<Pair<IrExpression, IrExpression>>,
+    firstType: IrType,
+    secondType: IrType
+) = irCall(referenced(KotlinIr.Function.listOf)) {
+    val pairType = referenced(KotlinIr.Class.Pair).typeWith(firstType, secondType)
+    val varargs = irVararg(
+        elementType = pairType,
+        elements = pairs.map { irCreatePair(it.first, it.second) }
+    )
+    typeArguments[0] = pairType
     arguments[0] = varargs
 }
 

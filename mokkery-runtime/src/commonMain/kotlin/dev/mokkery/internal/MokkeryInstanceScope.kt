@@ -19,6 +19,7 @@ import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
+import dev.mokkery.internal.names.withShorterNames
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
@@ -97,6 +98,11 @@ internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id
 internal val MokkeryInstanceScope.instanceIdString get() = tools
     .renderers
     .instanceId()
+    .render(instanceId)
+
+internal val MokkeryInstanceScope.shortInstanceIdString get() = tools
+    .renderers
+    .instanceId(this.toMokkeryCollection().withShorterNames(tools.namesShortener))
     .render(instanceId)
 
 internal val MokkeryInstanceScope.spiedObject get() = instanceSpec.requireSpy().spiedObject

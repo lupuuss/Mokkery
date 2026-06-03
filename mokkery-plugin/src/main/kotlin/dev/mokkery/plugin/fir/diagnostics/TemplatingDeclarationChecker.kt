@@ -43,7 +43,7 @@ class TemplatingDeclarationChecker(
         .packageFqName()
         .let {
             it.isSubpackageOf(Mokkery.dev_mokkery_templating) ||
-                    it.isSubpackageOf(Mokkery.dev_mokkery_internal_templating)
+                    it.isSubpackageOf(Mokkery.dev_mokkery_internal)
         }
 
     object Diagnostics : KtDiagnosticsContainer() {

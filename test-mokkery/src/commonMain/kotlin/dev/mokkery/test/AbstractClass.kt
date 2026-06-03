@@ -7,7 +7,9 @@ abstract class AbstractClassLevel1 : AbstractClassLevel2() {
     override fun callPrimitive(input: Int): Int = input
 
     // to be ignored by the compiler
-    inline val inlineProperty get() = "Ignored inline property"
+    inline var inlineProperty
+        get() = "Ignored inline property"
+        set(value) {}
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun inlineMethod() = "Ignored inline method"

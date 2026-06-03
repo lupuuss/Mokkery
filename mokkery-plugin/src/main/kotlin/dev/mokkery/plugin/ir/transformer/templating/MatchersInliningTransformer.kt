@@ -1,19 +1,19 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
-import dev.mokkery.plugin.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
+import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.collectReturns
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irVararg
-import dev.mokkery.plugin.ir.transformer.core.CoreTransformer
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.referencedDefaultType
-import dev.mokkery.plugin.ir.transformer.core.referencedPrimaryConstructor
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -63,7 +63,7 @@ class MatchersInliningTransformer(
         val matcher = matchersCompiler.compileIfMatcher(expression.symbol.owner)
         expression.transformChildrenVoid()
         if (matcher.isCompiledMatcher != true) return expression
-        return declarationIrBuilder { replaceMatcher(expression) }
+        return expression.replaceDeclarationIrBuilder { replaceMatcher(expression) }
     }
 
     override fun visitVariable(declaration: IrVariable) = declaration.transformPostfix {
@@ -201,23 +201,23 @@ class MatchersInliningTransformer(
         )
     }
 
-    private fun callEqMatcher(expression: IrExpression) = declarationIrBuilder {
+    private fun callEqMatcher(expression: IrExpression) = expression.replaceDeclarationIrBuilder {
         irCallConstructor(argMatcherEqualsClass) {
             arguments[0] = expression
         }
     }
 
-    private fun spreadLiteralsAsMatchers(spread: IrSpreadElement): IrSpreadElement = declarationIrBuilder {
-        IrSpreadElementImpl(
-            startOffset = startOffset,
-            endOffset = endOffset,
-            expression = irCall(inlineLiteralsAsMatchersFunc) {
+    private fun spreadLiteralsAsMatchers(spread: IrSpreadElement): IrSpreadElement = IrSpreadElementImpl(
+        startOffset = spread.startOffset,
+        endOffset = spread.endOffset,
+        expression = spread.expression.replaceDeclarationIrBuilder {
+            irCall(inlineLiteralsAsMatchersFunc) {
                 arguments[0] = spread.expression
             }
-        )
-    }
+        }
+    )
 
-    private fun spreadArgMatcher(expression: IrExpression) = declarationIrBuilder {
+    private fun spreadArgMatcher(expression: IrExpression) = expression.replaceDeclarationIrBuilder {
         irCall(spreadArgMatcherFun) {
             arguments[0] = expression
         }

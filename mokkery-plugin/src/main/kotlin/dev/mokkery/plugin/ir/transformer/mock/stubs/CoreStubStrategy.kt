@@ -1,6 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
-import dev.mokkery.plugin.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.ir.kClassReference
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString

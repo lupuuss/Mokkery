@@ -1,10 +1,10 @@
-package dev.mokkery.plugin.ir.transformer.core
+package dev.mokkery.plugin.core.ir.transformer
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.plugin.context.asMokkeryContext
-import dev.mokkery.plugin.context.createValueKey
-import dev.mokkery.plugin.context.readValue
-import dev.mokkery.plugin.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.context.asMokkeryContext
+import dev.mokkery.plugin.core.context.createValueKey
+import dev.mokkery.plugin.core.context.readValue
+import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.ScopeWithIr
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration

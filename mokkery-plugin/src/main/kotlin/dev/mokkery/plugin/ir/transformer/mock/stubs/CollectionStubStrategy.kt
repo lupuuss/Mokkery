@@ -1,9 +1,9 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.ir.KotlinIr
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.transformer.core.referenced
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.isCollection

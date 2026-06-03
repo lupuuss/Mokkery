@@ -1,10 +1,10 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package dev.mokkery.plugin.context
+package dev.mokkery.plugin.core.context
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.plugin.MokkeryPluginScope
+import dev.mokkery.plugin.core.MokkeryPluginScope
 import kotlin.reflect.KClass
 
 inline fun <T : Any> T.asMokkeryContext(key: ValueContext.Key<T>): MokkeryContext = ValueContext(

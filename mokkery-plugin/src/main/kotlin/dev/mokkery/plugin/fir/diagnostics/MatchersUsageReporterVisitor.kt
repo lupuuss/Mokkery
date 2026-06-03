@@ -3,11 +3,10 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
-import dev.mokkery.plugin.fir.compat.isSimpleFunctionCompat
+import dev.mokkery.plugin.fir.dispatchReceiverClassLikeSymbolOrNull
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
 import dev.mokkery.plugin.fir.isSpread
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.diagnostics.DiagnosticContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
 import org.jetbrains.kotlin.diagnostics.error0
@@ -15,13 +14,14 @@ import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousObject
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFunction
+import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -56,8 +57,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.utils.addToStdlib.popLast
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import kotlin.collections.get
-import kotlin.collections.iterator
 
 enum class MatchersUsageContext {
     BUILDER, TEMPLATING
@@ -65,7 +64,7 @@ enum class MatchersUsageContext {
 
 class MatchersUsageReporterVisitor(
     private val session: FirSession,
-    private val context: DiagnosticContext,
+    private val context: CheckerContext,
     private val reporter: DiagnosticReporter,
     private val configuration: CompilerConfiguration,
     private val parentFunction: FirFunctionSymbol<*>,
@@ -88,8 +87,6 @@ class MatchersUsageReporterVisitor(
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
 
     override fun visitElement(element: FirElement) {
-        // backward compat - cannot override removed type so it's handled here
-        if (element is FirFunction && element.isSimpleFunctionCompat()) return visitFunction(element)
         element.acceptChildren(this)
     }
 
@@ -334,6 +331,7 @@ class MatchersUsageReporterVisitor(
     }
 
     @OptIn(SymbolInternals::class)
+    context(context: CheckerContext)
     private fun reportIllegalMatchersUsageWithMethods(
         call: FirFunctionCall,
         symbol: FirFunctionSymbol<*>
@@ -342,7 +340,13 @@ class MatchersUsageReporterVisitor(
             MatchersUsageContext.BUILDER -> reportIllegalMatchersUsageInMatcherBuilder(call)
             MatchersUsageContext.TEMPLATING -> when {
                 symbol.isFinal -> reportIllegalFinalMethodMatchers(call, symbol)
-                else -> reportIllegalMatchersInMockableMethod(call, symbol)
+                else -> {
+                    val classSymbol = symbol.dispatchReceiverClassLikeSymbolOrNull()
+                    when {
+                        classSymbol?.isFinal == true -> reportIllegalFinalClassMatchersUsage(call, classSymbol)
+                        else -> reportIllegalMatchersInMockableMethod(call, symbol)
+                    }
+                }
             }
         }
     }
@@ -370,6 +374,22 @@ class MatchersUsageReporterVisitor(
             reporter.reportOn(
                 source = it.source,
                 factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,
+                a = symbol
+            )
+        }
+    }
+
+    private fun reportIllegalFinalClassMatchersUsage(
+        call: FirFunctionCall,
+        symbol: FirClassLikeSymbol<*>
+    ) = context(context) {
+        val arguments = call.contextArguments
+            .plus(call.extensionReceiver)
+            .plus(call.arguments)
+        arguments.forEachMatcher {
+            reporter.reportOn(
+                source = it.source,
+                factory = Diagnostics.MATCHER_USED_WITH_FINAL_CLASS,
                 a = symbol
             )
         }
@@ -432,6 +452,7 @@ class MatchersUsageReporterVisitor(
         val MATCHER_PASSED_TO_NON_MEMBER_FUNCTION by error0<KtElement>()
         val SINGLE_VARARG_MATCHER_ALLOWED by error0<KtElement>()
         val MATCHER_USED_WITH_FINAL_METHOD by error1<KtElement, FirFunctionSymbol<*>>()
+        val MATCHER_USED_WITH_FINAL_CLASS by error1<KtElement, FirClassLikeSymbol<*>>()
         val MATCHES_WITH_COMPOSITE_ARG by error0<KtElement>()
     }
 }

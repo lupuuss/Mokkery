@@ -1,7 +1,15 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
 import dev.mokkery.plugin.annotationSelector
-import dev.mokkery.plugin.context.configuration
+import dev.mokkery.plugin.core.context.configuration
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.irFactory
+import dev.mokkery.plugin.core.ir.pluginContext
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.addToCurrentFile
+import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
+import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedGetterSymbol
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
@@ -10,9 +18,7 @@ import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irFactory
 import dev.mokkery.plugin.ir.irInvokeIfNotNull
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
@@ -21,15 +27,9 @@ import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
-import dev.mokkery.plugin.ir.pluginContext
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.addToCurrentFile
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.referenced
-import dev.mokkery.plugin.ir.transformer.core.referencedGetterSymbol
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder

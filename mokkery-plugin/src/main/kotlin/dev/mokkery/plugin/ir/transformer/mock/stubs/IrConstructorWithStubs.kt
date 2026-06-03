@@ -1,9 +1,9 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
-import dev.mokkery.plugin.context.configuration
-import dev.mokkery.plugin.ir.irBuiltIns
+import dev.mokkery.plugin.core.context.configuration
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.irCallConstructor
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
 import dev.mokkery.plugin.stubsConfig
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder

@@ -1,14 +1,14 @@
 package dev.mokkery.plugin.ir.transformer.suite
 
+import dev.mokkery.plugin.core.ir.pluginContext
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
+import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overridePropertyBackingField
-import dev.mokkery.plugin.ir.pluginContext
 import dev.mokkery.plugin.ir.requirePropertyOwner
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
-import dev.mokkery.plugin.ir.transformer.core.declarationIrBuilder
-import dev.mokkery.plugin.ir.transformer.core.referenced
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irSetField
@@ -30,7 +30,7 @@ fun IrClass.overrideMokkerySuiteScopeIfNotOverridden() {
     val newProperty = irClass.overridePropertyBackingField(context = pluginContext, property = baseProperty)
     val constructor = irClass.primaryConstructor!!
     val oldBody = constructor.body
-    constructor.body = declarationIrBuilder {
+    constructor.body = constructor.symbol.declarationIrBuilder {
         irBlockBody {
             val testScopeFun = referenced(MokkeryIr.Function.MokkerySuiteScope)
             val getContext = irCall(baseProperty.getter!!) {

@@ -4,6 +4,7 @@ import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.render.descriptor.ArgumentRenderDescriptor
 import dev.mokkery.internal.render.descriptor.CallRenderDescriptor
+import dev.mokkery.internal.render.descriptor.FunctionRenderDescriptor
 import dev.mokkery.internal.render.descriptor.GetterRenderDescriptor
 import dev.mokkery.internal.render.descriptor.SetterRenderDescriptor
 import dev.mokkery.internal.utils.asListOrNull
@@ -24,6 +25,8 @@ internal interface Renderers {
         matcherRenderer: Renderer<ArgMatcher<*>> = toString,
         renderReceiver: Boolean = true,
     ): Renderer<CallRenderDescriptor>
+
+    fun functionDescriptor(): Renderer<FunctionRenderDescriptor>
 
    companion object {
 
@@ -106,6 +109,14 @@ internal interface Renderers {
                private fun render(argument: ArgumentRenderDescriptor): String = when (argument) {
                    is ArgumentRenderDescriptor.Matcher -> matcherRenderer.render(argument.matcher)
                    is ArgumentRenderDescriptor.Value -> valueRenderer.render(argument.arg.value)
+               }
+           }
+
+           override fun functionDescriptor() = Renderer<FunctionRenderDescriptor> {
+               when (it) {
+                  is GetterRenderDescriptor -> "get ${it.name}"
+                  is SetterRenderDescriptor -> "set ${it.name}"
+                  else -> it.name
                }
            }
        }

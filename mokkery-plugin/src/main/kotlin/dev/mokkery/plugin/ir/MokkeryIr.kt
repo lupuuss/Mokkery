@@ -11,6 +11,12 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_verify
+import dev.mokkery.plugin.core.ir.IrClassById
+import dev.mokkery.plugin.core.ir.IrClassReferencer
+import dev.mokkery.plugin.core.ir.IrFunctionById
+import dev.mokkery.plugin.core.ir.IrFunctionReferencer
+import dev.mokkery.plugin.core.ir.IrPropertyById
+import dev.mokkery.plugin.core.ir.IrPropertyReferencer
 import dev.mokkery.plugin.nestedClassId
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -44,10 +50,10 @@ object MokkeryIr {
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
         val CallArgument by dev_mokkery_context.refClass
+        val FunctionParameter = dev_mokkery_context.refNestedClass("Function", "Parameter")
         val SuiteName by dev_mokkery_internal_context.refClass
 
         val MokkeryTemplatingScope by dev_mokkery_templating.refClass
-        val TemplatingParameter by dev_mokkery_internal_templating.refClass
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
@@ -72,7 +78,9 @@ object MokkeryIr {
         val internalVerifySuspend by dev_mokkery_internal.refFunction
         val runTemplate by dev_mokkery_internal_templating.refFunction
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
-        val checkNotMock by dev_mokkery_internal_templating.refFunction
+        val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
+        val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
+        val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
         val MokkerySuiteScope by dev_mokkery.refFunction
         val createInstanceScope by dev_mokkery_internal.refFunction
         val createInstanceContext by dev_mokkery_internal.refFunction

@@ -1,6 +1,6 @@
-package dev.mokkery.plugin.ir
+package dev.mokkery.plugin.core.ir
 
-import dev.mokkery.plugin.cacheKey
+import dev.mokkery.plugin.core.cacheKey
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction

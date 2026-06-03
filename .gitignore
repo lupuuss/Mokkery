@@ -3,13 +3,10 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-/test-mokkery-gradle/local.properties
+/local.properties
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+/.idea/
 *.iws
 *.iml
 *.ipr
@@ -42,6 +39,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/.idea/
-/test-mokkery-gradle/.idea/
-/local.properties
+
+### AI ###
+AGENTS.md

@@ -37,15 +37,15 @@ internal const val OBSOLETE_VARARGS_MESSAGE = "Obsolete varargs API. Read `VarAr
  * // Matches a call with varargs that starts with 1, ends with 10, and has at least two elements in between.
  * ```
  */
-@Deprecated(OBSOLETE_VARARGS_MESSAGE)
-@Suppress("DEPRECATION")
+@Deprecated(OBSOLETE_VARARGS_MESSAGE, level = DeprecationLevel.ERROR)
+@Suppress("DEPRECATION_ERROR")
 public sealed interface VarArgMatcher : ArgMatcher<Any?> {
 
 
     /**
      * Base class for any [VarArgMatcher]. Returns false if arg is not an array or list.
      */
-    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("ArrayArgMatcher", "dev.mokkery.matcher.collections.ArrayArgMatcher"))
+    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("ArrayArgMatcher", "dev.mokkery.matcher.collections.ArrayArgMatcher"), DeprecationLevel.ERROR)
     public abstract class Base<in T> : VarArgMatcher {
 
         final override fun matches(arg: Any?): Boolean {
@@ -62,7 +62,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      */
     @DelicateMokkeryApi
     @Poko
-    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAllMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"))
+    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAllMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"), DeprecationLevel.ERROR)
     public class AllThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.all(predicate)
@@ -76,7 +76,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      */
     @DelicateMokkeryApi
     @Poko
-    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAnyMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"))
+    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAnyMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"), DeprecationLevel.ERROR)
     public class AnyThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.any(predicate)
@@ -90,7 +90,7 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
      */
     @DelicateMokkeryApi
     @Poko
-    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("ArgMatcher.Any", "dev.mokkery.matcher.ArgMatcher"))
+    @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("ArgMatcher.Any", "dev.mokkery.matcher.ArgMatcher"), DeprecationLevel.ERROR)
     public class AnyOf(private val type: KClass<*>) : Base<Any?>() {
 
         override fun matchesVarargs(varargs: List<Any?>): Boolean = true

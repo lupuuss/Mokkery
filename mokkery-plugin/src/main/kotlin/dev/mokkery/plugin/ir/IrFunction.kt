@@ -41,3 +41,5 @@ fun IrSimpleFunction.isSuperCallFor(originalFunction: IrFunction): Boolean {
 fun IrSimpleFunction.findExtensionParam() = parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
 
 fun IrSimpleFunction.findRegularParameters() = parameters.filter { it.kind == IrParameterKind.Regular }
+
+fun IrSimpleFunction.hasNonDispatchParameters() = parameters.any { it.kind != IrParameterKind.DispatchReceiver }

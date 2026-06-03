@@ -1,7 +1,7 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.plugin.Kotlin
-import dev.mokkery.plugin.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.ir.irCallConstructor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality

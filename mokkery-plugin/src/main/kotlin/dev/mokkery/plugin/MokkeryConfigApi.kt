@@ -1,9 +1,9 @@
 package dev.mokkery.plugin
 
 import dev.mokkery.MockMode
-import dev.mokkery.internal.options.MokkeryOption
 import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.options.AnnotationSelector
+import dev.mokkery.plugin.core.getSingleOrDefault
 import dev.mokkery.plugin.ir.transformer.mock.stubs.MokkeryStubsConfig
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -31,10 +31,3 @@ val CompilerConfiguration.stubsConfig: MokkeryStubsConfig
 
 val CompilerConfiguration.annotationSelector: AnnotationSelector
     get() = getSingleOrDefault(MokkeryOptions.Annotations.copyToMock)
-
-fun <T> CompilerConfiguration.getSingleOrDefault(option: MokkeryOption<T>): T {
-    return get(option.configurationKey)
-        ?.singleOrNull()
-        ?: option.defaultValue
-        ?: error("No value for ${option.configurationKey}")
-}

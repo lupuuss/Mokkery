@@ -6,24 +6,24 @@ import kotlin.properties.ReadOnlyProperty
 
 @Suppress("UNCHECKED_CAST")
 @InternalMokkeryApi
-public abstract class MokkeryOptionsContainer: Iterable<MokkeryOption<Any?>> {
+public abstract class MokkeryOptionsContainer: Iterable<MokkeryOption<Any>> {
 
-    private val _options = mutableMapOf<String, MokkeryOption<Any?>>()
+    private val _options = mutableMapOf<String, MokkeryOption<Any>>()
     private val _containers = mutableListOf<MokkeryOptionsContainer>()
 
 
-    public override operator fun iterator(): Iterator<MokkeryOption<Any?>> = _options
+    public override operator fun iterator(): Iterator<MokkeryOption<Any>> = _options
         .values
         .asSequence()
         .plus(_containers.flatten())
         .iterator()
 
-    public operator fun get(name: String): MokkeryOption<Any?>? {
+    public operator fun get(name: String): MokkeryOption<Any>? {
         return _options[name] ?: _containers.firstNotNullOfOrNull { it[name] }
     }
 
     public operator fun plusAssign(option: MokkeryOption<*>) {
-        _options += (option.name to option as MokkeryOption<Any?>)
+        _options += (option.name to option as MokkeryOption<Any>)
     }
 
     public operator fun plusAssign(container: MokkeryOptionsContainer) {
@@ -34,24 +34,25 @@ public abstract class MokkeryOptionsContainer: Iterable<MokkeryOption<Any?>> {
 }
 
 
-internal interface MokkeryNamespace {
+@InternalMokkeryApi
+public interface MokkeryOptionsNamespace {
 
-    val name: String
-    fun createName(name: String): String
+    public val name: String
+    public fun createName(name: String): String
 
-    companion object {
+    public companion object {
 
-        val root = object : MokkeryNamespace {
+        public val root: MokkeryOptionsNamespace = object : MokkeryOptionsNamespace {
 
             override val name: String = ""
 
             override fun createName(name: String): String = name
         }
 
-        val named: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, MokkeryNamespace>>
+        public val named: PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, MokkeryOptionsNamespace>>
             get() = PropertyDelegateProvider { _, it ->
                 ReadOnlyProperty { _, _ ->
-                    object : MokkeryNamespace {
+                    object : MokkeryOptionsNamespace {
                         override val name: String = it.name
                         override fun createName(name: String): String = "${this.name}.$name"
                     }
@@ -60,23 +61,24 @@ internal interface MokkeryNamespace {
     }
 }
 
-internal fun <T> MokkeryNamespace.defaultSingleOption(
+@InternalMokkeryApi
+public fun <T> MokkeryOptionsNamespace.defaultSingleOption(
     type: MokkeryOptionType<T>,
     description: String,
     defaultValue: T,
 ): MokkeryOptionPropertyDelegateProvider<T> = option(
     type = type,
     description = description,
-    defaultValue = defaultValue,
+    defaultValues = listOf(defaultValue),
     required = false,
     allowMultipleOccurrences = false,
 )
 
-
-internal fun <T> MokkeryNamespace.option(
+@InternalMokkeryApi
+public fun <T> MokkeryOptionsNamespace.option(
     type: MokkeryOptionType<T>,
     description: String,
-    defaultValue: T?,
+    defaultValues: List<T>,
     required: Boolean,
     allowMultipleOccurrences: Boolean,
 ): MokkeryOptionPropertyDelegateProvider<T> = PropertyDelegateProvider { container, it ->
@@ -86,13 +88,14 @@ internal fun <T> MokkeryNamespace.option(
         required = required,
         allowMultipleOccurrences = allowMultipleOccurrences,
         type = type,
-        defaultValue = defaultValue,
+        defaultValues = defaultValues,
     )
     container += option
     ReadOnlyProperty { _, _ -> option }
 }
 
-internal typealias MokkeryOptionPropertyDelegateProvider<T> = PropertyDelegateProvider<
+@InternalMokkeryApi
+public typealias MokkeryOptionPropertyDelegateProvider<T> = PropertyDelegateProvider<
         MokkeryOptionsContainer,
         ReadOnlyProperty<Any?, MokkeryOption<T>>
         >

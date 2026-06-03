@@ -1,7 +1,7 @@
-package dev.mokkery.plugin.ir.transformer.core
+package dev.mokkery.plugin.core.ir.transformer
 
 import dev.mokkery.internal.MokkeryConfig
-import dev.mokkery.plugin.ir.messageCollector
+import dev.mokkery.plugin.core.ir.messageCollector
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 
 context(scope: TransformerScope)

@@ -1,0 +1,3 @@
+/MatchersMustNotBeUsedWithFinalClasses.kt:(267,272): error: Methods from 'object : Foo' must not be used with matchers, because this class is final and cannot be mocked.
+
+/MatchersMustNotBeUsedWithFinalClasses.kt:(310,315): error: Methods from 'object : Foo' must not be used with matchers, because this class is final and cannot be mocked.

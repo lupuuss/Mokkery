@@ -16,10 +16,3 @@ public annotation class DelicateMokkeryApi
     level = RequiresOptIn.Level.ERROR, message = "This is an internal Mokkery API and it should not be used!"
 )
 public annotation class InternalMokkeryApi
-
-/**
- * Marks parameter that accepts matchers.
- */
-@Target(AnnotationTarget.VALUE_PARAMETER)
-@Retention(AnnotationRetention.BINARY)
-public annotation class Matcher

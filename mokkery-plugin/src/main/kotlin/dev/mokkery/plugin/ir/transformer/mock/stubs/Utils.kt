@@ -1,8 +1,8 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
+import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.transformer.core.referenced
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString

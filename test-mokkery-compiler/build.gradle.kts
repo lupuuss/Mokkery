@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.libs
-
 plugins {
     kotlin("jvm")
 }
@@ -22,8 +20,16 @@ dependencies {
     mokkeryRuntimeClasspath(project(":mokkery-runtime"))
 }
 
-testVariant(kotlinVersion = libs.versions.kotlin.get(), alias = "Default")
-testVariant(kotlinVersion = libs.versions.kotlinMininumSupported.get(), alias = "Minimum")
+
+testVariant(
+    kotlinVersion = libs.versions.kotlin.get(),
+    alias = "Default"
+)
+testVariant(
+    kotlinVersion = libs.versions.kotlinMininumSupported.get(),
+    alias = "Minimum",
+    enabled = libs.versions.kotlin.get() != libs.versions.kotlinMininumSupported.get(),
+)
 
 val generateTests by tasks.registering {
     group = "verification"
@@ -35,7 +41,7 @@ tasks.test {
     dependsOn(tasks.named("testMinimum"))
 }
 
-fun Project.testVariant(kotlinVersion: String, alias: String = "") {
+fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Boolean = true) {
     val sourceSet = sourceSets.register("test$alias") {
         java.srcDir("src/test$alias/java")
         java.srcDir("src/test$alias/kotlin")
@@ -78,6 +84,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "") {
         group = "verification"
         testClassesDirs += sourceSet.get().output.classesDirs
         classpath += sourceSet.get().runtimeClasspath
+        this.enabled = enabled
         dependsOn(mokkeryRuntimeClasspath)
         inputs
             .dir(layout.projectDirectory.dir("src/${testBase.get().name}/data"))

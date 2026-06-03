@@ -1,11 +1,11 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.plugin.context.asMokkeryContext
-import dev.mokkery.plugin.context.createValueKey
-import dev.mokkery.plugin.context.readValue
-import dev.mokkery.plugin.ir.irBuiltIns
-import dev.mokkery.plugin.ir.transformer.core.TransformerScope
+import dev.mokkery.plugin.core.context.asMokkeryContext
+import dev.mokkery.plugin.core.context.createValueKey
+import dev.mokkery.plugin.core.context.readValue
+import dev.mokkery.plugin.core.ir.irBuiltIns
+import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.declarations.IrClass
