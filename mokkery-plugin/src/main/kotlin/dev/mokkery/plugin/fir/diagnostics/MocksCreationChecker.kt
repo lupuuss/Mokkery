@@ -3,6 +3,7 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.Mokkery.Callable
+import dev.mokkery.plugin.core.fir.hasMokkeryGeneratedConstructor
 import dev.mokkery.plugin.fir.declaredMembers
 import dev.mokkery.plugin.stubsConfig
 import dev.mokkery.plugin.validationMode
@@ -344,6 +345,7 @@ class MocksCreationChecker(
                 || toRegularClassSymbol()?.let { cls ->
                     val fqName = cls.packageFqName()
                     cls.isRegularInterface()
+                            || cls.hasMokkeryGeneratedConstructor(context.session)
                             || cls.isEnumClass
                             || cls.isInlineClass()
                             || fqName.isSubpackageOf(Kotlin.kotlin_collections)

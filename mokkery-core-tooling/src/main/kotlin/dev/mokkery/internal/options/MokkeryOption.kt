@@ -40,7 +40,9 @@ private class CachedMokkeryProjection<T>(
     private val builder: (MokkeryOption<*>) -> T
 ) : MokkeryOptionProjection<T> {
     private val store = mutableMapOf<MokkeryOption<*>, T>()
-    override fun project(option: MokkeryOption<*>): T = store.getOrPut(option) { builder(option) }
+    override fun project(option: MokkeryOption<*>): T = synchronized(store) {
+        store.getOrPut(option) { builder(option) }
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

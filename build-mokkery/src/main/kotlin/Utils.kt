@@ -9,7 +9,19 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+import java.net.URI
 import java.util.*
+
+const val testingRepoName = "testing"
+
+val Project.testingRepoUrl: URI
+    get() = rootProject
+    .layout
+    .buildDirectory
+    .dir("testing-repository")
+    .get()
+    .asFile
+    .toURI()
 
 fun Project.loadLocalProperties() {
     val secretPropsFile = rootProject.file("local.properties")

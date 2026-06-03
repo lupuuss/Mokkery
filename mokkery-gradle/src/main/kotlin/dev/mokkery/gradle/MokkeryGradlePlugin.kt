@@ -9,7 +9,6 @@ import dev.mokkery.internal.options.MokkeryOptionProjection
 import dev.mokkery.internal.options.MokkeryOptions
 import dev.mokkery.internal.options.MokkeryOptionsContainer
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
@@ -51,7 +50,13 @@ public class MokkeryGradlePlugin : BaseMokkeryGradlePlugin() {
             .create("mokkery", MokkeryGradleExtension::class.java)
         mokkery.rule.convention(ApplicationRule.AllTests)
         applyOptionConventions(target)
-        target.configureDependencies()
+        target.afterEvaluate { project ->
+            sourceSetsForDependencies(project).forEach {
+                it.dependencies {
+                    implementation(RUNTIME_DEPENDENCY)
+                }
+            }
+        }
         super.apply(target)
     }
 
@@ -87,23 +92,6 @@ public class MokkeryGradlePlugin : BaseMokkeryGradlePlugin() {
                     " Please report any issues at https://github.com/lupuuss/Mokkery/issues!" +
                     " To hide this message, add 'dev.mokkery.versionWarnings=false' to the Gradle properties."
             logger.warn(log, compiledKotlinVersion, currentKotlinVersion)
-        }
-    }
-
-    private fun Project.configureDependencies() {
-        afterEvaluate {
-            val rule = mokkery.rule.get()
-            val applicableSourceSets = kotlinExtension
-                .sourceSets
-                .filter { rule.isApplicable(it) }
-            applicableSourceSets
-                .filter { sourceSet -> sourceSet.dependsOn.none { it in applicableSourceSets } }
-                .forEach {
-                    mokkeryInfo("Runtime dependency $RUNTIME_DEPENDENCY applied to sourceSet: ${it.name}! ")
-                    it.dependencies {
-                        implementation(RUNTIME_DEPENDENCY)
-                    }
-                }
         }
     }
 

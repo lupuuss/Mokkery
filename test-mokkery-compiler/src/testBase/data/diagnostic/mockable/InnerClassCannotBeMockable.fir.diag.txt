@@ -1,0 +1,1 @@
+/InnerClassCannotBeMockable.kt:(73,104): error: Inner class cannot be made mockable.
