@@ -13,6 +13,7 @@ plugins {
 
 dependencies {
     compileOnly(kotlin("gradle-plugin"))
+    compileOnly(libs.kotlin.stdlib)
     api(project(":mokkery-core"))
     api(project(":mokkery-core-tooling"))
 }

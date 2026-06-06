@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id("mokkery-multiplatform")
     id("mokkery-publish")
@@ -6,6 +8,7 @@ plugins {
 kotlin {
     explicitApi()
     optInMokkeryDelicateAndInternals()
+    setKotlinCompatibility(KotlinVersion.KOTLIN_2_2)
 }
 
 dependencies {
