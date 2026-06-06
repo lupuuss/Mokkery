@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     kotlin("jvm")
     id("com.github.gmazzo.buildconfig")
@@ -8,6 +10,8 @@ plugins {
 kotlin {
     explicitApi()
     optInMokkeryDelicateAndInternals()
+    setKotlinCompatibility(KotlinVersion.KOTLIN_2_2)
+    compilerOptions.freeCompilerArgs.add("-Xcontext-parameters")
 }
 
 dependencies {
