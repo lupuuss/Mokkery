@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm")
     kotlin("kapt")
+    id("mokkery-jvm")
     id("mokkery-publish")
 }
 

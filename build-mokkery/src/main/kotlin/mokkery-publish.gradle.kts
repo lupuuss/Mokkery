@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import MokkeryAttributes.GitConnectionUrl
 import MokkeryAttributes.GitDevConnectionUrl
 import MokkeryAttributes.GitHttpsUrl
@@ -16,7 +18,7 @@ loadLocalProperties()
 
 dokka.dokkaSourceSets.configureEach {
     sourceLink {
-        localDirectory = rootDir
+        localDirectory = project.isolated.rootProject.projectDirectory.asFile
         remoteUrl = URI("${GitHttpsUrl}/tree/master")
         remoteLineSuffix ="#L"
     }
@@ -25,10 +27,7 @@ dokka.dokkaSourceSets.configureEach {
 publishing.repositories {
     maven {
         name = "testing"
-        url = rootProject.layout
-            .buildDirectory
-            .dir("testing-repository")
-            .let(::uri)
+        url = uri(project.isolated.rootProject.projectDirectory.dir("build/testing-repository").asFile)
     }
 }
 

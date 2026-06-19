@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    id("mokkery-jvm")
     // no publishing - it's embedded into the plugin
 }
 

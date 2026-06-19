@@ -5,9 +5,9 @@ import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
-    kotlin("jvm")
-    id("com.github.gmazzo.buildconfig")
+    id("mokkery-jvm")
     id("mokkery-publish")
+    id("com.github.gmazzo.buildconfig")
     alias(libs.plugins.gradle.portal.publish)
 }
 
@@ -64,8 +64,8 @@ gradlePlugin {
     website.set(MokkeryAttributes.WebsiteUrl)
     vcsUrl.set(MokkeryAttributes.GitVscUrl)
     plugins {
-        create(rootProject.name) {
-            id = rootProject.extra["pluginId"] as String
+        create("mokkery") {
+            id = MokkeryAttributes.PluginId
             displayName = MokkeryAttributes.DisplayName
             description = MokkeryAttributes.Description
             version = project.version

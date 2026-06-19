@@ -1,8 +1,4 @@
 
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     alias(libs.plugins.dokka)
 }
@@ -19,35 +15,6 @@ buildscript {
     dependencies {
         classpath(":build-mokkery")
         classpath(libs.dokka.base)
-    }
-}
-
-rootProject.group = "dev.mokkery"
-
-rootProject.ext["pluginId"] = "dev.mokkery"
-
-allprojects {
-    group = rootProject.group
-    version = rootProject.version
-    afterEvaluate {
-        extensions
-            .findByType<KotlinProjectExtension>()
-            ?.jvmToolchain(17)
-        val javaVersion = JavaVersion.VERSION_1_8
-        tasks
-            .withType<JavaCompile>()
-            .configureEach {
-                sourceCompatibility = javaVersion.toString()
-                targetCompatibility = javaVersion.toString()
-            }
-        tasks
-            .withType<KotlinCompile>()
-            .configureEach {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
-                    freeCompilerArgs.add("-Xjdk-release=$javaVersion")
-                }
-            }
     }
 }
 

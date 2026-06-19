@@ -1,7 +1,8 @@
-plugins {
-    kotlin("jvm")
-}
+@file:Suppress("UnstableApiUsage")
 
+plugins {
+    id("mokkery-jvm")
+}
 
 kotlin {
     optInMokkeryDelicateAndInternals()
@@ -65,8 +66,8 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         group = "verification"
         val testData = layout.projectDirectory.dir("src/${testBase.get().name}/data")
         val testsRoot = layout.projectDirectory.dir("src/test$alias/java")
-        systemProperty("testDataRoot", testData.asFile.relativeTo(rootDir))
-        systemProperty("testsRoot", testsRoot.asFile.relativeTo(rootDir))
+        systemProperty("testDataRoot", testData.asFile.relativeTo(project.isolated.rootProject.projectDirectory.asFile))
+        systemProperty("testsRoot", testsRoot.asFile.relativeTo(project.isolated.rootProject.projectDirectory.asFile))
         systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
         inputs
             .dir(testData)
@@ -77,7 +78,7 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
             .withPropertyName("generatedTestsRoot")
         classpath += sourceSet.get().runtimeClasspath
         mainClass.set("dev.mokkery.tests.GenerateTestsKt")
-        workingDir = rootDir
+        workingDir = project.isolated.rootProject.projectDirectory.asFile
     }
 
     tasks.register("test$alias", Test::class) {
@@ -90,10 +91,10 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
             .dir(layout.projectDirectory.dir("src/${testBase.get().name}/data"))
             .withPropertyName("testData")
             .withPathSensitivity(PathSensitivity.RELATIVE)
-        workingDir = rootDir
+        workingDir = project.isolated.rootProject.projectDirectory.asFile
         useJUnitPlatform()
         systemProperty("mokkery.runtimeClasspath", mokkeryRuntimeClasspath.get().asPath)
         systemProperty("idea.ignore.disabled.plugins", "true")
-        systemProperty("idea.home.path", rootDir)
+        systemProperty("idea.home.path", project.isolated.rootProject.projectDirectory.asFile)
     }
 }
