@@ -17,14 +17,14 @@ import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.templating.MokkeryTemplatingScope
 
-internal fun <T> internalEverySuspend(
+internal fun <T> MokkeryScope.internalEverySuspend(
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): SuspendAnsweringScope<T> = internalEvery<T> { runSuspension { block() } }.unsafeCast()
 
-internal fun <T> internalEvery(
+internal fun <T> MokkeryScope.internalEvery(
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
-    val scope = MokkeryScope.global.createTemplatingScope()
+    val scope = createTemplatingScope()
     scope.apply(block)
     val registry = scope.templatingRegistry
     val template = registry.templates.singleOrNull() ?: scope.singleCallExpectedError()

@@ -94,7 +94,8 @@ private fun replaceWithInternalEvery(
     irBlock {
         +irCall(toBeReplacedWith) {
             val templatingArgument = originalCall.arguments[0]
-            arguments[0] = when (templatingArgument) {
+            arguments[0] = irGetMokkeryScopeGlobal()
+            arguments[1] = when (templatingArgument) {
                 is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument, matchersCompiler)
                 is IrFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
                 else -> error("Unsupported templating argument!")
