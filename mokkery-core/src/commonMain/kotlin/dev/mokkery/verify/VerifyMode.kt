@@ -63,30 +63,50 @@ public object VerifyModeInternals {
      * Verify mode used by [VerifyMode.not].
      */
     @InternalMokkeryApi
-    public object Not : VerifyMode()
+    public object Not : VerifyMode() {
+
+        override fun toString(): String = "not"
+    }
 
     /**
      * Verify mode used by [VerifyMode.order]
      */
     @InternalMokkeryApi
-    public object Order : VerifyMode()
+    public object Order : VerifyMode() {
+
+        override fun toString(): String = "order"
+    }
 
     /**
      * Verify mode used by [VerifyMode.exhaustiveOrder]
      */
     @InternalMokkeryApi
-    public object ExhaustiveOrder : VerifyMode()
+    public object ExhaustiveOrder : VerifyMode() {
+
+        override fun toString(): String = "exhaustiveOrder"
+    }
 
     /**
      * Verify mode used by [VerifyMode.exhaustive]
      */
     @InternalMokkeryApi
-    public object Exhaustive : VerifyMode()
+    public object Exhaustive : VerifyMode() {
+        override fun toString(): String = "VerifyMode.exhaustive"
+    }
 
     /**
      * Verify mode used by [VerifyMode.soft], [VerifyMode.atLeast], [VerifyMode.atMost], [VerifyMode.exactly], [VerifyMode.inRange]
      */
     @InternalMokkeryApi
-    public data class Soft(val atLeast: Int, val atMost: Int) : VerifyMode()
+    public data class Soft(val atLeast: Int, val atMost: Int) : VerifyMode() {
+
+        override fun toString(): String = when {
+            atLeast == atMost -> "exactly(${atMost})"
+            atLeast == 1 && atMost == Int.MAX_VALUE -> "soft"
+            atMost == Int.MAX_VALUE -> "atLeast(${atLeast})"
+            atLeast == 1 -> "atMost(${atMost})"
+            else -> "inRange(${atLeast}..${atMost})"
+        }
+    }
 
 }
