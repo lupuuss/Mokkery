@@ -35,9 +35,6 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
 
     override fun visitClassNew(declaration: IrClass): IrStatement {
         declaration.transformChildrenVoid()
-        if (!declaration.isClass) return declaration
-        val mokkerySuiteScopeClass = referenced(MokkeryIr.Class.MokkerySuiteScope)
-        if (declaration.superTypes.none { it.getClass() == mokkerySuiteScopeClass }) return declaration
         declaration.overrideMokkerySuiteScopeIfNotOverridden()
         return declaration
     }

@@ -14,14 +14,18 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.statements
 
 context(scope: TransformerScope)
 fun IrClass.overrideMokkerySuiteScopeIfNotOverridden() {
-    val irClass = this
+    if (!isClass) return
     val mokkerySuiteScopeClass = referenced(MokkeryIr.Class.MokkerySuiteScope)
+    if (superTypes.none { it.getClass() == mokkerySuiteScopeClass }) return
+    val irClass = this
     val suiteNameClass = referenced(MokkeryIr.Class.SuiteName)
     val property = irClass.requirePropertyOwner("mokkeryContext")
     if (!property.isFakeOverride) return
