@@ -91,7 +91,7 @@ fun buildMockJsFunction(
                     IrMokkeryKind.Spy -> irNull()
                     IrMokkeryKind.Mock -> expression
                         .arguments[regularMockParams[0]!!]
-                        ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode.toString())
+                        ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode)
                 }
                 arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()
             })

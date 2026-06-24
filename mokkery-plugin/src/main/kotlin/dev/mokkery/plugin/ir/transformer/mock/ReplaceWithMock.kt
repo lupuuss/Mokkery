@@ -85,7 +85,7 @@ private fun IrBuilderWithScope.irMockConstructorCall(
         ?: irGetMokkeryScopeGlobal()
     arguments[1] = originalCall.arguments[regularParams[0]] ?: irGetEnumEntry(
         referenced(MokkeryIr.Class.MockMode),
-        configuration.defaultMockMode.toString()
+        configuration.defaultMockMode
     )
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     val anyType = irBuiltIns.anyType
