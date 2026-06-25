@@ -1,15 +1,21 @@
 package dev.mokkery.coroutines.answering
 
+import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendCallDefinitionScope
+import dev.mokkery.call
 import dev.mokkery.context.argValues
 import dev.mokkery.coroutines.internal.answering.AwaitAllDeferred
 import dev.mokkery.coroutines.internal.answering.AwaitCancellation
 import dev.mokkery.coroutines.internal.answering.AwaitDelayed
 import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
-import dev.mokkery.MokkerySuspendCallScope
-import dev.mokkery.call
+import dev.mokkery.internal.mokkeryInternals
+import dev.mokkery.internal.rendering.descriptionRenderer
+import dev.mokkery.internal.renderingScope
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -20,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
  * Represents an operation that can be awaited during a mocked function call.
  * Result of this operation is returned by the mocked function call.
  */
-public interface Awaitable<out T> {
+public interface Awaitable<out T> : Renderable {
 
     /**
      * Suspends current function call until the awaited result is available.
@@ -30,7 +36,13 @@ public interface Awaitable<out T> {
     /**
      * Provides a description of the awaitable action.
      */
-    public fun description(): String
+    @Deprecated("Implement `dev.mokkery.rendering.Renderable.render` instead.")
+    public fun description(): String = context(MokkeryScope.global.mokkeryInternals.renderingScope) {
+        render()
+    }
+
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = error("Not implemented.")
 
     public companion object {
 
@@ -72,7 +84,11 @@ public interface Awaitable<out T> {
          * Suspends for the specified duration and returns [value].
          */
         public fun <T> delayed(value: T, by: Duration = 1.seconds): Awaitable<T> {
-            return AwaitDelayed(duration = by, valueDescription = value::toString, value = { value })
+            return AwaitDelayed(
+                duration = by,
+                valueDescription = { mokkeryInternals.descriptionRenderer.render(value) },
+                value = { value }
+            )
         }
 
         /**

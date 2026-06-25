@@ -1,9 +1,12 @@
 package dev.mokkery.internal.matcher
 
+import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture
 import dev.mokkery.matcher.collections.CollectionArgMatchers
+import dev.mokkery.test.TestRenderer
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -129,18 +132,20 @@ class CompositeVarargMatcherTest {
     }
 
     @Test
-    fun testToStringIsCorrectWithOnlyStartingValues() {
+    fun testRenderIsCorrectWithOnlyStartingValues() {
         val matcher = CompositeVarArgMatcher(
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
             )
         )
-        assertEquals("[1, 2]", matcher.toString())
+        assertEquals(
+            expected = "[M(Equals(value=1)), M(Equals(value=2))]",
+            actual = testRendering(argMatcherRenderer) { matcher.render() })
     }
 
     @Test
-    fun testToStringIsCorrectWithStartingValuesAndWildcard() {
+    fun testRenderIsCorrectWithStartingValuesAndWildcard() {
         val matcher = CompositeVarArgMatcher(
             listOf(
                 ArgMatcher.Equals(1),
@@ -148,11 +153,14 @@ class CompositeVarargMatcherTest {
                 ArgMatcher.Any.spread(),
             )
         )
-        assertEquals("[1, 2, *any()]", matcher.toString())
+        assertEquals(
+            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcherImpl(matcher=Any))]",
+            actual = testRendering(argMatcherRenderer) { matcher.render() }
+        )
     }
 
     @Test
-    fun testToStringIsCorrectWithStartingValuesEndingValuesAndWildcard() {
+    fun testRenderIsCorrectWithStartingValuesEndingValuesAndWildcard() {
         val matcher = CompositeVarArgMatcher(
             listOf(
                 ArgMatcher.Equals(1),
@@ -162,7 +170,10 @@ class CompositeVarargMatcherTest {
                 ArgMatcher.Equals(4),
             )
         )
-        assertEquals("[1, 2, *any(), 3, 4]", matcher.toString())
+        assertEquals(
+            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcherImpl(matcher=Any)), M(Equals(value=3)), M(Equals(value=4))]",
+            actual = testRendering(argMatcherRenderer) { matcher.render() }
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -179,4 +190,6 @@ class CompositeVarargMatcherTest {
         assertEquals(listOf(1, 2), list1)
         assertEquals(listOf(3, 4), list2)
     }
+
+    private val argMatcherRenderer = TestRenderer<ArgMatcher<*>>(MokkeryRendering.argMatcherKey) { "M($it)" }
 }

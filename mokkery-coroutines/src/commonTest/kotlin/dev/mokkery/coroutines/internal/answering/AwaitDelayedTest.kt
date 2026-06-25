@@ -1,7 +1,8 @@
 package dev.mokkery.coroutines.internal.answering
 
-import dev.mokkery.coroutines.await
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.coroutines.await
+import dev.mokkery.coroutines.testRendering
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.advanceTimeBy
@@ -10,6 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -26,15 +28,15 @@ class AwaitDelayedTest {
     @Test
     fun testReturnsProvidedValueAfterTheDelay() = runTest {
         val result = async { awaitable.await() }
-        advanceTimeBy(500)
+        advanceTimeBy(500.milliseconds)
         assertFalse(result.isCompleted)
-        advanceTimeBy(501)
+        advanceTimeBy(501.milliseconds)
         assertTrue(result.isCompleted)
         assertEquals(1, result.await())
     }
 
     @Test
     fun testComposesProperDescription() {
-        assertEquals("delayed(by=1s, value=1)", awaitable.description())
+        assertEquals("delayed(by=1s, value=1)", testRendering { awaitable.render() })
     }
 }

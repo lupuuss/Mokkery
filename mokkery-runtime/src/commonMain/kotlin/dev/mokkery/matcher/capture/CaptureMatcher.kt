@@ -1,6 +1,9 @@
 package dev.mokkery.matcher.capture
 
+import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 /**
  * Matches an argument with [matcher] and captures arguments into [capture].
@@ -10,7 +13,7 @@ import dev.mokkery.matcher.ArgMatcher
 public class CaptureMatcher<T>(
     private val capture: Capture<T>,
     private val matcher: ArgMatcher<T>
-) : ArgMatcher.Composite<T> {
+) : ArgMatcher.Composite<T>, Renderable {
 
     override fun matches(arg: T): Boolean = matcher.matches(arg)
 
@@ -25,7 +28,8 @@ public class CaptureMatcher<T>(
 
     override fun hashCode(): Int = matcher.hashCode()
 
-    override fun toString(): String = "capture($capture, $matcher)"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "capture($capture, ${argMatcherRenderer.render(matcher)})"
 
     override fun capture(value: T) {
         capture.capture(value)

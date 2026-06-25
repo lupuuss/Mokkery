@@ -1,23 +1,21 @@
 package dev.mokkery.internal.matcher
 
+import dev.drewhamilton.poko.Poko
+import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 internal interface SpreadArgMatcher<T> : ArgMatcher<T>
 
 internal fun <T> ArgMatcher<T>.spread(): SpreadArgMatcher<T> = SpreadArgMatcherImpl(this)
 
-private class SpreadArgMatcherImpl<T>(private val matcher: ArgMatcher<T>) : SpreadArgMatcher<T> {
+@Poko
+private class SpreadArgMatcherImpl<T>(private val matcher: ArgMatcher<T>) : SpreadArgMatcher<T>, Renderable {
 
     override fun matches(arg: T): Boolean = matcher.matches(arg)
 
-    override fun toString(): String = "*$matcher"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "*${argMatcherRenderer.render(matcher)}"
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        other as SpreadArgMatcherImpl<T>
-        return matcher == other.matcher
-    }
-
-    override fun hashCode(): Int = matcher.hashCode()
 }

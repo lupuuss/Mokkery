@@ -1,5 +1,6 @@
 package dev.mokkery.matcher.collections
 
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -24,7 +25,7 @@ class ValueNotInIterableArgMatcherTest {
     }
 
     @Test
-    fun testToStringReturnsCorrectDescription() {
-        assertEquals("isNotIn(1, 2, 3)", matcher.toString())
+    fun testRenderReturnsCorrectDescription() {
+        assertEquals("isNotIn(1, 2, 3)", testRendering { matcher.render() })
     }
 }

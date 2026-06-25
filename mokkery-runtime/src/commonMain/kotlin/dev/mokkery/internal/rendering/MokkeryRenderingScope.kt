@@ -25,9 +25,3 @@ internal fun <R> MokkeryScope.withRenderingScope(
 internal fun MokkeryRenderingScope.configured(block: RenderingConfigurer.() -> Unit): MokkeryRenderingScope {
     return MokkeryRenderingScope(RenderingConfigurer(mokkeryContext).apply(block).context)
 }
-
-internal inline fun <R> withGlobalRenderingScope(block: context(MokkeryRenderingScope)() -> R): R {
-    return context(MokkeryScope.global.renderingScope) {
-        block()
-    }
-}

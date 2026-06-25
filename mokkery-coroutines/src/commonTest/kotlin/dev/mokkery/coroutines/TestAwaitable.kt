@@ -2,6 +2,7 @@ package dev.mokkery.coroutines
 
 import dev.mokkery.coroutines.answering.Awaitable
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.rendering.MokkeryRenderingScope
 
 class TestAwaitable<T>(
     var await: suspend (MokkerySuspendCallScope) -> T,
@@ -9,5 +10,6 @@ class TestAwaitable<T>(
 ) : Awaitable<T> {
     override suspend fun await(scope: MokkerySuspendCallScope): T = await.invoke(scope)
 
-    override fun description(): String = desc.invoke()
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String  = desc.invoke()
 }

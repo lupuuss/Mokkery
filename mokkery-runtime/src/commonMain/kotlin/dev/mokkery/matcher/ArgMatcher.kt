@@ -3,9 +3,10 @@ package dev.mokkery.matcher
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.rendering.descriptionRenderer
-import dev.mokkery.internal.rendering.withGlobalRenderingScope
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.matcher.capture.Capture
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 import kotlin.reflect.KClass
 
 /**
@@ -18,32 +19,35 @@ public fun interface ArgMatcher<in T> {
     /**
      * Matches any argument.
      */
-    public object Any : ArgMatcher<kotlin.Any?> {
+    public data object Any : ArgMatcher<kotlin.Any?>, Renderable {
 
         override fun matches(arg: kotlin.Any?): Boolean = true
 
-        override fun toString(): String = "any()"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "any()"
     }
 
     /**
      * Matches an argument that is equal to [value].
      */
     @Poko
-    public class Equals<T>(public val value: T) : ArgMatcher<T> {
+    public class Equals<T>(public val value: T) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg == value
 
-        override fun toString(): String = withGlobalRenderingScope { descriptionRenderer.render(value) }
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = descriptionRenderer.render(value)
     }
 
     /**
      * Matches an argument whose reference is equal to [value]'s reference.
      */
-    public class EqualsRef<T>(public val value: T) : ArgMatcher<T> {
+    public class EqualsRef<T>(public val value: T) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg === value
 
-        override fun toString(): String = "ref(${withGlobalRenderingScope { descriptionRenderer.render(value) }})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "ref(${descriptionRenderer.render(value)})"
     }
 
     /**
@@ -53,11 +57,11 @@ public fun interface ArgMatcher<in T> {
     public class Comparing<T>(
         public val value: T,
         public val type: Type,
-    ) : ArgMatcher<T> where T : Comparable<T> {
+    ) : ArgMatcher<T>, Renderable where T : Comparable<T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
-        override fun toString(): String =
-            "${type.toString().lowercase()}(${withGlobalRenderingScope { descriptionRenderer.render(value) }})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "${type.toString().lowercase()}(${descriptionRenderer.render(value)})"
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -68,11 +72,12 @@ public fun interface ArgMatcher<in T> {
      * Matches an argument that is instance of [type].
      */
     @Poko
-    public class OfType<T>(public val type: KClass<*>) : ArgMatcher<T> {
+    public class OfType<T>(public val type: KClass<*>) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = type.isInstance(arg)
 
-        override fun toString(): String = "ofType<${type.bestName()}>()"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "ofType<${type.bestName()}>()"
     }
 
     /**
@@ -97,11 +102,12 @@ public fun interface ArgMatcher<in T> {
      */
     @Poko
     @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
-    public class NotEqual<T>(public val value: T) : ArgMatcher<T> {
+    public class NotEqual<T>(public val value: T) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg != value
 
-        override fun toString(): String = "neq(${withGlobalRenderingScope { descriptionRenderer.render(value) }})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "neq(${descriptionRenderer.render(value)})"
     }
 
     /**
@@ -109,11 +115,12 @@ public fun interface ArgMatcher<in T> {
      * **DEPRECATED: This API is obsolete and will be removed!**
      */
     @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
-    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T> {
+    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg !== value
 
-        override fun toString(): String = "neqRef(${withGlobalRenderingScope { descriptionRenderer.render(value) }})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "neqRef(${descriptionRenderer.render(value)})"
     }
 
     /**
@@ -126,10 +133,11 @@ public fun interface ArgMatcher<in T> {
     public class Matching<T>(
         public val predicate: (T) -> Boolean,
         public val toStringFun: (() -> String)
-    ) : ArgMatcher<T> {
+    ) : ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = predicate(arg)
 
-        override fun toString(): String = toStringFun()
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = toStringFun()
     }
 }

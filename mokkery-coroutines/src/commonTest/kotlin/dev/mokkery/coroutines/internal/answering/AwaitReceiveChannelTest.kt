@@ -1,6 +1,7 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.mokkery.coroutines.await
+import dev.mokkery.coroutines.testRendering
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -21,6 +22,6 @@ class AwaitReceiveChannelTest {
 
     @Test
     fun testCreatesProperDescription() {
-        assertEquals("receive(from=Channel(capacity=0,data=[]))", awaitable.description())
+        assertEquals("receive(from=Channel(capacity=0,data=[]))", testRendering { awaitable.render() })
     }
 }

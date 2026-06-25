@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 class CallDescriptorRendererTest {
 
     private val valueRenderer = TestRenderer<Any?>(MokkeryRendering.descriptionKey) { it.toString() }
-    private val matcherRenderer = TestRenderer<ArgMatcher<*>>(MokkeryRendering.argMatcherKey) { it.toString() }
+    private val matcherRenderer = TestRenderer<ArgMatcher<*>>(MokkeryRendering.argMatcherKey) { "M($it)" }
     private val instanceIdRenderer = TestRenderer<MokkeryInstanceId>(MokkeryRendering.instanceIdKey) { it.toString() }
 
     @Test
@@ -70,7 +70,7 @@ class CallDescriptorRendererTest {
     fun testRenderGetterWithReceiverOffForMatchers() {
         assertRendered(
             renderReceiver = false,
-            expected = "(<receiver_1> = any(), <receiver_2> = any()).foo",
+            expected = "(<receiver_1> = M(Any), <receiver_2> = M(Any)).foo",
             descriptor = testDescriptor(
                 getterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "<receiver_1>"), ArgMatcher.Any),
@@ -83,7 +83,7 @@ class CallDescriptorRendererTest {
     fun testRenderGetterWithReceiverOnForMatchers() {
         assertRendered(
             renderReceiver = true,
-            expected = "Mock(1).(<receiver_1> = any(), <receiver_2> = any()).foo",
+            expected = "Mock(1).(<receiver_1> = M(Any), <receiver_2> = M(Any)).foo",
             descriptor = testDescriptor(
                 getterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "<receiver_1>"), ArgMatcher.Any),
@@ -148,7 +148,7 @@ class CallDescriptorRendererTest {
     fun testRenderSetterWithReceiverOffForSingleMatcher() {
         assertRendered(
             renderReceiver = false,
-            expected = "foo = any()",
+            expected = "foo = M(Any)",
             descriptor = testDescriptor(
                 setterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "value"), ArgMatcher.Any),
@@ -160,7 +160,7 @@ class CallDescriptorRendererTest {
     fun testRenderSetterWithReceiverOnForForSingleMatcher() {
         assertRendered(
             renderReceiver = true,
-            expected = "Mock(1).foo = any()",
+            expected = "Mock(1).foo = M(Any)",
             descriptor = testDescriptor(
                 setterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "value"), ArgMatcher.Any),
@@ -172,7 +172,7 @@ class CallDescriptorRendererTest {
     fun testRenderSetterWithReceiverOffForMatchers() {
         assertRendered(
             renderReceiver = false,
-            expected = "(<receiver_1> = any(), <receiver_2> = any()).foo = any()",
+            expected = "(<receiver_1> = M(Any), <receiver_2> = M(Any)).foo = M(Any)",
             descriptor = testDescriptor(
                 setterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "<receiver_1>"), ArgMatcher.Any),
@@ -186,7 +186,7 @@ class CallDescriptorRendererTest {
     fun testRenderSetterWithReceiverOnForMatchers() {
         assertRendered(
             renderReceiver = true,
-            expected = "Mock(1).(<receiver_1> = any(), <receiver_2> = any()).foo = any()",
+            expected = "Mock(1).(<receiver_1> = M(Any), <receiver_2> = M(Any)).foo = M(Any)",
             descriptor = testDescriptor(
                 setterDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "<receiver_1>"), ArgMatcher.Any),
@@ -244,7 +244,7 @@ class CallDescriptorRendererTest {
     fun testRenderFunctionWithReceiverOffForMatchers() {
         assertRendered(
             renderReceiver = false,
-            expected = "foo(p1 = any(), p2 = any())",
+            expected = "foo(p1 = M(Any), p2 = M(Any))",
             descriptor = testDescriptor(
                 funcDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "p1"), ArgMatcher.Any),
@@ -257,7 +257,7 @@ class CallDescriptorRendererTest {
     fun testRenderFunctionWithReceiverOnForMatchers() {
         assertRendered(
             renderReceiver = true,
-            expected = "Mock(1).foo(p1 = any(), p2 = any())",
+            expected = "Mock(1).foo(p1 = M(Any), p2 = M(Any))",
             descriptor = testDescriptor(
                 funcDescriptor("foo"),
                 argDescriptor(fakeFunParam<Int>(name = "p1"), ArgMatcher.Any),

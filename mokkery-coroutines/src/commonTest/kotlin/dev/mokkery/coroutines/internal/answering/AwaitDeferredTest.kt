@@ -3,6 +3,7 @@ package dev.mokkery.coroutines.internal.answering
 import dev.mokkery.coroutines.await
 import dev.mokkery.coroutines.createMokkerySuspendCallScope
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.coroutines.testRendering
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.test.runTest
@@ -21,7 +22,7 @@ class AwaitDeferredTest {
 
     @Test
     fun testCallsDescriptionOnEachCall() {
-        assertEquals("description", awaitable.description())
+        assertEquals("description", testRendering { awaitable.render() })
         description = "new description"
         assertEquals("new description", awaitable.description())
     }

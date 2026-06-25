@@ -1,12 +1,12 @@
 package dev.mokkery.internal.defaults
 
 import dev.mokkery.context.CallArgument
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.MokkeryCollection
+import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
-import dev.mokkery.internal.instanceId
-import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeFunParam
@@ -75,7 +75,7 @@ class DefaultsMaterializerTest {
         assertEquals(template.parameters, resultTemplate.parameters)
         assertEquals(FakeExtractor, objectPassed)
         assertEquals(trace.args.map { it.value }, argumentsPassed)
-        val expectedMatchers = mapOf(
+        val expectedMatchers = mapOf<String, ArgMatcher<Int>>(
             "i" to ArgMatcher.Equals(1),
             "j" to MaterializedDefaultValueMatcher("Materialized!")
         )
@@ -110,7 +110,7 @@ class DefaultsMaterializerTest {
         assertEquals(template.parameters, resultTemplate.parameters)
         assertEquals(FakeExtractor, objectPassed)
         assertEquals(trace.args.map { it.value }, argumentsPassed)
-        val expectedMatchers = mapOf(
+        val expectedMatchers = mapOf<String, ArgMatcher<Int>>(
             "i" to MaterializedDefaultValueMatcher(3),
             "j" to ArgMatcher.Equals("Hello!")
         )

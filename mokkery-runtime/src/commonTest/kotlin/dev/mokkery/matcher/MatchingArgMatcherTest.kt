@@ -1,5 +1,6 @@
 package dev.mokkery.matcher
 
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -35,7 +36,7 @@ class MatchingArgMatcherTest {
     }
 
     @Test
-    fun testReturnsToStringFunResultOnToString() {
-        assertEquals("customMatcher()", matcher.toString())
+    fun testReturnsToStringFunResultOnRender() {
+        assertEquals("customMatcher()", testRendering { matcher.render() })
     }
 }

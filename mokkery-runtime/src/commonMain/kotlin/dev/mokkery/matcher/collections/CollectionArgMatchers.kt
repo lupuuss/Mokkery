@@ -4,7 +4,10 @@ import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 import kotlin.reflect.KClass
+
 
 /**
  * Contains matchers for collections
@@ -12,19 +15,21 @@ import kotlin.reflect.KClass
 public object CollectionArgMatchers {
 
     @Poko
-    public class ValueInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T> {
+    public class ValueInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg in iterable
 
-        override fun toString(): String = "isIn(${iterable.joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "isIn(${iterable.joinToString()})"
     }
 
     @Poko
-    public class ValueNotInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T> {
+    public class ValueNotInIterable<T>(public val iterable: Iterable<T>): ArgMatcher<T>, Renderable {
 
         override fun matches(arg: T): Boolean = arg !in iterable
 
-        override fun toString(): String = "isNotIn(${iterable.joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "isNotIn(${iterable.joinToString()})"
     }
 
     /**
@@ -33,7 +38,7 @@ public object CollectionArgMatchers {
      */
     @DelicateMokkeryApi
     @Poko
-    public class ContentEquals(public val array: Any): ArrayArgMatcher<Any?>() {
+    public class ContentEquals(public val array: Any): ArrayArgMatcher<Any?>(), Renderable {
 
         private val elements = requireNotNull(array.asListOrNull()) {
             "ContentEquals expects array but received $array!"
@@ -41,7 +46,8 @@ public object CollectionArgMatchers {
 
         override fun matchesElements(elements: List<Any?>): Boolean = elements == this.elements
 
-        override fun toString(): String = "contentEq(${array.asListOrNull().orEmpty().joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "contentEq(${array.asListOrNull().orEmpty().joinToString()})"
     }
 
     /**
@@ -50,31 +56,34 @@ public object CollectionArgMatchers {
     @Poko
     public class ContentDeepEquals<T>(
         @Poko.ReadArrayContent public val array: Array<T>
-    ): ArgMatcher<Array<T>> {
+    ): ArgMatcher<Array<T>>, Renderable {
 
         override fun matches(arg: Array<T>): Boolean = arg contentDeepEquals array
 
-        override fun toString(): String = "contentDeepEq(${array.asListOrNull().orEmpty().joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "contentDeepEq(${array.asListOrNull().orEmpty().joinToString()})"
     }
 
     @Poko
     public class ContainsAnyIterable<T>(
         public val predicate: (T) -> Boolean
-    ): ArgMatcher<Iterable<T>> {
+    ): ArgMatcher<Iterable<T>>, Renderable {
 
         override fun matches(arg: Iterable<T>): Boolean = arg.any(predicate)
 
-        override fun toString(): String = "containsAny(...)"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "containsAny(...)"
     }
 
     @Poko
     public class ContainsAllIterable<T>(
         public val predicate: (T) -> Boolean
-    ): ArgMatcher<Iterable<T>> {
+    ): ArgMatcher<Iterable<T>>, Renderable {
 
         override fun matches(arg: Iterable<T>): Boolean = arg.all(predicate)
 
-        override fun toString(): String = "containsAll(...)"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "containsAll(...)"
     }
 
     /**
@@ -88,11 +97,12 @@ public object CollectionArgMatchers {
     public class ContainsAnyArray<T : Any>(
         public val elementType: KClass<*>,
         public val predicate: (T) -> Boolean
-    ) : ArrayArgMatcher<T>() {
+    ) : ArrayArgMatcher<T>(), Renderable {
 
         override fun matchesElements(elements: List<T>): Boolean = elements.any(predicate)
 
-        override fun toString(): String = "containsAny${anyNameByElement(elementType)}(...)"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "containsAny${anyNameByElement(elementType)}(...)"
     }
 
     /**
@@ -103,11 +113,12 @@ public object CollectionArgMatchers {
     public class ContainsAllArray<T : Any>(
         public val elementType: KClass<*>,
         public val predicate: (T) -> Boolean
-    ) : ArrayArgMatcher<T>() {
+    ) : ArrayArgMatcher<T>(), Renderable {
 
         override fun matchesElements(elements: List<T>): Boolean = elements.all(predicate)
 
-        override fun toString(): String = "containsAll${allNameByElement(elementType)}(...)"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "containsAll${allNameByElement(elementType)}(...)"
     }
 }
 

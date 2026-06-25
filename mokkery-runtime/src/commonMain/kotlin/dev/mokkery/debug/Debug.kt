@@ -1,6 +1,7 @@
 package dev.mokkery.debug
 
 import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.answering.Answer
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
@@ -11,6 +12,8 @@ import dev.mokkery.internal.rendering.callTemplateRenderer
 import dev.mokkery.internal.rendering.callTraceRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.callTracing
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
@@ -74,9 +77,16 @@ private fun HierarchicalStringBuilder.answersSection(instance: MokkeryInstanceSc
         } else {
             instance.withRenderingScope(receiverRendering = false) {
                 answering.answers.forEach { (template, answer) ->
-                    line("${callTemplateRenderer.render(template)} ${answer.description()}")
+                    line("${callTemplateRenderer.render(template)} ${answer.renderOrDescription()}")
                 }
             }
         }
     }
+}
+
+@Suppress("DEPRECATION")
+context(scope: MokkeryRenderingScope)
+private fun Answer<*>.renderOrDescription(): String = when (this) {
+    is Renderable -> render()
+    else -> description()
 }

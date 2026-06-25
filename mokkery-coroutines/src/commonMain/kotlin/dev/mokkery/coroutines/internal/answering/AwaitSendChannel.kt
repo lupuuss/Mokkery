@@ -1,8 +1,9 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.drewhamilton.poko.Poko
-import dev.mokkery.coroutines.answering.Awaitable
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.coroutines.answering.Awaitable
+import dev.mokkery.rendering.MokkeryRenderingScope
 import kotlinx.coroutines.channels.SendChannel
 
 @Poko
@@ -16,5 +17,6 @@ internal class AwaitSendChannel<T>(
         toChannel.send(element(scope))
     }
 
-    override fun description(): String = "send(to=Channel($toChannel), ${elementDescription()})"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "send(to=Channel($toChannel), ${elementDescription()})"
 }

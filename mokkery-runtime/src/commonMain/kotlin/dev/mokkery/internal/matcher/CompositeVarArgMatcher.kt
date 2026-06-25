@@ -1,13 +1,16 @@
 package dev.mokkery.internal.matcher
 
+import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 internal data class CompositeVarArgMatcher(
     val matchers: List<ArgMatcher<Any?>>
-) : ArgMatcher.Composite<Any?> {
+) : ArgMatcher.Composite<Any?>, Renderable {
 
     private val wildCard: SpreadArgMatcher<Any?>? = matchers.filterIsInstance<SpreadArgMatcher<Any?>>().firstOrNull()
     private val before: List<ArgMatcher<Any?>> = if (wildCard != null) {
@@ -47,5 +50,6 @@ internal data class CompositeVarArgMatcher(
         wildCard?.propagateCapture(rest.toPlatformArrayOf(value))
     }
 
-    override fun toString(): String = "[${matchers.joinToString()}]"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "[${matchers.joinToString { argMatcherRenderer.render(it) }}]"
 }

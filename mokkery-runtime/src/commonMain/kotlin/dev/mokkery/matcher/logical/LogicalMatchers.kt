@@ -2,8 +2,11 @@ package dev.mokkery.matcher.logical
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 /**
  * Contains composite matchers for logical operations.
@@ -15,10 +18,11 @@ public object LogicalMatchers {
      */
     @DelicateMokkeryApi
     @Poko
-    public class And<T>(public val matchers: List<ArgMatcher<T>>): ArgMatcher.Composite<T> {
+    public class And<T>(public val matchers: List<ArgMatcher<T>>): ArgMatcher.Composite<T>, Renderable {
         override fun matches(arg: T): Boolean = matchers.all { it.matches(arg) }
 
-        override fun toString(): String = "and(${matchers.joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "and(${matchers.joinToString { argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)
@@ -32,10 +36,11 @@ public object LogicalMatchers {
     @Poko
     public class Or<T>(
         public val matchers: List<ArgMatcher<T>>
-    ): ArgMatcher.Composite<T> {
+    ): ArgMatcher.Composite<T>, Renderable {
         override fun matches(arg: T): Boolean = matchers.any { it.matches(arg) }
 
-        override fun toString(): String = "or(${matchers.joinToString()})"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "or(${matchers.joinToString { argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)
@@ -47,7 +52,7 @@ public object LogicalMatchers {
      */
     @DelicateMokkeryApi
     @Poko
-    public class Not<T>(public val matchers: List<ArgMatcher<T>>) : ArgMatcher.Composite<T> {
+    public class Not<T>(public val matchers: List<ArgMatcher<T>>) : ArgMatcher.Composite<T>, Renderable {
 
         @Deprecated(
             "This field should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
@@ -65,7 +70,8 @@ public object LogicalMatchers {
 
         override fun matches(arg: T): Boolean = matchers.none { it.matches(arg) }
 
-        override fun toString(): String = "not(${matchers.joinToString()}j)"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "not(${matchers.joinToString { argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)
