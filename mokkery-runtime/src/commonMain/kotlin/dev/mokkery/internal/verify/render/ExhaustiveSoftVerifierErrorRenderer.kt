@@ -1,25 +1,23 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.internal.rendering.callTemplateRenderer
 import dev.mokkery.internal.verify.ExhaustiveSoftVerifier
-import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class ExhaustiveSoftVerifierErrorRenderer(
-    private val templateRenderer: Renderer<CallTemplate>,
-    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults>,
-    private val unverifiedCallsRenderer: Renderer<List<CallTrace>>
-) : Renderer<ExhaustiveSoftVerifier.Error> {
+internal object ExhaustiveSoftVerifierErrorRenderer : Renderer<ExhaustiveSoftVerifier.Error> {
 
+    override val key get() = VerifyRendering.exhaustiveSoftVerifierError
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: ExhaustiveSoftVerifier.Error): String = buildString {
         when (value) {
             is ExhaustiveSoftVerifier.Error.NoMatch -> {
-                appendLine("No matching call for ${templateRenderer.render(value.templateMatchingResults.template)}!")
-                append(matchingResultsRenderer.render(value.templateMatchingResults))
+                appendLine("No matching call for ${callTemplateRenderer.render(value.templateMatchingResults.template)}!")
+                append(templateGroupedMatchingResults.render(value.templateMatchingResults))
             }
             is ExhaustiveSoftVerifier.Error.UnverifiedCalls -> {
-                append(unverifiedCallsRenderer.render(value.calls))
+                append(extraUnverifiedCalls.render(value.calls))
             }
         }
     }

@@ -1,12 +1,25 @@
 package dev.mokkery.internal.matcher
 
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.defaults.DefaultsMaterializer
 import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.tracing.CallTrace
 
 internal interface CallMatcher {
 
     fun match(trace: CallTrace, template: CallTemplate): CallMatchResult
+
+    fun interface Factory {
+
+        fun create(collection: MokkeryCollection): CallMatcher
+
+        companion object {
+
+            fun default(materializer: DefaultsMaterializer.Factory) = Factory {
+                CallMatcher(materializer.create(it))
+            }
+        }
+    }
 }
 
 internal enum class CallMatchResult {

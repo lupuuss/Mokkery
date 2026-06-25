@@ -1,5 +1,6 @@
 package dev.mokkery.internal.verify.render
 
+import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
@@ -7,14 +8,18 @@ import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class OrderVerifierErrorRendererTest {
 
-    private val templateRenderer = TestRenderer<CallTemplate> { "CALL_TEMPLATE" }
-    private val matchingResultsRenderer = TestRenderer<List<TemplateMatchingResult>> { "MATCHING_RESULTS" }
-    private val errorRenderer = OrderVerifierErrorRenderer(templateRenderer, matchingResultsRenderer)
+    private val templateRenderer = TestRenderer<CallTemplate>(MokkeryRendering.callTemplateKey) { "CALL_TEMPLATE" }
+    private val matchingResultsRenderer = TestRenderer<List<TemplateMatchingResult>>(
+        VerifyRendering.templateMatchingResults
+    ) { "MATCHING_RESULTS" }
+    private val context = templateRenderer + matchingResultsRenderer
+    private val renderer = OrderVerifierErrorRenderer
 
     @Test
     fun testRendersCorrectMessage() {
@@ -26,11 +31,13 @@ class OrderVerifierErrorRendererTest {
                 TemplateMatchingResult.NoMatch(fakeCallTemplate(id = 2))
             )
         )
-        errorRenderer.assert(error) {
-            """
-                Expected calls in specified order but not satisfied! Failed at 2. CALL_TEMPLATE!
-                MATCHING_RESULTS
-            """.trimIndent()
+        testRendering(context) {
+            renderer.assert(error) {
+                """
+                    Expected calls in specified order but not satisfied! Failed at 2. CALL_TEMPLATE!
+                    MATCHING_RESULTS
+                """.trimIndent()
+            }
         }
         assertEquals(error.failedAt, templateRenderer.recordedCalls.single())
         assertEquals(error.results, matchingResultsRenderer.recordedCalls.single())

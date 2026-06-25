@@ -1,15 +1,16 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.Renderer
+import dev.mokkery.internal.rendering.Renderer
 import dev.mokkery.internal.verify.ExhaustiveOrderVerifier
-import dev.mokkery.internal.verify.results.TemplateMatchingResult
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class ExhaustiveOrderVerifierErrorRenderer(
-    private val matchingResultsRenderer: Renderer<List<TemplateMatchingResult>>
-) : Renderer<ExhaustiveOrderVerifier.Error> {
+internal object ExhaustiveOrderVerifierErrorRenderer : Renderer<ExhaustiveOrderVerifier.Error> {
 
+    override val key get() = VerifyRendering.exhaustiveOrderVerifierError
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: ExhaustiveOrderVerifier.Error) = buildString {
         appendLine("Expected strict order of calls without unverified ones, but not satisfied!")
-        append(matchingResultsRenderer.render(value.results))
+        append(templateMatchingResults.render(value.results))
     }
 }

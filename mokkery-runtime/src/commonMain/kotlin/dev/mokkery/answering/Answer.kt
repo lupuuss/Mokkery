@@ -1,23 +1,23 @@
 package dev.mokkery.answering
 
 import dev.drewhamilton.poko.Poko
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
-import dev.mokkery.context.argValues
-import dev.mokkery.MokkeryBlockingCallScope
-import dev.mokkery.MokkeryCallScope
-import dev.mokkery.MokkeryScope
-import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
 import dev.mokkery.callOriginal
 import dev.mokkery.callSuper
-import dev.mokkery.self
 import dev.mokkery.context.argValue
+import dev.mokkery.context.argValues
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
-import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.rendering.descriptionRenderer
+import dev.mokkery.internal.rendering.withGlobalRenderingScope
+import dev.mokkery.self
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -119,7 +119,7 @@ public interface Answer<out T> {
 
         override fun call(scope: MokkeryCallScope): T = value
 
-        override fun description(): String = "returns ${MokkeryScope.global.tools.renderers.description.render(value)}"
+        override fun description(): String = "returns ${withGlobalRenderingScope { descriptionRenderer.render(value) }}"
     }
 
     /**

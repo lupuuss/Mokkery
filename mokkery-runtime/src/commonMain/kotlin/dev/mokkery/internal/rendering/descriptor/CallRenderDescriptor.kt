@@ -1,4 +1,4 @@
-package dev.mokkery.internal.render.descriptor
+package dev.mokkery.internal.rendering.descriptor
 
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.call
@@ -70,7 +70,6 @@ internal fun CallTemplate.asCallRenderDescriptor(): CallRenderDescriptor {
         }
     }
 }
-
 
 internal fun MokkeryCallScope.asCallRenderDescriptor(): CallRenderDescriptor {
     val scope = this

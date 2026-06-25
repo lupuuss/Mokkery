@@ -1,25 +1,25 @@
 package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
+import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.matcher.ArgMatcher
-import dev.mokkery.test.StubRenderer
-import dev.mokkery.test.TestDefaultsMaterializer
+import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeDefaultValueMatcher
 import dev.mokkery.test.fakeFunParam
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 
 class MatchersStatusRendererTest {
 
-    private val defaultsMaterializer = TestDefaultsMaterializer()
-    private val renderer = MatchersStatusRenderer(
-        materializer = defaultsMaterializer,
-        valueRenderer = StubRenderer("VALUE"),
-        matcherRenderer = StubRenderer("MATCHER"),
-    )
+    private val argMatcherRenderer = TestRenderer<ArgMatcher<*>>(MokkeryRendering.argMatcherKey) { "RENDERER_MATCHER" }
+    private val descriptionRenderer = TestRenderer<Any?>(MokkeryRendering.descriptionKey) { "RENDERER_VALUE" }
+    private val context = argMatcherRenderer + descriptionRenderer
+    private val renderer = MatchersStatusRenderer
+
     private val trace = fakeCallTrace(
         args = listOf(
             fakeCallArg(name = "a", value = "string"),
@@ -35,15 +35,17 @@ class MatchersStatusRendererTest {
             fakeFunParam<String>("b") to ArgMatcher.Any,
             fakeFunParam<String>("c") to ArgMatcher.Equals(listOf("a", "b", "c")),
         )
-        renderer.assert(template to trace) {
-            """
-                [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
-                [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
-                [-] c:
-                   expect: RENDERER_MATCHER
-                   actual: RENDERER_VALUE
-                
-            """.trimIndent()
+        testRendering(context) {
+            renderer.assert(template to trace) {
+                """
+                    [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
+                    [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
+                    [-] c:
+                       expect: RENDERER_MATCHER
+                       actual: RENDERER_VALUE
+
+                """.trimIndent()
+            }
         }
     }
 
@@ -52,20 +54,19 @@ class MatchersStatusRendererTest {
         val template = fakeCallTemplate(
             fakeFunParam<String>("a") to ArgMatcher.Equals("string"),
             fakeFunParam<String>("b") to ArgMatcher.Any,
-            fakeFunParam<String>("c") to fakeDefaultValueMatcher(),
+            fakeFunParam<String>("c") to MaterializedDefaultValueMatcher(listOf("a", "b", "c")),
         )
-        defaultsMaterializer.calls = { _, it ->
-            it.copy(matchers = it.matchers.plus("c" to MaterializedDefaultValueMatcher(listOf("a", "b", "c"))))
-        }
-        renderer.assert(template to trace) {
-            """
-                [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
-                [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
-                [-] c:
-                   expect: RENDERER_MATCHER
-                   actual: RENDERER_VALUE
-                
-            """.trimIndent()
+        testRendering(context) {
+            renderer.assert(template to trace) {
+                """
+                    [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
+                    [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
+                    [-] c:
+                       expect: RENDERER_MATCHER
+                       actual: RENDERER_VALUE
+
+                """.trimIndent()
+            }
         }
     }
 
@@ -76,20 +77,19 @@ class MatchersStatusRendererTest {
             fakeFunParam<String>("b") to ArgMatcher.Any,
             fakeFunParam<String>("c") to fakeDefaultValueMatcher(),
         )
-        defaultsMaterializer.calls = { _, it ->
-            it.copy(matchers = it.matchers.plus("c" to MaterializedDefaultValueMatcher(listOf("a", "b", "c"))))
-        }
-        renderer.assert(template to trace) {
-            """
-                [-] a:
-                   expect: RENDERER_MATCHER
-                   actual: RENDERER_VALUE
-                [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
-                [?] c:
-                   expect: default() => Cannot be determined, because other matchers don't match!
-                   actual: RENDERER_VALUE
-                
-            """.trimIndent()
+        testRendering(context) {
+            renderer.assert(template to trace) {
+                """
+                    [-] a:
+                       expect: RENDERER_MATCHER
+                       actual: RENDERER_VALUE
+                    [+] b: RENDERER_MATCHER ~ RENDERER_VALUE
+                    [?] c:
+                       expect: default() => Cannot be determined, because other matchers don't match!
+                       actual: RENDERER_VALUE
+
+                """.trimIndent()
+            }
         }
     }
 }

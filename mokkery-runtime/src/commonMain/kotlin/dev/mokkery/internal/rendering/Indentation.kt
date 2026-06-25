@@ -1,4 +1,4 @@
-package dev.mokkery.internal.render
+package dev.mokkery.internal.rendering
 
 internal fun indentationString(size: Int) = CharArray(size) { ' ' }.concatToString()
 

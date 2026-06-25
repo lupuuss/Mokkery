@@ -13,6 +13,16 @@ import dev.mokkery.internal.utils.unsafeCast
 internal interface DefaultsMaterializer {
 
     fun materialize(trace: CallTrace, template: CallTemplate): CallTemplate
+
+    fun interface  Factory {
+
+        fun create(instances: MokkeryCollection): DefaultsMaterializer
+
+        companion object {
+
+            fun default() = Factory(::DefaultsMaterializer)
+        }
+    }
 }
 
 internal fun DefaultsMaterializer(

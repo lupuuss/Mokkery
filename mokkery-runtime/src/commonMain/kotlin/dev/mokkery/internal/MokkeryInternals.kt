@@ -3,6 +3,8 @@ package dev.mokkery.internal
 import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.rendering.renderingScope
+import dev.mokkery.rendering.MokkeryRenderingScope
 import kotlin.jvm.JvmInline
 
 /**
@@ -27,3 +29,7 @@ public inline val <T : MokkeryScope> T.mokkeryInternals: MokkeryInternals<T>
 public fun MokkeryInternals<*>.resetMocksCounter() {
     scope.tools.mocksCounter.reset()
 }
+
+@InternalMokkeryApi
+public val MokkeryInternals<*>.renderingScope: MokkeryRenderingScope
+    get() = scope.renderingScope

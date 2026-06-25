@@ -12,6 +12,7 @@ import dev.mokkery.internal.tracing.withVerifySession
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.verify.Verifier
 import dev.mokkery.internal.verify.render.verifierError
+import dev.mokkery.internal.verify.render.verifyRendering
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
@@ -35,9 +36,8 @@ internal fun MokkeryScope.internalVerify(
             .verify(this.unverified, templates)
         when (result) {
             is Verifier.Result.Success -> result.verified.forEach { this.markVerified(it) }
-            is Verifier.Result.Failure -> {
-                val renderer = tools.renderers.verifierError(tools.namesShortener, instances)
-                throw AssertionError(renderer.render(result.error))
+            is Verifier.Result.Failure -> verifyRendering(instances) {
+                throw AssertionError(verifierError.render(result.error))
             }
         }
     }

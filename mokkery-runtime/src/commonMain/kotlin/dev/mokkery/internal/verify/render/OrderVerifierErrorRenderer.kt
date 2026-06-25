@@ -1,18 +1,18 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.internal.rendering.callTemplateRenderer
 import dev.mokkery.internal.verify.OrderVerifier
-import dev.mokkery.internal.verify.results.TemplateMatchingResult
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class OrderVerifierErrorRenderer(
-    private val templateRenderer: Renderer<CallTemplate>,
-    private val matchingResultsRenderer: Renderer<List<TemplateMatchingResult>>,
-) : Renderer<OrderVerifier.Error> {
+internal object OrderVerifierErrorRenderer : Renderer<OrderVerifier.Error> {
 
+    override val key get() = VerifyRendering.orderVerifierError
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: OrderVerifier.Error) = buildString {
         append("Expected calls in specified order but not satisfied! ")
-        appendLine("Failed at ${value.failedIndex + 1}. ${templateRenderer.render(value.failedAt)}!")
-        append(matchingResultsRenderer.render(value.results))
+        appendLine("Failed at ${value.failedIndex + 1}. ${callTemplateRenderer.render(value.failedAt)}!")
+        append(templateMatchingResults.render(value.results))
     }
 }

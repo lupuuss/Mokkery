@@ -5,11 +5,11 @@ package dev.mokkery
 import dev.mokkery.context.require
 import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
-import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.tracing.withVerifySession
-import dev.mokkery.internal.mokkeryIntrinsic
-import dev.mokkery.internal.verify.render.noMoreCallsError
+import dev.mokkery.internal.verify.render.noMoreCalls
+import dev.mokkery.internal.verify.render.verifyRendering
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
@@ -78,10 +78,9 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     collection.withVerifySession {
         sessions.forEach { (id, session) ->
             if (session.unverified.isNotEmpty()) {
-                val renderer = tools
-                    .renderers
-                    .noMoreCallsError(tools.namesShortener, collection)
-                throw AssertionError(renderer.render(id to unverified))
+               verifyRendering(collection) {
+                   throw AssertionError(noMoreCalls.render(id to unverified))
+               }
             }
         }
     }

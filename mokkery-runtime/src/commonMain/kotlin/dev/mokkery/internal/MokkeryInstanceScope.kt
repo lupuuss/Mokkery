@@ -19,7 +19,8 @@ import dev.mokkery.internal.interceptor.AnsweringInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.MokkeryCallHooks
-import dev.mokkery.internal.names.withShorterNames
+import dev.mokkery.internal.rendering.instanceIdRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
@@ -95,16 +96,15 @@ internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: 
 
 internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id
 
-internal val MokkeryInstanceScope.instanceIdString get() = tools
-    .renderers
-    .instanceId()
-    .render(instanceId)
+internal val MokkeryInstanceScope.instanceIdString
+    get() = withRenderingScope {
+        instanceIdRenderer.render(instanceId)
+    }
 
-internal val MokkeryInstanceScope.shortInstanceIdString get() = tools
-    .renderers
-    .instanceId(this.toMokkeryCollection().withShorterNames(tools.namesShortener))
-    .render(instanceId)
-
+internal val MokkeryInstanceScope.shortInstanceIdString
+    get(): String = withRenderingScope(instances = this.toMokkeryCollection()) {
+        instanceIdRenderer.render(instanceId)
+    }
 internal val MokkeryInstanceScope.spiedObject get() = instanceSpec.requireSpy().spiedObject
 
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {

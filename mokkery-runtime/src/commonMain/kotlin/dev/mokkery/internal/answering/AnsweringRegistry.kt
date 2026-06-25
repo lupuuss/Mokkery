@@ -15,13 +15,13 @@ import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.callTrace
+import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.toCallTrace
-import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.self
 import dev.mokkery.supers
@@ -92,14 +92,8 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             MockMode.autofill -> Answer.Autofill
             MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> {
-                val aliases = collection.withShorterNames(scope.tools.namesShortener)
-                throw CallNotMockedException(
-                    name = scope.tools
-                        .renderers
-                        .callTrace(aliases = aliases)
-                        .render(trace)
-                )
+            else -> scope.withRenderingScope(instances = collection) {
+                throw CallNotMockedException(name = callTraceRenderer.render(trace))
             }
         }
     }

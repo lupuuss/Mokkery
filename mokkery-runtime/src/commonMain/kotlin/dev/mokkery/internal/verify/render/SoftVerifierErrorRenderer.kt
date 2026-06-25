@@ -1,16 +1,16 @@
 package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.matcher.CallMatchResult
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.templating.CallTemplate
+import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.internal.rendering.callTemplateRenderer
 import dev.mokkery.internal.verify.SoftVerifier
-import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class SoftVerifierErrorRenderer(
-    private val templateRenderer: Renderer<CallTemplate>,
-    private val matchingResultsRenderer: Renderer<TemplateGroupedMatchingResults>,
-) : Renderer<SoftVerifier.Error> {
+internal object SoftVerifierErrorRenderer : Renderer<SoftVerifier.Error> {
 
+    override val key get() = VerifyRendering.softVerifierError
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: SoftVerifier.Error) = buildString {
         val atLeast = value.expectedAtLeast
         val atMost = value.expectedAtMost
@@ -29,8 +29,8 @@ internal class SoftVerifierErrorRenderer(
         } else {
             append(", but $callsCount occurred")
         }
-        appendLine(" for ${templateRenderer.render(value.templateMatchingResults.template)}!")
-        append(matchingResultsRenderer.render(value.templateMatchingResults))
+        appendLine(" for ${callTemplateRenderer.render(value.templateMatchingResults.template)}!")
+        append(templateGroupedMatchingResults.render(value.templateMatchingResults))
     }
 
 }

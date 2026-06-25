@@ -1,11 +1,11 @@
-package dev.mokkery.internal.render.descriptor
+package dev.mokkery.internal.rendering.descriptor
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertIsNot
 
-class FunctionRenderDescriptorTest {
+class FunctioNameRenderDescriptorTest {
 
     @Test
     fun testGetter() {

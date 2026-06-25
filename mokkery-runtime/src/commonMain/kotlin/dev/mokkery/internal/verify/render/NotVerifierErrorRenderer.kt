@@ -1,17 +1,20 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.Renderer
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
+import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.factory
 import dev.mokkery.internal.verify.NotVerifier
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class NotVerifierErrorRenderer(
-    private val templateRenderer: Renderer<CallTemplate>,
-    private val traceListRenderer: Renderer<List<CallTrace>>,
-) : Renderer<NotVerifier.Error> {
+internal object NotVerifierErrorRenderer : Renderer<NotVerifier.Error> {
 
+    override val key get() = VerifyRendering.notVerifierError
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: NotVerifier.Error) = buildString {
-        appendLine("Calls to ${templateRenderer.render(value.template)} were not expected, but occurred:")
+        val traceListRenderer = factory.points(item = callTraceRenderer)
+        appendLine("Calls to ${callTemplateRenderer.render(value.template)} were not expected, but occurred:")
         append(traceListRenderer.render(value.unexpectedCalls))
     }
 

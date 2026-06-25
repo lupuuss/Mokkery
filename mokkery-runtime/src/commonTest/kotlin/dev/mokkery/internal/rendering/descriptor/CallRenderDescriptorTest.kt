@@ -1,4 +1,4 @@
-package dev.mokkery.internal.render.descriptor
+package dev.mokkery.internal.rendering.descriptor
 
 import dev.mokkery.call
 import dev.mokkery.internal.MokkeryInstanceId

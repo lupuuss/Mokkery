@@ -3,8 +3,8 @@ package dev.mokkery.debug
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.interceptor.MokkeryCallListener
 import dev.mokkery.internal.context.suiteName
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.render.callScope
+import dev.mokkery.internal.rendering.callScopeRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 
 /**
  * Logs each mock call with [loggingFunction]. By default, the [loggingFunction] is [println].
@@ -28,12 +28,13 @@ public class MokkeryCallLogger(
 
 
     override fun onIntercept(scope: MokkeryCallScope) {
-        val renderer = scope.tools.renderers.callScope()
-        scope.suiteName
-            ?.let { "[$it] " }
-            .orEmpty()
-            .plus(renderer.render(scope))
-            .let(lineTransformer)
-            .let(loggingFunction)
+        scope.withRenderingScope {
+            scope.suiteName
+                ?.let { "[$it] " }
+                .orEmpty()
+                .plus(callScopeRenderer.render(scope))
+                .let(lineTransformer)
+                .let(loggingFunction)
+        }
     }
 }

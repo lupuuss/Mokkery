@@ -8,9 +8,10 @@ import dev.mokkery.internal.MockCallExpectedException
 import dev.mokkery.internal.MockFinalMemberCallException
 import dev.mokkery.internal.MockMemberCallResultAccessException
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.isMock
-import dev.mokkery.internal.render.functionName
+import dev.mokkery.internal.rendering.descriptor.FunctionRenderDescriptor
+import dev.mokkery.internal.rendering.functionRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.shortInstanceIdString
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
@@ -115,7 +116,6 @@ private fun mockCallExpectedError(
     call = functionName
 )
 
-private fun String.renderRawFunctionName(scope: MokkeryScope): String {
-    val renderer = scope.tools.renderers.functionName()
-    return renderer.render(this)
+private fun String.renderRawFunctionName(scope: MokkeryScope): String = scope.withRenderingScope {
+    functionRenderer.render(FunctionRenderDescriptor.parse(this))
 }

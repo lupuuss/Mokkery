@@ -5,11 +5,11 @@ import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.mokkeryScope
-import dev.mokkery.internal.render.callTemplate
-import dev.mokkery.internal.render.callTrace
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.callTracing
 
 /**
@@ -60,8 +60,9 @@ private fun HierarchicalStringBuilder.callsSection(instance: MokkeryInstanceScop
             line("")
             return@section
         }
-        val traceRenderer = instance.tools.renderers.callTrace(renderReceiver = false)
-        calls.forEach { line(traceRenderer.render(it)) }
+        instance.withRenderingScope(receiverRendering = false) {
+            calls.forEach { line(callTraceRenderer.render(it)) }
+        }
     }
 }
 
@@ -71,9 +72,10 @@ private fun HierarchicalStringBuilder.answersSection(instance: MokkeryInstanceSc
         if (answering.answers.isEmpty()) {
             line("")
         } else {
-            val templateRenderer = instance.tools.renderers.callTemplate(renderReceiver = false)
-            answering.answers.forEach { (template, answer) ->
-                line("${templateRenderer.render(template)} ${answer.description()}")
+            instance.withRenderingScope(receiverRendering = false) {
+                answering.answers.forEach { (template, answer) ->
+                    line("${callTemplateRenderer.render(template)} ${answer.description()}")
+                }
             }
         }
     }
