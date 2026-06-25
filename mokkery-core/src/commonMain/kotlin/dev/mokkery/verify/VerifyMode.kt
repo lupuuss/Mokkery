@@ -22,17 +22,17 @@ public sealed class VerifyMode {
         /**
          * Verifies that given calls occurred in exact same order and there is no more calls.
          */
-        public val exhaustiveOrder: VerifyMode = VerifyModeInternals.ExhaustiveOrder
+        public val exhaustiveOrder: VerifyMode get() = VerifyModeInternals.ExhaustiveOrder
 
         /**
          * Verifies that each function call occurred at least once in any order and there is no more calls.
          */
-        public val exhaustive: VerifyMode = VerifyModeInternals.Exhaustive
+        public val exhaustive: VerifyMode get() = VerifyModeInternals.Exhaustive
 
         /**
          * Verifies that each function call occurred at least once in any order. It allows unverified calls.
          */
-        public val soft: VerifyMode = VerifyModeInternals.Soft(atLeast = 1, atMost = Int.MAX_VALUE)
+        public val soft: VerifyMode get() = VerifyModeInternals.Soft(atLeast = 1, atMost = Int.MAX_VALUE)
 
         /**
          * Verifies that each function call occurred at least [n] times. It allows unverified calls.
