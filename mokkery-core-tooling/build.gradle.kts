@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
-    kotlin("jvm")
-    id("com.github.gmazzo.buildconfig")
+    id("mokkery-jvm")
     id("mokkery-publish")
+    id("com.github.gmazzo.buildconfig")
     alias(libs.plugins.poko)
 }
 
@@ -23,10 +23,10 @@ dependencies {
 buildConfig {
     val pluginProject = project(":mokkery-plugin")
     packageName("dev.mokkery.internal")
-    buildConfigField("String", "GROUP", str(rootProject.group))
-    buildConfigField("String", "VERSION", str(rootProject.version))
+    buildConfigField("String", "GROUP", str(project.group))
+    buildConfigField("String", "VERSION", str(project.version))
     buildConfigField("String", "RUNTIME", str("mokkery-runtime"))
-    buildConfigField("String", "PLUGIN_ID", str(rootProject.ext["pluginId"]))
+    buildConfigField("String", "PLUGIN_ID", str(MokkeryAttributes.PluginId))
     buildConfigField("String", "PLUGIN_ARTIFACT_ID", str(pluginProject.name))
     buildConfigField("String", "MINIMUM_KOTLIN_VERSION", str(libs.versions.kotlinMininumSupported.get()))
     buildConfigField("String", "COMPILED_KOTLIN_VERSION", str(libs.versions.kotlin.get()))

@@ -11,8 +11,9 @@ import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import java.util.*
 
+@Suppress("UnstableApiUsage")
 fun Project.loadLocalProperties() {
-    val secretPropsFile = rootProject.file("local.properties")
+    val secretPropsFile = project.isolated.rootProject.projectDirectory.file("local.properties").asFile
     if (secretPropsFile.exists()) {
         secretPropsFile.reader().use {
             Properties().apply {

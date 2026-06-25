@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
+    id("mokkery-base")
 }
 
 kotlin {

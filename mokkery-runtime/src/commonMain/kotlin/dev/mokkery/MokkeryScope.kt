@@ -15,11 +15,13 @@ public interface MokkeryScope {
     public companion object {
 
         @InternalMokkeryApi
-        public val global: MokkeryScope = object : MokkeryScope {
-
-            override val mokkeryContext: MokkeryContext = MokkeryTools.default()
-
-            override fun toString(): String = "MokkeryScope.global(mokkeryContext=$mokkeryContext)"
-        }
+        public val global: MokkeryScope = MokkeryScope(MokkeryTools.default())
     }
+}
+
+internal fun MokkeryScope(context: MokkeryContext): MokkeryScope = object : MokkeryScope {
+
+    override val mokkeryContext = context
+
+    override fun toString(): String = "MokkeryScope(mokkeryContext=$mokkeryContext)"
 }

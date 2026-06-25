@@ -1,5 +1,7 @@
 object MokkeryAttributes {
 
+    const val PluginId = "dev.mokkery"
+
     const val GitBase = "github.com/lupuuss/Mokkery"
     const val GitHttpsUrl = "https://$GitBase"
     const val GitVscUrl = "${GitHttpsUrl}.git"

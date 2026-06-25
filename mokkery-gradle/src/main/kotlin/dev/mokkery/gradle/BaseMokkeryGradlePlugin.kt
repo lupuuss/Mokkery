@@ -44,7 +44,9 @@ public abstract class BaseMokkeryGradlePlugin: KotlinCompilerPluginSupportPlugin
             .getOrNull()
             ?: return run {
                 val unsupportedCompilationWarning = project
-                    .findProperty("dev.mokkery.unsupportedCompilationWarnings")
+                    .providers
+                    .gradleProperty("dev.mokkery.unsupportedCompilationWarnings")
+                    .orNull
                     .toString()
                     .toBooleanStrictOrNull()
                     ?: true

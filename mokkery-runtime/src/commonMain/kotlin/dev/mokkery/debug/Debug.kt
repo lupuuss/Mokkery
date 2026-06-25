@@ -60,7 +60,7 @@ private fun HierarchicalStringBuilder.callsSection(instance: MokkeryInstanceScop
             line("")
             return@section
         }
-        val traceRenderer = instance.tools.renderers.callTrace()
+        val traceRenderer = instance.tools.renderers.callTrace(renderReceiver = false)
         calls.forEach { line(traceRenderer.render(it)) }
     }
 }

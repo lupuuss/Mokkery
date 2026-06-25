@@ -75,7 +75,10 @@ public class MokkeryGradlePlugin : BaseMokkeryGradlePlugin() {
             error("Current Kotlin version must be at least ${MokkeryConfig.MINIMUM_KOTLIN_VERSION}, but is $currentKotlinVersion! Downgrade Mokkery version or upgrade Kotlin version! Check https://mokkery.dev/docs/Setup#compatibility for compatibility guidelines!")
         }
         val compiledKotlinVersion = KotlinVersion(MokkeryConfig.COMPILED_KOTLIN_VERSION)
-        val versionWarnings = project.findProperty("dev.mokkery.versionWarnings")
+        val versionWarnings = project
+            .providers
+            .gradleProperty("dev.mokkery.versionWarnings")
+            .orNull
             .toString()
             .toBooleanStrictOrNull()
             ?: true

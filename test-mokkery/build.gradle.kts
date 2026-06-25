@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
-
 plugins {
     id("mokkery-multiplatform")
     alias(libs.plugins.kotlin.allopen)
@@ -10,7 +8,7 @@ allOpen {
 }
 
 configureCompilerPlugin(
-    "dev.mokkery",
+    MokkeryAttributes.PluginId,
     "ignoreFinalMembers" to "true",
     "stubs.allowConcreteClassInstantiation" to "true",
     "stubs.allowClassInheritance" to "true",

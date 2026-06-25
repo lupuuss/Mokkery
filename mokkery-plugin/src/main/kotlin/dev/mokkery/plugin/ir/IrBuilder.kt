@@ -72,6 +72,16 @@ fun IrBuilder.irGetEnumEntry(
     symbol = irClass.getEnumEntry(name).symbol
 )
 
+fun IrBuilder.irGetEnumEntry(
+    irClass: IrClass,
+    enum: Enum<*>
+): IrGetEnumValue = IrGetEnumValueImpl(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = irClass.defaultType,
+    symbol = irClass.getEnumEntry(enum.name).symbol
+)
+
 fun IrBuilder.irCallConstructor(
     constructor: IrConstructor,
     typeArguments: List<IrType> = emptyList(),
