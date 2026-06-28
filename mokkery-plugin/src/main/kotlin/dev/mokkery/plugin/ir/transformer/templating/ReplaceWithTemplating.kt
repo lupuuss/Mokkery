@@ -1,12 +1,10 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
-import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
-import dev.mokkery.plugin.defaultVerifyMode
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
@@ -14,13 +12,10 @@ import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
-import dev.mokkery.verify.VerifyMode
-import dev.mokkery.verify.VerifyModeInternals.Soft
+import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -32,7 +27,6 @@ import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
@@ -50,7 +44,6 @@ import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
@@ -94,7 +87,7 @@ private fun replaceWithInternalEvery(
     irBlock {
         +irCall(toBeReplacedWith) {
             val templatingArgument = originalCall.arguments[0]
-            arguments[0] = irGetMokkeryScopeGlobal()
+            arguments[0] = irGetMokkeryFileScope()
             arguments[1] = when (templatingArgument) {
                 is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument, matchersCompiler)
                 is IrFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
@@ -120,28 +113,11 @@ private fun replaceWithInternalVerify(
         +irCall(toBeReplacedWith) {
             arguments[0] = mokkeryScopeParam
                 ?.let(originalCall.arguments::get)
-                ?: irGetMokkeryScopeGlobal()
-            arguments[1] = mode ?: irGetVerifyMode(configuration.defaultVerifyMode)
+                ?: irGetMokkeryFileScope()
+            arguments[1] = mode ?: irNull()
             arguments[2] = irTemplatingLambdaFor(functionExpression = block, matchersCompiler = matchersCompiler)
         }
     }
-}
-
-context(scope: TransformerScope)
-private fun IrBuilderWithScope.irGetVerifyMode(verifyMode: VerifyMode) = when (verifyMode) {
-    is Soft -> irCallConstructor(verifyMode.toIrClass().primaryConstructor!!) {
-        arguments[0] = irInt(verifyMode.atLeast)
-        arguments[1] = irInt(verifyMode.atMost)
-    }
-    else -> irGetObject(verifyMode.toIrClass().symbol)
-}
-
-context(scope: TransformerScope)
-private fun VerifyMode.toIrClass(): IrClass {
-    val simpleName = this::class.simpleName
-    return referenced(MokkeryIr.Class.VerifyModeInternals)
-        .nestedClasses
-        .find { it.name.asString() == simpleName }!!
 }
 
 context(scope: TransformerScope)

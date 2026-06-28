@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ir.transformer.suite
+package dev.mokkery.plugin.ir.transformer.scope
 
 import dev.mokkery.plugin.core.ir.pluginContext
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
@@ -9,6 +9,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import dev.mokkery.plugin.ir.requirePropertyOwner
+import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irSetField
@@ -36,16 +37,15 @@ fun IrClass.overrideMokkerySuiteScopeIfNotOverridden() {
     val oldBody = constructor.body
     constructor.body = constructor.symbol.declarationIrBuilder {
         irBlockBody {
-            val testScopeFun = referenced(MokkeryIr.Function.MokkerySuiteScope)
-            val getContext = irCall(baseProperty.getter!!) {
-                arguments[0] = irCall(testScopeFun) {
-                    val testsScopeName = irCallConstructor(suiteNameClass.primaryConstructor!!) {
-                        arguments[0] = irString(irClass.kotlinFqName.asString())
-                    }
-                    arguments[0] = testsScopeName
+            val contextFun = referenced(MokkeryIr.Function.createSuiteContext)
+            val context = irCall(contextFun) {
+                arguments[0] = irGetMokkeryFileScope()
+                val testsScopeName = irCallConstructor(suiteNameClass.primaryConstructor!!) {
+                    arguments[0] = irString(irClass.kotlinFqName.asString())
                 }
+                arguments[1] = testsScopeName
             }
-            +irSetField(irGet(irClass.thisReceiver!!), newProperty.backingField!!, getContext)
+            +irSetField(irGet(irClass.thisReceiver!!), newProperty.backingField!!, context)
             oldBody?.statements?.forEach { it.unaryPlus() }
         }
     }

@@ -3,6 +3,7 @@ package dev.mokkery
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
+import dev.mokkery.internal.context.Settings
 
 /**
  * Base interface for all scopes that are based on [MokkeryContext].
@@ -15,7 +16,7 @@ public interface MokkeryScope {
     public companion object {
 
         @InternalMokkeryApi
-        public val global: MokkeryScope = MokkeryScope(MokkeryTools.default())
+        public val global: MokkeryScope = MokkeryScope(MokkeryTools.default() + Settings.default())
     }
 }
 

@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrCall

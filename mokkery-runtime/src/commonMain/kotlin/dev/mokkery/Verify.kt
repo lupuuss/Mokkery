@@ -3,10 +3,12 @@
 package dev.mokkery
 
 import dev.mokkery.context.require
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.internal.tracing.withVerifySession
 import dev.mokkery.internal.verify.render.noMoreCalls
 import dev.mokkery.internal.verify.render.verifyRendering
@@ -64,8 +66,8 @@ public fun MokkerySuiteScope.verifySuspend(
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
 public fun verifyNoMoreCalls(vararg mocks: Any) {
-    val instances = mocks.map(Any::requireInstanceScope)
-    MokkerySuiteScope(MokkeryInstancesRegistry(instances = instances)).verifyNoMoreCalls()
+    val instances = mocks.map(Any::requireInstanceScope).toMokkeryCollection()
+    MokkeryScope.global.verifyNoMoreCalls(instances)
 }
 
 /**
@@ -75,12 +77,16 @@ public fun MokkerySuiteScope.verifyNoMoreCalls() {
     val collection = mokkeryContext
         .require(MokkeryInstancesRegistry)
         .collection
+    verifyNoMoreCalls(collection)
+}
+
+private fun MokkeryScope.verifyNoMoreCalls(collection: MokkeryCollection) {
     collection.withVerifySession {
         sessions.forEach { (id, session) ->
             if (session.unverified.isNotEmpty()) {
-               verifyRendering(collection) {
-                   throw AssertionError(noMoreCalls.render(id to unverified))
-               }
+                verifyRendering(collection) {
+                    throw AssertionError(noMoreCalls.render(id to unverified))
+                }
             }
         }
     }

@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
+import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
@@ -46,6 +48,11 @@ import org.jetbrains.kotlin.utils.memoryOptimizedZip
 fun IrClass.requirePropertyOwner(name: String): IrProperty {
     val nameId = Name.identifier(name)
     return properties.first { it.name == nameId }
+}
+
+fun IrClass.requireFieldOwner(name: String): IrField {
+    val nameId = Name.identifier(name)
+    return fields.first { it.name == nameId }
 }
 
 fun IrClass.requirePropertyGetterOwner(name: String): IrSimpleFunction = requirePropertyOwner(name).getter!!

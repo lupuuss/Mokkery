@@ -18,7 +18,7 @@ import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
+import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -82,7 +82,7 @@ private fun IrBuilderWithScope.irMockConstructorCall(
     arguments[0] = originalCall.symbol.owner
         .findExtensionParam()
         ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryScopeGlobal()
+        ?: irGetMokkeryFileScope()
     arguments[1] = originalCall.arguments[regularParams[0]] ?: irGetEnumEntry(
         referenced(MokkeryIr.Class.MockMode),
         configuration.defaultMockMode
@@ -105,7 +105,7 @@ private fun IrBuilderWithScope.irSpyConstructorCall(
     arguments[0] = originalCall.symbol.owner
         .findExtensionParam()
         ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryScopeGlobal()
+        ?: irGetMokkeryFileScope()
     arguments[1] = irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     arguments[3] = originalCall.arguments[regularParams[0]]

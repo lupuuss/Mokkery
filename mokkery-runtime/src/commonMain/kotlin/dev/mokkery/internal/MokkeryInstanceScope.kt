@@ -13,6 +13,7 @@ import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
+import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
@@ -68,7 +69,10 @@ internal fun MokkeryScope.createInstanceContext(
             typeArguments = typeArguments,
             thisRef = thisRef,
             spiedObject = spiedObject,
-            mode = mode,
+            mode = when {
+                spiedObject != null -> null
+                else -> mode ?: settings.defaultMockMode
+            },
         )
     )
     .plus(CallTracingRegistry())

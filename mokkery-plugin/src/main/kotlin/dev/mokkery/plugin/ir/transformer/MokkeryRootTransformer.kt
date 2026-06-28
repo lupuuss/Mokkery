@@ -4,13 +4,12 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
-import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
-import dev.mokkery.plugin.ir.transformer.suite.overrideMokkerySuiteScopeIfNotOverridden
+import dev.mokkery.plugin.ir.transformer.scope.overrideMokkerySuiteScopeIfNotOverridden
+import dev.mokkery.plugin.ir.transformer.scope.replaceMokkerySuiteScope
 import dev.mokkery.plugin.ir.transformer.templating.MatchersCompiler
 import dev.mokkery.plugin.ir.transformer.templating.replaceEvery
 import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
@@ -23,8 +22,6 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.isSubpackageOf
 import kotlin.time.TimeSource
@@ -56,6 +53,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.everySuspend -> expression.replaceEverySuspend(matchersCompiler)
             Mokkery.Name.verify -> expression.replaceVerify(matchersCompiler)
             Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
+            Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
             else -> expression
         }
     }

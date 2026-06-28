@@ -4,6 +4,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkeryScope
 import dev.mokkery.internal.annotations.Templating
+import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.templating.createTemplatingScope
 import dev.mokkery.internal.templating.participatingInstances
@@ -17,18 +18,19 @@ import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
 internal fun MokkeryScope.internalVerifySuspend(
-    mode: VerifyMode,
+    mode: VerifyMode?,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ) = internalVerify(mode) { runSuspension { block() } }
 
 internal fun MokkeryScope.internalVerify(
-    mode: VerifyMode,
+    mode: VerifyMode?,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ) {
     val scope = createTemplatingScope().apply(block)
     val instances = scope.participatingInstances
     val templates = scope.registeredTemplates
     if (templates.isEmpty()) throw SuspiciousEmptyVerifyBlockException()
+    val mode = mode ?: scope.settings.defaultVerifyMode
     instances.withVerifySession {
         val result = tools
             .verifierFactory

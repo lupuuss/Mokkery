@@ -32,6 +32,7 @@ object Mokkery {
         val verifySuspend by dev_mokkery.fqName
         val ext by dev_mokkery_templating.fqName
         val ctx by dev_mokkery_templating.fqName
+        val MokkerySuiteScope by dev_mokkery.fqName
     }
 
     object Callable {
