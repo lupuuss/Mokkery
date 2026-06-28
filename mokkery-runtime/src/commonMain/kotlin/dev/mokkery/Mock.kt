@@ -13,9 +13,11 @@ import dev.mokkery.internal.mokkeryIntrinsic
  * * interfaces (not sealed)
  * * function types
  * * Abstract/open classes.
+ *
+ * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
  */
 public fun <T : Any> mock(
-    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    mode: MockMode? = null,
     block: T.() -> Unit = { }
 ): T = mokkeryIntrinsic
 
@@ -30,6 +32,6 @@ public fun <T : Any> mock(
  * * Abstract/open classes.
  */
 public fun <T : Any> MokkerySuiteScope.mock(
-    mode: MockMode = MokkeryCompilerDefaults.mockMode,
+    mode: MockMode? = null,
     block: T.() -> Unit = { }
 ): T = mokkeryIntrinsic

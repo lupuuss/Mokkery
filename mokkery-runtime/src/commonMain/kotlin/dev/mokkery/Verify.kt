@@ -14,17 +14,21 @@ import dev.mokkery.verify.VerifyMode
  *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun verify(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**
  * Just like [verify], but allows suspendable function calls.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun verifySuspend(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
@@ -38,9 +42,11 @@ public fun verifySuspend(
  *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun MokkerySuiteScope.verify(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
@@ -48,9 +54,11 @@ public fun MokkerySuiteScope.verify(
  * Just like [verify], but allows suspendable function calls.
  *
  * If verify mode is exhaustive, mocks from [MokkerySuiteScope] are also checked.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun MokkerySuiteScope.verifySuspend(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
