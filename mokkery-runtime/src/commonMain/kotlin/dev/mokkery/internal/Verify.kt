@@ -4,6 +4,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.MokkeryScope
 import dev.mokkery.internal.annotations.Templating
+import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.templating.createTemplatingScope
@@ -12,6 +13,7 @@ import dev.mokkery.internal.templating.registeredTemplates
 import dev.mokkery.internal.tracing.withVerifySession
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.verify.Verifier
+import dev.mokkery.internal.verify.render.noMoreCalls
 import dev.mokkery.internal.verify.render.verifierError
 import dev.mokkery.internal.verify.render.verifyRendering
 import dev.mokkery.templating.MokkeryTemplatingScope
@@ -40,6 +42,21 @@ internal fun MokkeryScope.internalVerify(
             is Verifier.Result.Success -> result.verified.forEach { this.markVerified(it) }
             is Verifier.Result.Failure -> verifyRendering(instances) {
                 throw AssertionError(verifierError.render(result.error))
+            }
+        }
+    }
+}
+
+internal fun MokkeryScope.internalVerifyNoMoreCalls(vararg mocks: Any) {
+    val collection = mokkeryContext[MokkeryInstancesRegistry]
+        ?.collection
+        .orEmpty() + mocks.map(Any::requireInstanceScope).toMokkeryCollection()
+    collection.withVerifySession {
+        sessions.forEach { (id, session) ->
+            if (session.unverified.isNotEmpty()) {
+                verifyRendering(collection) {
+                    throw AssertionError(noMoreCalls.render(id to unverified))
+                }
             }
         }
     }

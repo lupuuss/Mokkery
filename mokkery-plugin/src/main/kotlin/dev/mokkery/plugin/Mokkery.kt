@@ -30,6 +30,7 @@ object Mokkery {
         val everySuspend by dev_mokkery.fqName
         val verify by dev_mokkery.fqName
         val verifySuspend by dev_mokkery.fqName
+        val verifyNoMoreCalls by dev_mokkery.fqName
         val ext by dev_mokkery_templating.fqName
         val ctx by dev_mokkery_templating.fqName
         val MokkerySuiteScope by dev_mokkery.fqName

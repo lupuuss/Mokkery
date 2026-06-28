@@ -3,7 +3,6 @@ package dev.mokkery.test
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.InternalMokkeryApi
-import dev.mokkery.internal.MokkeryInternals
 import dev.mokkery.internal.mokkeryInternals
 import dev.mokkery.internal.resetMocksCounter
 import dev.mokkery.mock
@@ -15,7 +14,7 @@ import dev.mokkery.verify.VerifyMode.Companion.exhaustiveOrder
 import dev.mokkery.verify.VerifyMode.Companion.inRange
 import dev.mokkery.verify.VerifyMode.Companion.not
 import dev.mokkery.verify.VerifyMode.Companion.order
-import kotlin.test.BeforeTest
+import dev.mokkery.verifyNoMoreCalls
 import kotlin.test.Test
 
 class VerifyTest {
@@ -340,5 +339,29 @@ class VerifyTest {
         }
     }
 
+    @Test
+    fun testVerifyNoMoreCallsDetectsUnverifiedCalls() {
+        mock.callPrimitive(1)
+        assertVerifiedWith(
+            """
+            Unverified calls for RegularMethodsInterface(1):
+            * RegularMethodsInterface(1).callPrimitive(input = 1)
+            
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock)
+        }
+    }
 
+    @Test
+    fun testVerifyNoMoreCallsPassWhenAllCallsVerified() {
+        mock.callPrimitive(1)
+        verify { mock.callPrimitive(1) }
+        verifyNoMoreCalls(mock)
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsPassWhenNoCalls() {
+        verifyNoMoreCalls(mock)
+    }
 }

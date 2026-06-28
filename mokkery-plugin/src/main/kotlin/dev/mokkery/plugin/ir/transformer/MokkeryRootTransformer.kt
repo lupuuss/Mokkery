@@ -14,6 +14,7 @@ import dev.mokkery.plugin.ir.transformer.templating.MatchersCompiler
 import dev.mokkery.plugin.ir.transformer.templating.replaceEvery
 import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
+import dev.mokkery.plugin.ir.transformer.templating.replaceVerifyNoMoreCalls
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifySuspend
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -53,6 +54,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.everySuspend -> expression.replaceEverySuspend(matchersCompiler)
             Mokkery.Name.verify -> expression.replaceVerify(matchersCompiler)
             Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
+            Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
             Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
             else -> expression
         }

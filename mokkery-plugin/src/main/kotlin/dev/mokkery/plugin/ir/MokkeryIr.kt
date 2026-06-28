@@ -76,6 +76,7 @@ object MokkeryIr {
         val internalEverySuspend by dev_mokkery_internal.refFunction
         val internalVerify by dev_mokkery_internal.refFunction
         val internalVerifySuspend by dev_mokkery_internal.refFunction
+        val internalVerifyNoMoreCalls by dev_mokkery_internal.refFunction
         val runTemplate by dev_mokkery_internal_templating.refFunction
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
         val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
