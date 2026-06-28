@@ -4,6 +4,8 @@ import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.Settings
+import dev.mokkery.internal.mokkeryIntrinsic
+import dev.mokkery.internal.requireInstanceScope
 
 /**
  * Base interface for all scopes that are based on [MokkeryContext].
@@ -17,6 +19,12 @@ public interface MokkeryScope {
 
         @InternalMokkeryApi
         public val global: MokkeryScope = MokkeryScope(MokkeryTools.default() + Settings.default())
+
+        @InternalMokkeryApi
+        public val file: MokkeryScope get() = mokkeryIntrinsic
+
+        @InternalMokkeryApi
+        public fun extract(mock: Any): MokkeryInstanceScope = mock.requireInstanceScope()
     }
 }
 

@@ -34,6 +34,7 @@ object Mokkery {
         val ext by dev_mokkery_templating.fqName
         val ctx by dev_mokkery_templating.fqName
         val MokkerySuiteScope by dev_mokkery.fqName
+        val MokkeryScopeCompanionFile = FqName("dev.mokkery.MokkeryScope.Companion.<get-file>")
     }
 
     object Callable {

@@ -4,7 +4,9 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
+import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
@@ -56,6 +58,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
             Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
             Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
+            Mokkery.Name.MokkeryScopeCompanionFile -> expression.replaceDeclarationIrBuilder { irGetMokkeryFileScope() }
             else -> expression
         }
     }
