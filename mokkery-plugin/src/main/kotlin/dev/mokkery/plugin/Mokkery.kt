@@ -10,12 +10,16 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_factory by fqName
+    val dev_mokkery_factory_configurer by fqName
     val dev_mokkery_verify by fqName
     val dev_mokkery_annotations by fqName
     val dev_mokkery_internal_annotations by fqName
     val dev_mokkery_templating by fqName
     val dev_mokkery_context by fqName
     val dev_mokkery_internal by fqName
+    val dev_mokkery_internal_factory by fqName
+    val dev_mokkery_internal_utils by fqName
     val dev_mokkery_internal_context by fqName
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_templating by fqName
@@ -33,6 +37,8 @@ object Mokkery {
         val verifyNoMoreCalls by dev_mokkery.fqName
         val ext by dev_mokkery_templating.fqName
         val ctx by dev_mokkery_templating.fqName
+        val mockFactoryOf by dev_mokkery_factory.fqName
+        val spyFactoryOf by dev_mokkery_factory.fqName
         val MokkerySuiteScope by dev_mokkery.fqName
         val MokkeryScopeCompanionFile = FqName("dev.mokkery.MokkeryScope.Companion.<get-file>")
     }
@@ -49,6 +55,8 @@ object Mokkery {
         val ctx by dev_mokkery_templating.callableId
         val matches by dev_mokkery_matcher.callableId
         val matchesComposite by dev_mokkery_matcher.callableId
+        val mockFactoryOf by dev_mokkery_factory.callableId
+        val spyFactoryOf by dev_mokkery_factory.callableId
     }
 
     object ClassId {

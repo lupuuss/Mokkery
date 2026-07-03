@@ -3,8 +3,8 @@
 package dev.mokkery.tests;
 
 import com.intellij.testFramework.TestDataPath;
-import org.jetbrains.kotlin.test.TestMetadata;
 import org.jetbrains.kotlin.test.util.KtTestUtil;
+import org.jetbrains.kotlin.test.TestMetadata;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -376,6 +376,44 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     @TestMetadata("TypeParametersCannotBeUsedWithMockFunctions.kt")
     public void testTypeParametersCannotBeUsedWithMockFunctions() {
       run("TypeParametersCannotBeUsedWithMockFunctions.kt");
+    }
+
+    @Nested
+    @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/factory")
+    @TestDataPath("$PROJECT_ROOT")
+    public class Factory {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/factory/" + fileName);
+      }
+
+      @Test
+      public void testAllFilesPresentInFactory() {
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock/factory"), Pattern.compile("^(.+)\\.kt$"), null, true);
+      }
+
+      @Test
+      @TestMetadata("MockFactoryOfArgumentsMustBeClassLiterals.kt")
+      public void testMockFactoryOfArgumentsMustBeClassLiterals() {
+        run("MockFactoryOfArgumentsMustBeClassLiterals.kt");
+      }
+
+      @Test
+      @TestMetadata("MockFactoryOfValidatesMockedTypes.kt")
+      public void testMockFactoryOfValidatesMockedTypes() {
+        run("MockFactoryOfValidatesMockedTypes.kt");
+      }
+
+      @Test
+      @TestMetadata("SpyFactoryOfArgumentsMustBeClassLiterals.kt")
+      public void testSpyFactoryOfArgumentsMustBeClassLiterals() {
+        run("SpyFactoryOfArgumentsMustBeClassLiterals.kt");
+      }
+
+      @Test
+      @TestMetadata("SpyFactoryOfValidatesMockedTypes.kt")
+      public void testSpyFactoryOfValidatesMockedTypes() {
+        run("SpyFactoryOfValidatesMockedTypes.kt");
+      }
     }
 
     @Nested

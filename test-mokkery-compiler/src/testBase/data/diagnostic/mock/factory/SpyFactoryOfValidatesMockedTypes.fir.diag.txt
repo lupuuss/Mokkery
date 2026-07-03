@@ -1,0 +1,5 @@
+/SpyFactoryOfValidatesMockedTypes.kt:(132,142): error: Type 'FinalClass' is final and cannot be used with 'spyFactoryOf'.
+
+/SpyFactoryOfValidatesMockedTypes.kt:(184,195): error: Type 'SealedClass' is sealed and cannot be used with 'spyFactoryOf'.
+
+/SpyFactoryOfValidatesMockedTypes.kt:(221,224): error: Type 'Int' is primitive and cannot be used with 'spyFactoryOf'.

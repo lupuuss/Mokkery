@@ -5,7 +5,9 @@ import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
+import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
+import dev.mokkery.plugin.ir.transformer.factory.replaceFactory
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
@@ -59,6 +61,8 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
             Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
             Mokkery.Name.MokkeryScopeCompanionFile -> expression.replaceDeclarationIrBuilder { irGetMokkeryFileScope() }
+            Mokkery.Name.mockFactoryOf -> expression.replaceFactory(IrMokkeryKind.Mock)
+            Mokkery.Name.spyFactoryOf -> expression.replaceFactory(IrMokkeryKind.Spy)
             else -> expression
         }
     }

@@ -3,11 +3,15 @@ package dev.mokkery.plugin.ir
 import dev.mokkery.plugin.Mokkery.dev_mokkery
 import dev.mokkery.plugin.Mokkery.dev_mokkery_annotations
 import dev.mokkery.plugin.Mokkery.dev_mokkery_context
+import dev.mokkery.plugin.Mokkery.dev_mokkery_factory
+import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_context
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_defaults
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_utils
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_verify
@@ -59,7 +63,10 @@ object MokkeryIr {
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
-        
+        val MockFactory by dev_mokkery_factory.refClass
+        val SpyFactory by dev_mokkery_factory.refClass
+        val InstanceFactoryConfigurer by dev_mokkery_factory_configurer.refClass
+
         fun mokkeryInstanceScope(kind: IrMokkeryKind) = when (kind) {
             Spy -> MokkerySpyScope
             Mock -> MokkeryMockScope
@@ -90,6 +97,7 @@ object MokkeryIr {
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
         val fileContext by dev_mokkery_internal.refFunction
+        val instanceFactoryScope by dev_mokkery_internal_factory.refFunction
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
@@ -104,6 +112,7 @@ object MokkeryIr {
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstance by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
+        val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction
     }
 
     object Property {

@@ -64,7 +64,7 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererC = CommonRenderers.STRING
         )
         it.put(
-            factory = Diagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
+            factory = Diagnostics.FUNCTIONAL_TYPE_ON_JS,
             message = "Type ''{0}'' is a functional type and it is not acceptable as an argument for ''{1}'' on JS platform.",
             rendererA = typeRenderer,
             rendererB = CommonRenderers.NAME
@@ -80,6 +80,11 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
                     StubError.renderer()
                 )
             ),
+        )
+        it.put(
+            factory = Diagnostics.NOT_A_CLASS_LITERAL,
+            message = "''{0}'' accepts only class literals (e.g. Foo::class) as arguments.",
+            rendererA = CommonRenderers.NAME,
         )
     }
 }
