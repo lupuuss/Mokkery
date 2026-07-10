@@ -9,7 +9,18 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+import java.net.URI
 import java.util.*
+
+const val testingRepoName = "testing"
+
+val Project.testingRepoUrl: URI
+    get() = project.isolated
+        .rootProject
+        .projectDirectory
+        .dir("build/testing-repository")
+        .asFile
+        .toURI()
 
 @Suppress("UnstableApiUsage")
 fun Project.loadLocalProperties() {

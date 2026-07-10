@@ -26,8 +26,8 @@ dokka.dokkaSourceSets.configureEach {
 
 publishing.repositories {
     maven {
-        name = "testing"
-        url = uri(project.isolated.rootProject.projectDirectory.dir("build/testing-repository").asFile)
+        name = testingRepoName
+        url = project.testingRepoUrl
     }
 }
 
