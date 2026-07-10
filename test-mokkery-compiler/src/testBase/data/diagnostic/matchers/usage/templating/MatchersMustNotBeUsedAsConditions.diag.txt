@@ -1,0 +1,39 @@
+/MatchersMustNotBeUsedAsConditions.kt:14:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:15:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:20:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:21:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:31:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:32:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:40:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:41:13: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:52:16: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:52:25: warning: Expression is unused.
+
+/MatchersMustNotBeUsedAsConditions.kt:53:16: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:53:32: warning: Expression is unused.
+
+/MatchersMustNotBeUsedAsConditions.kt:54:23: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:55:23: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:60:16: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:60:25: warning: Expression is unused.
+
+/MatchersMustNotBeUsedAsConditions.kt:61:16: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:61:32: warning: Expression is unused.
+
+/MatchersMustNotBeUsedAsConditions.kt:62:23: error: Matcher cannot be used as a condition.
+
+/MatchersMustNotBeUsedAsConditions.kt:63:23: error: Matcher cannot be used as a condition.

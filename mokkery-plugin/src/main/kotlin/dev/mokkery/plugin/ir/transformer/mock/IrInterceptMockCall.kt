@@ -7,6 +7,7 @@ import dev.mokkery.plugin.core.ir.transformer.referencedGetter
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.erasedUpperBound
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -14,9 +15,10 @@ import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
+import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irCallMapOf
+import dev.mokkery.plugin.ir.typeSubstitutionForOverridden
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -44,10 +46,8 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.ir.util.isVararg
-import org.jetbrains.kotlin.ir.util.makeTypeParameterSubstitutionMap
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
@@ -142,7 +142,7 @@ private fun IrBuilderWithScope.irCallSupersMap(function: IrSimpleFunction): IrCa
         ?.map { it.owner }
         ?: return null
     val superLambdas = supers.map { superFunction ->
-        val kClass = kClassReference(superFunction.parentAsClass.defaultType)
+        val kClass = kClassReference(superFunction.parentAsClass.defaultTypeErased)
         val lambda = createSuperCallLambda(function, superFunction)
         kClass to lambda
     }
@@ -159,7 +159,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
     function: IrSimpleFunction,
     superFunction: IrSimpleFunction
 ): IrExpression {
-    val substitutionMap = makeTypeParameterSubstitutionMap(superFunction, function)
+    val substitutionMap = function.typeSubstitutionForOverridden(superFunction)
     return irLambdaOf(superFunction.dynamicFunctionType(substitutionMap)) { lambda ->
         +irReturn(
             irDynamicCall(
@@ -184,7 +184,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
             function = spyFun,
             dispatchReceiver = spyObjectDelegate,
             argumentsList = { irGet(lambda.parameters[0]) },
-            substitutionMap = makeTypeParameterSubstitutionMap(spyFun, function)
+            substitutionMap = function.typeSubstitutionForOverridden(spyFun)
         )
     )
 }
@@ -195,12 +195,16 @@ private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
     function: IrSimpleFunction,
 ): IrFunctionExpression = irLambdaOf(function.dynamicFunctionType()) { lambda ->
     val args = Array(function.parameters.size) {
-        irCall(irBuiltIns.listClass.owner.getSimpleFunction("get")!!) {
-            arguments[0] = irGet(lambda.parameters[0])
-            arguments[1] = irInt(it)
-        }
+        irCallListGet(irGet(lambda.parameters[0]), it)
     }
-    +irReturn(irInvoke(function = delegateLambda, isSuspend = lambda.isSuspend, args = args))
+    +irReturn(
+        irInvoke(
+            function = delegateLambda,
+            isSuspend = lambda.isSuspend,
+            args = args,
+            returnType = function.returnType
+        )
+    )
 }
 
 context(scope: TransformerScope)
@@ -242,13 +246,12 @@ private fun IrBuilder.irDynamicCall(
     superQualifierSymbol = superQualifierSymbol,
 ) {
     arguments[0] = dispatchReceiver
-    function.typeParameters.forEachIndexed { i, type -> typeArguments[i] = type.defaultType }
+    function.typeParameters.forEachIndexed { i, param ->
+        typeArguments[i] = substitutionMap[param.symbol] ?: param.erasedUpperBound
+    }
     function.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
         arguments[irValueParameter] = irAs(
-            argument = irCall(irBuiltIns.listClass.owner.requireSimpleFunctionOwner("get")) {
-                arguments[0] = argumentsList()
-                arguments[1] = irInt(index)
-            },
+            argument = irCallListGet(argumentsList(), index),
             type = irValueParameter.type.substitute(substitutionMap)
         )
     }

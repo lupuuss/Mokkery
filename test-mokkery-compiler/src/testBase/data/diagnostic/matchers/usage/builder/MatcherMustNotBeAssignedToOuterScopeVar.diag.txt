@@ -1,0 +1,1 @@
+/MatcherMustNotBeAssignedToOuterScopeVar.kt:7:5: error: 'var foo: Int' is defined outside the templating scope and cannot be assigned using matchers.

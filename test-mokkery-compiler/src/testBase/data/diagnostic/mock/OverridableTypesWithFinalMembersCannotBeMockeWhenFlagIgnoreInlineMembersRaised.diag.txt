@@ -1,0 +1,11 @@
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:15:5: error: Type 'AbstractClass' has final members and cannot be used with 'spy'. Final members: fun finalMethod(): Unit
+
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:16:10: error: Type 'AbstractClass' has final members and cannot be used with 'mock'. Final members: fun finalMethod(): Unit
+
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:17:14: error: Type 'AbstractClass' has final members and cannot be used with 'mockMany'. Final members: fun finalMethod(): Unit
+
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:27:5: error: Type 'OpenClass' has final members and cannot be used with 'spy'. Final members: fun finalMethod(): Unit
+
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:28:10: error: Type 'OpenClass' has final members and cannot be used with 'mock'. Final members: fun finalMethod(): Unit
+
+/OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt:29:14: error: Type 'OpenClass' has final members and cannot be used with 'mockMany'. Final members: fun finalMethod(): Unit

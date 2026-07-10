@@ -1,0 +1,5 @@
+/MockFactoryOfValidatesMockedTypes.kt:8:19: error: Type 'FinalClass' is final and cannot be used with 'mockFactoryOf'.
+
+/MockFactoryOfValidatesMockedTypes.kt:9:19: error: Type 'SealedClass' is sealed and cannot be used with 'mockFactoryOf'.
+
+/MockFactoryOfValidatesMockedTypes.kt:10:19: error: Type 'Int' is primitive and cannot be used with 'mockFactoryOf'.

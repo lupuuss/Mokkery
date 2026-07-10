@@ -13,6 +13,7 @@ import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -192,7 +193,7 @@ private fun IrBuilderWithScope.irInterceptedConstructorCall(
     spyExpression: IrExpression?,
     blockExpression: IrExpression,
     typeExpression: IrExpression
-): IrConstructorCall = irCallConstructor(interceptedCls.primaryConstructor!!) {
+): IrConstructorCall = irCallConstructor(interceptedCls.primaryConstructor!!, interceptedCls.erasedTypeArguments) {
     arguments[0] = scopeExpression
     val typeArgsOffset = when (kind) {
         IrMokkeryKind.Mock -> {

@@ -28,9 +28,9 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
@@ -73,8 +74,21 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
-    memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
-        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
+    flattenArgumentTypes().forEachIndexed { index, it -> block(index, it?.eraseTypeParameters()) }
+}
+
+val IrClass.erasedTypeArguments: List<IrType> get() = typeArgumentsFrom(emptyList())
+
+fun IrClass.typeSubstitutionForSuperClass(superClass: IrClass): Map<IrTypeParameterSymbol, IrType>? {
+    if (this == superClass) return emptyMap()
+    superTypes.forEach { superType ->
+        val currentClass = superType.classOrNull?.owner ?: return@forEach
+        val currentSubstitution = superType.typeSubstitution
+        if (currentClass == superClass) return currentSubstitution
+        val substitution = currentClass.typeSubstitutionForSuperClass(superClass) ?: return@forEach
+        return substitution.mapValues { (_, type) -> type.substitute(currentSubstitution) }
+    }
+    return null
 }
 
 fun IrClass.addOverridingMethod(

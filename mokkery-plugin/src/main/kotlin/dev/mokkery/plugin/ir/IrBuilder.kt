@@ -49,6 +49,8 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
+import org.jetbrains.kotlin.ir.util.substitute
+import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.name.Name
 
 // use until resolved https://youtrack.jetbrains.com/issue/KT-66178/kClassReference-extension-returns-incorrect-IrClassReferenceImpl
@@ -84,7 +86,9 @@ fun IrBuilder.irCallConstructor(
     constructor: IrConstructor,
     typeArguments: List<IrType> = emptyList(),
     block: IrConstructorCall.() -> Unit = { }
-) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments).apply { block() }
+) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments)
+    .apply { block() }
+    .substituteDefaultType()
 
 fun IrBuilderWithScope.irLambdaOf(
     lambdaType: IrType,
@@ -123,11 +127,16 @@ fun IrBuilderWithScope.irLambdaOf(
 fun IrBuilder.irInvoke(
     function: IrExpression,
     isSuspend: Boolean,
-    vararg args: IrExpression
+    vararg args: IrExpression,
+    returnType: IrType? = null,
 ): IrFunctionAccessExpression {
     val functionClass =
         context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
-    return irCall(functionClass.invokeFun!!) {
+    val invokeFun = functionClass.invokeFun!!
+    val callType = returnType
+        ?: function.type.argumentTypes.lastOrNull()
+        ?: invokeFun.returnType
+    return irCall(invokeFun, callType) {
         arguments[0] = function
         args.forEachIndexed { index, arg ->
             arguments[index + 1] = arg
@@ -136,7 +145,7 @@ fun IrBuilder.irInvoke(
 }
 
 inline fun IrBuilder.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
-    return irCall(symbol, symbol.owner.returnType).apply(block)
+    return irCall(symbol, symbol.owner.returnType).apply(block).substituteDefaultType()
 }
 
 inline fun IrBuilder.irCall(
@@ -144,7 +153,20 @@ inline fun IrBuilder.irCall(
     type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCall(func.symbol, type).apply(block)
+    return irCall(func.symbol, type).apply(block).substituteDefaultType()
+}
+
+/**
+ * Applies type arguments of this expression to its type, if it was left as the declared return type of the callee.
+ *
+ * Without it, calls to generic functions keep a type that references type parameters of the callee,
+ * which is invalid IR outside of the callee scope.
+ */
+fun <E : IrFunctionAccessExpression> E.substituteDefaultType(): E = apply {
+    val callee = symbol.owner
+    if (type != callee.returnType) return@apply
+    if (typeArguments.isEmpty() || typeArguments.any { it == null }) return@apply
+    type = callee.returnType.substitute(typeSubstitutionMap)
 }
 
 fun IrBuilder.irCall(
@@ -162,7 +184,7 @@ fun IrBuilder.irCall(
     typeArgumentsCount = typeArgumentsCount,
     origin = origin,
     superQualifierSymbol = superQualifierSymbol
-).apply(block)
+).apply(block).substituteDefaultType()
 
 fun IrBuilder.irSetPropertyField(
     thisParam: IrValueParameter,

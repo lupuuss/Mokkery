@@ -1,0 +1,1 @@
+/MatchersMustNotBePassedToMethods.kt:13:14: error: Passing matchers to methods is not legal inside matcher builders.

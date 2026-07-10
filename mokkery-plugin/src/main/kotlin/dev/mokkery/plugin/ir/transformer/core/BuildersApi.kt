@@ -11,6 +11,7 @@ import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
+import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.defaultVerifyMode
 import dev.mokkery.plugin.ir.KotlinIr
@@ -47,6 +48,7 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.addArgument
@@ -100,6 +102,26 @@ fun IrBuilder.irCallListOf(
 ) = irCall(referenced(KotlinIr.Function.listOf)) {
     arguments[0] = irVararg(elementType = type, elements = elements)
     typeArguments[0] = type
+}
+
+context(scope: TransformerScope)
+fun IrBuilder.irCallListGet(
+    list: IrExpression,
+    index: Int
+): IrCall = irCall(irBuiltIns.listClass.owner.requireSimpleFunctionOwner("get"), irBuiltIns.anyNType) {
+    arguments[0] = list
+    arguments[1] = irInt(index)
+}
+
+context(scope: TransformerScope)
+fun IrBuilder.irCallEqMatcher(
+    value: IrExpression,
+    valueType: IrType
+): IrConstructorCall = irCallConstructor(
+    constructor = referencedPrimaryConstructor(MokkeryIr.Class.ArgMatcherEquals),
+    typeArguments = listOf(valueType)
+) {
+    arguments[0] = value
 }
 
 context(scope: TransformerScope)

@@ -1,0 +1,7 @@
+/MatchersMustNotBeUsedAsWhenSubject.kt:6:11: error: Matcher cannot be used as a when subject.
+
+/MatchersMustNotBeUsedAsWhenSubject.kt:9:19: error: Matcher cannot be used as a when subject.
+
+/MatchersMustNotBeUsedAsWhenSubject.kt:12:11: error: Matcher cannot be used as a when subject.
+
+/MatchersMustNotBeUsedAsWhenSubject.kt:15:19: error: Matcher cannot be used as a when subject.

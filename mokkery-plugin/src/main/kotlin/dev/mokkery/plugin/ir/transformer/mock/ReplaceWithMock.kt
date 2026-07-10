@@ -7,17 +7,20 @@ import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
 import dev.mokkery.plugin.ir.findRegularParameters
+import dev.mokkery.plugin.ir.flattenArgumentTypes
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.typeArgumentsFrom
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -71,7 +74,7 @@ context(scope: TransformerScope)
 private fun IrBuilderWithScope.irMockConstructorCall(
     cls: IrClass,
     originalCall: IrCall
-) = irCallConstructor(cls.primaryConstructor!!) {
+) = irCallConstructor(cls.primaryConstructor!!, cls.mockedClassTypeArguments(originalCall)) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = originalCall.arguments[regularParams[0]] ?: irNull()
@@ -88,7 +91,7 @@ context(scope: TransformerScope)
 private fun IrBuilderWithScope.irSpyConstructorCall(
     cls: IrClass,
     originalCall: IrCall,
-) = irCallConstructor(cls.primaryConstructor!!) {
+) = irCallConstructor(cls.primaryConstructor!!, cls.mockedClassTypeArguments(originalCall)) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = irNull()
@@ -101,3 +104,7 @@ private fun IrBuilderWithScope.irSpyConstructorCall(
             arguments[4 + index] = kClassReference(it ?: anyType)
         }
 }
+
+private fun IrClass.mockedClassTypeArguments(originalCall: IrCall): List<IrType> = typeArgumentsFrom(
+    originalCall.typeArguments.filterNotNull().flattenArgumentTypes()
+)

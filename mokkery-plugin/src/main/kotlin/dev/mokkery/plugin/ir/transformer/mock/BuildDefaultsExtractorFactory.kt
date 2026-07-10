@@ -15,6 +15,7 @@ import dev.mokkery.plugin.ir.addOverridingProperty
 import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
+import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irVararg
@@ -43,6 +44,7 @@ import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isInterface
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
@@ -143,7 +145,7 @@ private fun buildDefaultsExtractorFactoryClass(name: Name, constructor: IrConstr
     defaultsExtractorFactoryClassImpl.addOverridingMethod(
         context = pluginContext,
         function = defaultsExtractorFactoryInterface.requireSimpleFunctionOwner("createDefaultsExtractor"),
-        block = { +irReturn(irCallConstructor(constructor)) }
+        block = { +irReturn(irCallConstructor(constructor, constructor.parentAsClass.erasedTypeArguments)) }
     )
     defaultsExtractorFactoryClassImpl.addToCurrentFile()
     return defaultsExtractorFactoryClassImpl
@@ -157,7 +159,10 @@ private fun IrClass.addDefaultsExtractorConstructor(
         isPrimary = true
     }.apply {
         body = symbol.declarationIrBuilder.irBlockBody {
-            +irDelegatingConstructorWithStubs(classesToIntercept.firstOrNull { it.isClass })
+            +irDelegatingConstructorWithStubs(
+                irClass = classesToIntercept.firstOrNull { it.isClass },
+                subClass = this@addDefaultsExtractorConstructor
+            )
         }
     }
 }

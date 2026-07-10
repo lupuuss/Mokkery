@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.typeSubstitutionForSuperClass
 import dev.mokkery.plugin.stubsConfig
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
@@ -22,7 +23,8 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
-    irClass: IrClass?
+    irClass: IrClass?,
+    subClass: IrClass,
 ): IrDelegatingConstructorCall {
     val defaultConstructor = irClass?.defaultConstructor
     return when {
@@ -34,7 +36,8 @@ fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
                 val constructor = strategy
                     .provideConstructorWithStubs(
                         cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities
+                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
+                        substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
                     ) ?: failedToProvideStubsError(irClass)
                 irDelegatingConstructorWithStubs(constructor)
             }

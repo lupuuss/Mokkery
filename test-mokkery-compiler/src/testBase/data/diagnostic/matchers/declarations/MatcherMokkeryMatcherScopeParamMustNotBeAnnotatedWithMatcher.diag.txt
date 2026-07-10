@@ -1,0 +1,5 @@
+/MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt:7:9: error: Parameter of type 'MokkeryMatcherScope' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt:9:17: error: Parameter of type 'MokkeryMatcherScope' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherMokkeryMatcherScopeParamMustNotBeAnnotatedWithMatcher.kt:11:9: error: Parameter of type 'MokkeryMatcherScope' cannot be marked with @dev.mokkery.annotations.Matcher

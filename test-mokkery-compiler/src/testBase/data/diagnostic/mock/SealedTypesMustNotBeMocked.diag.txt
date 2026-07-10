@@ -1,0 +1,11 @@
+/SealedTypesMustNotBeMocked.kt:10:5: error: Type 'SealedClass' is sealed and cannot be used with 'spy'.
+
+/SealedTypesMustNotBeMocked.kt:11:10: error: Type 'SealedClass' is sealed and cannot be used with 'mock'.
+
+/SealedTypesMustNotBeMocked.kt:12:14: error: Type 'SealedClass' is sealed and cannot be used with 'mockMany'.
+
+/SealedTypesMustNotBeMocked.kt:16:5: error: Type 'SealedInterface' is sealed and cannot be used with 'spy'.
+
+/SealedTypesMustNotBeMocked.kt:17:10: error: Type 'SealedInterface' is sealed and cannot be used with 'mock'.
+
+/SealedTypesMustNotBeMocked.kt:18:14: error: Type 'SealedInterface' is sealed and cannot be used with 'mockMany'.

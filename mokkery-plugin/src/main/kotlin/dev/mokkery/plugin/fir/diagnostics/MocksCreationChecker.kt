@@ -385,8 +385,9 @@ class MocksCreationChecker(
     }
 
     context(context: CheckerContext)
-    private fun ConeKotlinType.isPossibleToStubByDefault() = context(context.session.typeContext) {
-        isNullableType()
+    private fun ConeKotlinType.isPossibleToStubByDefault(): Boolean {
+        val isNullable = context(context.session.typeContext) { isNullableType() }
+        return isNullable
                 || isAnyOf(defaultTypesToStub)
                 || isSomeFunctionType(context.session)
                 || toRegularClassSymbol()?.let { cls ->
@@ -399,7 +400,6 @@ class MocksCreationChecker(
                             || fqName.isSubpackageOf(Kotlin.kotlin_sequences)
                 } == true
                 || isSubtypeOfThrowable(context.session)
-
     }
 
     private fun FirRegularClassSymbol?.isRegularInterface(): Boolean = this?.classKind == ClassKind.INTERFACE && !this.isSealed

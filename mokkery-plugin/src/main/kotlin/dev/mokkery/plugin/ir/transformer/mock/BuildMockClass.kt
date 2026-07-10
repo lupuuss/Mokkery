@@ -196,7 +196,10 @@ private fun IrClass.addMockClassConstructor(
                 }
             }
         body = symbol.declarationIrBuilder.irBlockBody {
-            +irDelegatingConstructorWithStubs(classesToIntercept.firstOrNull { it.isClass })
+            +irDelegatingConstructorWithStubs(
+                irClass = classesToIntercept.firstOrNull { it.isClass },
+                subClass = this@addMockClassConstructor
+            )
             +irCall(referenced(MokkeryIr.Function.setupMokkeryInstance)) {
                 arguments[0] = irGet(receiverParam)
                 arguments[1] = irGet(parameters[0])

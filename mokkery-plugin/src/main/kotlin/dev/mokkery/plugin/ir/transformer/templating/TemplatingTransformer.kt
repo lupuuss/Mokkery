@@ -16,7 +16,8 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
+import dev.mokkery.plugin.ir.transformer.core.irCallEqMatcher
+import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
 import org.jetbrains.kotlin.backend.common.ir.inline
@@ -74,7 +75,6 @@ class TemplatingTransformer(
 
     private val functionParameterClass = referenced(MokkeryIr.Class.FunctionParameter)
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    private val argMatcherEqualsConstructor = referencedPrimaryConstructor(MokkeryIr.Class.ArgMatcherEquals)
     private val templatingParameterFun = referenced(MokkeryIr.Function.templatingFunctionParameter)
     private val defaultValuesMatcherConstructor = referencedPrimaryConstructor(MokkeryIr.Class.DefaultValuesMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
@@ -177,7 +177,7 @@ class TemplatingTransformer(
         param.isVararg -> replaceVararg(arg)
         arg == null -> irGet(defaultValueMatcherVar!!)
         arg.type.isMatcher() -> arg
-        else -> callEqMatcher(arg)
+        else -> irCallEqMatcher(arg, irBuiltIns.anyNType)
     }
 
     // the receiver is not necessarily a call - nested calls have to be found in any expression,
@@ -217,7 +217,7 @@ class TemplatingTransformer(
             expression.elements.map {
                 when (it) {
                     is IrSpreadElement -> spreadLiteralsAsMatchers(it)
-                    else -> callEqMatcher(it as IrExpression)
+                    else -> irCallEqMatcher(it as IrExpression, irBuiltIns.anyNType)
                 }
             }
         )
@@ -240,12 +240,6 @@ class TemplatingTransformer(
             type = argMatcherClass.typeWith(irBuiltIns.anyNType),
             elements = matchers
         )
-    }
-
-    private fun IrBuilderWithScope.callEqMatcher(
-        expression: IrExpression,
-    ) = irCallConstructor(argMatcherEqualsConstructor) {
-        arguments[0] = expression
     }
 
     private fun IrType.isMatcher(): Boolean {
@@ -301,10 +295,10 @@ class TemplatingTransformer(
         )
         return irLambdaOf(lambdaType) { func ->
             val substitutionMap = call.typeSubstitutionMap
-            +irCall(calledFunc) {
+            +irCall(calledFunc, calledFunc.returnType.substitute(substitutionMap)) {
+                call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
                 arguments[0] = irGet(func.parameters[0])
                 val list = irGet(func.parameters[1])
-                val getFunc = list.type.classOrFail.owner.requireSimpleFunctionOwner("get")
                 for (index in 1..<call.arguments.size) {
                     val params = call.symbol.owner.parameters
                     val arg = call.arguments[index]
@@ -312,10 +306,7 @@ class TemplatingTransformer(
                         arguments[index] = null
                     } else {
                         arguments[index] = irAs(
-                            argument = irCall(getFunc) {
-                                arguments[0] = list
-                                arguments[1] = irInt(index - 1)
-                            },
+                            argument = irCallListGet(list, index - 1),
                             type = params[index].type.substitute(substitutionMap)
                         )
                     }

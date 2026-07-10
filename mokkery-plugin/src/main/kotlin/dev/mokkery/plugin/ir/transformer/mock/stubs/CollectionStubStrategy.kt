@@ -1,9 +1,12 @@
 package dev.mokkery.plugin.ir.transformer.mock.stubs
 
+import dev.mokkery.plugin.core.ir.IrFunctionReferencer
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.ir.KotlinIr
+import dev.mokkery.plugin.ir.argumentTypes
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.typeArgumentsFrom
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.isCollection
@@ -14,13 +17,15 @@ object CollectionStubStrategy : StubStrategy {
 
     context(scope: StubStrategyScope)
     override fun provide(type: IrType): Stub? = when {
-        type.isIterable() || type.isCollection() || type.isList() -> emptyListStub()
-        type.isMutableIterable() || type.isMutableCollection() || type.isMutableList() -> mutableListStub()
-        type.isSet() -> emptySetStub()
-        type.isMutableSet() -> mutableSetStub()
-        type.isMap() -> emptyMapStub()
-        type.isMutableMap() -> mutableMapStub()
-        type.isSequence() -> emptySequenceStub()
+        type.isIterable() || type.isCollection() || type.isList() -> type.emptyStub(KotlinIr.Function.emptyList)
+        type.isMutableIterable() || type.isMutableCollection() || type.isMutableList() -> {
+            type.emptyStub(KotlinIr.Function.mutableListOf)
+        }
+        type.isSet() -> type.emptyStub(KotlinIr.Function.emptySet)
+        type.isMutableSet() -> type.emptyStub(KotlinIr.Function.mutableSetOf)
+        type.isMap() -> type.emptyStub(KotlinIr.Function.emptyMap)
+        type.isMutableMap() -> type.emptyStub(KotlinIr.Function.mutableMapOf)
+        type.isSequence() -> type.emptyStub(KotlinIr.Function.emptySequence)
         else -> null
     }
 
@@ -49,39 +54,11 @@ object CollectionStubStrategy : StubStrategy {
     private fun IrType.isMutableMap() = this.classOrNull == irBuiltIns.mutableMapClass
 
     context(scope: StubStrategyScope)
-    private fun emptyListStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.emptyList))
+    private fun IrType.emptyStub(function: IrFunctionReferencer) = stub {
+        val factory = referenced(function)
+        val factoryTypeArguments = factory.typeArgumentsFrom(argumentTypes)
+        scope.builder.irCall(factory) {
+            factoryTypeArguments.forEachIndexed { index, it -> typeArguments[index] = it }
+        }
     }
-
-    context(scope: StubStrategyScope)
-    private fun mutableListStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.mutableListOf))
-    }
-
-    context(scope: StubStrategyScope)
-    private fun emptySetStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.emptySet))
-
-    }
-
-    context(scope: StubStrategyScope)
-    private fun mutableSetStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.mutableSetOf))
-    }
-
-    context(scope: StubStrategyScope)
-    private fun emptyMapStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.emptyMap))
-    }
-
-    context(scope: StubStrategyScope)
-    private fun mutableMapStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.mutableMapOf))
-    }
-
-    context(scope: StubStrategyScope)
-    private fun emptySequenceStub() = stub {
-        scope.builder.irCall(referenced(KotlinIr.Function.emptySequence))
-    }
-
 }

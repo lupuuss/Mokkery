@@ -28,9 +28,6 @@ fun IrPluginContext.asMokkeryContext(): MokkeryContext = this.asMokkeryContext(p
 private val pluginContextKey = createValueKey<IrPluginContext>()
 
 context(scope: IrMokkeryPluginScope)
-inline val messageCollector get() = configuration.messageCollector
-
-context(scope: IrMokkeryPluginScope)
 inline val platform get() = pluginContext.platform
 
 context(scope: IrMokkeryPluginScope)
