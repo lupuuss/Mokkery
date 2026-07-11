@@ -6,7 +6,7 @@ import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
-import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryFileScope
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall

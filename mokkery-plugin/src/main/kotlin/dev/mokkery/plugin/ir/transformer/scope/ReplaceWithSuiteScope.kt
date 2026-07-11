@@ -5,7 +5,6 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 

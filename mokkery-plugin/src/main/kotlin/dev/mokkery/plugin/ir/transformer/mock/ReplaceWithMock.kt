@@ -10,7 +10,6 @@ import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
 import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -18,7 +17,7 @@ import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
-import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -79,10 +78,7 @@ private fun IrBuilderWithScope.irMockConstructorCall(
     originalCall: IrCall
 ) = irCallConstructor(cls.primaryConstructor!!) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
-    arguments[0] = originalCall.symbol.owner
-        .findExtensionParam()
-        ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryFileScope()
+    arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = originalCall.arguments[regularParams[0]] ?: irGetEnumEntry(
         referenced(MokkeryIr.Class.MockMode),
         configuration.defaultMockMode
@@ -102,10 +98,7 @@ private fun IrBuilderWithScope.irSpyConstructorCall(
     originalCall: IrCall,
 ) = irCallConstructor(cls.primaryConstructor!!) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
-    arguments[0] = originalCall.symbol.owner
-        .findExtensionParam()
-        ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryFileScope()
+    arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     arguments[3] = originalCall.arguments[regularParams[0]]

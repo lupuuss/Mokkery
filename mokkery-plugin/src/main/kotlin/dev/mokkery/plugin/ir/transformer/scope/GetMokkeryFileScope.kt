@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ir.transformer.file
+package dev.mokkery.plugin.ir.transformer.scope
 
 import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
@@ -8,6 +8,7 @@ import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.addToCurrentFile
 import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.defaultVerifyMode
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -38,13 +39,25 @@ import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.addArgument
+import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
+
+context(scope: TransformerScope)
+fun IrBuilderWithScope.irGetMokkeryScopeFor(call: IrCall): IrExpression {
+    val typeSystem = IrTypeSystemContextImpl(irBuiltIns)
+    val mokkeryScope = referencedDefaultType(MokkeryIr.Class.MokkeryScope)
+    val scopeParam = call.symbol.owner.parameters.find { it.type.isSubtypeOf(mokkeryScope, typeSystem) }
+    if (scopeParam == null) return irGetMokkeryFileScope()
+    return call.arguments[scopeParam]!!
+}
 
 context(scope: TransformerScope)
 fun IrBuilderWithScope.irGetMokkeryFileScope(): IrExpression {

@@ -8,14 +8,14 @@ import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
-import dev.mokkery.plugin.ir.transformer.file.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -104,16 +104,13 @@ private fun replaceWithInternalVerify(
     toBeReplacedWith: IrSimpleFunctionSymbol,
     matchersCompiler: MatchersCompiler
 ): IrExpression = originalCall.replaceDeclarationIrBuilder {
-    val mokkeryScopeParam = originalCall.symbol.owner.findExtensionParam()
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     val mode = originalCall.arguments[regularParams[0]]
     val block = originalCall.arguments[regularParams[1]]!!
     block as IrFunctionExpression
     irBlock {
         +irCall(toBeReplacedWith) {
-            arguments[0] = mokkeryScopeParam
-                ?.let(originalCall.arguments::get)
-                ?: irGetMokkeryFileScope()
+            arguments[0] = irGetMokkeryScopeFor(originalCall)
             arguments[1] = mode ?: irNull()
             arguments[2] = irTemplatingLambdaFor(functionExpression = block, matchersCompiler = matchersCompiler)
         }
