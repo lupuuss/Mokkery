@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 
 context(scope: TransformerScope)
 fun IrCall.replaceMokkerySuiteScope(): IrExpression = this.replaceDeclarationIrBuilder {
-    irCall(referenced(MokkeryIr.Function.createSuiteScope)) {
+    irCall(referenced(MokkeryIr.Function.suiteScope)) {
         arguments[0] = irGetMokkeryFileScope()
         arguments[1] = this@replaceMokkerySuiteScope.arguments[0]
     }

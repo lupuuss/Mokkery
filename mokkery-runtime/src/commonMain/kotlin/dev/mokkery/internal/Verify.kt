@@ -7,7 +7,7 @@ import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.templating.createTemplatingScope
+import dev.mokkery.internal.templating.templatingScope
 import dev.mokkery.internal.templating.participatingInstances
 import dev.mokkery.internal.templating.registeredTemplates
 import dev.mokkery.internal.tracing.withVerifySession
@@ -28,7 +28,7 @@ internal fun MokkeryScope.internalVerify(
     mode: VerifyMode?,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ) {
-    val scope = createTemplatingScope().apply(block)
+    val scope = templatingScope().apply(block)
     val instances = scope.participatingInstances
     val templates = scope.registeredTemplates
     if (templates.isEmpty()) throw SuspiciousEmptyVerifyBlockException()

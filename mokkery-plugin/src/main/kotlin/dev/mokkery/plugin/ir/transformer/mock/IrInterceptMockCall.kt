@@ -81,8 +81,8 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
             .let(::irCall)
             .apply { arguments[0] = mokkeryInstance }
         val scopeCreationFun = when {
-            function.isSuspend -> MokkeryIr.Function.createSuspendCallScope
-            else -> MokkeryIr.Function.createBlockingCallScope
+            function.isSuspend -> MokkeryIr.Function.suspendCallScope
+            else -> MokkeryIr.Function.blockingCallScope
         }
         val scopeCreationCall = irCall(referenced(scopeCreationFun)) {
             arguments[0] = mokkeryInstance

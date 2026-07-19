@@ -3,7 +3,7 @@ package dev.mokkery.internal.tracing
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryTools
-import dev.mokkery.internal.createBlockingCallScope
+import dev.mokkery.internal.blockingCallScope
 import dev.mokkery.internal.instanceId
 import dev.mokkery.test.TestCounter
 import dev.mokkery.test.TestMokkeryInstanceScope
@@ -239,7 +239,7 @@ class CallTracingRegistryTest {
         name: String,
         returnType: KClass<*>,
         vararg args: CallArgument
-    ) = createBlockingCallScope(
+    ) = blockingCallScope(
         name = name,
         returnType = returnType,
         args = args.asList()

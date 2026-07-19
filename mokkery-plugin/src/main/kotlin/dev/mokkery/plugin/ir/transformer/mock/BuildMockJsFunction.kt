@@ -58,7 +58,7 @@ fun buildMockJsFunction(
                 }
                 else -> expression.arguments[extMockParam]!!
             }
-            val instanceScopeFun = referenced(MokkeryIr.Function.createInstanceScope)
+            val instanceScopeFun = referenced(MokkeryIr.Function.instanceScope)
             // initialized later to properly pass js function reference to mokkery context and context back to function
             val instanceVar = createTmpVariable(
                 irExpression = irNull(),

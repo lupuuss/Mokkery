@@ -6,11 +6,11 @@ import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 
-internal fun MokkeryScope.createSuiteScope(
+internal fun MokkeryScope.suiteScope(
     context: MokkeryContext = MokkeryContext.Empty
-): MokkerySuiteScope = MokkerySuiteScopeImpl(createSuiteContext(context))
+): MokkerySuiteScope = MokkerySuiteScopeImpl(suiteContext(context))
 
-internal fun MokkeryScope.createSuiteContext(
+internal fun MokkeryScope.suiteContext(
     context: MokkeryContext = MokkeryContext.Empty
 ): MokkeryContext = mokkeryContext + MokkeryInstancesRegistry() + context
 

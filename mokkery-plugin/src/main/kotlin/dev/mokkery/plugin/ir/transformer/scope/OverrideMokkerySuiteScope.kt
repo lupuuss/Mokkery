@@ -36,7 +36,7 @@ fun IrClass.overrideMokkerySuiteScopeIfNotOverridden() {
     val oldBody = constructor.body
     constructor.body = constructor.symbol.declarationIrBuilder {
         irBlockBody {
-            val contextFun = referenced(MokkeryIr.Function.createSuiteContext)
+            val contextFun = referenced(MokkeryIr.Function.suiteContext)
             val context = irCall(contextFun) {
                 arguments[0] = irGetMokkeryFileScope()
                 val testsScopeName = irCallConstructor(suiteNameClass.primaryConstructor!!) {

@@ -82,16 +82,16 @@ object MokkeryIr {
         val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
-        val createFileContext by dev_mokkery_internal.refFunction
-        val createSuiteScope by dev_mokkery_internal.refFunction
-        val createSuiteContext by dev_mokkery_internal.refFunction
-        val createInstanceScope by dev_mokkery_internal.refFunction
-        val createInstanceContext by dev_mokkery_internal.refFunction
+        val fileContext by dev_mokkery_internal.refFunction
+        val suiteScope by dev_mokkery_internal.refFunction
+        val suiteContext by dev_mokkery_internal.refFunction
+        val instanceScope by dev_mokkery_internal.refFunction
+        val instanceContext by dev_mokkery_internal.refFunction
         val initializeInJsFunctionMock by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
         val invokeInstantiationListener by dev_mokkery_internal_context.refFunction
-        val createBlockingCallScope by dev_mokkery_internal.refFunction
-        val createSuspendCallScope by dev_mokkery_internal.refFunction
+        val blockingCallScope by dev_mokkery_internal.refFunction
+        val suspendCallScope by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
         val throwArguments by dev_mokkery_internal_defaults.refFunction
         val methodWithoutDefaultsError by dev_mokkery_internal_defaults.refFunction

@@ -33,7 +33,7 @@ internal fun MokkeryInstanceScope(
     override fun toString(): String = instanceIdString
 }
 
-internal fun MokkeryScope.createInstanceScope(
+internal fun MokkeryScope.instanceScope(
     typeName: String,
     interceptedType: KClass<*>,
     typeArguments: List<KClass<*>> = emptyList(),
@@ -41,7 +41,7 @@ internal fun MokkeryScope.createInstanceScope(
     mode: MockMode?,
     spiedObject: Any?
 ): MokkeryInstanceScope = MokkeryInstanceScope(
-    createInstanceContext(
+    instanceContext(
         mode = mode,
         typeName = typeName,
         interceptedTypes = listOf(interceptedType),
@@ -52,7 +52,7 @@ internal fun MokkeryScope.createInstanceScope(
 )
 
 
-internal fun MokkeryScope.createInstanceContext(
+internal fun MokkeryScope.instanceContext(
     typeName: String,
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<List<KClass<*>>>,

@@ -44,23 +44,23 @@ internal fun MokkerySuspendCallScope.withContext(
     else -> MokkerySuspendCallScope(this.mokkeryContext + with)
 }
 
-internal fun MokkeryInstanceScope.createBlockingCallScope(
+internal fun MokkeryInstanceScope.blockingCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
-) = MokkeryBlockingCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
+) = MokkeryBlockingCallScope(callContext(name, returnType, args, supers, spyDelegate))
 
-internal fun MokkeryInstanceScope.createSuspendCallScope(
+internal fun MokkeryInstanceScope.suspendCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
     supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
     spyDelegate: kotlin.Function<Any?>? = null
-) = MokkerySuspendCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
+) = MokkerySuspendCallScope(callContext(name, returnType, args, supers, spyDelegate))
 
-private fun MokkeryInstanceScope.createCallContext(
+private fun MokkeryInstanceScope.callContext(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,

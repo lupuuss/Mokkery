@@ -201,7 +201,7 @@ private fun IrClass.addMockClassConstructor(
             +irSetPropertyField(
                 thisParam = thisReceiver!!,
                 property = contextProperty,
-                value = irCall(referenced(MokkeryIr.Function.createInstanceContext)) {
+                value = irCall(referenced(MokkeryIr.Function.instanceContext)) {
                     arguments[0] = irGet(parameters[0])
                     arguments[1] = irString(typeName)
                     arguments[2] = irCallListOf(

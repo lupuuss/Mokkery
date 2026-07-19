@@ -69,7 +69,7 @@ fun IrBuilderWithScope.irGetMokkeryFileScope(): IrExpression {
 
 context(scope: TransformerScope)
 private fun buildFileScopeClass(name: Name): IrClass {
-    val createFileContextFun = referenced(MokkeryIr.Function.createFileContext)
+    val createFileContextFun = referenced(MokkeryIr.Function.fileContext)
     val mockModeClass = referenced(MokkeryIr.Class.MockMode)
     val cls = irFactory.buildClass {
         this.name = name

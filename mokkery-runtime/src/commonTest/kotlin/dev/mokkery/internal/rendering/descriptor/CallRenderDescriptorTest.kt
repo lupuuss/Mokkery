@@ -2,7 +2,7 @@ package dev.mokkery.internal.rendering.descriptor
 
 import dev.mokkery.call
 import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.createBlockingCallScope
+import dev.mokkery.internal.blockingCallScope
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
@@ -123,7 +123,7 @@ class CallRenderDescriptorTest {
 
     @Test
     fun testFunctionCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().createBlockingCallScope(
+        val scope = TestMokkeryInstanceScope().blockingCallScope(
             name = "call",
             returnType = Int::class,
             args = listOf(
@@ -144,7 +144,7 @@ class CallRenderDescriptorTest {
 
     @Test
     fun testGetterCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().createBlockingCallScope(
+        val scope = TestMokkeryInstanceScope().blockingCallScope(
             name = "<get-foo>",
             returnType = Int::class,
             args = listOf(fakeCallArg(name = "p1", value = 1))
@@ -162,7 +162,7 @@ class CallRenderDescriptorTest {
 
     @Test
     fun testSetterCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().createBlockingCallScope(
+        val scope = TestMokkeryInstanceScope().blockingCallScope(
             name = "<set-foo>",
             returnType = Int::class,
             args = listOf(fakeCallArg(name = "p1", value = 1))
