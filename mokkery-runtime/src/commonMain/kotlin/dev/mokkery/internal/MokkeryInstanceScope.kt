@@ -4,13 +4,18 @@ package dev.mokkery.internal
 
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.MokkeryMockScope
 import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySpyScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
+import dev.mokkery.context.require
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstanceSpec
+import dev.mokkery.internal.context.MokkeryMockSpec
+import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.context.settings
@@ -25,9 +30,17 @@ import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
-internal fun MokkeryInstanceScope(
+internal fun MokkeryMockScope(
     mokkeryContext: MokkeryContext
-): MokkeryInstanceScope = object : MokkeryInstanceScope {
+): MokkeryMockScope = object : MokkeryMockScope {
+    override val mokkeryContext = mokkeryContext
+
+    override fun toString(): String = instanceIdString
+}
+
+internal fun MokkerySpyScope(
+    mokkeryContext: MokkeryContext
+): MokkerySpyScope = object : MokkerySpyScope {
     override val mokkeryContext = mokkeryContext
 
     override fun toString(): String = instanceIdString
@@ -40,8 +53,8 @@ internal fun MokkeryScope.instanceScope(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?
-): MokkeryInstanceScope = MokkeryInstanceScope(
-    instanceContext(
+): MokkeryInstanceScope {
+    val context = instanceContext(
         mode = mode,
         typeName = typeName,
         interceptedTypes = listOf(interceptedType),
@@ -49,7 +62,11 @@ internal fun MokkeryScope.instanceScope(
         thisRef = thisRef,
         spiedObject = spiedObject
     )
-)
+    return when (context.require(MokkeryInstanceSpec)) {
+        is MokkeryMockSpec -> MokkeryMockScope(context)
+        is MokkerySpySpec -> MokkerySpyScope(context)
+    }
+}
 
 
 internal fun MokkeryScope.instanceContext(
