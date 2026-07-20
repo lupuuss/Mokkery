@@ -56,7 +56,7 @@ internal sealed interface MokkeryInstanceSpec : MokkeryContext.Element {
     }
 }
 
-internal class MokkeryMockSpec(
+internal data class MokkeryMockSpec(
     override val id: MokkeryInstanceId,
     override val thisRef: Any,
     override val interceptedTypes: List<InterceptedTypeSpec>,
@@ -71,7 +71,7 @@ internal class MokkeryMockSpec(
 
 }
 
-internal class MokkerySpySpec(
+internal data class MokkerySpySpec(
     override val id: MokkeryInstanceId,
     override val thisRef: Any,
     override val interceptedTypes: List<InterceptedTypeSpec>,

@@ -66,7 +66,7 @@ fun buildMockClass(
     mokkeryKind: IrMokkeryKind,
     classToMock: IrClass,
 ): IrClass {
-    val instanceScopeClass = referenced(MokkeryIr.Class.MokkeryInstanceScope)
+    val instanceScopeClass = referenced(MokkeryIr.Class.mokkeryInstanceScope(mokkeryKind))
     val mockedClass = irFactory.buildClass { this.name = name }
     mockedClass.addToCurrentFile()
     mockedClass.copyTypeParametersFrom(classToMock)
@@ -103,7 +103,7 @@ fun buildMockClass(
 context(scope: TransformerScope)
 fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
     val manyMocksMarkerClass = referenced(MokkeryIr.Class.mockMany(classesToMock.size))
-    val mokkeryInstanceClass = referenced(MokkeryIr.Class.MokkeryInstanceScope)
+    val mokkeryInstanceClass = referenced(MokkeryIr.Class.MokkeryMockScope)
     val mockedClass = irFactory.buildClass { this.name = name }
     mockedClass.addToCurrentFile()
     classesToMock.forEach(mockedClass::copyTypeParametersFrom)

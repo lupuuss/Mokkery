@@ -17,6 +17,7 @@ import dev.mokkery.plugin.core.ir.IrFunctionById
 import dev.mokkery.plugin.core.ir.IrFunctionReferencer
 import dev.mokkery.plugin.core.ir.IrPropertyById
 import dev.mokkery.plugin.core.ir.IrPropertyReferencer
+import dev.mokkery.plugin.ir.IrMokkeryKind.*
 import dev.mokkery.plugin.nestedClassId
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -46,7 +47,8 @@ object MokkeryIr {
 
         val MokkerySuiteScope by dev_mokkery.refClass
 
-        val MokkeryInstanceScope by dev_mokkery.refClass
+        val MokkeryMockScope by dev_mokkery.refClass
+        val MokkerySpyScope by dev_mokkery.refClass
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
         val CallArgument by dev_mokkery_context.refClass
@@ -57,6 +59,11 @@ object MokkeryIr {
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
+        
+        fun mokkeryInstanceScope(kind: IrMokkeryKind) = when (kind) {
+            Spy -> MokkerySpyScope
+            Mock -> MokkeryMockScope
+        }
 
         fun mockMany(value: Int): IrClassReferencer {
             return mockManyMap[value]
