@@ -3,7 +3,7 @@ package dev.mokkery.context
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
-import dev.mokkery.internal.context.MemoizedContext
+import dev.mokkery.internal.context.memoizedContext
 
 /**
  *  A set of [MokkeryContext.Element]s.
@@ -68,7 +68,7 @@ public fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryConte
 }
 
 @InternalMokkeryApi
-public fun MokkeryContext.memoized(): MokkeryContext = MemoizedContext(this)
+public fun MokkeryContext.memoized(): MokkeryContext = memoizedContext(this)
 
 @InternalMokkeryApi
 public inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
