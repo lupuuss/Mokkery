@@ -4,6 +4,7 @@ import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.Settings
+import dev.mokkery.internal.interceptor.MokkeryCallHooksImpl
 import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
 
@@ -17,14 +18,29 @@ public interface MokkeryScope {
 
     public companion object {
 
-        @InternalMokkeryApi
-        public val global: MokkeryScope = MokkeryScope(MokkeryTools.default() + Settings.default())
+        /**
+         * The root [MokkeryScope] that all other scopes derive from.
+         */
+        public val global: MokkeryScope = MokkeryScope(
+            MokkeryTools.default()
+                    + Settings.default()
+                    + MokkeryCallHooksImpl()
+        )
 
+        /**
+         *  Returns the [MokkeryScope] associated with current file.
+         *
+         *  In principle all scopes in given file should derive from it. It's propagated by the compiler plugin.
+         */
         @InternalMokkeryApi
         public val file: MokkeryScope get() = mokkeryIntrinsic
 
-        @InternalMokkeryApi
-        public fun extract(mock: Any): MokkeryInstanceScope = mock.requireInstanceScope()
+        /**
+         * Returns the [MokkeryInstanceScope] associated with the given [mock].
+         *
+         * @throws MokkeryRuntimeException if [mock] is not a Mokkery instance.
+         */
+        public fun from(mock: Any): MokkeryInstanceScope = mock.requireInstanceScope()
     }
 }
 
