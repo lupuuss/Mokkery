@@ -4,7 +4,9 @@ package dev.mokkery.internal
 import dev.mokkery.MokkeryScope
 import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.interceptor.callHooks
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
+import dev.mokkery.internal.interceptor.fork
 
 internal fun MokkeryScope.suiteScope(
     context: MokkeryContext = MokkeryContext.Empty
@@ -12,7 +14,7 @@ internal fun MokkeryScope.suiteScope(
 
 internal fun MokkeryScope.suiteContext(
     context: MokkeryContext = MokkeryContext.Empty
-): MokkeryContext = mokkeryContext + MokkeryInstancesRegistry() + context
+): MokkeryContext = mokkeryContext + callHooks.fork() + MokkeryInstancesRegistry() + context
 
 private class MokkerySuiteScopeImpl(override val mokkeryContext: MokkeryContext) : MokkerySuiteScope {
 

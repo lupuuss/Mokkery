@@ -10,8 +10,6 @@ import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.RegularMethodsInterface
 import dev.mokkery.test.SuspendMethodsInterface
-import dev.mokkery.test.assertVerified
-import dev.mokkery.verify
 import dev.mokkery.verifyNoMoreCalls
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
@@ -21,18 +19,18 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class BeforeAnsweringInterceptorTest {
+class BeforeTracingInterceptorTest {
 
     private val interceptor = TestInterceptor()
 
     @BeforeTest
     fun before() {
-        MokkeryScope.global.callHooks.beforeAnswering.register(interceptor)
+        MokkeryScope.global.callHooks.beforeTracing.register(interceptor)
     }
 
     @AfterTest
     fun after() {
-        MokkeryScope.global.callHooks.beforeAnswering.unregister(interceptor)
+        MokkeryScope.global.callHooks.beforeTracing.unregister(interceptor)
     }
 
     @Test
@@ -71,7 +69,7 @@ class BeforeAnsweringInterceptorTest {
 
     @Test
     fun testDoesNotCallInterceptorWhenUnregistered() = runTest {
-        MokkeryScope.global.callHooks.beforeAnswering.unregister(interceptor)
+        MokkeryScope.global.callHooks.beforeTracing.unregister(interceptor)
         val mockA = mock<RegularMethodsInterface> { every { callPrimitive(1) } returns 1 }
         val mockB = mock<SuspendMethodsInterface> { everySuspend { callComplex(ComplexType.Companion) } returns ComplexType.Companion }
         mockA.callPrimitive(1)
@@ -103,11 +101,10 @@ class BeforeAnsweringInterceptorTest {
     }
 
     @Test
-    fun testRunsAfterCallIsTraced() {
+    fun testRunsBeforeCallIsTraced() {
         val mock = mock<RegularMethodsInterface>()
         interceptor.interceptBlock = { 42 }
         assertEquals(42, mock.callPrimitive(1))
-        assertVerified { verifyNoMoreCalls(mock) }
-        verify { mock.callPrimitive(1) }
+        verifyNoMoreCalls(mock)
     }
 }

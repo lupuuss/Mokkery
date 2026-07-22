@@ -10,24 +10,39 @@ import dev.mokkery.internal.context.callInterceptor
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 
-internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<MokkeryCallInterceptor> {
+internal class HookCallInterceptor(
+    private val parent: HookCallInterceptor? = null,
+    interceptors: List<MokkeryCallInterceptor> = emptyList(),
+) : MokkeryCallInterceptor, MokkeryHook<MokkeryCallInterceptor> {
 
-    private val interceptors = atomic(listOf<MokkeryCallInterceptor>())
+    private val localInterceptors = atomic(interceptors)
+    private val allInterceptors: List<MokkeryCallInterceptor>
+        get() {
+            val fromParent = parent?.allInterceptors.orEmpty()
+            val local = localInterceptors.value
+            return when {
+                fromParent.isEmpty() -> local
+                local.isEmpty() -> fromParent
+                else -> fromParent + local
+            }
+        }
+
+    fun fork(): HookCallInterceptor = HookCallInterceptor(this)
 
     override fun register(interceptor: MokkeryCallInterceptor) {
-        interceptors.update { it + interceptor }
+        localInterceptors.update { it + interceptor }
     }
 
     override fun unregister(interceptor: MokkeryCallInterceptor) {
-        interceptors.update { it - interceptor }
+        localInterceptors.update { it - interceptor }
     }
 
     override fun intercept(scope: MokkeryBlockingCallScope) = scope
-        .combinedInterceptorOf(interceptors.value)
+        .combinedInterceptorOf(allInterceptors)
         .intercept(scope)
 
     override suspend fun intercept(scope: MokkerySuspendCallScope) = scope
-        .combinedInterceptorOf(interceptors.value)
+        .combinedInterceptorOf(allInterceptors)
         .intercept(scope)
 
     private fun MokkeryCallScope.combinedInterceptorOf(
@@ -38,5 +53,5 @@ internal class HookCallInterceptor : MokkeryCallInterceptor, MokkeryHook<Mokkery
         ContextCallInterceptor(interceptors + callInterceptor)
     }
 
-    override fun toString(): String = "HookCallInterceptor(interceptors=${interceptors.value})"
+    override fun toString(): String = "HookCallInterceptor(parent=$parent, interceptors=${localInterceptors.value})"
 }

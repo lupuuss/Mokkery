@@ -16,10 +16,22 @@ import dev.mokkery.internal.rendering.withRenderingScope
  * Example:
  *
  * ```kotlin
- * MokkeryCallInterceptor
+ * // Globally
+ * MokkeryScope
+ *    .global
+ *    .callHooks
+ *    .beforeAnswering
+ *    .register(MokkeryCallLogger())
+ *
+ * // Per mock
+ * MokkeryScope
+ *    .from(mock)
+ *    .callHooks
  *    .beforeAnswering
  *    .register(MokkeryCallLogger())
  * ```
+ *
+ * @see dev.mokkery.interceptor.MokkeryCallHooks
  */
 public class MokkeryCallLogger(
     private val lineTransformer: (String) -> String = { it },
