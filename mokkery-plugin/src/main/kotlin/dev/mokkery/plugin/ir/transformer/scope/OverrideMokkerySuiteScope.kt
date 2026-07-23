@@ -9,6 +9,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import dev.mokkery.plugin.ir.requirePropertyOwner
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irSetField

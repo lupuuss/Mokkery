@@ -17,7 +17,7 @@ import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
-import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass

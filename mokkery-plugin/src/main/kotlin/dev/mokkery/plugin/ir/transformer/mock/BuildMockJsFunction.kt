@@ -4,22 +4,21 @@ import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.requirePropertyGetterOwner
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSet
@@ -47,17 +46,7 @@ fun buildMockJsFunction(
     return expression.replaceDeclarationIrBuilder {
         irBlock {
             val mockFun = expression.symbol.owner
-            val extMockParam = mockFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
-            val regularMockParams = mockFun.parameters - extMockParam
-            val parentScopeValue = when (extMockParam) {
-                null -> {
-                    val mokkeryScopeCompanion = referencedCompanion(MokkeryIr.Class.MokkeryScope)
-                    irCall(mokkeryScopeCompanion.requirePropertyGetterOwner("global")) {
-                        arguments[0] = irGetObject(mokkeryScopeCompanion.symbol)
-                    }
-                }
-                else -> expression.arguments[extMockParam]!!
-            }
+            val regularMockParams = mockFun.findRegularParameters()
             val instanceScopeFun = referenced(MokkeryIr.Function.instanceScope)
             // initialized later to properly pass js function reference to mokkery context and context back to function
             val instanceVar = createTmpVariable(
@@ -79,7 +68,7 @@ fun buildMockJsFunction(
             )
             val mockModeClass = referenced(MokkeryIr.Class.MockMode)
             +irSet(instanceVar, irCall(instanceScopeFun) {
-                arguments[0] = parentScopeValue
+                arguments[0] = irGetMokkeryScopeFor(expression)
                 arguments[1] = irString(typeToMock.classFqName!!.asString())
                 arguments[2] = kClassReference(typeToMock)
                 arguments[3] = irCallListOf(
@@ -90,10 +79,10 @@ fun buildMockJsFunction(
                 arguments[5] =  when (kind) {
                     IrMokkeryKind.Spy -> irNull()
                     IrMokkeryKind.Mock -> expression
-                        .arguments[regularMockParams[0]!!]
+                        .arguments[regularMockParams[0]]
                         ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode)
                 }
-                arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()
+                arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]]!! else irNull()
             })
             +irCall(referenced(MokkeryIr.Function.initializeInJsFunctionMock)) {
                 arguments[0] = irGet(instanceVar)
@@ -103,7 +92,7 @@ fun buildMockJsFunction(
                 arguments[0] = irGet(instanceVar)
                 arguments[1] = irGet(lambdaVar)
             }
-            expression.arguments[regularMockParams[1]!!]?.let { block ->
+            expression.arguments[regularMockParams[1]]?.let { block ->
                 +irInvoke(block, false, irGet(lambdaVar))
             }
             +irGet(lambdaVar)
