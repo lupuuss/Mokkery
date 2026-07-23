@@ -5,7 +5,7 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.isVararg

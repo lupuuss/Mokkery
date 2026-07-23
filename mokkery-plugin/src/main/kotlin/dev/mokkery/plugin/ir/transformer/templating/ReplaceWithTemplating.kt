@@ -14,8 +14,8 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
-import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryFileScope
-import dev.mokkery.plugin.ir.transformer.scope.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
