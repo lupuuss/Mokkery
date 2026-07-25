@@ -5,7 +5,6 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.interceptor.MokkeryInstantiationListener
 
-@Suppress("unused")
 internal fun MokkeryInstanceScope.invokeInstantiationListener(obj: Any) {
     instantiationListener.onInstantiation(this, obj)
 }

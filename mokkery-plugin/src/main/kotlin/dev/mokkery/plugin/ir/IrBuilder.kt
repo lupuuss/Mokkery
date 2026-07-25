@@ -1,8 +1,6 @@
 package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irIfThen
-import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -13,8 +11,8 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
-import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -30,11 +28,11 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
+import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
-import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
@@ -88,13 +86,6 @@ fun IrBuilder.irCallConstructor(
     block: IrConstructorCall.() -> Unit = { }
 ) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments).apply { block() }
 
-fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
-    return irIfThen(
-        condition = irNot(irEqualsNull(argument = arg)),
-        thenPart = then
-    )
-}
-
 fun IrBuilderWithScope.irLambdaOf(
     lambdaType: IrType,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
@@ -126,17 +117,6 @@ fun IrBuilderWithScope.irLambdaOf(
         type = lambdaType,
         function = lambda,
         origin = IrStatementOrigin.LAMBDA
-    )
-}
-
-fun IrBuilderWithScope.irInvokeIfNotNull(
-    function: IrExpression,
-    isSuspend: Boolean,
-    vararg args: IrExpression
-): IrWhen {
-    return irIfNotNull(
-        function,
-        irInvoke(function, isSuspend, *args)
     )
 }
 
@@ -188,9 +168,12 @@ fun IrBuilder.irSetPropertyField(
     thisParam: IrValueParameter,
     property: IrProperty,
     value: IrExpression
-): IrSetField {
-    return irSetField(irGet(thisParam), property.backingField!!, value)
-}
+): IrSetField = irSetField(irGet(thisParam), property.backingField!!, value)
+
+fun IrBuilder.irGetPropertyField(
+    thisParam: IrValueParameter,
+    property: IrProperty,
+): IrGetField = irGetField(irGet(thisParam), property.backingField!!)
 
 fun IrBuilder.irVararg(elementType: IrType, elements: List<IrVarargElement>): IrVararg = IrVarargImpl(
     startOffset = startOffset,

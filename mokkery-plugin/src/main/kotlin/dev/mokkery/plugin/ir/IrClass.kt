@@ -12,14 +12,17 @@ import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.addSetter
+import org.jetbrains.kotlin.ir.builders.declarations.buildValueParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
@@ -226,16 +229,41 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
-        addGetter {
-            this.returnType = returnType
-            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
-        }.apply {
-            parameters = listOf(createDispatchReceiverParameterWithClassParent())
-            body = DeclarationIrBuilder(context, symbol).irBlockBody {
-                +irReturn(irGetField(irGet(parameters[0]), backingField!!))
-            }
+        addDefaultGetter(context).overriddenSymbols = listOf(property.getter!!.symbol)
+    }
+}
+
+fun IrProperty.addDefaultGetter(context: IrGeneratorContext): IrSimpleFunction {
+    val backingField = backingField!!
+    return addGetter {
+        this.returnType = backingField.type
+        origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+    }.apply {
+        parameters = listOf(createDispatchReceiverParameterWithClassParent())
+        body = DeclarationIrBuilder(context, symbol).irBlockBody {
+            +irReturn(irGetField(irGet(parameters[0]), backingField))
         }
-        getter?.overriddenSymbols = listOf(property.getter!!.symbol)
+    }
+}
+
+fun IrProperty.addDefaultSetter(context: IrGeneratorContext): IrSimpleFunction {
+    val backingField = backingField!!
+    isVar = true
+    return addSetter {
+        this.returnType = context.irBuiltIns.unitType
+        origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+    }.apply {
+        parameters = listOf(
+            createDispatchReceiverParameterWithClassParent(),
+            buildValueParameter(this) {
+                this.type = backingField.type
+                this.kind = IrParameterKind.Regular
+                this.name = Name.identifier("value")
+            }
+        )
+        body = DeclarationIrBuilder(context, symbol).irBlockBody {
+            +irSetField(irGet(parameters[0]), backingField, irGet(parameters[1]))
+        }
     }
 }
 

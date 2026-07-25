@@ -92,11 +92,9 @@ object MokkeryIr {
         val fileContext by dev_mokkery_internal.refFunction
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
-        val instanceScope by dev_mokkery_internal.refFunction
         val instanceContext by dev_mokkery_internal.refFunction
-        val initializeInJsFunctionMock by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
-        val invokeInstantiationListener by dev_mokkery_internal_context.refFunction
         val blockingCallScope by dev_mokkery_internal.refFunction
         val suspendCallScope by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
@@ -106,12 +104,14 @@ object MokkeryIr {
         val matchesComposite by dev_mokkery_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
+        val finalizeMokkeryInstance by dev_mokkery_internal.refFunction
     }
 
     object Property {
 
         val instanceIdString by dev_mokkery_internal.refProperty
         val spiedObject by dev_mokkery_internal.refProperty
+        val jsFunctionMokkeryScope by dev_mokkery_internal.refProperty
         val callInterceptor by dev_mokkery_internal_context.refProperty
     }
 
