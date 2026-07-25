@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedGetter
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind
@@ -11,7 +12,6 @@ import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irGetEnumEntry
-import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSet
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -47,27 +46,28 @@ fun buildMockJsFunction(
         irBlock {
             val mockFun = expression.symbol.owner
             val regularMockParams = mockFun.findRegularParameters()
-            val instanceScopeFun = referenced(MokkeryIr.Function.instanceScope)
-            // initialized later to properly pass js function reference to mokkery context and context back to function
-            val instanceVar = createTmpVariable(
+            val setupInstanceScopeFun = referenced(MokkeryIr.Function.setupMokkeryInstanceForJsFunction)
+            val self = createTmpVariable(
                 irExpression = irNull(),
-                irType = instanceScopeFun.returnType,
+                irType = typeToMock,
                 isMutable = true
             )
             val lambdaVar = createTmpVariable(
                 irLambdaOf(typeToMock) {
+                    val scopeGetter = referencedGetter(MokkeryIr.Property.jsFunctionMokkeryScope)
                     +irReturn(
                         irInterceptMockCall(
                             mokkeryKind = kind,
-                            mokkeryInstance = irGet(instanceVar),
+                            mokkeryInstance = irCall(scopeGetter) { arguments[0] = irGet(self) },
                             typeParamsContainer = typeToMock.classOrFail.owner,
                             function = it
                         )
                     )
                 }
             )
+            +irSet(self, irGet(lambdaVar))
             val mockModeClass = referenced(MokkeryIr.Class.MockMode)
-            +irSet(instanceVar, irCall(instanceScopeFun) {
+            +irCall(setupInstanceScopeFun) {
                 arguments[0] = irGetMokkeryScopeFor(expression)
                 arguments[1] = irString(typeToMock.classFqName!!.asString())
                 arguments[2] = kClassReference(typeToMock)
@@ -83,17 +83,7 @@ fun buildMockJsFunction(
                         ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode)
                 }
                 arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]]!! else irNull()
-            })
-            +irCall(referenced(MokkeryIr.Function.initializeInJsFunctionMock)) {
-                arguments[0] = irGet(instanceVar)
-                arguments[1] = irGet(lambdaVar)
-            }
-            +irCall(referenced(MokkeryIr.Function.invokeInstantiationListener)) {
-                arguments[0] = irGet(instanceVar)
-                arguments[1] = irGet(lambdaVar)
-            }
-            expression.arguments[regularMockParams[1]]?.let { block ->
-                +irInvoke(block, false, irGet(lambdaVar))
+                arguments[7] = expression.arguments[regularMockParams[1]] ?: irNull()
             }
             +irGet(lambdaVar)
         }

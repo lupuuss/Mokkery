@@ -19,7 +19,6 @@ import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irInvokeIfNotNull
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridableFunctions
@@ -172,7 +171,6 @@ private fun IrClass.addMockClassConstructor(
 ) {
     val mokkeryScopeClass = referenced(MokkeryIr.Class.MokkeryScope)
     val mockModeClass = referenced(MokkeryIr.Class.MockMode)
-    val invokeInstantiationCallbacksFun = referenced(MokkeryIr.Function.invokeInstantiationListener)
     val contextProperty = overridePropertyBackingField(pluginContext, scopeInstanceClass.requirePropertyOwner("mokkeryContext"))
     addConstructor {
         isPrimary = true
@@ -226,11 +224,11 @@ private fun IrClass.addMockClassConstructor(
                     )
                 }
             )
-            +irCall(invokeInstantiationCallbacksFun) {
+            +irCall(referenced(MokkeryIr.Function.finalizeMokkeryInstance)) {
                 arguments[0] = irGet(thisReceiver!!)
                 arguments[1] = irGet(thisReceiver!!)
+                arguments[2] = irGet(parameters[2])
             }
-            +irInvokeIfNotNull(irGet(parameters[2]), false, irGet(thisReceiver!!))
         }
     }
     val toString = irBuiltIns.anyClass.owner.requireSimpleFunctionOwner("toString")
