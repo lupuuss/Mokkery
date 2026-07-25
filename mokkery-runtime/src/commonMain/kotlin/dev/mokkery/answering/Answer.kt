@@ -38,28 +38,6 @@ import kotlinx.atomicfu.locks.withLock
  * * Answers should not be used directly. It's a good practice to provide extension based API.
  *
  * Check existing answers implementations for samples.
- *
- * ### Migrations from `FunctionScope` to [MokkeryCallScope]:
- * * If your answer overrides both [call] and `callSuspend` with `FunctionScope`, migrate to [call]
- *   with [MokkeryBlockingCallScope] and [call] with [MokkerySuspendCallScope].
- * * If your answer overrides only [call] with `FunctionScope`, it means that it was possible to call this answer in
- *   both blocking and suspending context. In this case you need to change the base type from [Answer] to [Answer.Unified].
- *   Now, override [call] with [MokkeryCallScope].
- * * If your answer overrides [Answer.Suspending] simply migrate from `callSuspend` to [call] with [MokkerySuspendCallScope].
- *
- * `FunctionScope` API mappings to [MokkeryCallScope] API:
- *
- * | `FunctionScope` member function    | [MokkeryCallScope] extensions                                                                          |
- * |------------------------------------|---------------------------------------------------------------------------------------------------------|
- * | `FunctionScope.returnType`]        | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.function] -> [dev.mokkery.context.Function.returnType] |
- * | `FunctionScope.args`               | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValues]                                 |
- * | `FunctionScope.arg`                | [MokkeryCallScope.call] -> [dev.mokkery.context.FunctionCall.argValue]                                  |
- * | `FunctionScope.supers`             | [MokkeryCallScope.supers]                                                                              |
- * | `FunctionScope.self`               | [MokkeryCallScope.self]                                                                                |
- * | `FunctionScope.callOriginal`       | [callOriginal]                                                                |
- * | `FunctionScope.callSuspendOriginal`| [callOriginal]                                                                 |
- * | `FunctionScope.callSuper`          | [callSuper]                                                                   |
- * | `FunctionScope.callSuspendSuper`   | [callSuper]
  */
 @DelicateMokkeryApi
 public interface Answer<out T> {
