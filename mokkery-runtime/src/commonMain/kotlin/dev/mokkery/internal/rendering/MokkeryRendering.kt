@@ -57,18 +57,18 @@ internal val MokkeryRenderingScope.renderingFactory: MokkeryRendering.Factory
     get() = mokkeryContext.require(MokkeryRendering.Factory)
 
 
-internal fun RenderingConfigurer.receiverRendering(enabled: Boolean) {
+internal fun MokkeryRenderingConfigurer.receiverRendering(enabled: Boolean) {
     when (enabled) {
         true -> -DisableReceiverRendering
         false -> +DisableReceiverRendering
     }
 }
 
-internal fun RenderingConfigurer.mokkeryCollection(value: MokkeryCollection) {
+internal fun MokkeryRenderingConfigurer.mokkeryCollection(value: MokkeryCollection) {
     +MokkeryCollectionAware(value)
 }
 
-internal fun RenderingConfigurer.useAliases(value: MokkeryCollection, nameShortener: NameShortener) {
+internal fun MokkeryRenderingConfigurer.useAliases(value: MokkeryCollection, nameShortener: NameShortener) {
     +UseAliases(value, nameShortener)
 }
 

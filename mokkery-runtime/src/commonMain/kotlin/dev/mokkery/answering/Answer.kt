@@ -9,9 +9,6 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.answering.autofill.provideValue
 import dev.mokkery.call
-import dev.mokkery.callOriginal
-import dev.mokkery.callSuper
-import dev.mokkery.context.argValue
 import dev.mokkery.context.argValues
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
@@ -20,7 +17,6 @@ import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.internal.rendering.renderingScope
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
-import dev.mokkery.self
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
@@ -58,7 +54,7 @@ public interface Answer<out T> {
      */
     @Deprecated("Implement `dev.mokkery.rendering.Renderable` interface instead.",)
     public fun description(): String = when (this) {
-        is Renderable -> context(MokkeryScope.global.renderingScope) { this.render() }
+        is Renderable -> context(MokkeryScope.global.renderingScope()) { this.render() }
         else -> "answers $this"
     }
 
