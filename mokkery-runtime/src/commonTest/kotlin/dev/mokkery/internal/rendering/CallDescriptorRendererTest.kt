@@ -272,8 +272,10 @@ class CallDescriptorRendererTest {
         descriptor: CallRenderDescriptor
     ) {
         val renderer = MokkeryRendering.callDescriptorImpl
-        val scope = testRenderingScope(valueRenderer + matcherRenderer + instanceIdRenderer)
-            .configured { receiverRendering(renderReceiver) }
+        val scope = testRenderingScope {
+            +(valueRenderer + matcherRenderer + instanceIdRenderer)
+            receiverRendering(renderReceiver)
+        }
         context(scope) {
             assertEquals(expected, renderer.render(descriptor))
         }

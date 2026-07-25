@@ -35,7 +35,7 @@ public fun MokkeryInternals<*>.resetMocksCounter() {
 
 @InternalMokkeryApi
 public val MokkeryInternals<*>.renderingScope: MokkeryRenderingScope
-    get() = scope.renderingScope
+    get() = scope.renderingScope()
 
 @InternalMokkeryApi
 public val MokkeryInternals<*>.defaultVerifyMode: VerifyMode

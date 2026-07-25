@@ -7,7 +7,6 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.rendering.Renderer
-import dev.mokkery.internal.rendering.configured
 import dev.mokkery.internal.rendering.mokkeryCollection
 import dev.mokkery.internal.rendering.renderingScope
 import dev.mokkery.internal.rendering.unaryPlus
@@ -27,8 +26,7 @@ import dev.mokkery.rendering.MokkeryRenderingScope
 internal fun <R> MokkeryScope.verifyRendering(
     collection: MokkeryCollection,
     block: MokkeryRenderingScope.() -> R
-): R = renderingScope
-    .configured {
+): R = renderingScope {
         mokkeryCollection(collection)
         useAliases(collection, tools.namesShortener)
         +VerifyRendering.context

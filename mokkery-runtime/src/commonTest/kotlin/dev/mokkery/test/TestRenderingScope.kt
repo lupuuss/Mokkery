@@ -1,6 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.internal.rendering.MokkeryRenderingConfigurer
 import dev.mokkery.rendering.MokkeryRenderingScope
 
 internal fun <R> testRendering(
@@ -11,7 +12,7 @@ internal fun <R> testRendering(
 }
 
 internal fun testRenderingScope(
-    context: MokkeryContext = MokkeryContext.Empty,
+    block: MokkeryRenderingConfigurer.() -> Unit,
 ): MokkeryRenderingScope {
-    return MokkeryRenderingScope(context)
+    return MokkeryRenderingScope(MokkeryRenderingConfigurer(MokkeryContext.Empty).apply(block).mokkeryContext)
 }
