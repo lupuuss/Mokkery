@@ -47,10 +47,9 @@ internal class HookCallInterceptor(
 
     private fun MokkeryCallScope.combinedInterceptorOf(
         interceptors: List<MokkeryCallInterceptor>
-    ) = if (interceptors.isEmpty()) {
-        callInterceptor
-    } else {
-        ContextCallInterceptor(interceptors + callInterceptor)
+    ) = when {
+        interceptors.isEmpty() -> callInterceptor
+        else -> ContextCallInterceptor(interceptors + callInterceptor)
     }
 
     override fun toString(): String = "HookCallInterceptor(parent=$parent, interceptors=${localInterceptors.value})"

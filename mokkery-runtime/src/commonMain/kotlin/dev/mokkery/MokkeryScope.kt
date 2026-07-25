@@ -4,7 +4,7 @@ import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.Settings
-import dev.mokkery.internal.interceptor.MokkeryCallHooksImpl
+import dev.mokkery.internal.interceptor.ForkedMokkeryCallHooks
 import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
 
@@ -24,7 +24,7 @@ public interface MokkeryScope {
         public val global: MokkeryScope = MokkeryScope(
             MokkeryTools.default()
                     + Settings.default()
-                    + MokkeryCallHooksImpl()
+                    + ForkedMokkeryCallHooks()
         )
 
         /**
