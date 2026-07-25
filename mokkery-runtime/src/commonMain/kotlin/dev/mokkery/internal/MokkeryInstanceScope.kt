@@ -7,7 +7,6 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
-import dev.mokkery.interceptor.callHooks
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
@@ -19,9 +18,11 @@ import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
 import dev.mokkery.internal.interceptor.AnsweringInterceptor
+import dev.mokkery.internal.interceptor.BeforeAnsweringHookInterceptor
+import dev.mokkery.internal.interceptor.BeforeTracingHookInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
-import dev.mokkery.internal.interceptor.fork
+import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
@@ -35,37 +36,34 @@ internal fun MokkeryScope.instanceContext(
     mode: MockMode?,
     spiedObject: Any?,
     defaultsExtractorFactory: DefaultsExtractorFactory? = null
-): MokkeryContext {
-    val hooks = callHooks.fork()
-    return mokkeryContext
-        .plus(hooks)
-        .plus(ContextInstantiationListener(MocksRegisteringListener))
-        .plus(
-            MokkeryInstanceSpec.create(
-                id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
-                interceptedTypes = interceptedTypes,
-                typeArguments = typeArguments,
-                thisRef = thisRef,
-                spiedObject = spiedObject,
-                mode = when {
-                    spiedObject != null -> null
-                    else -> mode ?: settings.defaultMockMode
-                },
-            )
+): MokkeryContext = mokkeryContext
+    .plus(forkedHooksOrEmpty())
+    .plus(ContextInstantiationListener(MocksRegisteringListener))
+    .plus(
+        MokkeryInstanceSpec.create(
+            id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
+            interceptedTypes = interceptedTypes,
+            typeArguments = typeArguments,
+            thisRef = thisRef,
+            spiedObject = spiedObject,
+            mode = when {
+                spiedObject != null -> null
+                else -> mode ?: settings.defaultMockMode
+            },
         )
-        .plus(CallTracingRegistry())
-        .plus(AnsweringRegistry())
-        .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
-        .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
-        .plus(
-            ContextCallInterceptor(
-                hooks.beforeTracing,
-                CallTracingInterceptor,
-                hooks.beforeAnswering,
-                AnsweringInterceptor
-            )
+    )
+    .plus(CallTracingRegistry())
+    .plus(AnsweringRegistry())
+    .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
+    .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
+    .plus(
+        ContextCallInterceptor(
+            BeforeTracingHookInterceptor,
+            CallTracingInterceptor,
+            BeforeAnsweringHookInterceptor,
+            AnsweringInterceptor
         )
-}
+    )
 
 internal fun MokkeryInstanceScope.finalizeMokkeryInstance(
     thisRef: Any,
