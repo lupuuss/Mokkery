@@ -13,11 +13,12 @@ internal object ExhaustiveSoftVerifierErrorRenderer : Renderer<ExhaustiveSoftVer
     override fun render(value: ExhaustiveSoftVerifier.Error): String = buildString {
         when (value) {
             is ExhaustiveSoftVerifier.Error.NoMatch -> {
-                appendLine("No matching call for ${callTemplateRenderer.render(value.templateMatchingResults.template)}!")
-                append(templateGroupedMatchingResults.render(value.templateMatchingResults))
+                val template = value.templateMatchingResults.template
+                appendLine("No matching call for ${scope.callTemplateRenderer.render(template)}!")
+                append(scope.templateGroupedMatchingResults.render(value.templateMatchingResults))
             }
             is ExhaustiveSoftVerifier.Error.UnverifiedCalls -> {
-                append(extraUnverifiedCalls.render(value.calls))
+                append(scope.extraUnverifiedCalls.render(value.calls))
             }
         }
     }

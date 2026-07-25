@@ -12,7 +12,7 @@ internal object OrderVerifierErrorRenderer : Renderer<OrderVerifier.Error> {
     context(scope: MokkeryRenderingScope)
     override fun render(value: OrderVerifier.Error) = buildString {
         append("Expected calls in specified order but not satisfied! ")
-        appendLine("Failed at ${value.failedIndex + 1}. ${callTemplateRenderer.render(value.failedAt)}!")
-        append(templateMatchingResults.render(value.results))
+        appendLine("Failed at ${value.failedIndex + 1}. ${scope.callTemplateRenderer.render(value.failedAt)}!")
+        append(scope.templateMatchingResults.render(value.results))
     }
 }

@@ -22,7 +22,7 @@ public object LogicalMatchers {
         override fun matches(arg: T): Boolean = matchers.all { it.matches(arg) }
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "and(${matchers.joinToString { argMatcherRenderer.render(it) }})"
+        override fun render(): String = "and(${matchers.joinToString { scope.argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)
@@ -40,7 +40,7 @@ public object LogicalMatchers {
         override fun matches(arg: T): Boolean = matchers.any { it.matches(arg) }
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "or(${matchers.joinToString { argMatcherRenderer.render(it) }})"
+        override fun render(): String = "or(${matchers.joinToString { scope.argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)
@@ -71,7 +71,7 @@ public object LogicalMatchers {
         override fun matches(arg: T): Boolean = matchers.none { it.matches(arg) }
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "not(${matchers.joinToString { argMatcherRenderer.render(it) }})"
+        override fun render(): String = "not(${matchers.joinToString { scope.argMatcherRenderer.render(it) }})"
 
         override fun capture(value: T) {
             matchers.propagateCapture(value)

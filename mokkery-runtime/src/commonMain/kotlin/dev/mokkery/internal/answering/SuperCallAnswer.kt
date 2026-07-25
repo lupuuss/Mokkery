@@ -34,11 +34,11 @@ internal class SuperCallAnswer<T>(
         val callDescription = when (superCall) {
             is SuperCall.OfType -> when (superCall.args) {
                 null -> "superOf<${superCall.type.simpleName}>()"
-                else -> "superWith<${superCall.type.simpleName}>(${superCall.args.joinToString { descriptionRenderer.render(it) }})"
+                else -> "superWith<${superCall.type.simpleName}>(${superCall.args.joinToString { scope.descriptionRenderer.render(it) }})"
             }
             is SuperCall.Original -> when (superCall.args) {
                 null -> "original"
-                else -> "originalWith(${superCall.args.joinToString { descriptionRenderer.render(it) }})"
+                else -> "originalWith(${superCall.args.joinToString { scope.descriptionRenderer.render(it) }})"
             }
         }
         return "calls $callDescription"

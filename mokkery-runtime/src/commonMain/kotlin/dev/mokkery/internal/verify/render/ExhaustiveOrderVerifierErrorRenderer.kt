@@ -11,6 +11,6 @@ internal object ExhaustiveOrderVerifierErrorRenderer : Renderer<ExhaustiveOrderV
     context(scope: MokkeryRenderingScope)
     override fun render(value: ExhaustiveOrderVerifier.Error) = buildString {
         appendLine("Expected strict order of calls without unverified ones, but not satisfied!")
-        append(templateMatchingResults.render(value.results))
+        append(scope.templateMatchingResults.render(value.results))
     }
 }

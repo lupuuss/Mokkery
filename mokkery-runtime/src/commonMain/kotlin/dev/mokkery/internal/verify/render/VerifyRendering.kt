@@ -26,7 +26,7 @@ import dev.mokkery.rendering.MokkeryRenderingScope
 
 internal fun <R> MokkeryScope.verifyRendering(
     collection: MokkeryCollection,
-    block: context(MokkeryRenderingScope)() -> R
+    block: MokkeryRenderingScope.() -> R
 ): R = renderingScope
     .configured {
         mokkeryCollection(collection)
@@ -34,50 +34,39 @@ internal fun <R> MokkeryScope.verifyRendering(
         +VerifyRendering.context
     }.let(block)
 
-context(scope: MokkeryRenderingScope)
-internal val noMoreCalls
-    get() = scope.mokkeryContext.require(VerifyRendering.noMoreCalls)
+internal val MokkeryRenderingScope.noMoreCalls
+    get() = mokkeryContext.require(VerifyRendering.noMoreCalls)
 
-context(scope: MokkeryRenderingScope)
-internal val templateMatchingResults
-    get() = scope.mokkeryContext.require(VerifyRendering.templateMatchingResults)
+internal val MokkeryRenderingScope.templateMatchingResults
+    get() = mokkeryContext.require(VerifyRendering.templateMatchingResults)
 
-context(scope: MokkeryRenderingScope)
-internal val extraUnverifiedCalls
-    get() = scope.mokkeryContext.require(VerifyRendering.extraUnverifiedCalls)
+internal val MokkeryRenderingScope.extraUnverifiedCalls
+    get() = mokkeryContext.require(VerifyRendering.extraUnverifiedCalls)
 
-context(scope: MokkeryRenderingScope)
-internal val matcherStatus
-    get() = scope.mokkeryContext.require(VerifyRendering.matcherStatus)
+internal val MokkeryRenderingScope.matcherStatus
+    get() = mokkeryContext.require(VerifyRendering.matcherStatus)
 
-context(scope: MokkeryRenderingScope)
-internal val templateGroupedMatchingResults
-    get() = scope.mokkeryContext.require(VerifyRendering.templateGroupedMatchingResults)
+internal val MokkeryRenderingScope.templateGroupedMatchingResults
+    get() = mokkeryContext.require(VerifyRendering.templateGroupedMatchingResults)
 
-context(scope: MokkeryRenderingScope)
-internal val softVerifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.softVerifierError)
+internal val MokkeryRenderingScope.softVerifierError
+    get() = mokkeryContext.require(VerifyRendering.softVerifierError)
 
-context(scope: MokkeryRenderingScope)
-internal val notVerifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.notVerifierError)
+internal val MokkeryRenderingScope.notVerifierError
+    get() = mokkeryContext.require(VerifyRendering.notVerifierError)
 
 
-context(scope: MokkeryRenderingScope)
-internal val orderVerifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.orderVerifierError)
+internal val MokkeryRenderingScope.orderVerifierError
+    get() = mokkeryContext.require(VerifyRendering.orderVerifierError)
 
-context(scope: MokkeryRenderingScope)
-internal val exhaustiveOrderVerifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.exhaustiveOrderVerifierError)
+internal val MokkeryRenderingScope.exhaustiveOrderVerifierError
+    get() = mokkeryContext.require(VerifyRendering.exhaustiveOrderVerifierError)
 
-context(scope: MokkeryRenderingScope)
-internal val exhaustiveSoftVerifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.exhaustiveSoftVerifierError)
+internal val MokkeryRenderingScope.exhaustiveSoftVerifierError
+    get() = mokkeryContext.require(VerifyRendering.exhaustiveSoftVerifierError)
 
-context(scope: MokkeryRenderingScope)
-internal val verifierError
-    get() = scope.mokkeryContext.require(VerifyRendering.verifierError)
+internal val MokkeryRenderingScope.verifierError
+    get() = mokkeryContext.require(VerifyRendering.verifierError)
 
 internal object VerifyRendering {
 
@@ -115,11 +104,11 @@ private object VerifierErrorRenderer : Renderer<Verifier.Error> {
 
     context(scope: MokkeryRenderingScope)
     override fun render(value: Verifier.Error): String = when (value) {
-        is ExhaustiveOrderVerifier.Error -> exhaustiveOrderVerifierError.render(value)
-        is ExhaustiveSoftVerifier.Error -> exhaustiveSoftVerifierError.render(value)
-        is NotVerifier.Error -> notVerifierError.render(value)
-        is OrderVerifier.Error -> orderVerifierError.render(value)
-        is SoftVerifier.Error -> softVerifierError.render(value)
+        is ExhaustiveOrderVerifier.Error -> scope.exhaustiveOrderVerifierError.render(value)
+        is ExhaustiveSoftVerifier.Error -> scope.exhaustiveSoftVerifierError.render(value)
+        is NotVerifier.Error -> scope.notVerifierError.render(value)
+        is OrderVerifier.Error -> scope.orderVerifierError.render(value)
+        is SoftVerifier.Error -> scope.softVerifierError.render(value)
     }
 
 }

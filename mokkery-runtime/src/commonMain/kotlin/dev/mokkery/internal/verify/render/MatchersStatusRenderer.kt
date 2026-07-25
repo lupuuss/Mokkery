@@ -26,7 +26,7 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
             // we only materialize defaults when other matchers are satisfied
             trace.countNonDefaultMatching(template) == nonDefaultMatchersCount -> scope.tools
                 .defaultsMaterializerFactory
-                .create(mokkeryCollection)
+                .create(scope.mokkeryCollection)
                 .materialize(trace, template)
             else -> template
         }
@@ -46,19 +46,19 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
             else -> "[-]"
         }
         val statusLine = "$status ${parameter.name}:"
-        val matcherRendered = matcher?.let { argMatcherRenderer.render(it) } ?: "null"
+        val matcherRendered = matcher?.let { scope.argMatcherRenderer.render(it) } ?: "null"
         append(statusLine)
         when {
-            matches -> appendLine(" $matcherRendered ~ ${descriptionRenderer.render(value)}")
+            matches -> appendLine(" $matcherRendered ~ ${scope.descriptionRenderer.render(value)}")
             matcher is DefaultValuesMatcher -> {
                 appendLine()
                 appendLine("   expect: default() => Cannot be determined, because other matchers don't match!")
-                appendLine("   actual: ${descriptionRenderer.render(value)}")
+                appendLine("   actual: ${scope.descriptionRenderer.render(value)}")
             }
             else -> {
                 appendLine()
                 appendLine("   expect: $matcherRendered")
-                appendLine("   actual: ${descriptionRenderer.render(value)}")
+                appendLine("   actual: ${scope.descriptionRenderer.render(value)}")
             }
         }
     }

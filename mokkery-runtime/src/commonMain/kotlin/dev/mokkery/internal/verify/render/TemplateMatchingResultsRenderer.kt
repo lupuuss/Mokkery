@@ -31,10 +31,13 @@ internal object TemplateMatchingResultsRenderer : Renderer<List<TemplateMatching
     }
 
     context(scope: MokkeryRenderingScope)
-    private fun StringBuilder.appendUnverifiedCallLine(call: TemplateMatchingResult.UnverifiedCall, columnSize: Int) {
+    private fun StringBuilder.appendUnverifiedCallLine(
+        call: TemplateMatchingResult.UnverifiedCall,
+        columnSize: Int
+    ) {
         append("*".padEnd(columnSize, ' '))
         append("  ")
-        appendLine(callTraceRenderer.render(call.trace))
+        appendLine(scope.callTraceRenderer.render(call.trace))
     }
 
     context(scope: MokkeryRenderingScope)
@@ -46,11 +49,11 @@ internal object TemplateMatchingResultsRenderer : Renderer<List<TemplateMatching
     ) {
         append("$index. ".padEnd(columnSize))
         append("┌ ")
-        appendLine(callTemplateRenderer.render(template))
+        appendLine(scope.callTemplateRenderer.render(template))
         append(" ".padEnd(columnSize))
         append("└ ")
         if (trace != null) {
-            appendLine(callTraceRenderer.render(trace))
+            appendLine(scope.callTraceRenderer.render(trace))
         } else {
             appendLine("No matching call!")
         }

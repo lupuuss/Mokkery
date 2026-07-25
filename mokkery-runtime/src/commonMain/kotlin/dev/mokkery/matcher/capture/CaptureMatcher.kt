@@ -29,7 +29,7 @@ public class CaptureMatcher<T>(
     override fun hashCode(): Int = matcher.hashCode()
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "capture($capture, ${argMatcherRenderer.render(matcher)})"
+    override fun render(): String = "capture($capture, ${scope.argMatcherRenderer.render(matcher)})"
 
     override fun capture(value: T) {
         capture.capture(value)

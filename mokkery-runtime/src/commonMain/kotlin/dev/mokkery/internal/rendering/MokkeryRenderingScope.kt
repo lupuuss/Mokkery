@@ -11,7 +11,7 @@ internal val MokkeryScope.renderingScope: MokkeryRenderingScope
 internal fun <R> MokkeryScope.withRenderingScope(
     instances: MokkeryCollection? = null,
     receiverRendering: Boolean = true,
-    block: context(MokkeryRenderingScope)() -> R,
+    block: MokkeryRenderingScope.() -> R,
 ): R = MokkeryRenderingScope(MokkeryRendering.default + mokkeryContext)
     .configured {
         if (instances != null) {

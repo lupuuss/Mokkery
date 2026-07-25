@@ -10,5 +10,5 @@ internal data class MaterializedDefaultValueMatcher(val defaultValue: Any?) : Ar
     override fun matches(arg: Any?): Boolean = arg == defaultValue
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "default() => ${descriptionRenderer.render(defaultValue)}"
+    override fun render(): String = "default() => ${scope.descriptionRenderer.render(defaultValue)}"
 }

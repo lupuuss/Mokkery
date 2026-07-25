@@ -9,18 +9,12 @@ import dev.mokkery.rendering.MokkeryRenderingScope
 
 @InternalMokkeryApi
 public val MokkeryInternals<MokkeryRenderingScope>.argMatcherRenderer: Renderer<ArgMatcher<*>>
-    get() = context(renderingScope) {
-        dev.mokkery.internal.rendering.argMatcherRenderer
-    }
+    get() = renderingScope.argMatcherRenderer
 
 @InternalMokkeryApi
 public val MokkeryInternals<MokkeryRenderingScope>.descriptionRenderer: Renderer<Any?>
-    get() = context(renderingScope) {
-        dev.mokkery.internal.rendering.descriptionRenderer
-    }
+    get() = renderingScope.descriptionRenderer
 
 @InternalMokkeryApi
 public val MokkeryInternals<MokkeryRenderingScope>.callScopeRenderer: Renderer<MokkeryCallScope>
-    get() = context(renderingScope) {
-        dev.mokkery.internal.rendering.callScopeRenderer
-    }
+    get() = renderingScope.callScopeRenderer

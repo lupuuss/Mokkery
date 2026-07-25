@@ -16,6 +16,6 @@ private class SpreadArgMatcherImpl<T>(private val matcher: ArgMatcher<T>) : Spre
     override fun matches(arg: T): Boolean = matcher.matches(arg)
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "*${argMatcherRenderer.render(matcher)}"
+    override fun render(): String = "*${scope.argMatcherRenderer.render(matcher)}"
 
 }

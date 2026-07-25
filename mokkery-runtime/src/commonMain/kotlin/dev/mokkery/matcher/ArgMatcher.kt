@@ -36,7 +36,7 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg == value
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = descriptionRenderer.render(value)
+        override fun render(): String = scope.descriptionRenderer.render(value)
     }
 
     /**
@@ -47,7 +47,7 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg === value
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "ref(${descriptionRenderer.render(value)})"
+        override fun render(): String = "ref(${scope.descriptionRenderer.render(value)})"
     }
 
     /**
@@ -61,7 +61,7 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = type.compare(arg.compareTo(value))
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "${type.toString().lowercase()}(${descriptionRenderer.render(value)})"
+        override fun render(): String = "${type.toString().lowercase()}(${scope.descriptionRenderer.render(value)})"
 
         public enum class Type(public val compare: (Int) -> Boolean) {
             Eq({ it == 0 }), Lt({ it < 0 }), Lte({ it <= 0 }), Gt({ it > 0 }), Gte({ it >= 0 })
@@ -107,7 +107,7 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg != value
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "neq(${descriptionRenderer.render(value)})"
+        override fun render(): String = "neq(${scope.descriptionRenderer.render(value)})"
     }
 
     /**
@@ -120,7 +120,7 @@ public fun interface ArgMatcher<in T> {
         override fun matches(arg: T): Boolean = arg !== value
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "neqRef(${descriptionRenderer.render(value)})"
+        override fun render(): String = "neqRef(${scope.descriptionRenderer.render(value)})"
     }
 
     /**
