@@ -51,5 +51,5 @@ internal data class CompositeVarArgMatcher(
     }
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "[${matchers.joinToString { argMatcherRenderer.render(it) }}]"
+    override fun render(): String = "[${matchers.joinToString { scope.argMatcherRenderer.render(it) }}]"
 }

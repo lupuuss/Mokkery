@@ -105,7 +105,7 @@ public interface Answer<out T> {
         override fun call(scope: MokkeryCallScope): T = value
 
         context(scope: MokkeryRenderingScope)
-        override fun render(): String = "returns ${descriptionRenderer.render(value)}"
+        override fun render(): String = "returns ${scope.descriptionRenderer.render(value)}"
     }
 
     /**

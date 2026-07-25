@@ -23,49 +23,38 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.renderOrToString
 
-context(scope: MokkeryRenderingScope)
-internal val mokkeryCollection: MokkeryCollection
-    get() = scope.mokkeryContext.require(MokkeryCollectionAware).collection
+internal val MokkeryRenderingScope.mokkeryCollection: MokkeryCollection
+    get() = mokkeryContext.require(MokkeryCollectionAware).collection
 
-context(scope: MokkeryRenderingScope)
-internal val aliases: AliasMokkeryCollection?
-    get() = scope.mokkeryContext[UseAliases]?.aliases
+internal val MokkeryRenderingScope.aliases: AliasMokkeryCollection?
+    get() = mokkeryContext[UseAliases]?.aliases
 
-context(scope: MokkeryRenderingScope)
-internal val descriptionRenderer: Renderer<Any?>
-    get() = scope.mokkeryContext.require(MokkeryRendering.descriptionKey)
+internal val MokkeryRenderingScope.descriptionRenderer: Renderer<Any?>
+    get() = mokkeryContext.require(MokkeryRendering.descriptionKey)
 
-context(scope: MokkeryRenderingScope)
-internal val argMatcherRenderer: Renderer<ArgMatcher<*>>
-    get() = scope.mokkeryContext.require(MokkeryRendering.argMatcherKey)
+internal val MokkeryRenderingScope.argMatcherRenderer: Renderer<ArgMatcher<*>>
+    get() = mokkeryContext.require(MokkeryRendering.argMatcherKey)
 
-context(scope: MokkeryRenderingScope)
-internal val functionRenderer: Renderer<FunctionRenderDescriptor>
-    get() = scope.mokkeryContext.require(MokkeryRendering.functionKey)
+internal val MokkeryRenderingScope.functionRenderer: Renderer<FunctionRenderDescriptor>
+    get() = mokkeryContext.require(MokkeryRendering.functionKey)
 
-context(scope: MokkeryRenderingScope)
-internal val instanceIdRenderer: Renderer<MokkeryInstanceId>
-    get() = scope.mokkeryContext.require(MokkeryRendering.instanceIdKey)
+internal val MokkeryRenderingScope.instanceIdRenderer: Renderer<MokkeryInstanceId>
+    get() = mokkeryContext.require(MokkeryRendering.instanceIdKey)
 
-context(scope: MokkeryRenderingScope)
-internal val callDescriptorRenderer: Renderer<CallRenderDescriptor>
-    get() = scope.mokkeryContext.require(MokkeryRendering.callDescriptorKey)
+internal val MokkeryRenderingScope.callDescriptorRenderer: Renderer<CallRenderDescriptor>
+    get() = mokkeryContext.require(MokkeryRendering.callDescriptorKey)
 
-context(scope: MokkeryRenderingScope)
-internal val callTemplateRenderer: Renderer<CallTemplate>
-    get() = scope.mokkeryContext.require(MokkeryRendering.callTemplateKey)
+internal val MokkeryRenderingScope.callTemplateRenderer: Renderer<CallTemplate>
+    get() = mokkeryContext.require(MokkeryRendering.callTemplateKey)
 
-context(scope: MokkeryRenderingScope)
-internal val callTraceRenderer: Renderer<CallTrace>
-    get() = scope.mokkeryContext.require(MokkeryRendering.callTraceKey)
+internal val MokkeryRenderingScope.callTraceRenderer: Renderer<CallTrace>
+    get() = mokkeryContext.require(MokkeryRendering.callTraceKey)
 
-context(scope: MokkeryRenderingScope)
-internal val callScopeRenderer: Renderer<MokkeryCallScope>
-    get() = scope.mokkeryContext.require(MokkeryRendering.callScopeKey)
+internal val MokkeryRenderingScope.callScopeRenderer: Renderer<MokkeryCallScope>
+    get() = mokkeryContext.require(MokkeryRendering.callScopeKey)
 
-context(scope: MokkeryRenderingScope)
-internal val factory: MokkeryRendering.Factory
-    get() = scope.mokkeryContext.require(MokkeryRendering.Factory)
+internal val MokkeryRenderingScope.renderingFactory: MokkeryRendering.Factory
+    get() = mokkeryContext.require(MokkeryRendering.Factory)
 
 
 internal fun RenderingConfigurer.receiverRendering(enabled: Boolean) {
@@ -193,7 +182,7 @@ private class MokkeryInstanceIdRenderer : Renderer<MokkeryInstanceId> {
     override val key get() = MokkeryRendering.instanceIdKey
 
     context(scope: MokkeryRenderingScope)
-    override fun render(value: MokkeryInstanceId): String = (aliases?.mapOriginalToAlias(value) ?: value).toString()
+    override fun render(value: MokkeryInstanceId): String = (scope.aliases?.mapOriginalToAlias(value) ?: value).toString()
 }
 
 private class CallDescriptorRenderer : Renderer<CallRenderDescriptor> {
@@ -203,7 +192,7 @@ private class CallDescriptorRenderer : Renderer<CallRenderDescriptor> {
     context(scope: MokkeryRenderingScope)
     override fun render(value: CallRenderDescriptor) = buildString {
         if (scope.mokkeryContext[DisableReceiverRendering] == null) {
-            append(instanceIdRenderer.render(value.receiver))
+            append(scope.instanceIdRenderer.render(value.receiver))
             append(".")
         }
         when (value.function) {
@@ -243,8 +232,8 @@ private class CallDescriptorRenderer : Renderer<CallRenderDescriptor> {
 
     context(scope: MokkeryRenderingScope)
     private fun render(argument: ArgumentRenderDescriptor): String = when (argument) {
-        is ArgumentRenderDescriptor.Matcher -> argMatcherRenderer.render(argument.matcher)
-        is ArgumentRenderDescriptor.Value -> descriptionRenderer.render(argument.arg.value)
+        is ArgumentRenderDescriptor.Matcher -> scope.argMatcherRenderer.render(argument.matcher)
+        is ArgumentRenderDescriptor.Value -> scope.descriptionRenderer.render(argument.arg.value)
     }
 }
 
@@ -270,7 +259,7 @@ private class CallScopeRenderer : Renderer<MokkeryCallScope> {
     override val key get() = MokkeryRendering.callScopeKey
 
     context(scope: MokkeryRenderingScope)
-    override fun render(value: MokkeryCallScope): String = callDescriptorRenderer.render(value.asCallRenderDescriptor())
+    override fun render(value: MokkeryCallScope): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
 }
 
 private class CallTemplateRenderer : Renderer<CallTemplate> {
@@ -278,7 +267,7 @@ private class CallTemplateRenderer : Renderer<CallTemplate> {
     override val key get() = MokkeryRendering.callTemplateKey
 
     context(scope: MokkeryRenderingScope)
-    override fun render(value: CallTemplate): String = callDescriptorRenderer.render(value.asCallRenderDescriptor())
+    override fun render(value: CallTemplate): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
 }
 
 private class CallTraceRenderer : Renderer<CallTrace> {
@@ -286,5 +275,5 @@ private class CallTraceRenderer : Renderer<CallTrace> {
     override val key get() = MokkeryRendering.callTraceKey
 
     context(scope: MokkeryRenderingScope)
-    override fun render(value: CallTrace): String = callDescriptorRenderer.render(value.asCallRenderDescriptor())
+    override fun render(value: CallTrace): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
 }

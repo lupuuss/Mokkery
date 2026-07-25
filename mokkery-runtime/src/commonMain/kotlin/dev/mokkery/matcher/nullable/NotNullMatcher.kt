@@ -35,5 +35,5 @@ public class NotNullMatcher<T>(public val matcher: ArgMatcher<T & Any>) : ArgMat
     }
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "notNull(${argMatcherRenderer.render(matcher)})"
+    override fun render(): String = "notNull(${scope.argMatcherRenderer.render(matcher)})"
 }

@@ -116,6 +116,7 @@ private fun mockCallExpectedError(
     call = functionName
 )
 
-private fun String.renderRawFunctionName(scope: MokkeryScope): String = scope.withRenderingScope {
-    functionRenderer.render(FunctionRenderDescriptor.parse(this))
+private fun String.renderRawFunctionName(scope: MokkeryScope): String {
+    val descriptor = FunctionRenderDescriptor.parse(this)
+    return scope.withRenderingScope { functionRenderer.render(descriptor) }
 }

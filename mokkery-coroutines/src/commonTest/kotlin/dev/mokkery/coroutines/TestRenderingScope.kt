@@ -5,7 +5,7 @@ import dev.mokkery.rendering.MokkeryRenderingScope
 
 internal fun <R> testRendering(
     context: MokkeryContext = MokkeryContext.Empty,
-    block: context(MokkeryRenderingScope)() -> R
+    block: MokkeryRenderingScope.() -> R
 ): R {
     return MokkeryRenderingScope(context).let(block)
 }

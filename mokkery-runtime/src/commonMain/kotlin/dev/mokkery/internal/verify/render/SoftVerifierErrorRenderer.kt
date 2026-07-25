@@ -29,8 +29,8 @@ internal object SoftVerifierErrorRenderer : Renderer<SoftVerifier.Error> {
         } else {
             append(", but $callsCount occurred")
         }
-        appendLine(" for ${callTemplateRenderer.render(value.templateMatchingResults.template)}!")
-        append(templateGroupedMatchingResults.render(value.templateMatchingResults))
+        appendLine(" for ${scope.callTemplateRenderer.render(value.templateMatchingResults.template)}!")
+        append(scope.templateGroupedMatchingResults.render(value.templateMatchingResults))
     }
 
 }

@@ -21,7 +21,7 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
     context(scope: MokkeryRenderingScope)
     override fun render(value: TemplateGroupedMatchingResults): String = buildString {
         val (template, results) = value
-        appendLine("Results for ${instanceIdRenderer.render(value.template.instanceId)}:")
+        appendLine("Results for ${scope.instanceIdRenderer.render(value.template.instanceId)}:")
         if (results.all { (_, value) -> value.isEmpty() }) {
             appendLine("# No calls to this mock!")
             return@buildString
@@ -30,8 +30,8 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
         appendOptionalGroup(results[CallMatchResult.SameReceiverMethodSignature], "Calls to the same method with failing matchers") { calls ->
             calls.forEach {
                 append(traceIndentationString)
-                appendLine(callTraceRenderer.render(it))
-                append(matcherStatus.render(template to it).withIndentation(2 * INDENT))
+                appendLine(scope.callTraceRenderer.render(it))
+                append(scope.matcherStatus.render(template to it).withIndentation(2 * INDENT))
             }
         }
         appendOptionalGroup(results[CallMatchResult.SameReceiverMethodOverload], "Calls to the same overload")
@@ -56,7 +56,7 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
     private fun StringBuilder.appendRenderedTracesFrom(traces: List<CallTrace>) {
         traces.forEach {
             append(traceIndentationString)
-            appendLine(callTraceRenderer.render(it))
+            appendLine(scope.callTraceRenderer.render(it))
         }
     }
 }
