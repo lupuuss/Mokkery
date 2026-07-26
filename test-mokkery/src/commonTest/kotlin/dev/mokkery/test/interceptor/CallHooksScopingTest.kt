@@ -78,8 +78,27 @@ class CallHooksScopingTest {
     @Test
     fun testInstanceScopedInterceptorAppliesToThatMock() {
         val interceptor = TestInterceptor()
+        val mock = mock<RegularMethodsInterface> {
+            callHooks.beforeAnswering.register(interceptor)
+            every { callPrimitive(any()) } returnsArgAt 0
+        }
+        mock.callPrimitive(1)
+        assertNotNull(
+            interceptor
+                .interceptBlockingCalls
+                .singleOrNull { it.call.function.name == "callPrimitive" }
+        )
+    }
+
+    @Test
+    fun testInstanceScopedInterceptorRegisteredAfterCreationAppliesToThatMock() {
+        val interceptor = TestInterceptor()
         val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
-        MokkeryScope.from(mock).callHooks.beforeAnswering.register(interceptor)
+        MokkeryScope
+            .from(mock)
+            .callHooks
+            .beforeAnswering
+            .register(interceptor)
         mock.callPrimitive(1)
         assertNotNull(
             interceptor
@@ -92,12 +111,11 @@ class CallHooksScopingTest {
     fun testInstanceScopedInterceptorDoesNotApplyToOtherMock() {
         val interceptor = TestInterceptor()
         val scope = MokkerySuiteScope()
-        val registeredMock = scope.mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
+        scope.mock<RegularMethodsInterface> {
+            callHooks.beforeAnswering.register(interceptor)
+            every { callPrimitive(any()) } returnsArgAt 0
+        }
         val otherMock = scope.mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
-        MokkeryScope.from(registeredMock)
-            .callHooks
-            .beforeAnswering
-            .register(interceptor)
         otherMock.callPrimitive(1)
         assertTrue(interceptor.interceptBlockingCalls.isEmpty())
     }
@@ -130,8 +148,10 @@ class CallHooksScopingTest {
     @Test
     fun testInstanceScopedBeforeTracingInterceptorAppliesToThatMock() {
         val interceptor = TestInterceptor()
-        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
-        MokkeryScope.from(mock).callHooks.beforeTracing.register(interceptor)
+        val mock = mock<RegularMethodsInterface> {
+            callHooks.beforeTracing.register(interceptor)
+            every { callPrimitive(any()) } returnsArgAt 0
+        }
         mock.callPrimitive(1)
         assertNotNull(
             interceptor
@@ -144,12 +164,11 @@ class CallHooksScopingTest {
     fun testInstanceScopedBeforeTracingInterceptorDoesNotApplyToOtherMock() {
         val interceptor = TestInterceptor()
         val scope = MokkerySuiteScope()
-        val registeredMock = scope.mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
+        scope.mock<RegularMethodsInterface> {
+            callHooks.beforeTracing.register(interceptor)
+            every { callPrimitive(any()) } returnsArgAt 0
+        }
         val otherMock = scope.mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
-        MokkeryScope.from(registeredMock)
-            .callHooks
-            .beforeTracing
-            .register(interceptor)
         otherMock.callPrimitive(1)
         assertTrue(interceptor.interceptBlockingCalls.isEmpty())
     }
