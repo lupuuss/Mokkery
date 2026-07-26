@@ -11,7 +11,6 @@ import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.invokeInstantiationListener
-import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
@@ -86,7 +85,6 @@ internal val MokkeryInstanceScope.shortInstanceIdString
     get(): String = withRenderingScope(instances = this.instanceSpec.collection) {
         instanceIdRenderer.render(instanceId)
     }
-internal val MokkeryInstanceScope.spiedObject get() = instanceSpec.requireSpy().spiedObject
 
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
     var index = 0
