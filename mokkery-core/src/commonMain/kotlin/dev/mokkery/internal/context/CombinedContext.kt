@@ -21,6 +21,11 @@ internal class CombinedContext(
         }
     }
 
+    override fun plus(context: MokkeryContext): MokkeryContext = when {
+        context is MokkeryContext.Element && context.key == element.key -> CombinedContext(left, context)
+        else -> super.plus(context)
+    }
+
     override fun <T> fold(
         initial: T,
         operation: (T, MokkeryContext.Element) -> T
