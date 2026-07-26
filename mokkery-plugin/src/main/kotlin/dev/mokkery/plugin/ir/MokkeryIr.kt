@@ -110,7 +110,7 @@ object MokkeryIr {
     object Property {
 
         val instanceIdString by dev_mokkery_internal.refProperty
-        val spiedObject by dev_mokkery_internal.refProperty
+        val spiedObject by dev_mokkery.refProperty
         val jsFunctionMokkeryScope by dev_mokkery_internal.refProperty
         val callInterceptor by dev_mokkery_internal_context.refProperty
     }
