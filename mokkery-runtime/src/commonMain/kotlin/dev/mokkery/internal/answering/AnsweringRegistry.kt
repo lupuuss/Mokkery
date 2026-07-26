@@ -9,21 +9,17 @@ import dev.mokkery.call
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.CallNotMockedException
-import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.matcher.callMatcher
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.rendering.callTraceRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
-import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.toCallTrace
 import dev.mokkery.matcher.capture.Capture
-import dev.mokkery.self
 import dev.mokkery.supers
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
@@ -71,20 +67,16 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
 
     override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
         val trace = scope.toCallTrace(0)
-        val collection = scope.self
-            .requireInstanceScope()
-            .toMokkeryCollection()
-        val callMatcher = scope.tools.callMatcherFactory.create(collection)
         val answers = _answers.value
+        val callMatcher = scope.callMatcher
         val result = answers
             .find { (template) -> callMatcher.match(trace, template).isMatching }
         result?.first?.applyCapture(trace)
-        return result?.second ?: handleMissingAnswer(scope, collection, trace)
+        return result?.second ?: handleMissingAnswer(scope, trace)
     }
 
     private fun handleMissingAnswer(
         scope: MokkeryCallScope,
-        collection: MokkeryCollection,
         trace: CallTrace
     ): Answer<*> = when (val spec = scope.instanceSpec) {
         is MokkerySpySpec -> SpiedCallAnswer
@@ -92,7 +84,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
             MockMode.autofill -> Answer.Autofill
             MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> scope.withRenderingScope(instances = collection) {
+            else -> scope.withRenderingScope(instances = spec.collection) {
                 throw CallNotMockedException(name = callTraceRenderer.render(trace))
             }
         }

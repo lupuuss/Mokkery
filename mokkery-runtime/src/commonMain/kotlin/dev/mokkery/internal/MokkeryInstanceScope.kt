@@ -8,7 +8,6 @@ import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
 import dev.mokkery.internal.answering.AnsweringRegistry
-import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.invokeInstantiationListener
@@ -16,7 +15,6 @@ import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
-import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.interceptor.rootInstantiationListener
@@ -33,27 +31,30 @@ internal fun MokkeryScope.instanceContext(
     mode: MockMode?,
     spiedObject: Any?,
     defaultsExtractorFactory: DefaultsExtractorFactory? = null
-): MokkeryContext = mokkeryContext
-    .plus(forkedHooksOrEmpty())
-    .plus(rootInstantiationListener)
-    .plus(
-        MokkeryInstanceSpec.create(
-            id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
-            interceptedTypes = interceptedTypes,
-            typeArguments = typeArguments,
-            thisRef = thisRef,
-            spiedObject = spiedObject,
-            mode = when {
-                spiedObject != null -> null
-                else -> mode ?: settings.defaultMockMode
-            },
-        )
+): MokkeryContext {
+    val tools = tools
+    val spec = MokkeryInstanceSpec.create(
+        id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
+        interceptedTypes = interceptedTypes,
+        typeArguments = typeArguments,
+        thisRef = thisRef,
+        spiedObject = spiedObject,
+        mode = when {
+            spiedObject != null -> null
+            else -> mode ?: settings.defaultMockMode
+        },
     )
-    .plus(CallTracingRegistry())
-    .plus(AnsweringRegistry())
-    .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
-    .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
-    .plus(rootCallInterceptor)
+    return mokkeryContext
+        .plus(forkedHooksOrEmpty())
+        .plus(rootInstantiationListener)
+        .plus(spec)
+        .plus(tools.callMatcherFactory.create(spec.collection))
+        .plus(CallTracingRegistry())
+        .plus(AnsweringRegistry())
+        .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
+        .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
+        .plus(rootCallInterceptor)
+}
 
 internal fun MokkeryInstanceScope.finalizeMokkeryInstance(
     thisRef: Any,
@@ -82,7 +83,7 @@ internal val MokkeryInstanceScope.instanceIdString
     }
 
 internal val MokkeryInstanceScope.shortInstanceIdString
-    get(): String = withRenderingScope(instances = this.toMokkeryCollection()) {
+    get(): String = withRenderingScope(instances = this.instanceSpec.collection) {
         instanceIdRenderer.render(instanceId)
     }
 internal val MokkeryInstanceScope.spiedObject get() = instanceSpec.requireSpy().spiedObject

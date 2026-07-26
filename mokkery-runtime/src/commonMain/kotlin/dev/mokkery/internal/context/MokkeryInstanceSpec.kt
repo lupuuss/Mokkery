@@ -5,10 +5,12 @@ import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.ObjectIsNotMockException
 import dev.mokkery.internal.ObjectIsNotSpyException
 import dev.mokkery.internal.mokkeryRuntimeError
+import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.bestName
 import kotlin.reflect.KClass
 
@@ -35,6 +37,7 @@ internal sealed interface MokkeryInstanceSpec : MokkeryContext.Element {
     val id: MokkeryInstanceId
     val interceptedTypes: List<InterceptedTypeSpec>
     val thisRef: Any
+    val collection: MokkeryCollection
 
     companion object Key : MokkeryContext.Key<MokkeryInstanceSpec> {
 
@@ -61,6 +64,7 @@ internal data class MokkeryMockSpec(
     override val thisRef: Any,
     override val interceptedTypes: List<InterceptedTypeSpec>,
     val mode: MockMode,
+    override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
 
     override fun toString(): String = "MokkeryMockSpec(" +
@@ -75,8 +79,10 @@ internal data class MokkerySpySpec(
     override val id: MokkeryInstanceId,
     override val thisRef: Any,
     override val interceptedTypes: List<InterceptedTypeSpec>,
-    val spiedObject: Any
+    val spiedObject: Any,
+    override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
+
 
     override fun toString(): String = "MokkerySpySpec(" +
             "id='$id', " +
@@ -96,4 +102,31 @@ internal class InterceptedTypeSpec(val type: KClass<*>, val arguments: List<KCla
             append(">")
         }
     }
+}
+
+
+private class SelfMokkeryCollection(
+    private val thisRef: Any,
+    private val id: MokkeryInstanceId,
+) : MokkeryCollection {
+
+    override val ids = setOf(id)
+
+    override val scopes: Collection<MokkeryInstanceScope>
+        get() = listOf(thisRef.requireInstanceScope())
+
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = when (this.id) {
+        id -> thisRef.requireInstanceScope()
+        else -> null
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MokkeryCollection) return false
+        return this.ids == other.ids
+    }
+
+    override fun hashCode(): Int = this.ids.hashCode()
+
+    override fun toString(): String = "MokkeryCollection[${ids.single()}]"
 }
