@@ -1,13 +1,27 @@
 package dev.mokkery.internal.matcher
 
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.defaults.DefaultsMaterializer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
-internal interface CallMatcher {
+internal val MokkeryInstanceScope.callMatcher: CallMatcher
+    get() = mokkeryContext.require(CallMatcher)
+
+internal val MokkeryCallScope.callMatcher: CallMatcher
+    get() = mokkeryContext.require(CallMatcher)
+
+internal interface CallMatcher : MokkeryContext.Element {
+
+    override val key: Key get() = Key
 
     fun match(trace: CallTrace, template: CallTemplate): CallMatchResult
+
+    companion object Key : MokkeryContext.Key<CallMatcher>
 
     fun interface Factory {
 

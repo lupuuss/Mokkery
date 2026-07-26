@@ -8,7 +8,6 @@ import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestCallMatcher
-import dev.mokkery.test.TestCallMatcherFactory
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallArg
@@ -23,11 +22,8 @@ import kotlin.test.assertFailsWith
 class AnsweringRegistryTest {
 
     private val callMatcher = TestCallMatcher()
-    private val tools = MokkeryTools(
-        callMatcherFactory = TestCallMatcherFactory { callMatcher },
-        namesShortener = TestNameShortener(),
-    )
-    private val context = tools + mockSpec(MockMode.strict)
+    private val tools = MokkeryTools(namesShortener = TestNameShortener())
+    private val context = tools + mockSpec(MockMode.strict) + callMatcher
     private val answering = AnsweringRegistry()
 
     @Test

@@ -37,8 +37,6 @@ internal fun MutableMokkeryCollection(
     vararg values: MokkeryInstanceScope
 ): MutableMokkeryCollection = MutableMokkeryCollection(values.asList())
 
-internal fun MokkeryInstanceScope.toMokkeryCollection(): MokkeryCollection = SingletonMokkeryCollection(this)
-
 internal fun MokkeryCollection?.orEmpty(): MokkeryCollection = this ?: EmptyMokkeryCollection
 
 internal operator fun MokkeryCollection.plus(
