@@ -1,14 +1,20 @@
 package dev.mokkery.test
 
+import dev.mokkery.MockMode
+import dev.mokkery.MokkeryMockScope
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.MokkeryScope
 import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.returns
+import dev.mokkery.configurer.MokkeryConfigurer
 import dev.mokkery.configurer.MokkeryMockConfigurer
+import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.configurer.configurer
 import dev.mokkery.configurer.minusAssign
 import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.every
 import dev.mokkery.interceptor.MokkeryCallHooks
 import dev.mokkery.mock
 import dev.mokkery.mockMany
@@ -19,6 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(DelicateMokkeryApi::class)
 class MockConfigurerTest {
@@ -53,6 +60,24 @@ class MockConfigurerTest {
             configurer += TestElement("function")
         }
         assertEquals(TestElement("function"), MokkeryScope.from(mock).mokkeryContext[TestElement])
+    }
+
+    @Test
+    fun testClassMockBlockAllowsMutatingContext() {
+        val mock = mock<AbstractClassLevel1> {
+            configurer += TestElement("class")
+        }
+        assertEquals(TestElement("class"), MokkeryScope.from(mock).mokkeryContext[TestElement])
+    }
+
+    @Test
+    fun testConfigurerTypeMatchesInstanceKind() {
+        var fromMock: MokkeryConfigurer? = null
+        var fromSpy: MokkeryConfigurer? = null
+        mock<RegularMethodsInterface> { fromMock = configurer }
+        spy(listOf(1, 2, 3)) { fromSpy = configurer }
+        assertTrue(fromMock is MokkeryMockConfigurer, "Expected mock configurer, but was $fromMock")
+        assertTrue(fromSpy is MokkerySpyConfigurer, "Expected spy configurer, but was $fromSpy")
     }
 
     @Test
@@ -98,6 +123,24 @@ class MockConfigurerTest {
             configurer -= MokkeryCallHooks
         }
         assertNull(MokkeryScope.from(mock).mokkeryContext[MokkeryCallHooks])
+    }
+
+    @Test
+    fun testBlockOverridesMockMode() {
+        val mock = mock<RegularMethodsInterface>(MockMode.strict) {
+            mockMode = MockMode.autoUnit
+        }
+        assertEquals(MockMode.autoUnit, (MokkeryScope.from(mock) as MokkeryMockScope).mockMode)
+        mock.callUnit(Unit)
+    }
+
+    @Test
+    fun testMockModeChangeKeepsMatchingCallsWithDefaultArgs() {
+        val mock = mock<RegularMethodsInterface>(MockMode.strict) {
+            mockMode = MockMode.autoUnit
+        }
+        every { mock.callPrimitiveWithDefaults() } returns 1
+        assertEquals(1, mock.callPrimitiveWithDefaults())
     }
 
     @Test
