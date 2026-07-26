@@ -1,5 +1,6 @@
 package dev.mokkery.internal.rendering
 
+import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MokkeryInstanceId
@@ -273,7 +274,7 @@ class CallDescriptorRendererTest {
     ) {
         val renderer = MokkeryRendering.callDescriptorImpl
         val scope = testRenderingScope {
-            +(valueRenderer + matcherRenderer + instanceIdRenderer)
+            this += (valueRenderer + matcherRenderer + instanceIdRenderer)
             receiverRendering(renderReceiver)
         }
         context(scope) {

@@ -1,6 +1,8 @@
 package dev.mokkery.internal.rendering
 
 import dev.mokkery.MokkeryCallScope
+import dev.mokkery.configurer.minusAssign
+import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
 import dev.mokkery.context.require
@@ -59,17 +61,17 @@ internal val MokkeryRenderingScope.renderingFactory: MokkeryRendering.Factory
 
 internal fun MokkeryRenderingConfigurer.receiverRendering(enabled: Boolean) {
     when (enabled) {
-        true -> -DisableReceiverRendering
-        false -> +DisableReceiverRendering
+        true -> this -= DisableReceiverRendering
+        false -> this += DisableReceiverRendering
     }
 }
 
 internal fun MokkeryRenderingConfigurer.mokkeryCollection(value: MokkeryCollection) {
-    +MokkeryCollectionAware(value)
+    this += MokkeryCollectionAware(value)
 }
 
 internal fun MokkeryRenderingConfigurer.useAliases(value: MokkeryCollection, nameShortener: NameShortener) {
-    +UseAliases(value, nameShortener)
+    this += UseAliases(value, nameShortener)
 }
 
 internal object MokkeryRendering {

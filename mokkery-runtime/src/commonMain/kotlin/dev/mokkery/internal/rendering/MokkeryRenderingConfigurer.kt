@@ -1,24 +1,11 @@
 package dev.mokkery.internal.rendering
 
+import dev.mokkery.configurer.MokkeryConfigurer
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.internal.configurer.BaseMokkeryConfigurer
 
-internal interface MokkeryRenderingConfigurer {
-
-    var mokkeryContext: MokkeryContext
-}
+internal interface MokkeryRenderingConfigurer : MokkeryConfigurer
 
 internal fun MokkeryRenderingConfigurer(
     context: MokkeryContext
-): MokkeryRenderingConfigurer = object : MokkeryRenderingConfigurer {
-    override var mokkeryContext: MokkeryContext = context
-}
-
-context(builder: MokkeryRenderingConfigurer)
-internal operator fun MokkeryContext.unaryPlus() {
-    builder.mokkeryContext += this
-}
-
-context(builder: MokkeryRenderingConfigurer)
-internal operator fun MokkeryContext.Element.unaryMinus() {
-    builder.mokkeryContext -= this.key
-}
+): MokkeryRenderingConfigurer = object : BaseMokkeryConfigurer(context), MokkeryRenderingConfigurer {}
