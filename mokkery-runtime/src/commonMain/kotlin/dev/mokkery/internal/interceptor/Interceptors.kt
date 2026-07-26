@@ -8,8 +8,16 @@ import dev.mokkery.interceptor.MokkeryCallHooks
 import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.answering.answering
+import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.tracing.callTracing
+
+internal val rootCallInterceptor = ContextCallInterceptor(
+    BeforeTracingHookInterceptor,
+    CallTracingInterceptor,
+    BeforeAnsweringHookInterceptor,
+    AnsweringInterceptor
+)
 
 internal object MocksRegisteringListener : MokkeryInstantiationListener {
 
