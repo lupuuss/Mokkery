@@ -1,6 +1,8 @@
 package dev.mokkery.interceptor
 
 import dev.mokkery.MokkeryScope
+import dev.mokkery.configurer.MokkeryInstanceConfigurer
+import dev.mokkery.configurer.configurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 
@@ -9,6 +11,13 @@ import dev.mokkery.context.require
  */
 public val MokkeryScope.callHooks: MokkeryCallHooks
     get() = mokkeryContext.require(MokkeryCallHooks)
+
+/**
+ * Returns [MokkeryCallHooks] associated with currently configured instance. See [MokkeryCallHooks] for details on hook scoping.
+ */
+context(aware: MokkeryInstanceConfigurer.Aware<T, *>)
+public val <T : Any> T.callHooks: MokkeryCallHooks
+    get() = configurer.callHooks
 
 /**
  * Provides access to hooks that allow registering custom [MokkeryCallInterceptor]s in the call pipeline.
