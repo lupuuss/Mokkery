@@ -2,6 +2,7 @@
 
 package dev.mokkery
 
+import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
@@ -13,10 +14,12 @@ import dev.mokkery.internal.mokkeryIntrinsic
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation. It allows defining answers and adjusting
+ * the mock context with [MokkeryMockConfigurer].
  */
 public fun <T1 : Any, T2 : Any> mockMany(
     mode: MockMode? = null,
-    block: MockMany2<T1, T2>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany2<T1, T2>> = { }
 ): MockMany2<T1, T2> = mokkeryIntrinsic
 
 /**
@@ -28,10 +31,12 @@ public fun <T1 : Any, T2 : Any> mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation. It allows defining answers and adjusting
+ * the mock context with [MokkeryMockConfigurer].
  */
 public fun <T1 : Any, T2 : Any, T3 : Any> mockMany(
     mode: MockMode? = null,
-    block: MockMany3<T1, T2, T3>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany3<T1, T2, T3>> = { }
 ): MockMany3<T1, T2, T3> = mokkeryIntrinsic
 
 /**
@@ -43,10 +48,12 @@ public fun <T1 : Any, T2 : Any, T3 : Any> mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation. It allows defining answers and adjusting
+ * the mock context with [MokkeryMockConfigurer].
  */
 public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any> mockMany(
     mode: MockMode? = null,
-    block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany4<T1, T2, T3, T4>> = { }
 ): MockMany4<T1, T2, T3, T4> = mokkeryIntrinsic
 
 /**
@@ -58,10 +65,12 @@ public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any> mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation. It allows defining answers and adjusting
+ * the mock context with [MokkeryMockConfigurer].
  */
 public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> mockMany(
     mode: MockMode? = null,
-    block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany5<T1, T2, T3, T4, T5>> = { }
 ): MockMany5<T1, T2, T3, T4, T5> = mokkeryIntrinsic
 
 /**
@@ -73,10 +82,11 @@ public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T1 : Any, T2 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode? = null,
-    block: MockMany2<T1, T2>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany2<T1, T2>> = { }
 ): MockMany2<T1, T2> = mokkeryIntrinsic
 
 /**
@@ -88,10 +98,11 @@ public fun <T1 : Any, T2 : Any> MokkerySuiteScope.mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T1 : Any, T2 : Any, T3 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode? = null,
-    block: MockMany3<T1, T2, T3>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany3<T1, T2, T3>> = { }
 ): MockMany3<T1, T2, T3> = mokkeryIntrinsic
 
 /**
@@ -103,10 +114,11 @@ public fun <T1 : Any, T2 : Any, T3 : Any> MokkerySuiteScope.mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode? = null,
-    block: MockMany4<T1, T2, T3, T4>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany4<T1, T2, T3, T4>> = { }
 ): MockMany4<T1, T2, T3, T4> = mokkeryIntrinsic
 
 /**
@@ -118,10 +130,11 @@ public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any> MokkerySuiteScope.mockMany(
  * * No type duplicates
  *
  * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> MokkerySuiteScope.mockMany(
     mode: MockMode? = null,
-    block: MockMany5<T1, T2, T3, T4, T5>.() -> Unit = { }
+    block: MokkeryMockConfigurer.Block<MockMany5<T1, T2, T3, T4, T5>> = { }
 ): MockMany5<T1, T2, T3, T4, T5> = mokkeryIntrinsic
 
 

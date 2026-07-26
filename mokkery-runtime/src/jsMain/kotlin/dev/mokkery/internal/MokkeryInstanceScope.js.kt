@@ -5,6 +5,7 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryMockScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.MokkerySpyScope
+import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.context.MokkeryInstanceSpec
@@ -23,7 +24,7 @@ internal fun MokkeryScope.setupMokkeryInstanceForJsFunction(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    block: (Any.() -> Unit)?,
+    block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val context = instanceContext(
         mode = mode,
@@ -38,6 +39,7 @@ internal fun MokkeryScope.setupMokkeryInstanceForJsFunction(
     thisRef.asDynamic().toString = scope::toString
     scope.finalizeMokkeryInstance(
         thisRef = thisRef,
+        setContext = { scope.mokkeryContext = it },
         block = block,
     )
 }
@@ -55,17 +57,19 @@ private fun MokkeryJsFunScope(
     is MokkerySpySpec -> MokkeryJsFunSpyScope(context)
 }
 
-private interface MokkeryJsFunScope : MokkeryInstanceScope
+private interface MokkeryJsFunScope : MokkeryInstanceScope {
+    override var mokkeryContext: MokkeryContext
+}
 
 private class MokkeryJsFunMockScope(
-    override val mokkeryContext: MokkeryContext
+    override var mokkeryContext: MokkeryContext
 ) : MokkeryJsFunScope, MokkeryMockScope {
 
     override fun toString(): String = instanceIdString
 }
 
 private class MokkeryJsFunSpyScope(
-    override val mokkeryContext: MokkeryContext
+    override var mokkeryContext: MokkeryContext
 ) : MokkeryJsFunScope, MokkerySpyScope {
 
     override fun toString(): String = instanceIdString

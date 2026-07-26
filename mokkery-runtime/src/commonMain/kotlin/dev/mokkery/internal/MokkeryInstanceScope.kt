@@ -5,10 +5,16 @@ package dev.mokkery.internal
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryScope
+import dev.mokkery.configurer.MokkeryInstanceConfigurer
+import dev.mokkery.configurer.MokkeryMockConfigurer
+import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
 import dev.mokkery.internal.answering.AnsweringRegistry
+import dev.mokkery.internal.configurer.BaseMokkeryConfigurer
 import dev.mokkery.internal.context.MokkeryInstanceSpec
+import dev.mokkery.internal.context.MokkeryMockSpec
+import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
@@ -57,9 +63,16 @@ internal fun MokkeryScope.instanceContext(
 
 internal fun MokkeryInstanceScope.finalizeMokkeryInstance(
     thisRef: Any,
-    block: (Any.() -> Unit)?,
+    setContext: (MokkeryContext) -> Unit,
+    block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
-    block?.invoke(thisRef)
+    block ?: return invokeInstantiationListener(thisRef)
+    val configurer = when (instanceSpec) {
+        is MokkeryMockSpec -> MokkeryMockConfigurerImpl(mokkeryContext, setContext)
+        is MokkerySpySpec -> MokkerySpyConfigurerImpl(mokkeryContext, setContext)
+    }
+    val aware = MokkeryInstanceConfigurerAwareImpl(thisRef, configurer)
+    aware.use { block(it, thisRef) }
     invokeInstantiationListener(thisRef)
 }
 
@@ -92,4 +105,43 @@ internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
         for (typeArgument in type.arguments)
             if (totalIndex == index++) return typeArgument
     return null
+}
+
+private class MokkerySpyConfigurerImpl(
+    context: MokkeryContext,
+    setContext: (MokkeryContext) -> Unit
+) : MokkeryInstanceConfigurerImpl(context, setContext), MokkerySpyConfigurer
+
+private class MokkeryMockConfigurerImpl(
+    context: MokkeryContext,
+    setContext: (MokkeryContext) -> Unit
+) : MokkeryInstanceConfigurerImpl(context, setContext), MokkeryMockConfigurer
+
+private abstract class MokkeryInstanceConfigurerImpl(
+    context: MokkeryContext,
+    private val setContext: (MokkeryContext) -> Unit,
+) : BaseMokkeryConfigurer(context), MokkeryInstanceConfigurer {
+
+    override var mokkeryContext: MokkeryContext
+        get() = super.mokkeryContext
+        set(value) {
+            super.mokkeryContext = value
+            setContext(value)
+        }
+}
+
+private class MokkeryInstanceConfigurerAwareImpl<T, C>(
+    private val ref: T,
+    private val configurer: C,
+) : MokkeryInstanceConfigurer.Aware<T, C>, AutoCloseable
+        where T : Any, C : MokkeryInstanceConfigurer, C : AutoCloseable {
+
+    override fun configurer(value: T): C {
+        if (ref !== value) mokkeryRuntimeError("This configuration block only allows configuring $ref, but tried to configure $value")
+        return configurer
+    }
+
+    override fun close() {
+        configurer.close()
+    }
 }

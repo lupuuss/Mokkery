@@ -19,6 +19,7 @@ import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.irSetPropertyField
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridableFunctions
@@ -172,12 +173,13 @@ private fun IrClass.addMockClassConstructor(
     val mokkeryScopeClass = referenced(MokkeryIr.Class.MokkeryScope)
     val mockModeClass = referenced(MokkeryIr.Class.MockMode)
     val contextProperty = overridePropertyBackingField(pluginContext, scopeInstanceClass.requirePropertyOwner("mokkeryContext"))
+    val receiverParam = thisReceiver!!
     addConstructor {
         isPrimary = true
     }.apply {
         addValueParameter("parent", mokkeryScopeClass.defaultType)
         addValueParameter("mode", mockModeClass.defaultType.makeNullable())
-        addValueParameter("block", irBuiltIns.functionN(1).defaultTypeErased.makeNullable())
+        addValueParameter("block", irBuiltIns.functionN(2).defaultTypeErased.makeNullable())
         val spyParam = when (mokkeryKind) {
             IrMokkeryKind.Spy -> addSpyParameter(classesToIntercept)
             IrMokkeryKind.Mock -> null
@@ -193,11 +195,10 @@ private fun IrClass.addMockClassConstructor(
                     }
                 }
             }
-
         body = symbol.declarationIrBuilder.irBlockBody {
             +irDelegatingConstructorWithStubs(classesToIntercept.firstOrNull { it.isClass })
             +irSetPropertyField(
-                thisParam = thisReceiver!!,
+                thisParam = receiverParam,
                 property = contextProperty,
                 value = irCall(referenced(MokkeryIr.Function.instanceContext)) {
                     arguments[0] = irGet(parameters[0])
@@ -215,7 +216,7 @@ private fun IrClass.addMockClassConstructor(
                             )
                         }
                     )
-                    arguments[4] = irGet(thisReceiver!!)
+                    arguments[4] = irGet(receiverParam)
                     arguments[5] = irGet(parameters[1])
                     arguments[6] = spyParam?.let(::irGet) ?: irNull()
                     arguments[7] = findOrBuildDefaultsExtractorFactoryIfRequired(
@@ -225,9 +226,20 @@ private fun IrClass.addMockClassConstructor(
                 }
             )
             +irCall(referenced(MokkeryIr.Function.finalizeMokkeryInstance)) {
-                arguments[0] = irGet(thisReceiver!!)
-                arguments[1] = irGet(thisReceiver!!)
-                arguments[2] = irGet(parameters[2])
+                arguments[0] = irGet(receiverParam)
+                arguments[1] = irGet(receiverParam)
+                val lambdaType = irBuiltIns
+                    .functionN(1)
+                    .symbol
+                    .typeWith(contextProperty.backingField!!.type, irBuiltIns.unitType)
+                arguments[2] = irLambdaOf(lambdaType) {
+                    +irSetPropertyField(
+                        thisParam = receiverParam,
+                        property = contextProperty,
+                        value = irGet(it.parameters[0])
+                    )
+                }
+                arguments[3] = irGet(parameters[2])
             }
         }
     }
