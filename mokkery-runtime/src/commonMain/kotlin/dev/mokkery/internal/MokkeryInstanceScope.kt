@@ -23,6 +23,7 @@ import dev.mokkery.internal.interceptor.BeforeTracingHookInterceptor
 import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
+import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
@@ -56,14 +57,7 @@ internal fun MokkeryScope.instanceContext(
     .plus(AnsweringRegistry())
     .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
     .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
-    .plus(
-        ContextCallInterceptor(
-            BeforeTracingHookInterceptor,
-            CallTracingInterceptor,
-            BeforeAnsweringHookInterceptor,
-            AnsweringInterceptor
-        )
-    )
+    .plus(rootCallInterceptor)
 
 internal fun MokkeryInstanceScope.finalizeMokkeryInstance(
     thisRef: Any,
