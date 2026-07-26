@@ -9,6 +9,7 @@ import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.nextIntercept
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.context.ContextCallInterceptor
+import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.tracing.callTracing
 
@@ -17,6 +18,10 @@ internal val rootCallInterceptor = ContextCallInterceptor(
     CallTracingInterceptor,
     BeforeAnsweringHookInterceptor,
     AnsweringInterceptor
+)
+
+internal val rootInstantiationListener = ContextInstantiationListener(
+    MocksRegisteringListener
 )
 
 internal object MocksRegisteringListener : MokkeryInstantiationListener {

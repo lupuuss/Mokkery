@@ -8,7 +8,6 @@ import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
 import dev.mokkery.internal.answering.AnsweringRegistry
-import dev.mokkery.internal.context.ContextCallInterceptor
 import dev.mokkery.internal.context.ContextInstantiationListener
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.instanceSpec
@@ -17,13 +16,10 @@ import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
-import dev.mokkery.internal.interceptor.AnsweringInterceptor
-import dev.mokkery.internal.interceptor.BeforeAnsweringHookInterceptor
-import dev.mokkery.internal.interceptor.BeforeTracingHookInterceptor
-import dev.mokkery.internal.interceptor.CallTracingInterceptor
 import dev.mokkery.internal.interceptor.MocksRegisteringListener
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
+import dev.mokkery.internal.interceptor.rootInstantiationListener
 import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
@@ -39,7 +35,7 @@ internal fun MokkeryScope.instanceContext(
     defaultsExtractorFactory: DefaultsExtractorFactory? = null
 ): MokkeryContext = mokkeryContext
     .plus(forkedHooksOrEmpty())
-    .plus(ContextInstantiationListener(MocksRegisteringListener))
+    .plus(rootInstantiationListener)
     .plus(
         MokkeryInstanceSpec.create(
             id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
