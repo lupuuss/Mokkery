@@ -1,5 +1,8 @@
 package dev.mokkery
 
+import dev.mokkery.configurer.MokkeryMockConfigurer
+import dev.mokkery.configurer.configurer
+import dev.mokkery.configurer.plusAssign
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireMock
 import dev.mokkery.internal.context.requireSpy
@@ -11,6 +14,25 @@ import dev.mokkery.internal.context.requireSpy
  */
 public val MokkeryMockScope.mockMode: MockMode
     get() = instanceSpec.requireMock().mode
+
+/**
+ * Controls [MockMode] for mock currently configured by [this] configurer.
+ */
+public var MokkeryMockConfigurer.mockMode: MockMode
+    get() = instanceSpec.requireMock().mode
+    set(value) {
+        this += instanceSpec.requireMock().copy(mode = value)
+    }
+
+/**
+ * Controls [MockMode] for [this] mock.
+ */
+context(aware: MokkeryMockConfigurer.Aware<T>)
+public var <T : Any> T.mockMode: MockMode
+    get() = configurer.mockMode
+    set(value) {
+        configurer.mockMode = value
+    }
 
 /**
  * Returns reference spied by the spy associated with this scope.
