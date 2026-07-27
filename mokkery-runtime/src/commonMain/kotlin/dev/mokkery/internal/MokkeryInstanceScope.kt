@@ -10,6 +10,7 @@ import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.memoized
+import dev.mokkery.context.require
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.configurer.BaseMokkeryConfigurer
 import dev.mokkery.internal.context.MokkeryInstanceSpec
@@ -28,14 +29,56 @@ import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
-internal fun MokkeryScope.instanceContext(
+internal fun Any.setupMokkeryInstance(
+    parent: MokkeryScope,
+    typeName: String,
+    interceptedTypes: List<KClass<*>>,
+    typeArguments: List<List<KClass<*>>>,
+    mode: MockMode?,
+    spiedObject: Any?,
+    defaultsExtractorFactory: DefaultsExtractorFactory?,
+    setContext: (MokkeryContext) -> Unit,
+    block: MokkeryInstanceConfigurer.Block<Any, *>?,
+) {
+    val baseContext = parent.instanceContext(
+        typeName = typeName,
+        interceptedTypes = interceptedTypes,
+        typeArguments = typeArguments,
+        thisRef = this,
+        mode = mode,
+        spiedObject = spiedObject,
+        defaultsExtractorFactory = defaultsExtractorFactory
+    )
+    setContext(baseContext)
+    // now instance is in a "preconfigured" state
+    // we can apply user provided block with additional configuration
+    if (block != null) {
+        this.applyConfigurerBlock(baseContext, setContext, block)
+    }
+    this.invokeInstantiationListener()
+}
+
+private fun Any.applyConfigurerBlock(
+    context: MokkeryContext,
+    setContext: (MokkeryContext) -> Unit,
+    block: MokkeryInstanceConfigurer.Block<Any, *>
+) {
+    val configurer = when (context.require(MokkeryInstanceSpec)) {
+        is MokkeryMockSpec -> MokkeryMockConfigurerImpl(context, setContext)
+        is MokkerySpySpec -> MokkerySpyConfigurerImpl(context, setContext)
+    }
+    val aware = MokkeryInstanceConfigurerAwareImpl(this, configurer)
+    aware.use { block(it, this) }
+}
+
+private fun MokkeryScope.instanceContext(
     typeName: String,
     interceptedTypes: List<KClass<*>>,
     typeArguments: List<List<KClass<*>>>,
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    defaultsExtractorFactory: DefaultsExtractorFactory? = null
+    defaultsExtractorFactory: DefaultsExtractorFactory?
 ): MokkeryContext {
     val tools = tools
     val spec = MokkeryInstanceSpec.create(
@@ -60,22 +103,6 @@ internal fun MokkeryScope.instanceContext(
         .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
         .plus(rootCallInterceptor)
 }
-
-internal fun MokkeryInstanceScope.finalizeMokkeryInstance(
-    thisRef: Any,
-    setContext: (MokkeryContext) -> Unit,
-    block: MokkeryInstanceConfigurer.Block<Any, *>?,
-) {
-    block ?: return invokeInstantiationListener(thisRef)
-    val configurer = when (instanceSpec) {
-        is MokkeryMockSpec -> MokkeryMockConfigurerImpl(mokkeryContext, setContext)
-        is MokkerySpySpec -> MokkerySpyConfigurerImpl(mokkeryContext, setContext)
-    }
-    val aware = MokkeryInstanceConfigurerAwareImpl(thisRef, configurer)
-    aware.use { block(it, thisRef) }
-    invokeInstantiationListener(thisRef)
-}
-
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?
 

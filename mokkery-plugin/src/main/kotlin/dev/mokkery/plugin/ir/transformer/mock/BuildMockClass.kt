@@ -197,49 +197,41 @@ private fun IrClass.addMockClassConstructor(
             }
         body = symbol.declarationIrBuilder.irBlockBody {
             +irDelegatingConstructorWithStubs(classesToIntercept.firstOrNull { it.isClass })
-            +irSetPropertyField(
-                thisParam = receiverParam,
-                property = contextProperty,
-                value = irCall(referenced(MokkeryIr.Function.instanceContext)) {
-                    arguments[0] = irGet(parameters[0])
-                    arguments[1] = irString(typeName)
-                    arguments[2] = irCallListOf(
-                        type = kClassType,
-                        elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
-                    )
-                    arguments[3] = irCallListOf(
-                        type = irBuiltIns.listClass.typeWith(kClassType),
-                        elements = typeParameters.memoryOptimizedMap { params ->
-                            irCallListOf(
-                                type = kClassType,
-                                elements = params.memoryOptimizedMap { irGet(it) }
-                            )
-                        }
-                    )
-                    arguments[4] = irGet(receiverParam)
-                    arguments[5] = irGet(parameters[1])
-                    arguments[6] = spyParam?.let(::irGet) ?: irNull()
-                    arguments[7] = findOrBuildDefaultsExtractorFactoryIfRequired(
-                        classesToIntercept = classesToIntercept,
-                        bodyBuilder = this@irBlockBody
-                    )
-                }
-            )
-            +irCall(referenced(MokkeryIr.Function.finalizeMokkeryInstance)) {
+            +irCall(referenced(MokkeryIr.Function.setupMokkeryInstance)) {
                 arguments[0] = irGet(receiverParam)
-                arguments[1] = irGet(receiverParam)
+                arguments[1] = irGet(parameters[0])
+                arguments[2] = irString(typeName)
+                arguments[3] = irCallListOf(
+                    type = kClassType,
+                    elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
+                )
+                arguments[4] = irCallListOf(
+                    type = irBuiltIns.listClass.typeWith(kClassType),
+                    elements = typeParameters.memoryOptimizedMap { params ->
+                        irCallListOf(
+                            type = kClassType,
+                            elements = params.memoryOptimizedMap { irGet(it) }
+                        )
+                    }
+                )
+                arguments[5] = irGet(parameters[1])
+                arguments[6] = spyParam?.let(::irGet) ?: irNull()
+                arguments[7] = findOrBuildDefaultsExtractorFactoryIfRequired(
+                    classesToIntercept = classesToIntercept,
+                    bodyBuilder = this@irBlockBody
+                ) ?: irNull()
                 val lambdaType = irBuiltIns
                     .functionN(1)
                     .symbol
                     .typeWith(contextProperty.backingField!!.type, irBuiltIns.unitType)
-                arguments[2] = irLambdaOf(lambdaType) {
+                arguments[8] = irLambdaOf(lambdaType) {
                     +irSetPropertyField(
                         thisParam = receiverParam,
                         property = contextProperty,
                         value = irGet(it.parameters[0])
                     )
                 }
-                arguments[3] = irGet(parameters[2])
+                arguments[9] = irGet(parameters[2])
             }
         }
     }
