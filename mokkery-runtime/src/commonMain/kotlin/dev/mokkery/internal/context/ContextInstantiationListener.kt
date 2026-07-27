@@ -4,9 +4,13 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.interceptor.MokkeryInstantiationListener
+import dev.mokkery.internal.requireInstanceScope
 
-internal fun MokkeryInstanceScope.invokeInstantiationListener(obj: Any) {
-    instantiationListener.onInstantiation(this, obj)
+internal fun Any.invokeInstantiationListener() {
+    val scope = requireInstanceScope()
+    scope
+        .instantiationListener
+        .onInstantiation(scope, this)
 }
 
 internal val MokkeryInstanceScope.instantiationListener: MokkeryInstantiationListener

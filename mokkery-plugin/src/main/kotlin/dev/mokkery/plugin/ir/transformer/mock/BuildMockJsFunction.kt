@@ -68,14 +68,14 @@ fun buildMockJsFunction(
             +irSet(self, irGet(lambdaVar))
             val mockModeClass = referenced(MokkeryIr.Class.MockMode)
             +irCall(setupInstanceScopeFun) {
-                arguments[0] = irGetMokkeryScopeFor(expression)
-                arguments[1] = irString(typeToMock.classFqName!!.asString())
-                arguments[2] = kClassReference(typeToMock)
-                arguments[3] = irCallListOf(
+                arguments[0] = irGet(lambdaVar)
+                arguments[1] = irGetMokkeryScopeFor(expression)
+                arguments[2] = irString(typeToMock.classFqName!!.asString())
+                arguments[3] = kClassReference(typeToMock)
+                arguments[4] = irCallListOf(
                     type = irBuiltIns.kClassClass.starProjectedType,
                     elements = typeArguments.memoryOptimizedMap { kClassReference(it) }
                 )
-                arguments[4] = irGet(lambdaVar)
                 arguments[5] =  when (kind) {
                     IrMokkeryKind.Spy -> irNull()
                     IrMokkeryKind.Mock -> expression

@@ -92,8 +92,6 @@ object MokkeryIr {
         val fileContext by dev_mokkery_internal.refFunction
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
-        val instanceContext by dev_mokkery_internal.refFunction
-        val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
         val blockingCallScope by dev_mokkery_internal.refFunction
         val suspendCallScope by dev_mokkery_internal.refFunction
@@ -104,7 +102,8 @@ object MokkeryIr {
         val matchesComposite by dev_mokkery_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
-        val finalizeMokkeryInstance by dev_mokkery_internal.refFunction
+        val setupMokkeryInstance by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
     }
 
     object Property {
