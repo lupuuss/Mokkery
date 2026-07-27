@@ -24,3 +24,8 @@ internal open class BaseMokkeryConfigurer(
         return block()
     }
 }
+
+internal fun <T : BaseMokkeryConfigurer> MokkeryContext.applyConfigurer(
+    configurer: (MokkeryContext) -> T,
+    block: T.() -> Unit,
+): MokkeryContext = configurer(this).use { it.apply(block).mokkeryContext }
