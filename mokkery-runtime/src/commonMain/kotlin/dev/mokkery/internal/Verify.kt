@@ -52,12 +52,10 @@ internal fun MokkeryScope.internalVerifyNoMoreCalls(vararg mocks: Any) {
         ?.collection
         .orEmpty() + mocks.map(Any::requireInstanceScope).toMokkeryCollection()
     collection.withVerifySession {
-        sessions.forEach { (id, session) ->
-            if (session.unverified.isNotEmpty()) {
-                verifyRendering(collection) {
-                    throw AssertionError(noMoreCalls.render(id to unverified))
-                }
-            }
+        val unverifiedCalls = unverified
+        if (unverifiedCalls.isEmpty()) return@withVerifySession
+        verifyRendering(collection) {
+            throw AssertionError(noMoreCalls.render(unverifiedCalls))
         }
     }
 }

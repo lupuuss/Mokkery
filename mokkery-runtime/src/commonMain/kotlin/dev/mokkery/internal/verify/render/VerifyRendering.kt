@@ -5,7 +5,6 @@ import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
-import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.rendering.Renderer
 import dev.mokkery.internal.rendering.mokkeryCollection
@@ -68,7 +67,7 @@ internal val MokkeryRenderingScope.verifierError
 
 internal object VerifyRendering {
 
-    val noMoreCalls by Renderer.key<Pair<MokkeryInstanceId, List<CallTrace>>>()
+    val noMoreCalls by Renderer.key<List<CallTrace>>()
     val templateMatchingResults by Renderer.key<List<TemplateMatchingResult>>()
     val matcherStatus by Renderer.key<Pair<CallTemplate, CallTrace>>()
     val extraUnverifiedCalls by Renderer.key<List<CallTrace>>()
