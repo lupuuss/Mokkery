@@ -1,6 +1,5 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.test.TestRenderer
@@ -12,25 +11,23 @@ import kotlin.test.assertEquals
 
 class NoMoreCallsErrorRendererTest {
 
-    private val instanceIdRenderer = TestRenderer<MokkeryInstanceId>(MokkeryRendering.instanceIdKey) { "INSTANCE_ID" }
     private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callTraceKey) { "CALL_TRACE" }
-    private val context = instanceIdRenderer + traceRenderer + MokkeryRendering.Factory.Default
+    private val context = traceRenderer + MokkeryRendering.Factory.Default
     private val renderer = NoMoreCallsErrorRenderer
 
     @Test
     fun testRendersCorrectMessage() {
-        val id = MokkeryInstanceId("Foo", 1)
-        val calls = listOf(fakeCallTrace())
+        val calls = listOf(fakeCallTrace(name = "first"), fakeCallTrace(name = "second"))
         testRendering(context) {
-            renderer.assert(id to calls) {
+            renderer.assert(calls) {
                 """
-                    Unverified calls for INSTANCE_ID:
+                    No unverified calls expected, but these are present:
+                    * CALL_TRACE
                     * CALL_TRACE
 
                 """.trimIndent()
             }
         }
-        assertEquals(id, instanceIdRenderer.recordedCalls.single())
         assertEquals(calls, traceRenderer.recordedCalls)
     }
 }

@@ -66,10 +66,10 @@ class MokkerySuiteScopeGenerationTest : MokkerySuiteScope {
         mockB.callPrimitive(2)
         assertVerifiedWith(
             """
-            Unverified calls for RegularMethodsInterface(1):
+            No unverified calls expected, but these are present:
             * RegularMethodsInterface(1).callPrimitive(input = 1)
             * RegularMethodsInterface(2).callPrimitive(input = 2)
-            
+
             """.trimIndent()
         ) {
             verifyNoMoreCalls()

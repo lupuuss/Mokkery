@@ -344,12 +344,48 @@ class VerifyTest {
         mock.callPrimitive(1)
         assertVerifiedWith(
             """
-            Unverified calls for RegularMethodsInterface(1):
+            No unverified calls expected, but these are present:
             * RegularMethodsInterface(1).callPrimitive(input = 1)
-            
+
             """.trimIndent()
         ) {
             verifyNoMoreCalls(mock)
+        }
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsDetectsUnverifiedCallsOfEveryMockInInvocationOrder() {
+        val otherMock = mock<RegularMethodsInterface>(autofill)
+        otherMock.callPrimitive(1)
+        mock.callPrimitive(2)
+        otherMock.callPrimitive(3)
+        assertVerifiedWith(
+            """
+            No unverified calls expected, but these are present:
+            * RegularMethodsInterface(2).callPrimitive(input = 1)
+            * RegularMethodsInterface(1).callPrimitive(input = 2)
+            * RegularMethodsInterface(2).callPrimitive(input = 3)
+
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock, otherMock)
+        }
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsReportsOnlyUnverifiedCallsOfEveryMock() {
+        val otherMock = mock<RegularMethodsInterface>(autofill)
+        otherMock.callPrimitive(1)
+        mock.callPrimitive(2)
+        verify { otherMock.callPrimitive(1) }
+        assertVerifiedWith(
+            """
+            No unverified calls expected, but these are present:
+            * RegularMethodsInterface(1).callPrimitive(input = 2)
+
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock, otherMock)
         }
     }
 
