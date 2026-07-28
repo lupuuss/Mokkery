@@ -1,19 +1,14 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.platform
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
-import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
-import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
-import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.irCallConstructor
-import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
@@ -79,10 +74,7 @@ private fun IrBuilderWithScope.irMockConstructorCall(
 ) = irCallConstructor(cls.primaryConstructor!!) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     arguments[0] = irGetMokkeryScopeFor(originalCall)
-    arguments[1] = originalCall.arguments[regularParams[0]] ?: irGetEnumEntry(
-        referenced(MokkeryIr.Class.MockMode),
-        configuration.defaultMockMode
-    )
+    arguments[1] = originalCall.arguments[regularParams[0]] ?: irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     val anyType = irBuiltIns.anyType
     originalCall.typeArguments

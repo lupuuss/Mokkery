@@ -1,17 +1,14 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedGetter
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
-import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
@@ -66,7 +63,6 @@ fun buildMockJsFunction(
                 }
             )
             +irSet(self, irGet(lambdaVar))
-            val mockModeClass = referenced(MokkeryIr.Class.MockMode)
             +irCall(setupInstanceScopeFun) {
                 arguments[0] = irGet(lambdaVar)
                 arguments[1] = irGetMokkeryScopeFor(expression)
@@ -78,9 +74,7 @@ fun buildMockJsFunction(
                 )
                 arguments[5] =  when (kind) {
                     IrMokkeryKind.Spy -> irNull()
-                    IrMokkeryKind.Mock -> expression
-                        .arguments[regularMockParams[0]]
-                        ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode)
+                    IrMokkeryKind.Mock -> expression.arguments[regularMockParams[0]] ?: irNull()
                 }
                 arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]]!! else irNull()
                 arguments[7] = expression.arguments[regularMockParams[1]] ?: irNull()
