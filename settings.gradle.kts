@@ -38,6 +38,12 @@ include(":mokkery-gradle")
 include(":mokkery-plugin")
 include(":mokkery-runtime")
 include(":mokkery-coroutines")
+
+include(":mokkery-mockable-tooling")
+include(":mokkery-mockable-gradle")
+include(":mokkery-mockable-plugin")
+include(":mokkery-mockable-annotations")
+
 include(":test-mokkery")
 include(":test-mokkery-compiler")
 include(":test-mokkery-gradle")

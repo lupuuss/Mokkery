@@ -1,0 +1,1 @@
+/SuperClassMustBeMockable.kt:(78,121): error: Class 'Derived' cannot be marked as mockable, because its super class '{1}' is not marked as mockable.

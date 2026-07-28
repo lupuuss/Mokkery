@@ -14,13 +14,20 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
+publishing.repositories {
+    maven {
+        name = testingRepoName
+        url = testingRepoUrl
+    }
+}
+
 loadLocalProperties()
 
 dokka.dokkaSourceSets.configureEach {
     sourceLink {
         localDirectory = project.isolated.rootProject.projectDirectory.asFile
         remoteUrl = URI("${GitHttpsUrl}/tree/master")
-        remoteLineSuffix ="#L"
+        remoteLineSuffix = "#L"
     }
 }
 

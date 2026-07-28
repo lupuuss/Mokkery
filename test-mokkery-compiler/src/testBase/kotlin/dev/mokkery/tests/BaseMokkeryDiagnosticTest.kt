@@ -17,9 +17,16 @@ open class BaseMokkeryDiagnosticTest(
     override fun configure(builder: TestConfigurationBuilder) {
         super.configure(builder)
         with(builder) {
-            useConfigurators(::MokkeryConfigurator)
-            useCustomRuntimeClasspathProviders(MokkeryConfigurator::PathProvider)
+            useConfigurators(
+                ::MokkeryMockableConfigurator,
+                ::MokkeryConfigurator,
+            )
+            useCustomRuntimeClasspathProviders(
+                MokkeryConfigurator::PathProvider,
+                MokkeryMockableConfigurator::PathProvider,
+            )
             useDirectives(MokkeryDirectives)
+            useDirectives(MokkeryMockableDirectives)
             defaultDirectives {
                 JVM_TARGET.with(JVM_1_8)
                 +FULL_JDK

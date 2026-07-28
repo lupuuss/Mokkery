@@ -16,29 +16,22 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.BodyPrintingStrategy
 import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
-import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
     irClass: IrClass?
-): IrDelegatingConstructorCall {
-    val defaultConstructor = irClass?.defaultConstructor
-    return when {
-        irClass == null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
-        defaultConstructor != null -> irDelegatingConstructorCall(defaultConstructor)
-        else -> {
-            val strategy = StubStrategy.default(configuration.stubsConfig)
-            context(stubStrategyScope(strategy = strategy, builder = this)) {
-                val constructor = strategy
-                    .provideConstructorWithStubs(
-                        cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities
-                    ) ?: failedToProvideStubsError(irClass)
-                irDelegatingConstructorWithStubs(constructor)
-            }
+): IrDelegatingConstructorCall = when {
+    irClass == null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
+    else -> {
+        val strategy = StubStrategy.default(configuration.stubsConfig)
+        context(stubStrategyScope(strategy = strategy, builder = this)) {
+            val constructorWithStubs = strategy
+                .provideConstructorWithStubs(cls = irClass,
+                    visibilities = ConstructableClassStubStrategy.acceptedVisibilities
+                ) ?: failedToProvideStubsError(irClass)
+            irDelegatingConstructorWithStubs(constructorWithStubs)
         }
     }
 }
@@ -51,8 +44,7 @@ fun IrBuilder.irCallConstructorWithStubs(
     val (constructor, stubs) = constructorWithStubs
     return irCallConstructor(constructor, typeArguments) {
         stubs.forEachIndexed { i, stub ->
-            val params = constructor.parameters
-            if (!params[i].hasDefaultValue()) {
+            if (stub != DefaultStub) {
                 arguments[i] = stub.expression
             }
         }
@@ -63,9 +55,8 @@ fun IrBuilder.irCallConstructorWithStubs(
 fun IrBuilder.irDelegatingConstructorWithStubs(constructorWithStubs: Pair<IrConstructor, List<Stub>>): IrDelegatingConstructorCall {
     val (constructor, stubs) = constructorWithStubs
     return irDelegatingConstructorCall(constructor).apply {
-        val params = constructor.parameters
         stubs.forEachIndexed { i, stub ->
-            if (!params[i].hasDefaultValue()) {
+            if (stub != DefaultStub) {
                 arguments[i] = stub.expression
             }
         }

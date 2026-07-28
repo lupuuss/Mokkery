@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -43,11 +42,8 @@ class OverridableTypeStubStrategy(
             nameBase = "Stub",
             nameHashSource = listOf(cls),
             builder = { name ->
-                val constructorWithStubs = baseClass
-                    .defaultConstructor
-                    ?.takeIf { it.visibility in acceptedVisibilities }
-                    ?.let { it to emptyList() }
-                    ?: strategy.provideConstructorWithStubs(baseClass, acceptedVisibilities)
+                val constructorWithStubs = strategy
+                    .provideConstructorWithStubs(baseClass, acceptedVisibilities)
                     ?: return null
                 buildStubClass(
                     name = name,
