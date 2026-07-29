@@ -96,8 +96,9 @@ class TemplatingTransformer(
         if (receiver is IrCall) receiver.transformChildrenVoid()
         val functionToReplace = expression.symbol.owner
         val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
+        val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to expression.type)
         return expression.replaceDeclarationIrBuilder {
-            irCall(runTemplateFun) {
+            irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
                 typeArguments[0] = expression.type
                 arguments[0] = irGet(templatingScopeParam)
                 arguments[1] = expression.arguments[0]
@@ -111,7 +112,7 @@ class TemplatingTransformer(
                 }
                 arguments[5] = when {
                     expression.usesMatchers -> irNull()
-                    else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
+                    else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull().substitute(substitution)) {
                         +irReturn(expression.deepCopyWithSymbols(initialParent = it))
                     }
                 }
@@ -177,29 +178,26 @@ class TemplatingTransformer(
         else -> callEqMatcher(arg)
     }
 
-    private fun IrExpression.wrapDispatchersWithMockCheck(func: IrSimpleFunction): IrExpression {
-        if (this is IrCall) {
-            return this.transform(
-                transformer = object : IrElementTransformerVoid() {
-                    override fun visitCall(expression: IrCall) = expression.transformPostfix {
-                        val dispatcher = dispatchReceiver ?: return@transformPostfix
-                        dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
-                            irCall(
-                                func = func,
-                                type = dispatcher.type
-                            ) {
-                                arguments[0] = dispatcher
-                                arguments[1] = irString(expression.symbol.owner.name.asString())
-                                typeArguments[0] = dispatcher.type
-                            }
-                        }
+    // the receiver is not necessarily a call - nested calls have to be found in any expression,
+    // for instance in a string concatenation or in vararg elements
+    private fun IrExpression.wrapDispatchersWithMockCheck(func: IrSimpleFunction): IrExpression = transform(
+        transformer = object : IrElementTransformerVoid() {
+            override fun visitCall(expression: IrCall) = expression.transformPostfix {
+                val dispatcher = dispatchReceiver ?: return@transformPostfix
+                dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
+                    irCall(
+                        func = func,
+                        type = dispatcher.type
+                    ) {
+                        arguments[0] = dispatcher
+                        arguments[1] = irString(expression.symbol.owner.name.asString())
+                        typeArguments[0] = dispatcher.type
                     }
-                },
-                data = null
-            )
-        }
-        return this
-    }
+                }
+            }
+        },
+        data = null
+    )
 
     private fun IrBuilderWithScope.replaceVararg(expression: IrExpression?): IrExpression {
         if (expression == null) return compositeVarargMatcher(emptyList())

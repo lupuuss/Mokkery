@@ -6,6 +6,7 @@ import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
+import dev.mokkery.everySuspend
 import dev.mokkery.internal.mokkeryInternals
 import dev.mokkery.internal.resetMocksCounter
 import dev.mokkery.matcher.any
@@ -13,6 +14,8 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
+import dev.mokkery.verifySuspend
+import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -166,6 +169,192 @@ class TemplatingTest {
 
 
     @Test
+    fun testUnwrapsNonMockCallResultInStringTemplate() {
+        val mock = mock<RegularMethodsInterface> { every { callOverloaded(any<String>()) } returns "" }
+        val list = listOf(1, 2, 3)
+        mock.callOverloaded("size = 3")
+        verify { mock.callOverloaded("size = ${list.size}") }
+    }
+
+    @Test
+    fun testUnwrapsNonMockCallResultInVararg() {
+        val mock = mock<CollectionsInterface> { every { callWithInts(any()) } returns 0 }
+        val list = listOf(1, 2, 3)
+        mock.callWithInts(3)
+        verify { mock.callWithInts(list.size) }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInStringTemplate() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                mock.callOverloaded("value = ${mock.callPrimitive(1)}")
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInVararg() {
+        val mock = mock<CollectionsInterface>()
+        assertFailsWithResultAccessError("CollectionsInterface(1)", "callWithInts") {
+            verify {
+                mock.callWithInts(mock.callWithInts(1))
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInSpread() {
+        val mock = mock<CollectionsInterface>()
+        assertFailsWithResultAccessError("CollectionsInterface(1)", "callWithInts") {
+            verify {
+                mock.callWithInts(*intArrayOf(mock.callWithInts(1)))
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultOfWhenWithAllBranchesReturningIt() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                val variable = when (true) {
+                    true -> mock.callPrimitive(1)
+                    else -> mock.callPrimitive(2)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultOfTryWithAllBranchesReturningIt() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                val variable = try {
+                    mock.callPrimitive(1)
+                } catch (e: Throwable) {
+                    mock.callPrimitive(2)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallInIfWithoutElseBranch() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        mock.callPrimitive(1)
+        verify {
+            if (isTrue) mock.callPrimitive(1)
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallInWhenWithThrowingBranch() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        mock.callPrimitive(1)
+        verify {
+            when (isTrue) {
+                true -> mock.callPrimitive(1)
+                else -> error("Unexpected!")
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallInTryWithThrowingCatch() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        mock.callPrimitive(1)
+        verify {
+            try {
+                mock.callPrimitive(1)
+            } catch (e: Throwable) {
+                throw e
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallInWhenWithReturningBranch() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        mock.callPrimitive(1)
+        verify {
+            when {
+                isTrue -> mock.callPrimitive(1)
+                else -> return@verify
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsSafeCallOnMockInEveryBlock() {
+        nullableMock = mock<RegularMethodsInterface>()
+        every { nullableMock?.callPrimitive(any()) } returns 1
+        assertEquals(1, nullableMock?.callPrimitive(0))
+    }
+
+    @Test
+    fun testAllowsSafeCallOnMockInVerifyBlock() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        nullableMock = mock
+        mock.callPrimitive(1)
+        verify { nullableMock?.callPrimitive(1) }
+    }
+
+    @Test
+    fun testAllowsSafeCallOnMockInSuspendTemplatingBlocks() = runTest {
+        val mock = mock<SuspendMethodsInterface> { everySuspend { callPrimitive(any()) } returns 0 }
+        nullableSuspendMock = mock
+        mock.callPrimitive(1)
+        verifySuspend { nullableSuspendMock?.callPrimitive(1) }
+    }
+
+    @Suppress("USELESS_IS_CHECK")
+    @Test
+    fun testFailsWhenAccessingMockCallResultInIsCheck() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callComplex") {
+            verify {
+                if (mock.callComplex(ComplexType) is ComplexType) Unit
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInLocalClassField() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                class Local {
+                    val value = mock.callPrimitive(1)
+                }
+                Local()
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInThrow() {
+        val mock = mock<ThrowableProvider>()
+        assertFailsWithResultAccessError("ThrowableProvider(1)", "provide") {
+            verify {
+                throw mock.provide()
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInArrayLiteral() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                val ints = intArrayOf(mock.callPrimitive(1))
+            }
+        }
+    }
+
+    @Test
     fun testFailsWhenAccessingMockCallResultInNestedFunction() {
         val mock = mock<RegularMethodsInterface>()
         assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
@@ -314,6 +503,13 @@ class TemplatingTest {
         }
     }
 
+    // prevents the compiler from removing branches of a constant condition
+    private val isTrue: Boolean get() = true
+
+    // mocks kept as nullable properties, so that safe calls are not optimized out by the compiler
+    private var nullableMock: RegularMethodsInterface? = null
+    private var nullableSuspendMock: SuspendMethodsInterface? = null
+
     private fun assertFailsWithResultAccessError(receiver: String, functionName: String, block: () -> Unit) {
         assertMokkeryError(
             expectedMessage = """
@@ -364,6 +560,11 @@ class TemplatingTest {
             """.trimIndent(),
             block = block
         )
+    }
+
+    private interface ThrowableProvider {
+
+        fun provide(): Throwable
     }
 
     private interface SelfType {

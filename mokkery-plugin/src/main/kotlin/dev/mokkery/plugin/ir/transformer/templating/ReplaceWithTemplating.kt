@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.statements
+import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
@@ -161,8 +162,10 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
         memberFunction.isSuspend -> referenced(MokkeryIr.Function.runTemplateSuspend)
         else -> referenced(MokkeryIr.Function.runTemplate)
     }
+    val resultType = originalCall.typeArguments[0] ?: irBuiltIns.anyNType
+    val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to resultType)
     return irLambdaOf(lambdaType) { func ->
-        +irCall(runTemplateFun) {
+        +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
             typeArguments[0] = originalCall.typeArguments[0]
             arguments[0] = irGet(func.parameters[0])
             arguments[1] = dispatchReceiver
