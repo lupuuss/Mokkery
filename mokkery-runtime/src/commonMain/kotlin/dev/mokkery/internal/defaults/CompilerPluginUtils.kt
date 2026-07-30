@@ -1,13 +1,15 @@
-@file:Suppress("NOTHING_TO_INLINE", "unused")
+@file:Suppress("unused")
 
 package dev.mokkery.internal.defaults
 
 import dev.mokkery.internal.mokkeryRuntimeError
 
-internal inline fun methodWithoutDefaultsError(): Nothing = mokkeryRuntimeError(
+@PublishedApi
+internal fun methodWithoutDefaultsError(): Nothing = mokkeryRuntimeError(
     "This method does not have defaults and should not be called!"
 )
 
-internal inline fun throwArguments(vararg arguments: Any?): Nothing {
+@PublishedApi
+internal fun throwArguments(vararg arguments: Any?): Nothing {
     throw ArgumentsExtractedException(listOf(*arguments))
 }

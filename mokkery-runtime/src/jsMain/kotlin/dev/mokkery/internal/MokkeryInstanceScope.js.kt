@@ -13,6 +13,7 @@ internal actual val Any.mokkeryScope: MokkeryInstanceScope?
     get() = this as? MokkeryInstanceScope ?: jsFunctionMokkeryScope
 
 @Suppress("unused")
+@PublishedApi
 internal fun Any.setupMokkeryInstanceForJsFunction(
     parent: MokkeryScope,
     typeName: String,
@@ -41,6 +42,7 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
     )
 }
 
+@PublishedApi
 internal inline var Any.jsFunctionMokkeryScope: MokkeryInstanceScope?
     get() = this.asDynamic()._mokkeryScope as? MokkeryInstanceScope
     set(value) {

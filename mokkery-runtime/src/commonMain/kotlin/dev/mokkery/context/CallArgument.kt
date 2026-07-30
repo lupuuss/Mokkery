@@ -12,7 +12,7 @@ public class CallArgument internal constructor(
     public val parameter: Function.Parameter,
 ) {
 
-    internal constructor(
+    @PublishedApi internal constructor(
         value: Any?,
         name: String,
         type: KClass<*>,

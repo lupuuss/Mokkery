@@ -7,10 +7,12 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 
+@PublishedApi
 internal fun MokkeryScope.suiteScope(
     context: MokkeryContext = MokkeryContext.Empty
 ): MokkerySuiteScope = MokkerySuiteScopeImpl(suiteContext(context))
 
+@PublishedApi
 internal fun MokkeryScope.suiteContext(
     context: MokkeryContext = MokkeryContext.Empty
 ): MokkeryContext = mokkeryContext + forkedHooksOrEmpty() + MokkeryInstancesRegistry() + context

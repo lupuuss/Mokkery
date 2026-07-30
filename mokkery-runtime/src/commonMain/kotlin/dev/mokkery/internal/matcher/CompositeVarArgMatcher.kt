@@ -8,6 +8,7 @@ import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
 
+@PublishedApi
 internal data class CompositeVarArgMatcher(
     val matchers: List<ArgMatcher<Any?>>
 ) : ArgMatcher.Composite<Any?>, Renderable {

@@ -8,6 +8,7 @@ import dev.mokkery.internal.context.settings
 import dev.mokkery.verify.VerifyMode
 
 @Suppress("unused")
+@PublishedApi
 internal fun MokkeryScope.fileContext(
     defaultMockMode: MockMode,
     defaultVerifyMode: VerifyMode,

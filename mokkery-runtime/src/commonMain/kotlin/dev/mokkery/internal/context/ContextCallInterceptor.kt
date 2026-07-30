@@ -9,9 +9,11 @@ import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.internal.withContext
 
+@PublishedApi
 internal inline val MokkeryScope.callInterceptor: MokkeryCallInterceptor
     get() = mokkeryContext.require(ContextCallInterceptor)
 
+@PublishedApi
 internal interface ContextCallInterceptor : MokkeryCallInterceptor, MokkeryContext.Element {
 
     override val key get() = Key

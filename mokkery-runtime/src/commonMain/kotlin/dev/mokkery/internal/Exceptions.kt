@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 internal val mokkeryIntrinsic: Nothing
     get() = throw MokkeryIntrinsicException()
 
+@PublishedApi
 internal fun mokkeryRuntimeError(message: String): Nothing = throw MokkeryRuntimeException(message)
 
 internal class CallNotMockedException(name: String) : MokkeryRuntimeException(message = "Call $name not mocked!")

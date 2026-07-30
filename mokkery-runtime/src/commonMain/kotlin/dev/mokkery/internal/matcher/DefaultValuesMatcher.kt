@@ -2,6 +2,7 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.matcher.ArgMatcher
 
+@PublishedApi
 internal data class DefaultValuesMatcher(
     val mask: Long,
     val extractingFunction: Function<Nothing>,

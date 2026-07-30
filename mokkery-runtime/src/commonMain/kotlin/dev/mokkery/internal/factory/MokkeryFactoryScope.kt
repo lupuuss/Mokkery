@@ -11,6 +11,7 @@ import dev.mokkery.internal.configurer.BaseMokkeryConfigurer
 import dev.mokkery.internal.configurer.applyConfigurer
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 
+@PublishedApi
 internal fun MokkeryScope.instanceFactoryScope(block: InstanceFactoryConfigurer.Block?): MokkeryScope {
     val context = mokkeryContext + forkedHooksOrEmpty()
     block ?: return MokkeryScope(context)

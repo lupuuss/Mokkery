@@ -5,6 +5,7 @@ import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 
+@PublishedApi
 internal interface DefaultsExtractorFactory : MokkeryContext.Element {
 
     override val key get() = Key

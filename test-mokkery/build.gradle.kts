@@ -18,6 +18,7 @@ configureCompilerPlugin(
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xverify-ir=error")
+        freeCompilerArgs.add("-Xverify-ir-visibility")
     }
 }
 

@@ -29,6 +29,7 @@ import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
+@PublishedApi
 internal fun Any.setupMokkeryInstance(
     parent: MokkeryScope,
     typeName: String,
@@ -116,7 +117,8 @@ internal fun Any.requireInstanceScope(): MokkeryInstanceScope = mokkeryScope ?: 
 
 internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id
 
-internal val MokkeryInstanceScope.instanceIdString
+@PublishedApi
+internal val MokkeryInstanceScope.instanceIdString: String
     get() = withRenderingScope {
         instanceIdRenderer.render(instanceId)
     }
@@ -126,6 +128,7 @@ internal val MokkeryInstanceScope.shortInstanceIdString
         instanceIdRenderer.render(instanceId)
     }
 
+@PublishedApi
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
     var index = 0
     for (type in instanceSpec.interceptedTypes)

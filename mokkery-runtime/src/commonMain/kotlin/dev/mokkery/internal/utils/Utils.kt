@@ -24,6 +24,7 @@ internal expect inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*>
  */
 internal expect inline fun List<CallArgument>.copyWithReplacedKClasses(): List<CallArgument>
 
+@PublishedApi
 @Suppress("unused")
 internal fun KType.getTypeArgumentClassOrAny(
     index: Int

@@ -6,8 +6,10 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
 
+@PublishedApi
 internal interface SpreadArgMatcher<T> : ArgMatcher<T>
 
+@PublishedApi
 internal fun <T> ArgMatcher<T>.spread(): SpreadArgMatcher<T> = SpreadArgMatcherImpl(this)
 
 @Poko

@@ -19,11 +19,13 @@ import dev.mokkery.internal.verify.render.verifyRendering
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
+@PublishedApi
 internal fun MokkeryScope.internalVerifySuspend(
     mode: VerifyMode?,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
-) = internalVerify(mode) { runSuspension { block() } }
+): Unit = internalVerify(mode) { runSuspension { block() } }
 
+@PublishedApi
 internal fun MokkeryScope.internalVerify(
     mode: VerifyMode?,
     block: @Templating MokkeryTemplatingScope.() -> Unit
@@ -47,6 +49,7 @@ internal fun MokkeryScope.internalVerify(
     }
 }
 
+@PublishedApi
 internal fun MokkeryScope.internalVerifyNoMoreCalls(vararg mocks: Any) {
     val collection = mokkeryContext[MokkeryInstancesRegistry]
         ?.collection

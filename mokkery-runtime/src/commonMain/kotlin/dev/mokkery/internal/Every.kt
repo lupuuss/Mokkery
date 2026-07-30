@@ -16,10 +16,12 @@ import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.templating.MokkeryTemplatingScope
 
+@PublishedApi
 internal fun <T> MokkeryScope.internalEverySuspend(
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): SuspendAnsweringScope<T> = internalEvery<T> { runSuspension { block() } }.unsafeCast()
 
+@PublishedApi
 internal fun <T> MokkeryScope.internalEvery(
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {

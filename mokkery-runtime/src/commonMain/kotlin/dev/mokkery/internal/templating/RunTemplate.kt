@@ -19,6 +19,7 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
 import kotlin.reflect.KClass
 
+@PublishedApi
 internal sealed interface RunTemplateResult<out T> {
 
     val value: T
@@ -37,6 +38,7 @@ internal sealed interface RunTemplateResult<out T> {
     }
 }
 
+@PublishedApi
 internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, rawFunctionName: String): T {
     if (obj.isMock) {
         val scope = obj.requireInstanceScope()
@@ -48,6 +50,7 @@ internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, rawFunctionName: 
     return obj
 }
 
+@PublishedApi
 internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T {
     if (obj.isMock) {
         val scope = obj.requireInstanceScope()
@@ -59,6 +62,7 @@ internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T
     return obj
 }
 
+@PublishedApi
 internal fun templatingFunctionParameter(
     mock: Any,
     mockedType: KClass<*>,
@@ -76,6 +80,7 @@ internal fun templatingFunctionParameter(
         .arguments[typeArgumentIndex]
 )
 
+@PublishedApi
 internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     mock: Any,
     mockedType: KClass<*>,
@@ -91,6 +96,7 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     else -> RunTemplateResult.Original(original())
 }
 
+@PublishedApi
 internal fun <R> MokkeryTemplatingScope.runTemplate(
     mock: Any,
     mockedType: KClass<*>,

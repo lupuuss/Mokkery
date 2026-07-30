@@ -6,6 +6,7 @@ import dev.mokkery.context.MokkeryContext
 internal val MokkeryScope.suiteName: String?
     get() = mokkeryContext[SuiteName]?.name
 
+@PublishedApi
 internal data class SuiteName(val name: String) : MokkeryContext.Element {
 
     override val key = Key
