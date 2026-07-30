@@ -8,6 +8,9 @@ plugins {
 kotlin {
     explicitApi()
     optInMokkeryDelicateAndInternals()
+    compilerOptions {
+        freeCompilerArgs.add("-Xverify-ir=error")
+    }
 }
 
 dependencies {

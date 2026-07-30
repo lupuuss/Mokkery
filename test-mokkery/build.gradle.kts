@@ -15,6 +15,12 @@ configureCompilerPlugin(
     "annotations.copyToMock" to """all - named("dev.mokkery.test.AnnotationB"|"dev.mokkery.test.AnnotationC")"""
 )
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xverify-ir=error")
+    }
+}
+
 dependencies {
     kotlinCompilerPluginClasspath(project(":mokkery-plugin"))
     kotlinNativeCompilerPluginClasspath(project(":mokkery-plugin"))
