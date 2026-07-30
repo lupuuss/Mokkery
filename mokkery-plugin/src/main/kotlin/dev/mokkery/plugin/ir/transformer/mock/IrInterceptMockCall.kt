@@ -58,7 +58,7 @@ fun IrBlockBodyBuilder.irInterceptMockMemberCall(
     function: IrSimpleFunction,
 ): IrCall = irInterceptMockCall(
     mokkeryKind = mokkeryKind,
-    mokkeryInstance = irGet(function.parameters[0]),
+    mokkeryInstance = { irGet(function.parameters[0]) },
     typeParamsContainer = function.parentAsClass,
     function = function
 )
@@ -66,7 +66,7 @@ fun IrBlockBodyBuilder.irInterceptMockMemberCall(
 context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irInterceptMockCall(
     mokkeryKind: IrMokkeryKind,
-    mokkeryInstance: IrExpression,
+    mokkeryInstance: () -> IrExpression,
     typeParamsContainer: IrTypeParametersContainer,
     function: IrSimpleFunction,
 ): IrCall {
@@ -79,13 +79,13 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
     return irCall(interceptFun) {
         arguments[0] = interceptorProperty
             .let(::irCall)
-            .apply { arguments[0] = mokkeryInstance }
+            .apply { arguments[0] = mokkeryInstance() }
         val scopeCreationFun = when {
             function.isSuspend -> MokkeryIr.Function.suspendCallScope
             else -> MokkeryIr.Function.blockingCallScope
         }
         val scopeCreationCall = irCall(referenced(scopeCreationFun)) {
-            arguments[0] = mokkeryInstance
+            arguments[0] = mokkeryInstance()
             arguments[1] = irString(function.name.asString())
             arguments[2] = kClassWithTypeSubstitution(
                 mokkeryInstance = mokkeryInstance,
@@ -95,7 +95,7 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
             arguments[3] = irCallArgsList(mokkeryInstance, function, typeParamsContainer)
             arguments[4] = irCallSupersMap(function)
             if (mokkeryKind == IrMokkeryKind.Spy) {
-                val spiedObjectGet = irCall(getSpiedObject) { arguments[0] = mokkeryInstance }
+                val spiedObjectGet = irCall(getSpiedObject) { arguments[0] = mokkeryInstance() }
                 // js function does not have a dispatch parameter
                 val spyLambda = if (function.parameters.find { it.kind == IrParameterKind.DispatchReceiver } == null) {
                     irLambdaSpyFunctionCall(spiedObjectGet, function)
@@ -111,7 +111,7 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
 
 context(scope: TransformerScope)
 private fun IrBuilderWithScope.irCallArgsList(
-    mokkeryInstance: IrExpression,
+    mokkeryInstance: () -> IrExpression,
     function: IrSimpleFunction,
     paramsContainer: IrTypeParametersContainer
 ): IrCall {
@@ -165,7 +165,7 @@ private fun IrBuilderWithScope.createSuperCallLambda(
             irDynamicCall(
                 function = superFunction,
                 dispatchReceiver = irGet(function.parameters[0]),
-                argumentsList = irGet(lambda.parameters[0]),
+                argumentsList = { irGet(lambda.parameters[0]) },
                 superQualifierSymbol = superFunction.parentAsClass.symbol,
                 substitutionMap = substitutionMap
             )
@@ -183,7 +183,7 @@ private fun IrBlockBodyBuilder.irLambdaSpyMethodCall(
         irDynamicCall(
             function = spyFun,
             dispatchReceiver = spyObjectDelegate,
-            argumentsList = irGet(lambda.parameters[0]),
+            argumentsList = { irGet(lambda.parameters[0]) },
             substitutionMap = makeTypeParameterSubstitutionMap(spyFun, function)
         )
     )
@@ -205,14 +205,14 @@ private fun IrBlockBodyBuilder.irLambdaSpyFunctionCall(
 
 context(scope: TransformerScope)
 private fun IrBuilderWithScope.kClassWithTypeSubstitution(
-    mokkeryInstance: IrExpression,
+    mokkeryInstance: () -> IrExpression,
     typeParamsContainer: IrTypeParametersContainer,
     type: IrType
 ): IrExpression = type
     .indexIfParameterOrNull(typeParamsContainer)
     ?.let { index ->
         irCall(referenced(MokkeryIr.Function.typeArgumentAt)) {
-            arguments[0] = mokkeryInstance
+            arguments[0] = mokkeryInstance()
             arguments[1] = irInt(index)
         }
     } ?: kClassReference(type.eraseTypeParameters())
@@ -233,7 +233,7 @@ context(scope: TransformerScope)
 private fun IrBuilder.irDynamicCall(
     function: IrSimpleFunction,
     dispatchReceiver: IrExpression,
-    argumentsList: IrExpression,
+    argumentsList: () -> IrExpression,
     substitutionMap: Map<IrTypeParameterSymbol, IrType> = emptyMap(),
     superQualifierSymbol: IrClassSymbol? = null
 ): IrCall = irCall(
@@ -246,7 +246,7 @@ private fun IrBuilder.irDynamicCall(
     function.nonDispatchParameters.forEachIndexed { index, irValueParameter ->
         arguments[irValueParameter] = irAs(
             argument = irCall(irBuiltIns.listClass.owner.requireSimpleFunctionOwner("get")) {
-                arguments[0] = argumentsList
+                arguments[0] = argumentsList()
                 arguments[1] = irInt(index)
             },
             type = irValueParameter.type.substitute(substitutionMap)

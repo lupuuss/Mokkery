@@ -55,7 +55,7 @@ fun buildMockJsFunction(
                     +irReturn(
                         irInterceptMockCall(
                             mokkeryKind = kind,
-                            mokkeryInstance = irCall(scopeGetter) { arguments[0] = irGet(self) },
+                            mokkeryInstance = { irCall(scopeGetter) { arguments[0] = irGet(self) } },
                             typeParamsContainer = typeToMock.classOrFail.owner,
                             function = it
                         )
