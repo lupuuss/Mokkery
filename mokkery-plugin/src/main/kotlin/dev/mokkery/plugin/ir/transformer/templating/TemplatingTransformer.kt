@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -156,6 +157,7 @@ class TemplatingTransformer(
                     val argument = expression
                         .arguments[it]
                         ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
+                        ?.patchDeclarationParents(lambda)
                     param to replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
                 },
                 firstType = functionParameterClass.defaultType,
