@@ -257,7 +257,7 @@ class MatchersUsageReporterVisitor(
                 reportIllegalMatchersUsageWithMethods(functionCall, symbol)
             }
             symbol.callableId !in contextFunctions && functionCall !in legalizedNonMemberFunctionWithMatchers -> {
-                reportIllegalMatchersUsageWithNonMemberFunctions(functionCall)
+                reportIllegalMatchersUsageWithNonMemberFunctions(functionCall, symbol)
             }
         }
         currentCallsStack.add(functionCall)
@@ -318,14 +318,18 @@ class MatchersUsageReporterVisitor(
         }
     }
 
-    private fun reportIllegalMatchersUsageWithNonMemberFunctions(call: FirFunctionCall) = context(context) {
+    private fun reportIllegalMatchersUsageWithNonMemberFunctions(
+        call: FirFunctionCall,
+        symbol: FirFunctionSymbol<*>
+    ) = context(context) {
         val arguments = call.contextArguments
             .plus(call.extensionReceiver)
             .plus(call.arguments)
         arguments.forEachMatcher {
             reporter.reportOn(
                 source = it.source,
-                factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION
+                factory = Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION,
+                a = symbol
             )
         }
     }
@@ -449,7 +453,6 @@ class MatchersUsageReporterVisitor(
         val VARIABLE_OUT_OF_SCOPE by error1<KtElement, FirVariableSymbol<*>>()
         val VARIABLE_NOT_A_MATCHER by error1<KtElement, FirVariableSymbol<*>>()
         val MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER by error0<KtElement>()
-        val MATCHER_PASSED_TO_NON_MEMBER_FUNCTION by error0<KtElement>()
         val SINGLE_VARARG_MATCHER_ALLOWED by error0<KtElement>()
         val MATCHER_USED_WITH_FINAL_METHOD by error1<KtElement, FirFunctionSymbol<*>>()
         val MATCHER_USED_WITH_FINAL_CLASS by error1<KtElement, FirClassLikeSymbol<*>>()

@@ -1,15 +1,15 @@
-/MatchersMustNotBePassedToRegularFunctions.kt:(253,260): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(253,260): error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(277,287): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(277,287): error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(297,304): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(297,304): error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(327,337): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(327,337): error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(445,452): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(445,452): error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(469,479): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(469,479): error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(489,496): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(489,496): error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:(519,529): error: Matchers can be only passed to mock methods.
+/MatchersMustNotBePassedToRegularFunctions.kt:(519,529): error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
