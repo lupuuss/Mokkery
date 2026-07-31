@@ -62,6 +62,13 @@ internal fun MutableMokkeryCollection(
     values: List<MokkeryInstanceScope>
 ): MutableMokkeryCollection = MokkeryCollectionImpl(values.associateByTo(linkedMapOf()) { it.instanceId })
 
+internal fun MokkeryCollection.snapshot(): MokkeryCollection = object : MokkeryCollection {
+    private val map = this@snapshot.scopes.associateBy { it.instanceId }
+    override val ids: Set<MokkeryInstanceId> = map.keys
+    override val scopes: Collection<MokkeryInstanceScope> get() = map.values
+    override fun getScopeOrNull(id: MokkeryInstanceId): MokkeryInstanceScope? = map[id]
+}
+
 private class MokkeryCollectionImpl(
     private val map: LinkedHashMap<MokkeryInstanceId, MokkeryInstanceScope>
 ) : MutableMokkeryCollection {
