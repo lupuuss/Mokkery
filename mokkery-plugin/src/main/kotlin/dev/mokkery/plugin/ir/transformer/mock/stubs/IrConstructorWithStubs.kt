@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
-import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 context(scope: TransformerScope)
@@ -44,31 +43,23 @@ fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
 }
 
 fun IrBuilder.irCallConstructorWithStubs(
-    constructorWithStubs: Pair<IrConstructor, List<Stub>>,
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>,
     typeArguments: List<IrType> = emptyList(),
     block: IrConstructorCall.() -> Unit = { },
 ): IrConstructorCall {
     val (constructor, stubs) = constructorWithStubs
     return irCallConstructor(constructor, typeArguments) {
-        stubs.forEachIndexed { i, stub ->
-            val params = constructor.parameters
-            if (!params[i].hasDefaultValue()) {
-                arguments[i] = stub.expression
-            }
-        }
+        stubs.forEachIndexed { i, stub -> arguments[i] = stub?.expression }
         block()
     }
 }
 
-fun IrBuilder.irDelegatingConstructorWithStubs(constructorWithStubs: Pair<IrConstructor, List<Stub>>): IrDelegatingConstructorCall {
+fun IrBuilder.irDelegatingConstructorWithStubs(
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>
+): IrDelegatingConstructorCall {
     val (constructor, stubs) = constructorWithStubs
     return irDelegatingConstructorCall(constructor).apply {
-        val params = constructor.parameters
-        stubs.forEachIndexed { i, stub ->
-            if (!params[i].hasDefaultValue()) {
-                arguments[i] = stub.expression
-            }
-        }
+        stubs.forEachIndexed { i, stub -> arguments[i] = stub?.expression }
     }
 }
 

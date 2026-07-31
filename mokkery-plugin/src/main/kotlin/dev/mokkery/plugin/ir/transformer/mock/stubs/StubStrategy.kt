@@ -9,11 +9,13 @@ import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.util.constructors
+import org.jetbrains.kotlin.ir.util.hasDefaultValue
 
 interface StubStrategyScope : TransformerScope
 
@@ -40,10 +42,14 @@ private val strategyKey = createValueKey<StubStrategy>()
 context(scope: StubStrategyScope)
 fun StubStrategy.provideConstructorWithStubs(
     cls: IrClass, visibilities: Set<DescriptorVisibility>
-) = cls.constructors.firstNotNullOfOrNull { ctor ->
+): Pair<IrConstructor, List<Stub?>>? = cls.constructors.firstNotNullOfOrNull { ctor ->
     if (ctor.visibility !in visibilities) return@firstNotNullOfOrNull null
-    val stubs = ctor.parameters.mapNotNull { this.provide(it.type) }
-    if (stubs.size != ctor.parameters.size) return@firstNotNullOfOrNull null
+    val stubs = ctor.parameters.map { param ->
+        when {
+            param.hasDefaultValue() -> null
+            else -> this.provide(param.type) ?: return@firstNotNullOfOrNull null
+        }
+    }
     ctor to stubs
 }
 

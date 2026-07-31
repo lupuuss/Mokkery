@@ -368,7 +368,9 @@ class MocksCreationChecker(
     context(context: CheckerContext)
     private fun FirConstructorSymbol.isPossibleToStub(
         typesStack: Set<ConeKotlinType> = emptySet()
-    ) = isAccessible() && valueParameterSymbols.all { it.resolvedReturnType.isPossibleToStub(typesStack) }
+    ) = isAccessible() && valueParameterSymbols.all {
+        it.hasDefaultValue || it.resolvedReturnType.isPossibleToStub(typesStack)
+    }
 
     context(context: CheckerContext)
     private fun ConeKotlinType.isPossibleToStub(typesStack: Set<ConeKotlinType> = emptySet()): Boolean {

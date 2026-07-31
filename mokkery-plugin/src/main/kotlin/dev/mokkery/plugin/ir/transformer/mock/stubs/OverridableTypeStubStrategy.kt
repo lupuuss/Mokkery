@@ -46,7 +46,7 @@ class OverridableTypeStubStrategy(
                 val constructorWithStubs = baseClass
                     .defaultConstructor
                     ?.takeIf { it.visibility in acceptedVisibilities }
-                    ?.let { it to emptyList() }
+                    ?.let { it to emptyList<Stub?>() }
                     ?: strategy.provideConstructorWithStubs(baseClass, acceptedVisibilities)
                     ?: return null
                 buildStubClass(
@@ -75,7 +75,7 @@ private fun buildStubClass(
     name: Name,
     original: IrClass,
     baseClass: IrClass,
-    constructorWithStubs: Pair<IrConstructor, List<Stub>>
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>
 ): IrClass {
     val cls = irFactory.buildClass { this.name = name }
     cls.addToCurrentFile()
