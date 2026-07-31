@@ -71,6 +71,16 @@ class SequentiallyAnswersTest {
     }
 
     @Test
+    fun testSequentiallyWithEmptyRepeat() {
+        every { regularMock.callPrimitive(any()) } sequentially {
+            returns(1)
+            repeat { }
+        }
+        assertEquals(1, regularMock.callPrimitive(0))
+        assertFailsWith<MokkeryRuntimeException> { regularMock.callPrimitive(0) }
+    }
+
+    @Test
     fun testSequentiallySuspendWithRepeat() = runTest {
         everySuspend { suspendMock.callPrimitive(any()) } sequentially {
             returns(1)

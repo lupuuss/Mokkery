@@ -2,6 +2,7 @@ package dev.mokkery.internal.answering
 
 import dev.mokkery.answering.Answer
 import dev.mokkery.answering.Answer.Const
+import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.test.callBlocking
 import dev.mokkery.test.callSuspend
 import dev.mokkery.test.runTest
@@ -9,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -89,6 +91,17 @@ class UnifiedRepeatTest {
         assertEquals(2, sequential.callSuspend())
         assertEquals(2, sequential.callSuspend())
         assertEquals(2, sequential.callSuspend())
+    }
+
+    @Test
+    fun testRegisterSequentialAnswerWithNoMoreAnswersWhenRepeatIsEmpty() {
+        assertFailsWith<EndOfRepeatBlockException> {
+            builder.unifiedRepeat { }
+        }
+        val sequential = builder.answers.single()
+        assertIs<Answer.Sequential<Int>>(sequential)
+        assertFalse(sequential.hasNext())
+        assertFailsWith<NoMoreSequentialAnswersException> { sequential.callBlocking() }
     }
 
     @Test
