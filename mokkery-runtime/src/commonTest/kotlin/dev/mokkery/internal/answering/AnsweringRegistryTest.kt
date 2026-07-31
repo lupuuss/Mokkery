@@ -7,6 +7,8 @@ import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.matcher.capture.CaptureMatcher
+import dev.mokkery.matcher.capture.asCapture
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestNameShortener
@@ -122,6 +124,34 @@ class AnsweringRegistryTest {
         )
         assertEquals(listOf(template3), callMatcher.recordedCalls.map { it.second })
         assertEquals(listOf(expectedTrace), callMatcher.recordedCalls.map { it.first })
+    }
+
+    @Test
+    fun testResolveAnswerAppliesCaptureForMatchingTemplate() {
+        callMatcher.returns(true)
+        val captured = mutableListOf<Any?>()
+        val param = fakeFunParam<Int>("i")
+        answering.setup(fakeCallTemplate(param to CaptureMatcher(captured.asCapture(), ArgMatcher.Any)), Answer.Const(1))
+        val scope = testBlockingCallScope<Int>(
+            args = listOf(fakeCallArg(name = "i", value = 1)),
+            context = context
+        )
+        answering.resolveAnswer(scope)
+        assertEquals(listOf<Any?>(1), captured)
+    }
+
+    @Test
+    fun testResolveAnswerDoesNotCaptureWhenTraceHasNoArgumentForMatcher() {
+        callMatcher.returns(true)
+        val captured = mutableListOf<Any?>()
+        val param = fakeFunParam<Int>("i")
+        answering.setup(fakeCallTemplate(param to CaptureMatcher(captured.asCapture(), ArgMatcher.Any)), Answer.Const(1))
+        val scope = testBlockingCallScope<Int>(
+            args = listOf(fakeCallArg(name = "other", value = 1)),
+            context = context
+        )
+        answering.resolveAnswer(scope)
+        assertEquals(emptyList(), captured)
     }
 
     private fun mockSpec(mode: MockMode) = TestMokkeryInstanceScope(mode = mode).instanceSpec

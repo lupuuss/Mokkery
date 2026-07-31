@@ -95,8 +95,10 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         matchers.forEach { (name, matcher) ->
             if (matcher !is Capture<*>) return@forEach
             val capture = matcher as Capture<Any?>
-            val argValue = trace.args.find { it.parameter.name == name }?.value
-            capture.capture(argValue)
+            // a captured null is a legitimate value, so an argument that is not there at all
+            // must be skipped instead of being captured as null
+            val arg = trace.args.find { it.parameter.name == name } ?: return@forEach
+            capture.capture(arg.value)
         }
     }
 
