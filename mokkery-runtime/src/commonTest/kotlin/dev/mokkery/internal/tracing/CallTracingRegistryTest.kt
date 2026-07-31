@@ -8,9 +8,39 @@ import dev.mokkery.internal.instanceId
 import dev.mokkery.test.TestCounter
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
+import dev.mokkery.MokkeryCallScope
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
+
+private class RecordingCallTracingRegistry : CallTracingRegistry {
+
+    var closedSessions = 0
+        private set
+
+    override val all: List<CallTrace> get() = emptyList()
+
+    override fun trace(scope: MokkeryCallScope) = Unit
+
+    override fun acquireVerifySession() = object : CallTracingRegistry.VerifySession {
+        override val unverified: List<CallTrace> get() = emptyList()
+        override fun resetAll() = Unit
+        override fun markVerified(trace: CallTrace) = Unit
+        override fun close() {
+            closedSessions++
+        }
+    }
+}
+
+private class FailingCallTracingRegistry : CallTracingRegistry {
+
+    override val all: List<CallTrace> get() = emptyList()
+
+    override fun trace(scope: MokkeryCallScope) = Unit
+
+    override fun acquireVerifySession(): CallTracingRegistry.VerifySession = error("Failed to acquire a session!")
+}
 
 class CallTracingRegistryTest {
 
@@ -222,6 +252,17 @@ class CallTracingRegistryTest {
         assertEquals(emptyList(), instance1.callTracing.withVerifySession { unverified })
         assertEquals(emptyList(), instance2.callTracing.all)
         assertEquals(emptyList(), instance2.callTracing.withVerifySession { unverified })
+    }
+
+    @Test
+    fun testCompositeSessionReleasesAlreadyAcquiredSessionsWhenAcquiringFails() {
+        val acquired = RecordingCallTracingRegistry()
+        val collection = MokkeryCollection(
+            TestMokkeryInstanceScope(sequence = 1, context = tools + acquired),
+            TestMokkeryInstanceScope(sequence = 2, context = tools + FailingCallTracingRegistry()),
+        )
+        assertFails { collection.acquireVerifySession() }
+        assertEquals(1, acquired.closedSessions)
     }
 
     private fun TestMokkeryInstanceScope.callTrace(
