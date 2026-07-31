@@ -96,6 +96,10 @@ internal class IncorrectArgsForSpiedMethodException(expectedCount: Int, actualCo
     "Spied call requires $expectedCount arguments but $actualCount provided!"
 )
 
+internal class ArgIndexOutOfBoundsException(index: Int, argsCount: Int) : MokkeryRuntimeException(
+    "Cannot provide an argument at index $index - the call has $argsCount argument(s)!"
+)
+
 internal class MissingSpyMethodException : MokkeryRuntimeException("Spied method not found!")
 
 internal class SuperTypeMustBeSpecifiedException(
