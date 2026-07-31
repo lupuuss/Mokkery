@@ -38,4 +38,15 @@ class AnnotationsTest {
                 ?.none { it.annotationClass == AnnotationC::class } == true
         }
     }
+
+    @Test
+    fun testTypeAnnotations() {
+        val mock = mock<AnnotatedInterface>()
+        val kept = mock::class.java.methods.first { it.name == "typeAnnotatedA" }
+        assertTrue { kept.annotatedReturnType.annotations.any { it.annotationClass == AnnotationA::class } }
+        assertTrue { kept.annotatedParameterTypes[0].annotations.any { it.annotationClass == AnnotationA::class } }
+        val filtered = mock::class.java.methods.first { it.name == "typeAnnotatedB" }
+        assertTrue { filtered.annotatedReturnType.annotations.none { it.annotationClass == AnnotationB::class } }
+        assertTrue { filtered.annotatedParameterTypes[0].annotations.none { it.annotationClass == AnnotationB::class } }
+    }
 }

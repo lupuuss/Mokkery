@@ -20,6 +20,11 @@ kotlin {
         freeCompilerArgs.add("-Xverify-ir=error")
         freeCompilerArgs.add("-Xverify-ir-visibility")
     }
+    jvm {
+        compilerOptions {
+            freeCompilerArgs.add("-Xemit-jvm-type-annotations")
+        }
+    }
 }
 
 dependencies {

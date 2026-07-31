@@ -130,7 +130,11 @@ private val buildFileContent = $$"""
             }
         }
         
-        jvm()
+        jvm {
+            compilerOptions {
+                freeCompilerArgs.add("-Xemit-jvm-type-annotations")
+            }
+        }
         js(IR) { nodejs() }
         wasmJs { nodejs() }
         

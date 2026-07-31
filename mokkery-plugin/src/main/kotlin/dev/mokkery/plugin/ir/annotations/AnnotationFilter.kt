@@ -56,19 +56,20 @@ internal fun IrSimpleFunction.deepApplyAnnotationsFilter(filter: AnnotationFilte
     applyAnnotationsFilter(filter)
     typeParameters.forEach { it.applyAnnotationsFilter(filter) }
     parameters.forEach { it.deepApplyAnnotationsRule(filter) }
-    returnType.applyAnnotationsFilter(filter)
+    returnType = returnType.withFilteredAnnotations(filter)
 }
 
 private fun IrValueParameter.deepApplyAnnotationsRule(filter: AnnotationFilter) {
     applyAnnotationsFilter(filter)
-    type.applyAnnotationsFilter(filter)
+    type = type.withFilteredAnnotations(filter)
+    varargElementType = varargElementType?.withFilteredAnnotations(filter)
 }
 
-private fun IrType.applyAnnotationsFilter(filter: AnnotationFilter) {
+private fun IrType.withFilteredAnnotations(filter: AnnotationFilter): IrType {
     val requiredAnnotations = filter.filter(annotations)
-    if (annotations == requiredAnnotations) return
+    if (annotations == requiredAnnotations) return this
     val requiredAnnotationsSet = requiredAnnotations.toSet()
-    type.removeAnnotations { it !in requiredAnnotationsSet }
+    return removeAnnotations { it !in requiredAnnotationsSet }
 }
 
 private fun IrMutableAnnotationContainer.applyAnnotationsFilter(filter: AnnotationFilter) {
