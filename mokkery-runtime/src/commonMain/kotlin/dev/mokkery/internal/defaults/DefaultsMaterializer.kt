@@ -5,6 +5,7 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.getScope
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.utils.runSuspensionNothing
@@ -42,13 +43,21 @@ private class DefaultsMaterializerImpl(
         var defaultsCount = 0
         val materializedMatchers = template
             .matchers
-            .mapValues { (_, matcher) ->
+            .mapValues { (name, matcher) ->
                 matcher
                     .takeIf { it !is DefaultValuesMatcher }
-                    ?: MaterializedDefaultValueMatcher(defaults[defaultsCount++])
+                    ?: MaterializedDefaultValueMatcher(defaults.defaultAt(defaultsCount++, template, name))
             }
         return template.copy(matchers = materializedMatchers)
     }
+}
+
+private fun List<Any?>.defaultAt(index: Int, template: CallTemplate, parameter: String): Any? = getOrElse(index) {
+    mokkeryRuntimeError(
+        "Failed to materialize the default value of `$parameter` in `${template.name}`!" +
+                " Expected at least ${index + 1} extracted default(s), but got $size." +
+                " It's an internal Mokkery error, please report it."
+    )
 }
 
 private fun MokkeryInstanceScope.extractDefaults(

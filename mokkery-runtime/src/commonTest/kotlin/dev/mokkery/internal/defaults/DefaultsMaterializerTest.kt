@@ -10,8 +10,11 @@ import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeFunParam
+import dev.mokkery.MokkeryRuntimeException
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class DefaultsMaterializerTest {
 
@@ -80,6 +83,26 @@ class DefaultsMaterializerTest {
             "j" to MaterializedDefaultValueMatcher("Materialized!")
         )
         assertEquals(expectedMatchers, resultTemplate.matchers)
+    }
+
+    @Test
+    fun testFailsWithMokkeryErrorWhenMaskYieldsFewerDefaultsThanMatchers() {
+        val template = CallTemplate(
+            instanceId = scope.instanceId,
+            name = "call",
+            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
+            matchers = mapOf(
+                "i" to ArgMatcher.Equals(1),
+                "j" to DefaultValuesMatcher(
+                    // no bit set, so nothing is extracted despite the matcher expecting a default
+                    mask = 0L,
+                    extractingFunction = { _: Any, _: List<Any?> -> throwArguments(1, "Materialized!") },
+                    isExtractingFunctionSuspend = false
+                )
+            )
+        )
+        val exception = assertFailsWith<MokkeryRuntimeException> { materializer.materialize(trace, template) }
+        assertContains(exception.message.orEmpty(), "Failed to materialize the default value of `j` in `call`!")
     }
 
     @Test
