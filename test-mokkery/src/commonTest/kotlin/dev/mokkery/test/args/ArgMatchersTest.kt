@@ -11,7 +11,9 @@ import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.capture.get
 import dev.mokkery.matcher.capture.getIfPresent
+import dev.mokkery.matcher.capture.isPresent
 import dev.mokkery.matcher.capture.onArg
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.collections.containsAllInts
@@ -47,6 +49,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(DelicateMokkeryApi::class)
 class ArgMatchersTest {
@@ -297,6 +300,16 @@ class ArgMatchersTest {
         mock.callManyPrimitives(2, 1.0)
         mock.callManyPrimitives(3, 1.0)
         assertEquals(3, slot.getIfPresent())
+    }
+
+    @Test
+    fun testCaptureOfNullIntoSlot() {
+        val slot = Capture.slot<Int?>()
+        every { mock.callNullable(capture(slot)) } returns 3
+        mock.callNullable(1)
+        mock.callNullable(null)
+        assertTrue(slot.isPresent)
+        assertEquals(null, slot.get())
     }
 
     @Test

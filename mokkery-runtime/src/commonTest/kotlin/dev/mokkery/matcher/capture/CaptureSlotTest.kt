@@ -74,4 +74,29 @@ class CaptureSlotTest {
         slot.capture(1)
         assertEquals(1, slot.get())
     }
+
+    @Test
+    fun testValueReturnsPresentWhenNullCaptured() {
+        val nullableSlot = Capture.slot<Int?>()
+        nullableSlot.capture(null)
+        assertEquals(SlotCapture.Value.Present(null), nullableSlot.value)
+        assertTrue(nullableSlot.isPresent)
+        assertFalse(nullableSlot.isAbsent)
+    }
+
+    @Test
+    fun testGetReturnsNullWhenNullCaptured() {
+        val nullableSlot = Capture.slot<Int?>()
+        nullableSlot.capture(null)
+        assertEquals(null, nullableSlot.get())
+    }
+
+    @Test
+    fun testValueStaysPresentWhenNullCapturedOverValue() {
+        val nullableSlot = Capture.slot<Int?>()
+        nullableSlot.capture(1)
+        nullableSlot.capture(null)
+        assertEquals(listOf(null), nullableSlot.values)
+        assertTrue(nullableSlot.isPresent)
+    }
 }
