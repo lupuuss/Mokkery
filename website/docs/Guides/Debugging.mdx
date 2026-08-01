@@ -62,8 +62,23 @@ For quick debugging, you can simply use:
 MokkeryScope.global.callHooks.beforeAnswering.register(MokkeryCallLogger())
 ```
 
-Also, it's possible to register logger just for specific mock:
+It's possible to register logger just for specific mock:
 
 ```kotlin
 MokkeryScope.from(mock).callHooks.beforeAnswering.register(MokkeryCallLogger())
+
+// or on init
+
+mock<Foo> {
+    callHooks.beforeAnswering.register(MokkeryCallLogger())
+}
+```
+
+It is possible to register logger for [mock and spy factories](../Guides/Factories).
+The logger is then applied to every instance created by a given factory:
+
+```kotlin
+val factory = mockFactoryOf(Foo::class, Bar::class) {
+    callHooks.beforeAnswering.register(MokkeryCallLogger())
+}
 ```

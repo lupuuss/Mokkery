@@ -1,0 +1,170 @@
+---
+description: Create mocks and spies from types resolved at runtime!
+---
+# Mock and spy factories
+
+`mock` and `spy` require the type to be known at compile time - it is a type argument of the call.
+That's perfectly fine for regular test code, but it makes it hard to write utilities that decide what to mock
+at runtime, e.g. a small container that provides a mock for each dependency of a tested component.
+
+Factories address that. A factory is created for a fixed set of classes, but it creates instances from a `KType`
+given at runtime:
+
+```kotlin
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import kotlin.reflect.typeOf
+
+val factory = mockFactoryOf(Foo::class, Bar::class)
+
+val foo = factory.create(typeOf<Foo>()) // returns Any - a mock of Foo
+```
+
+Each argument of `mockFactoryOf` **must** be a class literal (e.g. `Foo::class`) and it has to satisfy
+the same requirements as `mock`:
+* Each type must be [supported](../Limitations#supported-types).
+* Functional types are not supported on JS.
+
+:::info
+The set of types that a factory can create is still fixed at compile time - the plugin generates an implementation
+for each class literal passed to `mockFactoryOf`. Factories don't make Mokkery reflective, they only move the
+type selection to runtime, so more dynamic patterns become possible without boilerplate.
+:::
+
+### Creating mocks
+
+`MockFactory` exposes `createOrNull` that returns `null` for unsupported types:
+
+```kotlin
+import dev.mokkery.factory.mockFactoryOf
+import kotlin.reflect.typeOf
+
+val factory = mockFactoryOf(Foo::class)
+
+factory.createOrNull(typeOf<Foo>()) // returns a mock of Foo
+factory.createOrNull(typeOf<Baz>()) // returns null - Baz is not registered
+```
+
+There is also `create` that fails instead of returning `null`. Both have a `reified` overload
+for cases where the type happens to be known statically:
+
+```kotlin
+import dev.mokkery.factory.create
+import dev.mokkery.factory.createOrNull
+import kotlin.reflect.typeOf
+
+val untyped: Any = factory.create(typeOf<Foo>())
+val foo: Foo = factory.create<Foo>()
+val fooOrNull: Foo? = factory.createOrNull<Foo>()
+```
+
+All of them accept a configuration block, just like `mock`:
+
+```kotlin
+import dev.mokkery.MockMode
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.mockMode
+
+val foo = factory.create<Foo> {
+    mockMode = MockMode.autofill
+    every { call() } returns 1
+}
+```
+
+A type matches a factory when its classifier is one of the registered classes.
+Type arguments are taken from the provided `KType`, so a single registration covers all parameterizations:
+
+```kotlin
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+
+val factory = mockFactoryOf(List::class)
+
+factory.create<List<String>>()
+factory.create<List<Int>>()
+```
+
+Here is an example of a utility that with `mock` alone would require registering each type by hand:
+
+```kotlin
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
+
+interface Dependencies {
+
+    fun get(type: KType): Any
+}
+
+class MockDependencies : Dependencies {
+
+    private val factory = mockFactoryOf(Foo::class, Bar::class)
+    private val instances = mutableMapOf<KType, Any>()
+
+    override fun get(type: KType): Any = instances.getOrPut(type) { factory.create(type) }
+}
+
+val dependencies: Dependencies = MockDependencies()
+
+val foo = dependencies.get(typeOf<Foo>())
+val bar = dependencies.get(typeOf<Bar>())
+```
+
+### Default mock mode
+
+`mockFactoryOf` accepts a block that configures the factory itself. Mocks derive their configuration from
+the factory they come from, so `defaultMockMode` sets the [mock mode](../Guides/Mocking#mock-modes)
+for the mocks it creates:
+
+```kotlin
+import dev.mokkery.MockMode
+import dev.mokkery.factory.defaultMockMode
+import dev.mokkery.factory.mockFactoryOf
+
+val factory = mockFactoryOf(Foo::class, Bar::class) {
+    defaultMockMode = MockMode.autoUnit
+}
+```
+
+It is still possible to override it for a single instance with `mockMode` in the `create` block.
+
+### Combining factories
+
+Factories can be combined with `+`. The resulting factory creates instances of all types from both sides,
+preserving their configuration:
+
+```kotlin
+import dev.mokkery.MockMode
+import dev.mokkery.factory.create
+import dev.mokkery.factory.defaultMockMode
+import dev.mokkery.factory.mockFactoryOf
+import dev.mokkery.factory.plus
+
+val factory = mockFactoryOf(Foo::class) { defaultMockMode = MockMode.autoUnit } +
+    mockFactoryOf(Bar::class) { defaultMockMode = MockMode.autofill }
+
+val foo = factory.create<Foo>() // autoUnit - comes from the left factory
+val bar = factory.create<Bar>() // autofill - comes from the right factory
+```
+
+### Spy factories
+
+`spyFactoryOf` works exactly like `mockFactoryOf`, but it creates spies, so an object to spy on is required:
+
+```kotlin
+import dev.mokkery.factory.create
+import dev.mokkery.factory.createOrNull
+import dev.mokkery.factory.spyFactoryOf
+import kotlin.reflect.typeOf
+
+val factory = spyFactoryOf(Foo::class, Bar::class)
+
+val foo = factory.create(typeOf<Foo>(), FooImpl())
+val bar = factory.create<Bar>(BarImpl())
+val bazOrNull = factory.createOrNull<Baz>(BazImpl()) // null - Baz is not registered
+```
+
+The spied object **must** be an instance of the given type.

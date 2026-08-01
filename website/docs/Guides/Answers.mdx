@@ -366,7 +366,7 @@ This is simpler and avoids extra boilerplate.
 
 #### Answer description
 
-The `Answer` interface lets you implement a `description()` function, which provides a human-readable explanation of the answer.
+It's possible to provide human-readable explanation of the answer, by implementing `Renderable`.
 This is especially useful for debugging, e.g., with [printMokkeryDebug](pathname:///api_reference/mokkery-runtime/dev.mokkery.debug/print-mokkery-debug.html)
 
 The description should resemble the code usage:
@@ -376,9 +376,10 @@ infix fun SuspendAnsweringScope<T>.returnsDelayed(value: T) {
 }
 
 // ...
-private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T> {
+private class ReturnsDelayedAnswer<T>(private val value: T) : Answer<T>, Renderable {
     // ...
-    override fun description() = "returnsDelayed $value"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "returnsDelayed ${scope.descriptionRenderer.render(value)}"
 }
 ```
 
