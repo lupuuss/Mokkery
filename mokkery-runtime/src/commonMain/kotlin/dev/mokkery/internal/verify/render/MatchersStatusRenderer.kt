@@ -3,14 +3,14 @@ package dev.mokkery.internal.verify.render
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
-import dev.mokkery.internal.rendering.Renderer
-import dev.mokkery.internal.rendering.argMatcherRenderer
-import dev.mokkery.internal.rendering.descriptionRenderer
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.internal.rendering.mokkeryCollection
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.argMatcherRenderer
+import dev.mokkery.rendering.descriptionRenderer
 
 internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>> {
 

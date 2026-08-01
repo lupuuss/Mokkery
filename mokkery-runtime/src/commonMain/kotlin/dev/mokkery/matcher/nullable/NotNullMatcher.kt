@@ -3,7 +3,6 @@ package dev.mokkery.matcher.nullable
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.annotations.Matcher
-import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
@@ -11,6 +10,7 @@ import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.matchesComposite
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.argMatcherRenderer
 
 /**
  * Matches an argument that is not null and matches [matcher].

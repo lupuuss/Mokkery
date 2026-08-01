@@ -3,8 +3,8 @@ package dev.mokkery.debug
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.interceptor.MokkeryCallListener
 import dev.mokkery.internal.context.suiteName
-import dev.mokkery.internal.rendering.callScopeRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
+import dev.mokkery.rendering.callScopeRenderer
 
 /**
  * Logs each mock call with [loggingFunction]. By default, the [loggingFunction] is [println].

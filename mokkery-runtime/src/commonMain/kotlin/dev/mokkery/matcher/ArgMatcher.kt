@@ -2,11 +2,11 @@ package dev.mokkery.matcher
 
 import dev.drewhamilton.poko.Poko
 import dev.mokkery.annotations.DelicateMokkeryApi
-import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.internal.utils.bestName
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 import kotlin.reflect.KClass
 
 /**

@@ -12,10 +12,10 @@ import dev.mokkery.coroutines.internal.answering.AwaitDelayed
 import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
 import dev.mokkery.internal.mokkeryInternals
-import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.internal.renderingScope
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -86,7 +86,7 @@ public interface Awaitable<out T> : Renderable {
         public fun <T> delayed(value: T, by: Duration = 1.seconds): Awaitable<T> {
             return AwaitDelayed(
                 duration = by,
-                valueDescription = { mokkeryInternals.descriptionRenderer.render(value) },
+                valueDescription = { descriptionRenderer.render(value) },
                 value = { value }
             )
         }

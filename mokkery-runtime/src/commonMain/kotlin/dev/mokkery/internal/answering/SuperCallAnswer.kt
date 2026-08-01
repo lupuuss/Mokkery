@@ -9,10 +9,10 @@ import dev.mokkery.call
 import dev.mokkery.callOriginal
 import dev.mokkery.callSuper
 import dev.mokkery.context.argValues
-import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 
 @Poko
 internal class SuperCallAnswer<T>(

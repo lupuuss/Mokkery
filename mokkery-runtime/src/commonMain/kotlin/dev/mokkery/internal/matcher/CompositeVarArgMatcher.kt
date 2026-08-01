@@ -1,12 +1,12 @@
 package dev.mokkery.internal.matcher
 
-import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.toPlatformArrayOf
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.argMatcherRenderer
 
 @PublishedApi
 internal data class CompositeVarArgMatcher(

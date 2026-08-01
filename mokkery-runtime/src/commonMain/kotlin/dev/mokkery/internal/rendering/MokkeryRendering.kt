@@ -23,6 +23,9 @@ import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderer
+import dev.mokkery.rendering.argMatcherRenderer
+import dev.mokkery.rendering.descriptionRenderer
 import dev.mokkery.rendering.renderOrToString
 
 internal val MokkeryRenderingScope.mokkeryCollection: MokkeryCollection
@@ -30,12 +33,6 @@ internal val MokkeryRenderingScope.mokkeryCollection: MokkeryCollection
 
 internal val MokkeryRenderingScope.aliases: AliasMokkeryCollection?
     get() = mokkeryContext[UseAliases]?.aliases
-
-internal val MokkeryRenderingScope.descriptionRenderer: Renderer<Any?>
-    get() = mokkeryContext.require(MokkeryRendering.descriptionKey)
-
-internal val MokkeryRenderingScope.argMatcherRenderer: Renderer<ArgMatcher<*>>
-    get() = mokkeryContext.require(MokkeryRendering.argMatcherKey)
 
 internal val MokkeryRenderingScope.functionRenderer: Renderer<FunctionRenderDescriptor>
     get() = mokkeryContext.require(MokkeryRendering.functionKey)
@@ -51,9 +48,6 @@ internal val MokkeryRenderingScope.callTemplateRenderer: Renderer<CallTemplate>
 
 internal val MokkeryRenderingScope.callTraceRenderer: Renderer<CallTrace>
     get() = mokkeryContext.require(MokkeryRendering.callTraceKey)
-
-internal val MokkeryRenderingScope.callScopeRenderer: Renderer<MokkeryCallScope>
-    get() = mokkeryContext.require(MokkeryRendering.callScopeKey)
 
 internal val MokkeryRenderingScope.renderingFactory: MokkeryRendering.Factory
     get() = mokkeryContext.require(MokkeryRendering.Factory)

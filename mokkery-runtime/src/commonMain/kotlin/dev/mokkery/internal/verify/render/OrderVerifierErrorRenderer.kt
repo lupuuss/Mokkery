@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.internal.rendering.callTemplateRenderer
 import dev.mokkery.internal.verify.OrderVerifier
 import dev.mokkery.rendering.MokkeryRenderingScope

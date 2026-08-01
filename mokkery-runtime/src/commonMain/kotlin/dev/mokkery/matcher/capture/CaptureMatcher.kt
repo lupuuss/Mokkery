@@ -1,9 +1,9 @@
 package dev.mokkery.matcher.capture
 
-import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.argMatcherRenderer
 
 /**
  * Matches an argument with [matcher] and captures arguments into [capture].

@@ -1,7 +1,7 @@
 package dev.mokkery.test
 
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.rendering.MokkeryRenderingScope
 
 internal open class StubRenderer(

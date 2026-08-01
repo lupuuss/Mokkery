@@ -1,11 +1,11 @@
 package dev.mokkery.internal.matcher
 
 import dev.drewhamilton.poko.Poko
-import dev.mokkery.internal.rendering.argMatcherRenderer
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.argMatcherRenderer
 
 @PublishedApi
 internal interface SpreadArgMatcher<T> : ArgMatcher.Composite<T>

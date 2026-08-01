@@ -1,6 +1,6 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.internal.rendering.callTraceRenderer
 import dev.mokkery.internal.rendering.renderingFactory
 import dev.mokkery.internal.tracing.CallTrace

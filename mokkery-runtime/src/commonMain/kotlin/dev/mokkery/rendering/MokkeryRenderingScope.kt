@@ -5,7 +5,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.mokkeryInternals
 
 /**
- * Scope that carries the [dev.mokkery.context.MokkeryContext] with [dev.mokkery.internal.rendering.Renderer]s and
+ * Scope that carries the [dev.mokkery.context.MokkeryContext] with [Renderer]s and
  * related tools. They are used to provide consistent output across different Mokkery components.
  *
  * Currently, only few renderers are publicly available.

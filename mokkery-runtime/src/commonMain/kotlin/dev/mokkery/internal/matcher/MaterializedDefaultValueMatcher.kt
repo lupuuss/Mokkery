@@ -1,9 +1,9 @@
 package dev.mokkery.internal.matcher
 
-import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 
 internal data class MaterializedDefaultValueMatcher(val defaultValue: Any?) : ArgMatcher<Any?>, Renderable {
 

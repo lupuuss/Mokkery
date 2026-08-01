@@ -6,7 +6,7 @@ import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.rendering.Renderer
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.internal.rendering.mokkeryCollection
 import dev.mokkery.internal.rendering.renderingScope
 import dev.mokkery.internal.rendering.useAliases

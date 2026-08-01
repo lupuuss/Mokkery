@@ -13,10 +13,10 @@ import dev.mokkery.context.argValues
 import dev.mokkery.internal.BlockingAnswerSuspendingCallException
 import dev.mokkery.internal.NoMoreSequentialAnswersException
 import dev.mokkery.internal.SuspendingAnswerBlockingCallException
-import dev.mokkery.internal.rendering.descriptionRenderer
 import dev.mokkery.internal.rendering.renderingScope
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock

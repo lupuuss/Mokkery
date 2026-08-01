@@ -1,15 +1,12 @@
-package dev.mokkery.internal.rendering
+package dev.mokkery.rendering
 
-import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.rendering.MokkeryRenderingScope
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 
 /**
  * Provides a human-readable representation for an instance of type T.
  */
-@InternalMokkeryApi
 public interface Renderer<in T> : MokkeryContext.Element {
 
     /**
