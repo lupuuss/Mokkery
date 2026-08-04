@@ -33,7 +33,6 @@ internal fun MokkeryScope.internalVerify(
     val scope = templatingScope().apply(block)
     val instances = scope.participatingInstances
     val templates = scope.registeredTemplates
-    if (templates.isEmpty()) throw SuspiciousEmptyVerifyBlockException()
     val mode = mode ?: scope.settings.defaultVerifyMode
     instances.withVerifySession {
         val result = tools

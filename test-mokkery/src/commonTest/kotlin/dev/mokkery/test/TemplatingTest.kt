@@ -66,21 +66,6 @@ class TemplatingTest {
     }
 
     @Test
-    fun testEmptyVerifyCall() {
-        assertFailsWithEmptyVerifyBlock {
-            verify { }
-        }
-    }
-
-    @Test
-    fun testVerifyWithNonMockCall() {
-        assertFailsWithEmptyVerifyBlock {
-            val list = listOf<Int>()
-            verify { list.size }
-        }
-    }
-
-    @Test
     fun testFinalMockCallInEveryBlock() {
         val mock = mock<AbstractClassLevel1>()
         assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {

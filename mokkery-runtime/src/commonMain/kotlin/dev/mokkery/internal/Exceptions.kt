@@ -47,9 +47,6 @@ internal class SingleCallInEveryBlockRequiredException(
         }
     }
 )
-internal class SuspiciousEmptyVerifyBlockException : MokkeryRuntimeException(
-    "Given 'verify' block does not contain any call to a mock. It's very suspicious and most probably caused by misuse.\n\n$noTemplatesCommonReasons"
-)
 
 private val noTemplatesCommonReasons = """
     Possible reasons:
