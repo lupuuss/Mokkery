@@ -10,7 +10,8 @@ internal actual inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*> = takeI
 
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun List<CallArgument>.copyWithReplacedKClasses(): List<CallArgument> = map {
-    it.copy(type = it.parameter.type.takeIfImplementedOrAny())
+    val replaced = it.parameter.type.takeIfImplementedOrAny()
+    if (replaced === it.parameter.type) it else it.copy(type = replaced)
 }
 
 private fun KClass<*>.takeIfImplementedOrAnyImpl() = takeIf { runCatching { hashCode() }.isSuccess } ?: Any::class
