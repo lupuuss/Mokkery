@@ -9,6 +9,7 @@ import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.keepOnTop
 import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.answering.AnsweringRegistry
@@ -102,7 +103,7 @@ private fun MokkeryScope.instanceContext(
         .plus(AnsweringRegistry())
         .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
         .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
-        .plus(rootCallInterceptor)
+        .keepOnTop(rootCallInterceptor)
 }
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?

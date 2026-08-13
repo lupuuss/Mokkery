@@ -3,6 +3,7 @@ package dev.mokkery.context
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
+import dev.mokkery.internal.context.KeepOnTopContext
 import dev.mokkery.internal.context.memoizedContext
 
 /**
@@ -90,3 +91,8 @@ public fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toColl
 
 @InternalMokkeryApi
 public fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())
+
+@InternalMokkeryApi
+public infix fun MokkeryContext.keepOnTop(
+    element: MokkeryContext.Element
+): MokkeryContext = KeepOnTopContext(this - element.key, element)
