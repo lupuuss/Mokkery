@@ -5,6 +5,7 @@ kotlinx-coroutines = "1.10.2"
 buildconfig = "5.7.0"
 google-autoservice = "1.1.1"
 atomicfu = "0.31.0"
+kotlinx-benchmark = "0.4.17"
 dokka = "2.1.0"
 poko = "0.23.1"
 vanniktech-publish-plugin = "0.36.0"
@@ -15,6 +16,7 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
 
 [libraries]
@@ -31,6 +33,7 @@ vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plug
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
 
 buildconfig-plugin = { module = "com.github.gmazzo.buildconfig:plugin", version.ref = "buildconfig" }
 dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
