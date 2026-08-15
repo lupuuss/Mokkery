@@ -106,8 +106,6 @@ object MokkeryIr {
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
-        val blockingCallScope by dev_mokkery_internal.refFunction
-        val suspendCallScope by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
         val throwArguments by dev_mokkery_internal_defaults.refFunction
         val methodWithoutDefaultsError by dev_mokkery_internal_defaults.refFunction
@@ -117,6 +115,8 @@ object MokkeryIr {
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
+        val interceptCall by dev_mokkery_internal.refFunction
+        val interceptCallSuspend by dev_mokkery_internal.refFunction
         val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction
     }
 
@@ -125,7 +125,6 @@ object MokkeryIr {
         val instanceIdString by dev_mokkery_internal.refProperty
         val spiedObject by dev_mokkery.refProperty
         val jsFunctionMokkeryScope by dev_mokkery_internal.refProperty
-        val callInterceptor by dev_mokkery_internal_context.refProperty
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

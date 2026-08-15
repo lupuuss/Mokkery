@@ -9,9 +9,55 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal fun MokkeryInstanceScope.interceptCall(
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    functionId: Int,
+): Any? = callInterceptor.intercept(blockingCallScope(name, returnType, args, functionId))
+
+@PublishedApi
+internal suspend fun MokkeryInstanceScope.interceptCallSuspend(
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    functionId: Int,
+): Any? = callInterceptor.intercept(suspendCallScope(name, returnType, args, functionId))
+
+
+internal fun MokkeryBlockingCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkeryBlockingCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
+}
+
+internal fun MokkerySuspendCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkerySuspendCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkerySuspendCallScope(this.mokkeryContext + with)
+}
+
+internal fun MokkeryInstanceScope.blockingCallScope(
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    functionId: Int,
+): MokkeryBlockingCallScope = MokkeryBlockingCallScope(callContext(name, returnType, args, functionId))
+
+internal fun MokkeryInstanceScope.suspendCallScope(
+    name: String,
+    returnType: KClass<*>,
+    args: List<CallArgument>,
+    functionId: Int
+): MokkerySuspendCallScope = MokkerySuspendCallScope(callContext(name, returnType, args, functionId))
 
 internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryBlockingCallScope {
     return object : MokkeryBlockingCallScope {
@@ -28,36 +74,6 @@ internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Em
         override fun toString(): String = "MokkerySuspendCallScope(mokkeryContext=$context)"
     }
 }
-
-internal fun MokkeryBlockingCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkeryBlockingCallScope = when {
-    with === MokkeryContext.Empty -> this
-    else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
-}
-
-internal fun MokkerySuspendCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkerySuspendCallScope = when {
-    with === MokkeryContext.Empty -> this
-    else -> MokkerySuspendCallScope(this.mokkeryContext + with)
-}
-
-@PublishedApi
-internal fun MokkeryInstanceScope.blockingCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    functionId: Int,
-): MokkeryBlockingCallScope = MokkeryBlockingCallScope(callContext(name, returnType, args, functionId))
-
-@PublishedApi
-internal fun MokkeryInstanceScope.suspendCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    functionId: Int
-): MokkerySuspendCallScope = MokkerySuspendCallScope(callContext(name, returnType, args, functionId))
 
 private fun MokkeryInstanceScope.callContext(
     name: String,

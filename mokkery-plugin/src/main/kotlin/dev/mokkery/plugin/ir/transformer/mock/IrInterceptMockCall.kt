@@ -47,31 +47,20 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
     function: IrSimpleFunction,
     functionId: Int,
 ): IrCall {
-    val interceptorProperty = referencedGetter(MokkeryIr.Property.callInterceptor)
-    val interceptorClass = interceptorProperty.returnType.classOrFail
-    val interceptFun = interceptorClass
-        .functions
-        .first { it.owner.name.asString() == "intercept" && it.owner.isSuspend == function.isSuspend }
-    return irCall(interceptFun) {
-        arguments[0] = interceptorProperty
-            .let(::irCall)
-            .apply { arguments[0] = mokkeryInstance() }
-        val scopeCreationFun = when {
-            function.isSuspend -> MokkeryIr.Function.suspendCallScope
-            else -> MokkeryIr.Function.blockingCallScope
-        }
-        val scopeCreationCall = irCall(referenced(scopeCreationFun)) {
-            arguments[0] = mokkeryInstance()
-            arguments[1] = irString(function.name.asString())
-            arguments[2] = kClassWithTypeSubstitution(
-                mokkeryInstance = mokkeryInstance,
-                typeParamsContainer = typeParamsContainer,
-                type = function.returnType
-            )
-            arguments[3] = irCallArgsList(mokkeryInstance, function, typeParamsContainer)
-            arguments[4] = irInt(functionId)
-        }
-        arguments[1] = scopeCreationCall
+    val interceptFun = when {
+        function.isSuspend -> MokkeryIr.Function.interceptCallSuspend
+        else -> MokkeryIr.Function.interceptCall
+    }
+    return irCall(referenced(interceptFun)) {
+        arguments[0] = mokkeryInstance()
+        arguments[1] = irString(function.name.asString())
+        arguments[2] = kClassWithTypeSubstitution(
+            mokkeryInstance = mokkeryInstance,
+            typeParamsContainer = typeParamsContainer,
+            type = function.returnType
+        )
+        arguments[3] = irCallArgsList(mokkeryInstance, function, typeParamsContainer)
+        arguments[4] = irInt(functionId)
     }
 }
 
