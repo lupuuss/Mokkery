@@ -51,9 +51,10 @@ object MokkeryIr {
         val MockMany5 by dev_mokkery.refClass
 
         val MokkerySuiteScope by dev_mokkery.refClass
-
-        val MokkeryMockScope by dev_mokkery.refClass
-        val MokkerySpyScope by dev_mokkery.refClass
+        
+        val MutableMokkeryInstanceScope by dev_mokkery_internal.refClass
+        val MutableMokkeryMockScope by dev_mokkery_internal.refClass
+        val MutableMokkerySpyScope by dev_mokkery_internal.refClass
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
         val CallArgument by dev_mokkery_context.refClass
@@ -73,8 +74,8 @@ object MokkeryIr {
         val InstanceFactoryConfigurer by dev_mokkery_factory_configurer.refClass
 
         fun mokkeryInstanceScope(kind: IrMokkeryKind) = when (kind) {
-            Spy -> MokkerySpyScope
-            Mock -> MokkeryMockScope
+            Spy -> MutableMokkerySpyScope
+            Mock -> MutableMokkeryMockScope
         }
 
         fun mockMany(value: Int): IrClassReferencer {

@@ -4,7 +4,9 @@ package dev.mokkery.internal
 
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.MokkeryMockScope
 import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySpyScope
 import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.configurer.MokkerySpyConfigurer
@@ -13,7 +15,7 @@ import dev.mokkery.context.keepOnTop
 import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.answering.AnsweringRegistry
-import dev.mokkery.internal.configurer.BaseMokkeryConfigurer
+import dev.mokkery.internal.configurer.ClosableMokkeryConfigurer
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
@@ -22,9 +24,9 @@ import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
-import dev.mokkery.internal.dispatcher.callDispatchersContext
 import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
 import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
+import dev.mokkery.internal.dispatcher.callDispatchersContext
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.interceptor.rootInstantiationListener
@@ -32,6 +34,18 @@ import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal interface MutableMokkeryInstanceScope : MokkeryInstanceScope {
+
+    override var mokkeryContext: MokkeryContext
+}
+
+@PublishedApi
+internal interface MutableMokkeryMockScope : MutableMokkeryInstanceScope, MokkeryMockScope
+
+@PublishedApi
+internal interface MutableMokkerySpyScope : MutableMokkeryInstanceScope, MokkerySpyScope
 
 @PublishedApi
 internal fun Any.setupMokkeryInstanceForCommon(
@@ -42,7 +56,6 @@ internal fun Any.setupMokkeryInstanceForCommon(
     mode: MockMode?,
     spiedObject: Any?,
     defaultsExtractorFactory: DefaultsExtractorFactory?,
-    setContext: (MokkeryContext) -> Unit,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ): Unit = setupMokkeryInstance(
     parent = parent,
@@ -54,7 +67,6 @@ internal fun Any.setupMokkeryInstanceForCommon(
     defaultsExtractorFactory = defaultsExtractorFactory,
     spyDispatcher = this as? MokkerySpyCallDispatcher,
     superDispatcher = this as? MokkerySuperCallDispatcher,
-    setContext = setContext,
     block = block,
 )
 
@@ -68,7 +80,6 @@ internal fun Any.setupMokkeryInstance(
     defaultsExtractorFactory: DefaultsExtractorFactory?,
     spyDispatcher: MokkerySpyCallDispatcher?,
     superDispatcher: MokkerySuperCallDispatcher?,
-    setContext: (MokkeryContext) -> Unit,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val baseContext = parent.instanceContext(
@@ -82,23 +93,23 @@ internal fun Any.setupMokkeryInstance(
         spyDispatcher = spyDispatcher,
         superDispatcher = superDispatcher,
     )
-    setContext(baseContext)
+    val scope = this.mokkeryScope as MutableMokkeryInstanceScope
+    scope.mokkeryContext = baseContext
     // now instance is in a "preconfigured" state
     // we can apply user provided block with additional configuration
     if (block != null) {
-        this.applyConfigurerBlock(baseContext, setContext, block)
+        this.applyConfigurerBlock(scope, block)
     }
     this.invokeInstantiationListener()
 }
 
 private fun Any.applyConfigurerBlock(
-    context: MokkeryContext,
-    setContext: (MokkeryContext) -> Unit,
+    scope: MutableMokkeryInstanceScope,
     block: MokkeryInstanceConfigurer.Block<Any, *>
 ) {
-    val configurer = when (context.require(MokkeryInstanceSpec)) {
-        is MokkeryMockSpec -> MokkeryMockConfigurerImpl(context, setContext)
-        is MokkerySpySpec -> MokkerySpyConfigurerImpl(context, setContext)
+    val configurer = when (scope.mokkeryContext.require(MokkeryInstanceSpec)) {
+        is MokkeryMockSpec -> MokkeryMockConfigurerImpl(scope)
+        is MokkerySpySpec -> MokkerySpyConfigurerImpl(scope)
     }
     val aware = MokkeryInstanceConfigurerAwareImpl(this, configurer)
     aware.use { block(it, this) }
@@ -173,26 +184,20 @@ internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*>? {
 }
 
 private class MokkerySpyConfigurerImpl(
-    context: MokkeryContext,
-    setContext: (MokkeryContext) -> Unit
-) : MokkeryInstanceConfigurerImpl(context, setContext), MokkerySpyConfigurer
+    scope: MutableMokkeryInstanceScope
+) : MokkeryInstanceConfigurerImpl(scope), MokkerySpyConfigurer
 
 private class MokkeryMockConfigurerImpl(
-    context: MokkeryContext,
-    setContext: (MokkeryContext) -> Unit
-) : MokkeryInstanceConfigurerImpl(context, setContext), MokkeryMockConfigurer
+    scope: MutableMokkeryInstanceScope
+) : MokkeryInstanceConfigurerImpl(scope), MokkeryMockConfigurer
 
 private abstract class MokkeryInstanceConfigurerImpl(
-    context: MokkeryContext,
-    private val setContext: (MokkeryContext) -> Unit,
-) : BaseMokkeryConfigurer(context), MokkeryInstanceConfigurer {
+    private val scope: MutableMokkeryInstanceScope,
+) : ClosableMokkeryConfigurer(), MokkeryInstanceConfigurer {
 
     override var mokkeryContext: MokkeryContext
-        get() = super.mokkeryContext
-        set(value) {
-            super.mokkeryContext = value
-            setContext(value)
-        }
+        get() = ensureOpen { scope.mokkeryContext }
+        set(value) = ensureOpen { scope.mokkeryContext = value }
 }
 
 private class MokkeryInstanceConfigurerAwareImpl<T, C>(

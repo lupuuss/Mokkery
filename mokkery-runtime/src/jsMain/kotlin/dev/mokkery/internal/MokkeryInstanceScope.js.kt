@@ -41,7 +41,6 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
         defaultsExtractorFactory = null,
         spyDispatcher = spyDispatcher,
         superDispatcher = null,
-        setContext = { scope.mokkeryContext = it },
         block = block,
     )
 }
@@ -53,20 +52,16 @@ internal inline var Any.jsFunctionMokkeryScope: MokkeryInstanceScope?
         this.asDynamic()._mokkeryScope = value
     }
 
-private interface MokkeryJsFunScope : MokkeryInstanceScope {
-    override var mokkeryContext: MokkeryContext
-}
-
 private class MokkeryJsFunMockScope(
     override var mokkeryContext: MokkeryContext
-) : MokkeryJsFunScope, MokkeryMockScope {
+) : MutableMokkeryMockScope {
 
     override fun toString(): String = instanceIdString
 }
 
 private class MokkeryJsFunSpyScope(
     override var mokkeryContext: MokkeryContext
-) : MokkeryJsFunScope, MokkerySpyScope {
+) : MutableMokkerySpyScope {
 
     override fun toString(): String = instanceIdString
 }

@@ -4,25 +4,27 @@ import dev.mokkery.configurer.MokkeryConfigurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.mokkeryRuntimeError
 
-internal open class BaseMokkeryConfigurer(
-    context: MokkeryContext,
-) : MokkeryConfigurer, AutoCloseable {
+internal abstract class ClosableMokkeryConfigurer : MokkeryConfigurer, AutoCloseable {
 
     private var isClosed = false
 
-    override var mokkeryContext: MokkeryContext = context
-        get() = ensureOpen { field }
-        set(value) = ensureOpen { field = value }
-
+    protected inline fun <T> ensureOpen(block: () -> T): T {
+        if (isClosed) mokkeryRuntimeError("Configurer is closed.")
+        return block()
+    }
 
     override fun close() {
         isClosed = true
     }
+}
 
-    private inline fun <T> ensureOpen(block: () -> T): T {
-        if (isClosed) mokkeryRuntimeError("Configurer is closed.")
-        return block()
-    }
+internal open class BaseMokkeryConfigurer(
+    context: MokkeryContext,
+) : ClosableMokkeryConfigurer() {
+
+    override var mokkeryContext: MokkeryContext = context
+        get() = ensureOpen { field }
+        set(value) = ensureOpen { field = value }
 }
 
 internal fun <T : BaseMokkeryConfigurer> MokkeryContext.applyConfigurer(

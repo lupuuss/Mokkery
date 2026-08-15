@@ -244,6 +244,7 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
         }
         overriddenSymbols = listOf(property.symbol)
         addDefaultGetter(context).overriddenSymbols = listOf(property.getter!!.symbol)
+        if (property.isVar) addDefaultSetter(context).overriddenSymbols = listOf(property.setter!!.symbol)
     }
 }
 
