@@ -6,7 +6,6 @@ import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryBlockingCallScope
 import dev.mokkery.internal.MokkerySuspendCallScope
-import dev.mokkery.internal.context.AssociatedFunctions
 import kotlin.reflect.KClass
 
 internal inline fun <reified T> testBlockingCallScope(
@@ -14,8 +13,7 @@ internal inline fun <reified T> testBlockingCallScope(
     sequence: Long = 1,
     name: String = "call",
     args: List<CallArgument> = emptyList(),
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spiedFunction: kotlin.Function<Any?>? = null,
+    functionId: Int = 0,
     context: MokkeryContext = MokkeryContext.Empty,
 ) = MokkeryBlockingCallScope(
     testCallContext(
@@ -24,8 +22,7 @@ internal inline fun <reified T> testBlockingCallScope(
         sequence,
         name,
         args,
-        supers,
-        spiedFunction,
+        functionId,
         context
     )
 )
@@ -35,8 +32,7 @@ internal inline fun <reified T> testSuspendCallScope(
     sequence: Long = 1,
     name: String = "call",
     args: List<CallArgument> = emptyList(),
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spiedFunction: kotlin.Function<Any?>? = null,
+    functionId: Int = 0,
     context: MokkeryContext = MokkeryContext.Empty,
 ) = MokkerySuspendCallScope(
     testCallContext(
@@ -45,8 +41,7 @@ internal inline fun <reified T> testSuspendCallScope(
         sequence,
         name,
         args,
-        supers,
-        spiedFunction,
+        functionId,
         context
     )
 )
@@ -57,10 +52,8 @@ internal fun testCallContext(
     sequence: Long,
     name: String,
     args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>>,
-    spiedFunction: kotlin.Function<Any?>?,
+    functionId: Int,
     context: MokkeryContext,
 ) = TestMokkeryInstanceScope(typeName, sequence).mokkeryContext
-    .plus(FunctionCall(Function(name, args.map { it.parameter }, returnType), args))
-    .plus(AssociatedFunctions(supers, spiedFunction))
+    .plus(FunctionCall(Function(name, args.map { it.parameter }, returnType, functionId), args))
     .plus(context)

@@ -9,6 +9,7 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture
+import dev.mokkery.test.TestCallDispatchers
 import dev.mokkery.test.TestCallMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestNameShortener
@@ -61,8 +62,10 @@ class AnsweringRegistryTest {
     @Test
     fun testResolveAnswerReturnsSuperCallAnswerWithOriginalWhenInterceptedTypeSuperCallPresentForMockModeOriginal() {
         val scope = testBlockingCallScope<Int>(
-            supers = mapOf(Unit::class to { _: List<Any?> -> 10 }),
-            context = context + tools + mockSpec(MockMode.original)
+            context = context
+                    + tools
+                    + mockSpec(MockMode.original)
+                    + TestCallDispatchers(supers = mapOf(Unit::class to { _: List<Any?> -> 10 }))
         )
         assertEquals(SuperCallAnswer<Any?>(SuperCall.original), answering.resolveAnswer(scope))
     }

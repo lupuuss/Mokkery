@@ -9,7 +9,6 @@ object KotlinIr {
     object Function {
         val to by kotlin.refFunction
         val listOf by kotlin_collections.refFunction { it.owner.parameters.firstOrNull()?.isVararg == true }
-        val mapOf by kotlin_collections.refFunction { it.owner.parameters.firstOrNull()?.isVararg == true }
         val emptyList by kotlin_collections.refFunction
         val emptySet by kotlin_collections.refFunction
         val emptyMap by kotlin_collections.refFunction

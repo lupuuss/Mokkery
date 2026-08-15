@@ -283,6 +283,7 @@ class CallTracingRegistryTest {
     ) = blockingCallScope(
         name = name,
         returnType = returnType,
-        args = args.asList()
+        args = args.asList(),
+        functionId = 0
     )
 }

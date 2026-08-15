@@ -9,7 +9,6 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
-import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import kotlin.reflect.KClass
@@ -49,34 +48,32 @@ internal fun MokkeryInstanceScope.blockingCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-): MokkeryBlockingCallScope = MokkeryBlockingCallScope(callContext(name, returnType, args, supers, spyDelegate))
+    functionId: Int,
+): MokkeryBlockingCallScope = MokkeryBlockingCallScope(callContext(name, returnType, args, functionId))
 
 @PublishedApi
 internal fun MokkeryInstanceScope.suspendCallScope(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-): MokkerySuspendCallScope = MokkerySuspendCallScope(callContext(name, returnType, args, supers, spyDelegate))
+    functionId: Int
+): MokkerySuspendCallScope = MokkerySuspendCallScope(callContext(name, returnType, args, functionId))
 
 private fun MokkeryInstanceScope.callContext(
     name: String,
     returnType: KClass<*>,
     args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>>,
-    spyDelegate: kotlin.Function<Any?>?
+    functionId: Int,
 ): MokkeryContext {
     val safeArgs = args.copyWithReplacedKClasses()
     val call = FunctionCall(
         function = Function(
             name = name,
             parameters = args.map(CallArgument::parameter),
-            returnType = returnType.takeIfImplementedOrAny()
+            returnType = returnType.takeIfImplementedOrAny(),
+            id = functionId,
         ),
         args = safeArgs
     )
-    return mokkeryContext + call + AssociatedFunctions(supers, spyDelegate)
+    return mokkeryContext + call
 }

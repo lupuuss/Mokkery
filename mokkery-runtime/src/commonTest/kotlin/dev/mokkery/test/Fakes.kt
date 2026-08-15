@@ -50,10 +50,11 @@ internal fun fakeCallTrace(
 internal fun fakeFunctionCall(
     functionName: String = "fakeFunction",
     returnType: KClass<*> = Unit::class,
-    args: List<CallArgument> = emptyList()
+    args: List<CallArgument> = emptyList(),
+    id: Int = 0,
 ): FunctionCall {
     return  FunctionCall(
-        function = Function(functionName, args.map(CallArgument::parameter), returnType),
+        function = Function(functionName, args.map(CallArgument::parameter), returnType, id),
         args = args
     )
 }

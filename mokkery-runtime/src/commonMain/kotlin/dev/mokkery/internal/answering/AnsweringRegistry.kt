@@ -12,6 +12,7 @@ import dev.mokkery.internal.CallNotMockedException
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.dispatcher.availableSuperCallTypes
 import dev.mokkery.internal.matcher.callMatcher
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.rendering.callTraceRenderer
@@ -20,7 +21,6 @@ import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.tracing.toCallTrace
 import dev.mokkery.matcher.capture.Capture
-import dev.mokkery.supers
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 
@@ -82,7 +82,7 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
         is MokkerySpySpec -> SpiedCallAnswer
         is MokkeryMockSpec -> when (spec.mode) {
             MockMode.autofill -> Answer.Autofill
-            MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
+            MockMode.original if scope.availableSuperCallTypes().isNotEmpty() -> SuperCallAnswer(SuperCall.original)
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
             else -> scope.withRenderingScope(instances = spec.collection) {
                 throw CallNotMockedException(name = callTraceRenderer.render(trace))

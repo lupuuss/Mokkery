@@ -22,6 +22,9 @@ import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractorFactory
+import dev.mokkery.internal.dispatcher.callDispatchersContext
+import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
+import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.interceptor.rootInstantiationListener
@@ -31,6 +34,30 @@ import dev.mokkery.internal.tracing.CallTracingRegistry
 import kotlin.reflect.KClass
 
 @PublishedApi
+internal fun Any.setupMokkeryInstanceForCommon(
+    parent: MokkeryScope,
+    typeName: String,
+    interceptedTypes: List<KClass<*>>,
+    typeArguments: List<List<KClass<*>>>,
+    mode: MockMode?,
+    spiedObject: Any?,
+    defaultsExtractorFactory: DefaultsExtractorFactory?,
+    setContext: (MokkeryContext) -> Unit,
+    block: MokkeryInstanceConfigurer.Block<Any, *>?,
+): Unit = setupMokkeryInstance(
+    parent = parent,
+    typeName = typeName,
+    interceptedTypes = interceptedTypes,
+    typeArguments = typeArguments,
+    mode = mode,
+    spiedObject = spiedObject,
+    defaultsExtractorFactory = defaultsExtractorFactory,
+    spyDispatcher = this as? MokkerySpyCallDispatcher,
+    superDispatcher = this as? MokkerySuperCallDispatcher,
+    setContext = setContext,
+    block = block,
+)
+
 internal fun Any.setupMokkeryInstance(
     parent: MokkeryScope,
     typeName: String,
@@ -39,6 +66,8 @@ internal fun Any.setupMokkeryInstance(
     mode: MockMode?,
     spiedObject: Any?,
     defaultsExtractorFactory: DefaultsExtractorFactory?,
+    spyDispatcher: MokkerySpyCallDispatcher?,
+    superDispatcher: MokkerySuperCallDispatcher?,
     setContext: (MokkeryContext) -> Unit,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
@@ -49,7 +78,9 @@ internal fun Any.setupMokkeryInstance(
         thisRef = this,
         mode = mode,
         spiedObject = spiedObject,
-        defaultsExtractorFactory = defaultsExtractorFactory
+        defaultsExtractorFactory = defaultsExtractorFactory,
+        spyDispatcher = spyDispatcher,
+        superDispatcher = superDispatcher,
     )
     setContext(baseContext)
     // now instance is in a "preconfigured" state
@@ -80,7 +111,9 @@ private fun MokkeryScope.instanceContext(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    defaultsExtractorFactory: DefaultsExtractorFactory?
+    defaultsExtractorFactory: DefaultsExtractorFactory?,
+    spyDispatcher: MokkerySpyCallDispatcher?,
+    superDispatcher: MokkerySuperCallDispatcher?
 ): MokkeryContext {
     val tools = tools
     val spec = MokkeryInstanceSpec.create(
@@ -102,6 +135,7 @@ private fun MokkeryScope.instanceContext(
         .plus(CallTracingRegistry())
         .plus(AnsweringRegistry())
         .plus(defaultsExtractorFactory ?: MokkeryContext.Empty)
+        .plus(callDispatchersContext(spyDispatcher, superDispatcher))
         .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
         .keepOnTop(rootCallInterceptor)
 }

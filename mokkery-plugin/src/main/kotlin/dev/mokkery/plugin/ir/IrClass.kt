@@ -105,9 +105,9 @@ fun IrClass.addOverridingMethod(
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     annotationFilter: AnnotationFilter = AnnotationFilter.all,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
-) {
+): IrSimpleFunction {
     val function = functions.first()
-    addFunction {
+    return addFunction {
         updateFrom(function)
         name = function.name
         modality = Modality.FINAL
@@ -189,9 +189,9 @@ fun IrClass.addOverridingProperty(
     annotationFilter: AnnotationFilter = AnnotationFilter.all,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-) {
+): IrProperty {
     val property = properties.first()
-    addProperty {
+    return addProperty {
         updateFrom(property)
         name = property.name
         modality = Modality.FINAL

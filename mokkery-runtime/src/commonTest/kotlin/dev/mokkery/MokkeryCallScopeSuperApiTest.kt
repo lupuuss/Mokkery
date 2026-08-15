@@ -1,12 +1,10 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package dev.mokkery
 
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.MokkeryBlockingCallScope
 import dev.mokkery.internal.MokkerySuspendCallScope
+import dev.mokkery.test.TestCallDispatchers
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeFunctionCall
@@ -19,30 +17,32 @@ import kotlin.test.assertFailsWith
 class MokkeryCallScopeSuperApiTest {
 
     private var classSupertypes: List<KClass<*>> = listOf(Unit::class)
-    private val mockScope by lazy { TestMokkeryInstanceScope(interceptedTypes = classSupertypes) }
+
+    private val dispatchers = TestCallDispatchers(
+        supers = mapOf(
+            Unit::class to { args: List<Any?> -> args[0] as Int + 1 },
+            Int::class to { args: List<Any?> -> args[0] as Int + 2 },
+        ),
+        suspendSupers = mapOf(
+            Int::class to { args: List<Any?> -> args[0] as Int + 2 },
+            Unit::class to { args: List<Any?> -> args[0] as Int + 1 },
+        )
+    )
+
+    private val mockScope by lazy {
+        TestMokkeryInstanceScope(interceptedTypes = classSupertypes, context = dispatchers)
+    }
 
     private val blockingScope by lazy {
         MokkeryBlockingCallScope(
-            AssociatedFunctions(
-                supers = mapOf(
-                    Unit::class to blocking { it[0] as Int + 1 },
-                    Int::class to blocking { it[0] as Int + 2 }
-                ),
-                spiedFunction = null
-            )
-                .plus(fakeFunctionCall(returnType = Int::class, args = listOf(fakeCallArg(1))))
+            fakeFunctionCall(returnType = Int::class, args = listOf(fakeCallArg(1)))
                 .plus(mockScope.mokkeryContext)
         )
-
     }
+
     private val suspendingScope by lazy {
         MokkerySuspendCallScope(
-            AssociatedFunctions(
-                supers = mapOf(
-                    Int::class to suspending { it[0] as Int + 2 },
-                    Unit::class to suspending { it[0] as Int + 1 }), spiedFunction = null
-            )
-                .plus(fakeFunctionCall(returnType = Int::class, args = listOf(fakeCallArg(1))))
+            fakeFunctionCall(returnType = Int::class, args = listOf(fakeCallArg(1)))
                 .plus(mockScope.mokkeryContext)
         )
     }
@@ -112,8 +112,4 @@ class MokkeryCallScopeSuperApiTest {
             suspendingScope.callOriginal(listOf(1))
         }
     }
-
-    private inline fun suspending(noinline block: suspend (List<Any?>) -> Any) = block
-
-    private inline fun blocking(noinline block: (List<Any?>) -> Any) = block
 }

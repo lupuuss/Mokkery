@@ -1,7 +1,7 @@
 package dev.mokkery
 
-import dev.mokkery.internal.context.AssociatedFunctions
 import dev.mokkery.internal.MokkeryBlockingCallScope
+import dev.mokkery.test.TestCallDispatchers
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeFunctionCall
@@ -11,10 +11,11 @@ import kotlin.test.assertSame
 
 class MokkeryCallScopeApiTest {
 
-    private val associatedFunctions = AssociatedFunctions(mapOf(Unit::class to { }), { })
-    private val mock = TestMokkeryInstanceScope()
+    private val mock = TestMokkeryInstanceScope(
+        context = TestCallDispatchers(supers = mapOf(Unit::class to { args: List<Any?> -> args[0] }))
+    )
     private val funCall = fakeFunctionCall(returnType = Int::class, args = listOf(fakeCallArg(1), fakeCallArg("str")))
-    private val scope = MokkeryBlockingCallScope(funCall + mock.mokkeryContext + associatedFunctions)
+    private val scope = MokkeryBlockingCallScope(funCall + mock.mokkeryContext)
 
     @Test
     fun testCallReturnsFunctionCallFromContext() {
@@ -33,6 +34,6 @@ class MokkeryCallScopeApiTest {
 
     @Test
     fun testReturnsSupersFromContext() {
-        assertSame(associatedFunctions.supers, scope.supers)
+        assertEquals(listOf(Unit::class), scope.supers.keys.toList())
     }
 }

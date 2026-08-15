@@ -11,7 +11,8 @@ import kotlin.reflect.KClass
 public class Function internal constructor(
     public val name: String,
     public val parameters: List<Parameter>,
-    public val returnType: KClass<*>
+    public val returnType: KClass<*>,
+    internal val id: Int,
 ) {
 
     /**

@@ -7,11 +7,15 @@ import dev.mokkery.internal.IncorrectArgsForSuperMethodException
 import dev.mokkery.internal.MissingSpyMethodException
 import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
-import dev.mokkery.internal.context.associatedFunctions
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
+import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
+import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
+import dev.mokkery.internal.dispatcher.availableSuperCallTypes
+import dev.mokkery.internal.dispatcher.spyDispatcher
+import dev.mokkery.internal.dispatcher.superDispatcher
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.utils.bestName
-import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
 /**
@@ -35,7 +39,23 @@ public val MokkeryCallScope.call: FunctionCall
  * Returns a map of available super calls for currently called function.
  */
 public val MokkeryCallScope.supers: Map<KClass<*>, Function<Any?>>
-    get() = associatedFunctions.supers
+    get() {
+        val types = availableSuperCallTypes()
+        if (types.isEmpty()) return emptyMap()
+        return when (this) {
+            is MokkerySuspendCallScope -> types.associateWith { this.superCallLambda(it) }
+            is MokkeryBlockingCallScope -> types.associateWith { this.superCallLambda(it) }
+            else -> mokkeryRuntimeError("Unknown call scope implementation ${this::class.simpleName}!")
+        }
+    }
+
+private fun MokkerySuspendCallScope.superCallLambda(type: KClass<*>) = suspend { it: List<Any?> ->
+    this.callSuper(type, it)
+}
+
+private fun MokkeryBlockingCallScope.superCallLambda(type: KClass<*>) = { it: List<Any?> ->
+    this.callSuper(type, it)
+}
 
 
 /**
@@ -51,54 +71,53 @@ public suspend fun MokkerySuspendCallScope.callOriginal(args: List<Any?>): Any? 
 /**
  * Calls super method of [superType] with given [args]
  */
-public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? {
-    checkSuperArgs(args)
-    return supers[superType]
-        .let { it ?: throw MissingSuperMethodException(superType) }
-        .unsafeCast<(List<Any?>) -> Any?>()
-        .invoke(args)
-}
+public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
+    dispatchSuper(superType, args) { dispatcher, memberId, superTypeIndex ->
+        dispatcher.mokkeryDispatchSuperCall(memberId, superTypeIndex, args)
+    }
 
 /**
  * Calls super method of [superType] with given [args]
  */
-public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? {
+public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
+    dispatchSuper(superType, args) { dispatcher, memberId, superTypeIndex ->
+        dispatcher.mokkeryDispatchSuperCallSuspend(memberId, superTypeIndex, args)
+    }
+
+private inline fun <R> MokkeryCallScope.dispatchSuper(
+    superType: KClass<*>,
+    args: List<Any?>,
+    dispatch: (MokkerySuperCallDispatcher, memberId: Int, superTypeIndex: Int) -> R,
+): R {
     checkSuperArgs(args)
-    return supers[superType]
-        .let { it ?: throw MissingSuperMethodException(superType) }
-        .unsafeCast<suspend (List<Any?>) -> Any?>()
-        .invoke(args)
+    val dispatcher = superDispatcher ?: throw MissingSuperMethodException(superType)
+    val memberId = call.function.id
+    val superTypeIndex = dispatcher.mokkeryCallSuperTypes(memberId).indexOf(superType)
+    if (superTypeIndex < 0) throw MissingSuperMethodException(superType)
+    return dispatch(dispatcher, memberId, superTypeIndex)
 }
 
 /**
  * Calls spied method with given [args].
  */
-public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? {
-    instanceSpec.requireSpy()
-    checkSpiedArgs(args)
-    return associatedFunctions
-        .spiedFunction
-        .let { it ?: throw MissingSpyMethodException() }
-        .unsafeCast<(List<Any?>) -> Any?>()
-        .invoke(args)
-}
+public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? = requireSpyDispatcher(args)
+    .mokkeryDispatchSpyCall(call.function.id, args)
 
 /**
  * Calls spied method with given [args].
  */
-public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? {
+public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? = requireSpyDispatcher(args)
+    .mokkeryDispatchSpyCallSuspend(call.function.id, args)
+
+private fun MokkeryCallScope.requireSpyDispatcher(args: List<Any?>): MokkerySpyCallDispatcher {
     instanceSpec.requireSpy()
     checkSpiedArgs(args)
-    return associatedFunctions
-        .spiedFunction
-        .let { it ?: throw MissingSpyMethodException() }
-        .unsafeCast<suspend (List<Any?>) -> Any?>()
-        .invoke(args)
+    return spyDispatcher ?: throw MissingSpyMethodException()
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>
     get() {
-        val supers = this.supers
+        val supers = availableSuperCallTypes()
         val interceptedTypes = instanceSpec.interceptedTypes.map { it.type }
         val superCandidates = interceptedTypes.filter(supers::contains)
         if (superCandidates.isEmpty()) throw MissingSuperMethodException(interceptedTypes)

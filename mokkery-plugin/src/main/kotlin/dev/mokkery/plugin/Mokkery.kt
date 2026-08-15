@@ -21,6 +21,7 @@ object Mokkery {
     val dev_mokkery_internal_factory by fqName
     val dev_mokkery_internal_utils by fqName
     val dev_mokkery_internal_context by fqName
+    val dev_mokkery_internal_dispatcher by fqName
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName

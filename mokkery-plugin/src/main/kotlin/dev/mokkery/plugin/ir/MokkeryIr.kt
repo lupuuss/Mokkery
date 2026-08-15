@@ -8,6 +8,7 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_context
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_defaults
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_dispatcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
@@ -63,6 +64,10 @@ object MokkeryIr {
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
+        val MokkerySpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val MokkerySuperCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val LambdaSpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val MissingDispatcherCall by dev_mokkery_internal.refClass
         val MockFactory by dev_mokkery_factory.refClass
         val SpyFactory by dev_mokkery_factory.refClass
         val InstanceFactoryConfigurer by dev_mokkery_factory_configurer.refClass
@@ -110,7 +115,7 @@ object MokkeryIr {
         val matchesComposite by dev_mokkery_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
-        val setupMokkeryInstance by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
         val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction
     }

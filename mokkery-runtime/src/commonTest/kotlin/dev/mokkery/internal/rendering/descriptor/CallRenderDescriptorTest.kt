@@ -129,7 +129,8 @@ class CallRenderDescriptorTest {
             args = listOf(
                 fakeCallArg(name = "p1", value = 1),
                 fakeCallArg(name = "p2", value = 2),
-            )
+            ),
+            functionId = 0
         )
         val descriptor = scope.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
@@ -147,7 +148,8 @@ class CallRenderDescriptorTest {
         val scope = TestMokkeryInstanceScope().blockingCallScope(
             name = "<get-foo>",
             returnType = Int::class,
-            args = listOf(fakeCallArg(name = "p1", value = 1))
+            args = listOf(fakeCallArg(name = "p1", value = 1)),
+            functionId = 0
         )
         val descriptor = scope.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
@@ -165,7 +167,8 @@ class CallRenderDescriptorTest {
         val scope = TestMokkeryInstanceScope().blockingCallScope(
             name = "<set-foo>",
             returnType = Int::class,
-            args = listOf(fakeCallArg(name = "p1", value = 1))
+            args = listOf(fakeCallArg(name = "p1", value = 1)),
+            functionId = 0
         )
         val descriptor = scope.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)

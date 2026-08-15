@@ -65,21 +65,6 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 
 context(scope: TransformerScope)
-fun IrBuilder.irCallMapOf(
-    pairs: List<Pair<IrExpression, IrExpression>>,
-    keyType: IrType,
-    valueType: IrType
-) = irCall(referenced(KotlinIr.Function.mapOf)) {
-    val varargs = irVararg(
-        elementType = referenced(KotlinIr.Class.Pair).typeWith(keyType, valueType),
-        elements = pairs.map { irCreatePair(it.first, it.second) }
-    )
-    typeArguments[0] = keyType
-    typeArguments[1] = valueType
-    arguments[0] = varargs
-}
-
-context(scope: TransformerScope)
 fun IrBuilder.irCallListOfPairs(
     pairs: List<Pair<IrExpression, IrExpression>>,
     firstType: IrType,
