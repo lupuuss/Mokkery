@@ -2,29 +2,27 @@ package dev.mokkery.plugin.ir.transformer.mock
 
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.core.ir.transformer.referencedGetter
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.indexIfParameterOrNull
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.irTrue
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
-import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -59,22 +57,26 @@ fun IrBlockBodyBuilder.irInterceptMockCall(
             typeParamsContainer = typeParamsContainer,
             type = function.returnType
         )
-        arguments[3] = irCallArgsList(mokkeryInstance, function, typeParamsContainer)
-        arguments[4] = irInt(functionId)
+        arguments[3] = irInt(functionId)
+        arguments[4] = irCallArgsVararg(mokkeryInstance, function, typeParamsContainer)
     }
 }
 
 context(scope: TransformerScope)
-private fun IrBuilderWithScope.irCallArgsList(
+private fun IrBuilderWithScope.irCallArgsVararg(
     mokkeryInstance: () -> IrExpression,
     function: IrSimpleFunction,
     paramsContainer: IrTypeParametersContainer
-): IrCall {
+): IrExpression {
     val callArgClass = referenced(MokkeryIr.Class.CallArgument)
     val callArgs = function
         .nonDispatchParameters
         .map { param ->
-            val constructor = callArgClass.constructors.single { it.parameters.size == 4 }
+            val expectedParams = when {
+                param.isVararg -> 4
+                else -> 3
+            }
+            val constructor = callArgClass.constructors.single { it.parameters.size == expectedParams }
             irCallConstructor(constructor) {
                 arguments[0] = irGet(param)
                 arguments[1] = irString(param.name.asString())
@@ -83,10 +85,12 @@ private fun IrBuilderWithScope.irCallArgsList(
                     typeParamsContainer = paramsContainer,
                     type = param.type
                 )
-                arguments[3] = irBoolean(param.isVararg)
+                if (param.isVararg) {
+                    arguments[3] = irTrue()
+                }
             }
         }
-    return irCallListOf(callArgClass.defaultType, callArgs)
+    return irVararg(callArgClass.defaultType, callArgs)
 }
 
 context(scope: TransformerScope)

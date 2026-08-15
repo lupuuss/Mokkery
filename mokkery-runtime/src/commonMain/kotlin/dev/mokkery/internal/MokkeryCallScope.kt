@@ -18,17 +18,17 @@ import kotlin.reflect.KClass
 internal fun MokkeryInstanceScope.interceptCall(
     name: String,
     returnType: KClass<*>,
-    args: List<CallArgument>,
     functionId: Int,
-): Any? = callInterceptor.intercept(blockingCallScope(name, returnType, args, functionId))
+    vararg args: CallArgument,
+): Any? = callInterceptor.intercept(blockingCallScope(name, returnType, args.asList(), functionId))
 
 @PublishedApi
 internal suspend fun MokkeryInstanceScope.interceptCallSuspend(
     name: String,
     returnType: KClass<*>,
-    args: List<CallArgument>,
     functionId: Int,
-): Any? = callInterceptor.intercept(suspendCallScope(name, returnType, args, functionId))
+    vararg args: CallArgument,
+): Any? = callInterceptor.intercept(suspendCallScope(name, returnType, args.asList(), functionId))
 
 
 internal fun MokkeryBlockingCallScope.withContext(

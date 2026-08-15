@@ -16,6 +16,12 @@ public class CallArgument internal constructor(
         value: Any?,
         name: String,
         type: KClass<*>,
+    ) : this(value, Function.Parameter(name, type, false))
+
+    @PublishedApi internal constructor(
+        value: Any?,
+        name: String,
+        type: KClass<*>,
         isVararg: Boolean,
     ) : this(value, Function.Parameter(name, type, isVararg))
 
