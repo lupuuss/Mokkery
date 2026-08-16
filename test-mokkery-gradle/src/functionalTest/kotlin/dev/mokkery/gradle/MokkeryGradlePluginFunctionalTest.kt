@@ -88,6 +88,8 @@ private val settingsFileContent = """
             }
         }
     }
+
+    rootProject.name = "test-mokkery"
     """.trimIndent()
 
 @Language("kts")
@@ -108,6 +110,8 @@ private val buildFileContent = $$"""
         id("dev.mokkery")
         id("org.jetbrains.kotlin.plugin.allopen")
     }
+
+    group = "dev.mokkery"
 
     allOpen {
         annotation("dev.mokkery.test.OpenForMokkery")

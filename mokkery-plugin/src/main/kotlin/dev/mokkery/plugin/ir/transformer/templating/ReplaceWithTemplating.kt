@@ -14,7 +14,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
@@ -88,7 +88,7 @@ private fun replaceWithInternalEvery(
     irBlock {
         +irCall(toBeReplacedWith) {
             val templatingArgument = originalCall.arguments[0]
-            arguments[0] = irGetMokkeryFileScope()
+            arguments[0] = irGetMokkeryModuleScope()
             arguments[1] = when (templatingArgument) {
                 is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument, matchersCompiler)
                 is IrFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)

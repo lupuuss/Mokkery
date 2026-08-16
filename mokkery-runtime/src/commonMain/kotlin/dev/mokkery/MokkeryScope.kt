@@ -1,11 +1,9 @@
 package dev.mokkery
 
-import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.Settings
 import dev.mokkery.internal.interceptor.ForkedMokkeryCallHooks
-import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
 
 /**
@@ -26,14 +24,6 @@ public interface MokkeryScope {
                     + Settings.default()
                     + ForkedMokkeryCallHooks()
         )
-
-        /**
-         *  Returns the [MokkeryScope] associated with current file.
-         *
-         *  In principle all scopes in given file should derive from it. It's propagated by the compiler plugin.
-         */
-        @InternalMokkeryApi
-        public val file: MokkeryScope get() = mokkeryIntrinsic
 
         /**
          * Returns the [MokkeryInstanceScope] associated with the given [mock].

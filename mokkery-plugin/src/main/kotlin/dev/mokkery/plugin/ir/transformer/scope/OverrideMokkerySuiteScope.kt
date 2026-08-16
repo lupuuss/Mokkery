@@ -9,7 +9,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overridePropertyBackingField
 import dev.mokkery.plugin.ir.requirePropertyOwner
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -69,7 +69,7 @@ private fun IrBuilderWithScope.irCallSuiteContext(
     irClass: IrClass
 ) = irCall(referenced(MokkeryIr.Function.suiteContext)) {
     val suiteNameClass = referenced(MokkeryIr.Class.SuiteName)
-    arguments[0] = irGetMokkeryFileScope()
+    arguments[0] = irGetMokkeryModuleScope()
     arguments[1] = irCallConstructor(suiteNameClass.primaryConstructor!!) {
         arguments[0] = irString(irClass.kotlinFqName.asString())
     }

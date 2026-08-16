@@ -8,7 +8,8 @@ import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.transformer.factory.replaceFactory
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryFileScope
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
+import dev.mokkery.plugin.ir.transformer.module.generateBodyIfModuleScopeGetter
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
@@ -42,7 +43,10 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
     }
 
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        if (declaration is IrSimpleFunction) matchersCompiler.compileIfMatcher(declaration)
+        if (declaration is IrSimpleFunction) {
+            matchersCompiler.compileIfMatcher(declaration)
+            declaration.generateBodyIfModuleScopeGetter()
+        }
         return declaration.applyTransformChildrenVoid()
     }
 
@@ -60,7 +64,6 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
             Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
             Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
-            Mokkery.Name.MokkeryScopeCompanionFile -> expression.replaceDeclarationIrBuilder { irGetMokkeryFileScope() }
             Mokkery.Name.mockFactoryOf -> expression.replaceFactory(IrMokkeryKind.Mock)
             Mokkery.Name.spyFactoryOf -> expression.replaceFactory(IrMokkeryKind.Spy)
             else -> expression

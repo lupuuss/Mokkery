@@ -51,7 +51,7 @@ object MokkeryIr {
         val MockMany5 by dev_mokkery.refClass
 
         val MokkerySuiteScope by dev_mokkery.refClass
-        
+
         val MutableMokkeryInstanceScope by dev_mokkery_internal.refClass
         val MutableMokkeryMockScope by dev_mokkery_internal.refClass
         val MutableMokkerySpyScope by dev_mokkery_internal.refClass
@@ -102,7 +102,6 @@ object MokkeryIr {
         val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
-        val fileContext by dev_mokkery_internal.refFunction
         val instanceFactoryScope by dev_mokkery_internal_factory.refFunction
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
@@ -116,6 +115,7 @@ object MokkeryIr {
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
+        val createModuleScope by dev_mokkery_internal.refFunction
         val interceptCall by dev_mokkery_internal.refFunction
         val interceptCallSuspend by dev_mokkery_internal.refFunction
         val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction

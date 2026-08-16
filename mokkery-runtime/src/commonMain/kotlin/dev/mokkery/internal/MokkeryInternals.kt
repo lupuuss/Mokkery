@@ -3,6 +3,7 @@ package dev.mokkery.internal
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryScope
 import dev.mokkery.annotations.InternalMokkeryApi
+import dev.mokkery.internal.context.moduleName
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.rendering.renderingScope
@@ -36,6 +37,10 @@ public fun MokkeryInternals<*>.resetMocksCounter() {
 @InternalMokkeryApi
 public val MokkeryInternals<*>.renderingScope: MokkeryRenderingScope
     get() = scope.renderingScope()
+
+@InternalMokkeryApi
+public val MokkeryInternals<*>.moduleName: String?
+    get() = scope.moduleName
 
 @InternalMokkeryApi
 public val MokkeryInternals<*>.defaultVerifyMode: VerifyMode
