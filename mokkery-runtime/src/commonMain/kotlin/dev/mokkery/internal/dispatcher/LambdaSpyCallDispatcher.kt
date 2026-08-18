@@ -8,7 +8,7 @@ import dev.mokkery.internal.mokkeryRuntimeError
 internal class LambdaSpyCallDispatcher(
     private val blocking: ((List<Any?>) -> Any?)?,
     private val suspending: (suspend (List<Any?>) -> Any?)?,
-) : MokkerySpyCallDispatcher {
+) : SpyCallDispatcher {
 
     override fun mokkeryDispatchSpyCall(memberId: Int, args: List<Any?>): Any? {
         val lambda = blocking ?: mokkeryRuntimeError("Blocking spy call dispatched to a suspend lambda mock!")

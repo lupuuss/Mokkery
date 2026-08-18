@@ -1,8 +1,8 @@
 package dev.mokkery.test
 
 import dev.mokkery.internal.dispatcher.CallDispatchers
-import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
-import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
+import dev.mokkery.internal.dispatcher.SpyCallDispatcher
+import dev.mokkery.internal.dispatcher.SuperCallDispatcher
 import kotlin.reflect.KClass
 
 internal class TestCallDispatchers(
@@ -11,12 +11,12 @@ internal class TestCallDispatchers(
     private val suspendSupers: Map<KClass<*>, suspend (List<Any?>) -> Any?> = emptyMap(),
     private val spied: ((List<Any?>) -> Any?)? = null,
     private val suspendSpied: (suspend (List<Any?>) -> Any?)? = null,
-) : CallDispatchers, MokkerySpyCallDispatcher, MokkerySuperCallDispatcher {
+) : CallDispatchers, SpyCallDispatcher, SuperCallDispatcher {
 
-    override val spyDispatcher: MokkerySpyCallDispatcher?
+    override val spyDispatcher: SpyCallDispatcher?
         get() = takeIf { spied != null || suspendSpied != null }
 
-    override val superDispatcher: MokkerySuperCallDispatcher?
+    override val superDispatcher: SuperCallDispatcher?
         get() = takeIf { supers.isNotEmpty() || suspendSupers.isNotEmpty() }
 
     override fun mokkeryCallSuperTypes(memberId: Int): List<KClass<*>> {

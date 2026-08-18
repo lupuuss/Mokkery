@@ -65,8 +65,8 @@ object MokkeryIr {
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
-        val MokkerySpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
-        val MokkerySuperCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val SpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val SuperCallDispatcher by dev_mokkery_internal_dispatcher.refClass
         val LambdaSpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
         val MissingDispatcherCall by dev_mokkery_internal.refClass
         val MockFactory by dev_mokkery_factory.refClass

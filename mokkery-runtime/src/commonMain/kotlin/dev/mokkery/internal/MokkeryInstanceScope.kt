@@ -24,8 +24,8 @@ import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.defaults.DefaultsExtractingInterceptor
-import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
-import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
+import dev.mokkery.internal.dispatcher.SpyCallDispatcher
+import dev.mokkery.internal.dispatcher.SuperCallDispatcher
 import dev.mokkery.internal.dispatcher.callDispatchersContext
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
@@ -70,8 +70,8 @@ internal fun Any.setupMokkeryInstanceForCommon(
     typeArguments = typeArguments,
     mode = mode,
     spiedObject = spiedObject,
-    spyDispatcher = this as? MokkerySpyCallDispatcher,
-    superDispatcher = this as? MokkerySuperCallDispatcher,
+    spyDispatcher = this as? SpyCallDispatcher,
+    superDispatcher = this as? SuperCallDispatcher,
     block = block,
 )
 
@@ -82,8 +82,8 @@ internal fun Any.setupMokkeryInstance(
     typeArguments: List<List<KClass<*>>>,
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: MokkerySpyCallDispatcher?,
-    superDispatcher: MokkerySuperCallDispatcher?,
+    spyDispatcher: SpyCallDispatcher?,
+    superDispatcher: SuperCallDispatcher?,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val baseContext = parent.instanceContext(
@@ -125,8 +125,8 @@ private fun MokkeryScope.instanceContext(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: MokkerySpyCallDispatcher?,
-    superDispatcher: MokkerySuperCallDispatcher?
+    spyDispatcher: SpyCallDispatcher?,
+    superDispatcher: SuperCallDispatcher?
 ): MokkeryContext {
     val tools = tools
     val spec = MokkeryInstanceSpec.create(

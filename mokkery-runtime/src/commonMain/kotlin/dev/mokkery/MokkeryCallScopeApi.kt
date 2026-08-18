@@ -9,8 +9,8 @@ import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
-import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
-import dev.mokkery.internal.dispatcher.MokkerySuperCallDispatcher
+import dev.mokkery.internal.dispatcher.SpyCallDispatcher
+import dev.mokkery.internal.dispatcher.SuperCallDispatcher
 import dev.mokkery.internal.dispatcher.availableSuperCallTypes
 import dev.mokkery.internal.dispatcher.spyDispatcher
 import dev.mokkery.internal.dispatcher.superDispatcher
@@ -87,7 +87,7 @@ public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args:
 private inline fun <R> MokkeryCallScope.dispatchSuper(
     superType: KClass<*>,
     args: List<Any?>,
-    dispatch: (MokkerySuperCallDispatcher, memberId: Int, superTypeIndex: Int) -> R,
+    dispatch: (SuperCallDispatcher, memberId: Int, superTypeIndex: Int) -> R,
 ): R {
     checkSuperArgs(args)
     val dispatcher = superDispatcher ?: throw MissingSuperMethodException(superType)
@@ -109,7 +109,7 @@ public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? = requireS
 public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? = requireSpyDispatcher(args)
     .mokkeryDispatchSpyCallSuspend(call.function.id, args)
 
-private fun MokkeryCallScope.requireSpyDispatcher(args: List<Any?>): MokkerySpyCallDispatcher {
+private fun MokkeryCallScope.requireSpyDispatcher(args: List<Any?>): SpyCallDispatcher {
     instanceSpec.requireSpy()
     checkSpiedArgs(args)
     return spyDispatcher ?: throw MissingSpyMethodException()

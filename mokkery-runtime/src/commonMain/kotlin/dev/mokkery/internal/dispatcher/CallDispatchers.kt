@@ -9,10 +9,10 @@ internal fun MokkeryCallScope.availableSuperCallTypes(): List<KClass<*>> = super
     ?.mokkeryCallSuperTypes(call.function.id)
     .orEmpty()
 
-internal val MokkeryCallScope.superDispatcher: MokkerySuperCallDispatcher?
+internal val MokkeryCallScope.superDispatcher: SuperCallDispatcher?
     get() = mokkeryContext[CallDispatchers]?.superDispatcher
 
-internal val MokkeryCallScope.spyDispatcher: MokkerySpyCallDispatcher?
+internal val MokkeryCallScope.spyDispatcher: SpyCallDispatcher?
     get() = mokkeryContext[CallDispatchers]?.spyDispatcher
 
 
@@ -20,22 +20,22 @@ internal interface CallDispatchers : MokkeryContext.Element {
 
     override val key: Key get() = Key
 
-    val spyDispatcher: MokkerySpyCallDispatcher?
+    val spyDispatcher: SpyCallDispatcher?
 
-    val superDispatcher: MokkerySuperCallDispatcher?
+    val superDispatcher: SuperCallDispatcher?
 
     companion object Key : MokkeryContext.Key<CallDispatchers>
 }
 
 internal fun callDispatchersContext(
-    spyDispatcher: MokkerySpyCallDispatcher?,
-    superDispatcher: MokkerySuperCallDispatcher?,
+    spyDispatcher: SpyCallDispatcher?,
+    superDispatcher: SuperCallDispatcher?,
 ): MokkeryContext = when {
     spyDispatcher == null && superDispatcher == null -> MokkeryContext.Empty
     else -> CallDispatchersImpl(spyDispatcher, superDispatcher)
 }
 
 private class CallDispatchersImpl(
-    override val spyDispatcher: MokkerySpyCallDispatcher?,
-    override val superDispatcher: MokkerySuperCallDispatcher?,
+    override val spyDispatcher: SpyCallDispatcher?,
+    override val superDispatcher: SuperCallDispatcher?,
 ) : CallDispatchers

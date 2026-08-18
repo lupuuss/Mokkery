@@ -2,12 +2,10 @@ package dev.mokkery.internal
 
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
-import dev.mokkery.MokkeryMockScope
 import dev.mokkery.MokkeryScope
-import dev.mokkery.MokkerySpyScope
 import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.dispatcher.MokkerySpyCallDispatcher
+import dev.mokkery.internal.dispatcher.SpyCallDispatcher
 import kotlin.reflect.KClass
 
 internal actual val Any.mokkeryScope: MokkeryInstanceScope?
@@ -22,7 +20,7 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
     typeArguments: List<KClass<*>> = emptyList(),
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: MokkerySpyCallDispatcher?,
+    spyDispatcher: SpyCallDispatcher?,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val scope = when {

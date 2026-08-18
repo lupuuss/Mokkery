@@ -2,8 +2,9 @@ package dev.mokkery.internal.dispatcher
 
 import kotlin.reflect.KClass
 
+// mock/spy instance implements it if super calls available
 @PublishedApi
-internal interface MokkerySuperCallDispatcher {
+internal interface SuperCallDispatcher {
 
     fun mokkeryCallSuperTypes(memberId: Int): List<KClass<*>>
 

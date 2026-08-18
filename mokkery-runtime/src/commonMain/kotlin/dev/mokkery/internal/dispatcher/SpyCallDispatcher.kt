@@ -1,7 +1,8 @@
 package dev.mokkery.internal.dispatcher
 
+// spy instance implements it
 @PublishedApi
-internal interface MokkerySpyCallDispatcher {
+internal interface SpyCallDispatcher {
 
     fun mokkeryDispatchSpyCall(memberId: Int, args: List<Any?>): Any?
 

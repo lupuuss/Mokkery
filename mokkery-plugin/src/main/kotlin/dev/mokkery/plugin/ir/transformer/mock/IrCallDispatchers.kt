@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
@@ -59,7 +58,7 @@ private fun IrClass.addSuperCallDispatcher(
     functions: List<IrSimpleFunction>,
     supers: List<List<IrSimpleFunction>>,
 ) {
-    val dispatcherClass = referenced(MokkeryIr.Class.MokkerySuperCallDispatcher)
+    val dispatcherClass = referenced(MokkeryIr.Class.SuperCallDispatcher)
     superTypes += dispatcherClass.defaultType
     val kClassType = irBuiltIns.kClassClass.starProjectedType
     addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner("mokkeryCallSuperTypes")) { dispatcher ->
@@ -118,7 +117,7 @@ private fun IrClass.addSuperCallDispatcher(
 
 context(scope: TransformerScope)
 private fun IrClass.addSpyCallDispatcher(members: List<IrSimpleFunction>) {
-    val dispatcherClass = referenced(MokkeryIr.Class.MokkerySpyCallDispatcher)
+    val dispatcherClass = referenced(MokkeryIr.Class.SpyCallDispatcher)
     superTypes += dispatcherClass.defaultType
     val spiedObjectGetter = referencedGetter(MokkeryIr.Property.spiedObject)
     listOf(false, true).forEach { isSuspend ->
