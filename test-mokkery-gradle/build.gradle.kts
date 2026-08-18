@@ -41,6 +41,10 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
             testLogging.showStandardStreams = true
             mustRunAfter("test")
             val repoName = testingRepoName
+            inputs
+                .dir(project.isolated.rootProject.projectDirectory.dir("build/testing-repository"))
+                .withPropertyName("testingRepository")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
             dependsOnPublishMultiplatformTo(":mokkery-core", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-runtime", repoName)
             dependsOnPublishMultiplatformTo(":mokkery-coroutines", repoName)
@@ -52,6 +56,7 @@ val functionalTest by testing.suites.creating(JvmTestSuite::class) {
     dependencies {
         implementation(project(":mokkery-core-tooling"))
         implementation(gradleTestKit())
+        implementation(libs.kotlin.test.junit5)
     }
 }
 

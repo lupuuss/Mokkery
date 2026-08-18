@@ -9,6 +9,7 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
+import dev.mokkery.plugin.ir.transformer.core.recordSuperTypesLookUp
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -91,6 +92,7 @@ private fun buildStubClass(
                 +irDelegatingConstructorWithStubs(constructorWithStubs)
             }
         }
+    recordSuperTypesLookUp(listOf(original))
     cls.overrideAllOverridableFunctions(pluginContext, original) { stubFunctionBody(it) }
     cls.overrideAllOverridableProperties(
         context = pluginContext,

@@ -28,6 +28,7 @@ import dev.mokkery.plugin.ir.overridePropertyBackingField
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
+import dev.mokkery.plugin.ir.transformer.core.recordSuperTypesLookUp
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -91,6 +92,7 @@ fun buildMockClass(
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
     mockedClass.addCallDispatchers(mokkeryKind, functions)
+    recordSuperTypesLookUp(listOf(classToMock))
     return mockedClass
 }
 
@@ -125,6 +127,7 @@ fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
     mockedClass.addCallDispatchers(IrMokkeryKind.Mock, functions)
+    recordSuperTypesLookUp(classesToMock)
     return mockedClass
 }
 
