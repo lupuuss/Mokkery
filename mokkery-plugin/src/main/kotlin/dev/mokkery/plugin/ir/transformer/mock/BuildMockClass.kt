@@ -18,7 +18,9 @@ import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
@@ -46,6 +48,7 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
+import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -74,11 +77,16 @@ fun buildMockClass(
     )
     mockedClass.createThisReceiverParameter()
     mockedClass.origin = MokkeryIr.Origin
+    val mutableScopeClass = referenced(MokkeryIr.Class.MutableMokkeryInstanceScope)
+    mockedClass.overridePropertyBackingField(pluginContext, mutableScopeClass.requirePropertyOwner("mokkeryContext"))
+    mockedClass.overrideToString()
     mockedClass.addMockClassConstructor(
         typeName = classToMock.kotlinFqName.asString(),
         mokkeryKind = mokkeryKind,
         classesToIntercept = listOf(classToMock),
     )
+    mockedClass.addMockClassConstructorForDefaults(listOf(classToMock))
+    mockedClass.addDefaultsExtractorFactory()
     val functions = mockedClass.overrideInterceptedFunctions(listOf(classToMock)) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
@@ -103,16 +111,34 @@ fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
         if (classesToMock.all(IrClass::isInterface)) irBuiltIns.anyType else null,
         manyMocksMarkerType
     )
+    val mutableScopeClass = referenced(MokkeryIr.Class.MutableMokkeryInstanceScope)
+    mockedClass.overridePropertyBackingField(pluginContext, mutableScopeClass.requirePropertyOwner("mokkeryContext"))
+    mockedClass.overrideToString()
     mockedClass.addMockClassConstructor(
         mokkeryKind = IrMokkeryKind.Mock,
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
+    mockedClass.addMockClassConstructorForDefaults(classesToMock)
+    mockedClass.addDefaultsExtractorFactory()
     val functions = mockedClass.overrideInterceptedFunctions(classesToMock) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
     mockedClass.addCallDispatchers(IrMokkeryKind.Mock, functions)
     return mockedClass
+}
+
+context(scope: TransformerScope)
+private fun IrClass.overrideToString() {
+    val toString = irBuiltIns.anyClass.owner.requireSimpleFunctionOwner("toString")
+    addOverridingMethod(pluginContext, toString) {
+        val instanceIdString = referencedGetterSymbol(MokkeryIr.Property.instanceIdString)
+        +irReturn(
+            irCall(instanceIdString) {
+                arguments[0] = irGet(it.parameters[0])
+            }
+        )
+    }
 }
 
 context(scope: TransformerScope)
@@ -164,8 +190,6 @@ private fun IrClass.addMockClassConstructor(
     val mokkeryScopeClass = referenced(MokkeryIr.Class.MokkeryScope)
     val mockModeClass = referenced(MokkeryIr.Class.MockMode)
     val receiverParam = thisReceiver!!
-    val mutableScopeClass = referenced(MokkeryIr.Class.MutableMokkeryInstanceScope)
-    overridePropertyBackingField(pluginContext, mutableScopeClass.requirePropertyOwner("mokkeryContext"))
     addConstructor {
         isPrimary = true
     }.apply {
@@ -211,22 +235,38 @@ private fun IrClass.addMockClassConstructor(
                 )
                 arguments[5] = irGet(parameters[1])
                 arguments[6] = spyParam?.let(::irGet) ?: irNull()
-                arguments[7] = findOrBuildDefaultsExtractorFactoryIfRequired(
-                    classesToIntercept = classesToIntercept,
-                    bodyBuilder = this@irBlockBody
-                ) ?: irNull()
-                arguments[8] = irGet(parameters[2])
+                arguments[7] = irGet(parameters[2])
             }
         }
     }
-    val toString = irBuiltIns.anyClass.owner.requireSimpleFunctionOwner("toString")
-    addOverridingMethod(pluginContext, toString) {
-        val instanceIdString = referencedGetterSymbol(MokkeryIr.Property.instanceIdString)
-        +irReturn(
-            irCall(instanceIdString) {
-                arguments[0] = irGet(it.parameters[0])
+}
+
+context(scope: TransformerScope)
+private fun IrClass.addMockClassConstructorForDefaults(
+    classesToIntercept: List<IrClass>,
+) {
+    val receiverParam = thisReceiver!!
+    addConstructor().apply {
+        body = symbol.declarationIrBuilder.irBlockBody {
+            +irDelegatingConstructorWithStubs(
+                irClass = classesToIntercept.firstOrNull { it.isClass },
+                subClass = this@addMockClassConstructorForDefaults
+            )
+            +irCall(referenced(MokkeryIr.Function.setupMokkeryInstanceForDefaults)) {
+                arguments[0] = irGet(receiverParam)
             }
-        )
+        }
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrClass.addDefaultsExtractorFactory() {
+    val constructor = this.constructors.first { it.parameters.isEmpty() }
+    val factoryClass = referenced(MokkeryIr.Class.DefaultsExtractorFactory)
+    superTypes += factoryClass.defaultType
+    val typeArguments = erasedTypeArguments
+    addOverridingMethod(pluginContext, factoryClass.requireSimpleFunctionOwner("mokkeryCreateExtractor")) { function ->
+        +irReturn(irCallConstructor(constructor, typeArguments))
     }
 }
 

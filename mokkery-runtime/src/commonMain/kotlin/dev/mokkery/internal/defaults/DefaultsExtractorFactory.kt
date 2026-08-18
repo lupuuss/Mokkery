@@ -1,23 +1,7 @@
 package dev.mokkery.internal.defaults
 
-import dev.mokkery.MokkeryInstanceScope
-import dev.mokkery.MokkeryRuntimeException
-import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.require
-
 @PublishedApi
-internal interface DefaultsExtractorFactory : MokkeryContext.Element {
+internal interface DefaultsExtractorFactory {
 
-    override val key get() = Key
-
-    fun createDefaultsExtractor(): Any
-
-    companion object Key : MokkeryContext.Key<DefaultsExtractorFactory>
+    fun mokkeryCreateExtractor(): Any
 }
-
-internal val MokkeryInstanceScope.defaultsExtractorFactory: DefaultsExtractorFactory
-    get() = mokkeryContext.require(DefaultsExtractorFactory)
-
-internal class ArgumentsExtractedException(
-    val values: List<Any?>
-) : MokkeryRuntimeException("This exception should be caught by the internal machinery!")

@@ -20,10 +20,10 @@ class DefaultsMaterializerTest {
 
     private object FakeExtractor
 
-    private val defaultsExtractorFactory = object : DefaultsExtractorFactory {
-        override fun createDefaultsExtractor(): Any = FakeExtractor
+    private val factory = object : DefaultsExtractorFactory {
+        override fun mokkeryCreateExtractor(): Any = FakeExtractor
     }
-    private val scope = TestMokkeryInstanceScope(context = defaultsExtractorFactory)
+    private val scope = TestMokkeryInstanceScope(thisRef = factory)
     private val instances = MokkeryCollection(listOf(scope))
     private val materializer = DefaultsMaterializer(instances)
     private val trace = CallTrace(
@@ -57,7 +57,7 @@ class DefaultsMaterializerTest {
         val caller: (Any, List<Any?>) -> Nothing = { obj, args ->
             objectPassed = obj
             argumentsPassed = args
-            throwArguments(1, "Materialized!")
+            throw ArgumentsExtractedException(listOf(1, "Materialized!"))
         }
         val template = CallTemplate(
             instanceId = scope.instanceId,
@@ -96,7 +96,9 @@ class DefaultsMaterializerTest {
                 "j" to DefaultValuesMatcher(
                     // no bit set, so nothing is extracted despite the matcher expecting a default
                     mask = 0L,
-                    extractingFunction = { _: Any, _: List<Any?> -> throwArguments(1, "Materialized!") },
+                    extractingFunction = { _: Any, _: List<Any?> ->
+                        throw ArgumentsExtractedException(listOf(1, "Materialized!"))
+                    },
                     isExtractingFunctionSuspend = false
                 )
             )
@@ -112,7 +114,7 @@ class DefaultsMaterializerTest {
         val caller: suspend (Any, List<Any?>) -> Nothing = { obj, args ->
             objectPassed = obj
             argumentsPassed = args
-            throwArguments(3, "Hello!")
+            throw ArgumentsExtractedException(listOf(3, "Hello!"))
         }
         val template = CallTemplate(
             instanceId = scope.instanceId,

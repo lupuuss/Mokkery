@@ -107,13 +107,12 @@ object MokkeryIr {
         val suiteContext by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
-        val throwArguments by dev_mokkery_internal_defaults.refFunction
-        val methodWithoutDefaultsError by dev_mokkery_internal_defaults.refFunction
         val matches by dev_mokkery_matcher.refFunction { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForDefaults by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
         val createModuleScope by dev_mokkery_internal.refFunction
         val interceptCall by dev_mokkery_internal.refFunction

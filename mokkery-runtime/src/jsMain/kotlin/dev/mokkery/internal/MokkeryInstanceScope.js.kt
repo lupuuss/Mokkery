@@ -38,7 +38,6 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
         typeArguments = listOf(typeArguments),
         mode = mode,
         spiedObject = spiedObject,
-        defaultsExtractorFactory = null,
         spyDispatcher = spyDispatcher,
         superDispatcher = null,
         block = block,

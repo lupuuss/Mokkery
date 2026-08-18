@@ -14,13 +14,14 @@ internal class TestMokkeryInstanceScope(
     typeArguments: List<List<KClass<*>>> = List(interceptedTypes.size) { emptyList() },
     mode: MockMode? = MockMode.strict,
     spiedObject: Any? = null,
+    thisRef: Any? = null,
     interceptor: TestContextCallInterceptor = TestContextCallInterceptor(),
     context: MokkeryContext = MokkeryContext.Empty
 ) : MokkeryInstanceScope {
 
     override val mokkeryContext: MokkeryContext = MokkeryInstanceSpec.create(
         id = MokkeryInstanceId(typeName, sequence),
-        thisRef = this,
+        thisRef = thisRef ?: this,
         interceptedTypes = interceptedTypes,
         typeArguments = typeArguments,
         mode = mode,

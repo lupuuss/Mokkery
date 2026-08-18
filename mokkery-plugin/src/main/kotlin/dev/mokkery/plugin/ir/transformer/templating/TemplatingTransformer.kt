@@ -273,12 +273,12 @@ class TemplatingTransformer(
         arguments[2] = irBoolean(call.symbol.owner.isSuspend)
     }
 
-    private fun IrCall.calculateDefaultsMask(): Long = arguments.foldIndexed(0L) { index, acc, value ->
-        if (value == null) {
-            acc or (1L shl index)
-        } else {
-            acc
+    private fun IrCall.calculateDefaultsMask(): Long {
+        var mask = 0L
+        for (index in 1..<arguments.size) {
+            if (arguments[index] == null) mask = mask or (1L shl (index - 1))
         }
+        return mask
     }
 
     private fun IrBuilderWithScope.createDefaultsExtractingLambdaFor(call: IrCall): IrFunctionExpression {

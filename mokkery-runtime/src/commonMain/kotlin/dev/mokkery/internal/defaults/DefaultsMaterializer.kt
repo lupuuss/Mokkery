@@ -2,7 +2,9 @@ package dev.mokkery.internal.defaults
 
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
+import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.getScope
+import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
 import dev.mokkery.internal.mokkeryRuntimeError
@@ -64,7 +66,7 @@ private fun MokkeryInstanceScope.extractDefaults(
     defaultsMatcher: DefaultValuesMatcher,
     args: List<Any?>
 ): List<Any?> {
-    val extractor = defaultsExtractorFactory.createDefaultsExtractor()
+    val extractor = createDefaultsExtractor()
     try {
         val extractingFunction = defaultsMatcher.extractingFunction
         when {
@@ -79,6 +81,13 @@ private fun MokkeryInstanceScope.extractDefaults(
             (mask shr i) and 1L == 1L
         }
     }
+}
+
+private fun MokkeryInstanceScope.createDefaultsExtractor(): Any {
+    val factory = instanceSpec
+        .thisRef as? DefaultsExtractorFactory
+        ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
+    return factory.mokkeryCreateExtractor()
 }
 
 private fun CallTemplate.firstDefaultValuesMatcherOrNull() = matchers
