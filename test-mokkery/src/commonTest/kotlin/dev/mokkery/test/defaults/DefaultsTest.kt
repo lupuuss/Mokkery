@@ -41,6 +41,31 @@ class DefaultsTest {
     }
 
     @Test
+    fun testWithMultipleExplicitArgsAndOmittedDefault() {
+        every { mock.call(5, "name") } returnsArgAt 1
+        assertEquals("name", mock.call(5, "name"))
+        assertEquals("name", mock.call(5, "name", "name5@mail.com"))
+        assertFailsWith<MokkeryRuntimeException> { mock.call(5, "name", "not-mail") }
+        verify { mock.call(5, "name") }
+    }
+
+    @Test
+    fun testWithMultipleExplicitArgsAndOmittedDefaultForSuspend() = runTest {
+        everySuspend { mock.callSuspend(5, "name") } returnsArgAt 1
+        assertEquals("name", mock.callSuspend(5, "name"))
+        assertFailsWith<MokkeryRuntimeException> { mock.callSuspend(5, "name", "not-mail") }
+        verifySuspend { mock.callSuspend(5, "name") }
+    }
+
+    @Test
+    fun testWithMultipleExplicitArgsAndOmittedDefaultForExtension() {
+        every { mock.ext { 5.callExtension("name") } } returnsArgAt 1
+        assertEquals("name", mock.run { 5.callExtension("name") })
+        assertFailsWith<MokkeryRuntimeException> { mock.run { 5.callExtension("name", "not-mail") } }
+        verify { mock.ext { 5.callExtension("name") } }
+    }
+
+    @Test
     fun testWithComputedDefaultsForSuspend() = runTest {
         everySuspend { mock.callSuspend(5) } returnsArgAt 2
         assertEquals("name5@mail.com", mock.callSuspend(5))

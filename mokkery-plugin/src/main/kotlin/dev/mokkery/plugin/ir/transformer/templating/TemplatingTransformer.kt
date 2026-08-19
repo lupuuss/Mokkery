@@ -298,8 +298,8 @@ class TemplatingTransformer(
             +irCall(calledFunc, calledFunc.returnType.substitute(substitutionMap)) {
                 call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
                 arguments[0] = irGet(func.parameters[0])
-                val list = irGet(func.parameters[1])
                 for (index in 1..<call.arguments.size) {
+                    val list = irGet(func.parameters[1])
                     val params = call.symbol.owner.parameters
                     val arg = call.arguments[index]
                     if (arg == null) {

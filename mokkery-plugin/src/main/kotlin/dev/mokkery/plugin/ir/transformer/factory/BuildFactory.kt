@@ -152,7 +152,7 @@ private fun buildFactory(name: Name, kind: IrMokkeryKind, classes: List<IrClass>
                 cls = cls,
                 interceptedCls = interceptedCls,
                 scopeExpression = irGetField(irGet(thisParam), scopeField),
-                typeExpression = irGet(typeParam),
+                typeExpression = { irGet(typeParam) },
                 spyExpression = spyParam?.let(::irGet),
                 blockExpression = irGet(blockParam)
             )
@@ -192,7 +192,7 @@ private fun IrBuilderWithScope.irInterceptedConstructorCall(
     scopeExpression: IrExpression,
     spyExpression: IrExpression?,
     blockExpression: IrExpression,
-    typeExpression: IrExpression
+    typeExpression: () -> IrExpression
 ): IrConstructorCall = irCallConstructor(interceptedCls.primaryConstructor!!, interceptedCls.erasedTypeArguments) {
     arguments[0] = scopeExpression
     val typeArgsOffset = when (kind) {
@@ -209,7 +209,7 @@ private fun IrBuilderWithScope.irInterceptedConstructorCall(
         }
     }
     repeat(interceptedCls.typeParameters.size) { index ->
-        arguments[typeArgsOffset + index] = buildKTypeArgumentAtCall(typeExpression, index)
+        arguments[typeArgsOffset + index] = buildKTypeArgumentAtCall(typeExpression(), index)
     }
 }
 

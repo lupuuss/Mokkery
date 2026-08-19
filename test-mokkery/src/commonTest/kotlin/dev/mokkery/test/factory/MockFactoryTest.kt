@@ -141,6 +141,13 @@ class MockFactoryTest {
     }
 
     @Test
+    fun createsMockOfTypeWithMultipleTypeParameters() {
+        val factory = mockFactoryOf(Map::class)
+        val mock = factory.create<Map<String, Int>> { mockMode = autofill }
+        assertEquals(0, mock.size)
+    }
+
+    @Test
     fun copyWithNewScopeCreatesFactoryAssociatedWithThatScope() {
         val factory = mockFactoryOf(RegularMethodsInterface::class)
         with(MokkerySuiteScope()) {
