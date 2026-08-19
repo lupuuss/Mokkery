@@ -8,6 +8,8 @@ import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
 import dev.mokkery.internal.mokkeryRuntimeError
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.utils.runSuspensionNothing
@@ -41,7 +43,7 @@ private class DefaultsMaterializerImpl(
         val defaultsMatcher = template.firstDefaultValuesMatcherOrNull() ?: return template
         val scope = collection.getScope(template.instanceId)
         val args = trace.args.map { it.value }
-        val defaults = scope.extractDefaults(defaultsMatcher, args)
+        val defaults = scope.extractDefaults(defaultsMatcher, args, template)
         var defaultsCount = 0
         val materializedMatchers = template
             .matchers
@@ -64,9 +66,10 @@ private fun List<Any?>.defaultAt(index: Int, template: CallTemplate, parameter: 
 
 private fun MokkeryInstanceScope.extractDefaults(
     defaultsMatcher: DefaultValuesMatcher,
-    args: List<Any?>
+    args: List<Any?>,
+    template: CallTemplate,
 ): List<Any?> {
-    val extractor = createDefaultsExtractor()
+    val extractor = createDefaultsExtractor(template)
     try {
         val extractingFunction = defaultsMatcher.extractingFunction
         when {
@@ -80,14 +83,33 @@ private fun MokkeryInstanceScope.extractDefaults(
         return e.values.filterIndexed { i, _ ->
             (mask shr i) and 1L == 1L
         }
+    } catch (e: UnsupportedDefaultValueException) {
+        unsupportedDefaultValueError(template, e.usedMember)
     }
 }
 
-private fun MokkeryInstanceScope.createDefaultsExtractor(): Any {
+private fun MokkeryInstanceScope.unsupportedDefaultValueError(
+    template: CallTemplate,
+    usedMember: String,
+): Nothing = withRenderingScope(instances = instanceSpec.collection) {
+    val omitted = template
+        .matchers
+        .filterValues { it is DefaultValuesMatcher }
+        .keys
+        .joinToString { "`$it`" }
+    mokkeryRuntimeError(
+        "Call template `${callTemplateRenderer.render(template)}` relies on the default value of $omitted," +
+                " but one of those defaults is computed from `$usedMember` of the same mocked instance," +
+                " which Mokkery cannot resolve." +
+                " Pass that argument explicitly in the `every`/`verify` block that registered this template."
+    )
+}
+
+private fun MokkeryInstanceScope.createDefaultsExtractor(template: CallTemplate): Any {
     val factory = instanceSpec
         .thisRef as? DefaultsExtractorFactory
         ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
-    return factory.mokkeryCreateExtractor()
+    return factory.mokkeryCreateExtractor(template.name, template.parameters)
 }
 
 private fun CallTemplate.firstDefaultValuesMatcherOrNull() = matchers

@@ -10,6 +10,7 @@ import dev.mokkery.MokkerySpyScope
 import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.configurer.MokkerySpyConfigurer
+import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.keepOnTop
 import dev.mokkery.context.memoized
@@ -49,9 +50,16 @@ internal interface MutableMokkerySpyScope : MutableMokkeryInstanceScope, Mokkery
 
 // not needed for JS function
 @PublishedApi
-internal fun Any.setupMokkeryInstanceForDefaults() {
-    val scope = this.mokkeryScope as MutableMokkeryInstanceScope
-    scope.mokkeryContext = DefaultsExtractingInterceptor
+internal fun Any.setupMokkeryInstanceForDefaults(
+    owner: Any,
+    functionName: String,
+    parameters: List<Function.Parameter>,
+) {
+    val scope = this.requireInstanceScope() as MutableMokkeryInstanceScope
+    val extractorSpec = owner.requireInstanceScope()
+        .instanceSpec
+        .defaultsExtractorSpec(this)
+    scope.mokkeryContext = extractorSpec + DefaultsExtractingInterceptor(functionName, parameters)
 }
 
 @PublishedApi
@@ -105,6 +113,23 @@ internal fun Any.setupMokkeryInstance(
     }
     this.invokeInstantiationListener()
 }
+
+private fun MokkeryInstanceSpec.defaultsExtractorSpec(ref: Any) = when (this) {
+    is MokkeryMockSpec -> MokkeryMockSpec(
+        id = id.defaultsExtractorId(),
+        thisRef = ref,
+        interceptedTypes = interceptedTypes,
+        mode = mode,
+    )
+    is MokkerySpySpec -> MokkerySpySpec(
+        id = id.defaultsExtractorId(),
+        thisRef = ref,
+        interceptedTypes = interceptedTypes,
+        spiedObject = spiedObject,
+    )
+}
+
+private fun MokkeryInstanceId.defaultsExtractorId(): MokkeryInstanceId = MokkeryInstanceId($$"$${typeName}$DefaultsExtractor", id)
 
 private fun Any.applyConfigurerBlock(
     scope: MutableMokkeryInstanceScope,
@@ -177,7 +202,7 @@ internal val MokkeryInstanceScope.shortInstanceIdString
 
 @PublishedApi
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*> {
-    val spec = mokkeryContext[MokkeryInstanceSpec] ?: return Any::class
+    val spec = instanceSpec
     var index = 0
     for (type in spec.interceptedTypes)
         for (typeArgument in type.arguments)

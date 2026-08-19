@@ -9,6 +9,7 @@ import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.addToCurrentFile
 import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.referencedGetterSymbol
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -49,7 +50,6 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.types.typeWithParameters
-import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -86,8 +86,8 @@ fun buildMockClass(
         mokkeryKind = mokkeryKind,
         classesToIntercept = listOf(classToMock),
     )
-    mockedClass.addMockClassConstructorForDefaults(listOf(classToMock))
-    mockedClass.addDefaultsExtractorFactory()
+    val defaultsConstructor = mockedClass.addMockClassConstructorForDefaults(listOf(classToMock))
+    mockedClass.addDefaultsExtractorFactory(defaultsConstructor)
     val functions = mockedClass.overrideInterceptedFunctions(listOf(classToMock)) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
@@ -121,8 +121,8 @@ fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
-    mockedClass.addMockClassConstructorForDefaults(classesToMock)
-    mockedClass.addDefaultsExtractorFactory()
+    val defaultsConstructor = mockedClass.addMockClassConstructorForDefaults(classesToMock)
+    mockedClass.addDefaultsExtractorFactory(defaultsConstructor)
     val functions = mockedClass.overrideInterceptedFunctions(classesToMock) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
@@ -247,9 +247,15 @@ private fun IrClass.addMockClassConstructor(
 context(scope: TransformerScope)
 private fun IrClass.addMockClassConstructorForDefaults(
     classesToIntercept: List<IrClass>,
-) {
+): IrConstructor {
     val receiverParam = thisReceiver!!
-    addConstructor().apply {
+    return addConstructor().apply {
+        val ownerParam = addValueParameter("owner", irBuiltIns.anyType)
+        val functionNameParam = addValueParameter("functionName", irBuiltIns.stringType)
+        val parameterListType = irBuiltIns
+            .listClass
+            .typeWith(referencedDefaultType(MokkeryIr.Class.FunctionParameter))
+        val parametersParam = addValueParameter("parameters", parameterListType)
         body = symbol.declarationIrBuilder.irBlockBody {
             +irDelegatingConstructorWithStubs(
                 irClass = classesToIntercept.firstOrNull { it.isClass },
@@ -257,19 +263,27 @@ private fun IrClass.addMockClassConstructorForDefaults(
             )
             +irCall(referenced(MokkeryIr.Function.setupMokkeryInstanceForDefaults)) {
                 arguments[0] = irGet(receiverParam)
+                arguments[1] = irGet(ownerParam)
+                arguments[2] = irGet(functionNameParam)
+                arguments[3] = irGet(parametersParam)
             }
         }
     }
 }
 
 context(scope: TransformerScope)
-private fun IrClass.addDefaultsExtractorFactory() {
-    val constructor = this.constructors.first { it.parameters.isEmpty() }
+private fun IrClass.addDefaultsExtractorFactory(constructor: IrConstructor) {
     val factoryClass = referenced(MokkeryIr.Class.DefaultsExtractorFactory)
     superTypes += factoryClass.defaultType
     val typeArguments = erasedTypeArguments
     addOverridingMethod(pluginContext, factoryClass.requireSimpleFunctionOwner("mokkeryCreateExtractor")) { function ->
-        +irReturn(irCallConstructor(constructor, typeArguments))
+        +irReturn(
+            irCallConstructor(constructor, typeArguments) {
+                arguments[0] = irGet(function.parameters[0])
+                arguments[1] = irGet(function.parameters[1])
+                arguments[2] = irGet(function.parameters[2])
+            }
+        )
     }
 }
 

@@ -1,7 +1,10 @@
 package dev.mokkery.internal.defaults
 
 import dev.mokkery.context.CallArgument
+import dev.mokkery.context.Function
+import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryCollection
+import dev.mokkery.internal.MutableMokkeryInstanceScope
 import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
@@ -18,10 +21,12 @@ import kotlin.test.assertFailsWith
 
 class DefaultsMaterializerTest {
 
-    private object FakeExtractor
+    private object FakeExtractor : MutableMokkeryInstanceScope {
+        override var mokkeryContext: MokkeryContext = MokkeryContext.Empty
+    }
 
     private val factory = object : DefaultsExtractorFactory {
-        override fun mokkeryCreateExtractor(): Any = FakeExtractor
+        override fun mokkeryCreateExtractor(functionName: String, parameters: List<Function.Parameter>): Any = FakeExtractor
     }
     private val scope = TestMokkeryInstanceScope(thisRef = factory)
     private val instances = MokkeryCollection(listOf(scope))
