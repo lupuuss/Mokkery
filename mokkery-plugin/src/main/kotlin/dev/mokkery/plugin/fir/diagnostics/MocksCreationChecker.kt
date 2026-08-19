@@ -264,9 +264,8 @@ class MocksCreationChecker(
         }
         checkConstructorPossibleToStub(source, classSymbol, constructors)
         val inheritedSymbols = classSymbol
-            .resolvedSuperTypes
+            .allSuperClassSymbols()
             .asSequence()
-            .mapNotNull { it.toRegularClassSymbol() }
             .flatMap { it.declaredMembers(context.session) }
         val allDeclarationSymbols = classSymbol
             .declaredMembers(context.session)
@@ -285,6 +284,19 @@ class MocksCreationChecker(
             c = finalDeclarations,
         )
         return false
+    }
+
+    context(context: CheckerContext)
+    private fun FirRegularClassSymbol.allSuperClassSymbols(): Set<FirRegularClassSymbol> {
+        val visited = linkedSetOf<FirRegularClassSymbol>()
+        fun visit(symbol: FirRegularClassSymbol) {
+            for (superType in symbol.resolvedSuperTypes) {
+                val superSymbol = superType.toRegularClassSymbol() ?: continue
+                if (visited.add(superSymbol)) visit(superSymbol)
+            }
+        }
+        visit(this)
+        return visited
     }
 
     private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {

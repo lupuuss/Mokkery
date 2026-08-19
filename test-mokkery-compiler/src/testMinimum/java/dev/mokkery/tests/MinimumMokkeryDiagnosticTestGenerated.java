@@ -355,6 +355,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     }
 
     @Test
+    @TestMetadata("OverridableTypesWithInheritedFinalMembersCannotBeMocked.kt")
+    public void testOverridableTypesWithInheritedFinalMembersCannotBeMocked() {
+      run("OverridableTypesWithInheritedFinalMembersCannotBeMocked.kt");
+    }
+
+    @Test
     @TestMetadata("PrimitiveTypesMustNotBeMocked.kt")
     public void testPrimitiveTypesMustNotBeMocked() {
       run("PrimitiveTypesMustNotBeMocked.kt");
