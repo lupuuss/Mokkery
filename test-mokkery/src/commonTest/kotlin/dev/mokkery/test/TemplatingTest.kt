@@ -47,6 +47,24 @@ class TemplatingTest {
     }
 
     @Test
+    fun testNonMockReceiverEvaluatedOnce() {
+        var evaluations = 0
+        fun provide(): List<Int> {
+            evaluations++
+            return listOf(1)
+        }
+        verify { provide().size }
+        assertEquals(1, evaluations)
+    }
+
+    @Test
+    fun testLambdaNonMockReceiverEvaluatedOnce() {
+        var evaluations = 0
+        verify { ({ evaluations++ })() }
+        assertEquals(1, evaluations)
+    }
+
+    @Test
     fun testEveryWithMoreThanOneCall() {
         MokkeryScope.global.mokkeryInternals.resetMocksCounter()
         assertMokkeryError(

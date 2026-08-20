@@ -99,22 +99,27 @@ class TemplatingTransformer(
         val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
         val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to expression.type)
         return expression.replaceDeclarationIrBuilder {
-            irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
-                typeArguments[0] = expression.type
-                arguments[0] = irGet(templatingScopeParam)
-                arguments[1] = expression.arguments[0]
-                arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
-                arguments[3] = irString(functionToReplace.name.asString())
-                arguments[4] = when {
-                    !functionToReplace.hasNonDispatchParameters() -> irNull()
-                    else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
-                        createTemplatingArgumentsLambdaBody(it, expression)
+            irBlock(resultType = runTemplateFun.returnType.substitute(substitution)) {
+                val receiverVar = createTmpVariable(receiver)
+                +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
+                    typeArguments[0] = expression.type
+                    arguments[0] = irGet(templatingScopeParam)
+                    arguments[1] = irGet(receiverVar)
+                    arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
+                    arguments[3] = irString(functionToReplace.name.asString())
+                    arguments[4] = when {
+                        !functionToReplace.hasNonDispatchParameters() -> irNull()
+                        else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                            createTemplatingArgumentsLambdaBody(it, expression)
+                        }
                     }
-                }
-                arguments[5] = when {
-                    expression.usesMatchers -> irNull()
-                    else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull().substitute(substitution)) {
-                        +irReturn(expression.deepCopyWithSymbols(initialParent = it))
+                    arguments[5] = when {
+                        expression.usesMatchers -> irNull()
+                        else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull().substitute(substitution)) {
+                            val original = expression.deepCopyWithSymbols(initialParent = it)
+                            original.arguments[0] = irGet(receiverVar)
+                            +irReturn(original)
+                        }
                     }
                 }
             }
