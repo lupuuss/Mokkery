@@ -7,8 +7,7 @@ import dev.mokkery.plugin.Mokkery.dev_mokkery_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_context
-import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_defaults
-import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_dispatcher
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_contracts
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
@@ -64,10 +63,10 @@ object MokkeryIr {
         val MokkeryTemplatingScope by dev_mokkery_templating.refClass
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
-        val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
-        val SpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
-        val SuperCallDispatcher by dev_mokkery_internal_dispatcher.refClass
-        val LambdaSpyCallDispatcher by dev_mokkery_internal_dispatcher.refClass
+        val DefaultsContract by dev_mokkery_internal_contracts.refClass
+        val SpyCallsContract by dev_mokkery_internal_contracts.refClass
+        val SuperCallsContract by dev_mokkery_internal_contracts.refClass
+        val LambdaSpyCallsContract by dev_mokkery_internal_contracts.refClass
         val MissingDispatcherCall by dev_mokkery_internal.refClass
         val MockFactory by dev_mokkery_factory.refClass
         val SpyFactory by dev_mokkery_factory.refClass

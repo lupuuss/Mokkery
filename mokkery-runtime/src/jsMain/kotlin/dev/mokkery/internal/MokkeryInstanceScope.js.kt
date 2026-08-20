@@ -5,7 +5,8 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkeryScope
 import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.dispatcher.SpyCallDispatcher
+import dev.mokkery.internal.contracts.InstanceContractsProvider
+import dev.mokkery.internal.contracts.SpyCallsContract
 import kotlin.reflect.KClass
 
 internal actual val Any.mokkeryScope: MokkeryInstanceScope?
@@ -20,7 +21,7 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
     typeArguments: List<KClass<*>> = emptyList(),
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: SpyCallDispatcher?,
+    spyDispatcher: SpyCallsContract?,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val scope = when {
@@ -36,8 +37,7 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
         typeArguments = listOf(typeArguments),
         mode = mode,
         spiedObject = spiedObject,
-        spyDispatcher = spyDispatcher,
-        superDispatcher = null,
+        contractsProvider = InstanceContractsProvider(spyDispatcher),
         block = block,
     )
 }

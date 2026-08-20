@@ -14,6 +14,8 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeFunParam
 import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.internal.contracts.DefaultsContract
+import dev.mokkery.test.TestInstanceContracts
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -24,11 +26,7 @@ class DefaultsMaterializerTest {
     private object FakeExtractor : MutableMokkeryInstanceScope {
         override var mokkeryContext: MokkeryContext = MokkeryContext.Empty
     }
-
-    private val factory = object : DefaultsExtractorFactory {
-        override fun mokkeryCreateExtractor(functionName: String, parameters: List<Function.Parameter>): Any = FakeExtractor
-    }
-    private val scope = TestMokkeryInstanceScope(thisRef = factory)
+    private val scope = TestMokkeryInstanceScope(context = TestInstanceContracts(defaultsExtractor = FakeExtractor))
     private val instances = MokkeryCollection(listOf(scope))
     private val materializer = DefaultsMaterializer(instances)
     private val trace = CallTrace(

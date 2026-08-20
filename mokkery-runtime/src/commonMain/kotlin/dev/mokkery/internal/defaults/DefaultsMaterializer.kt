@@ -3,6 +3,7 @@ package dev.mokkery.internal.defaults
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.contracts.defaultsContract
 import dev.mokkery.internal.getScope
 import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
@@ -106,10 +107,8 @@ private fun MokkeryInstanceScope.unsupportedDefaultValueError(
 }
 
 private fun MokkeryInstanceScope.createDefaultsExtractor(template: CallTemplate): Any {
-    val factory = instanceSpec
-        .thisRef as? DefaultsExtractorFactory
-        ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
-    return factory.mokkeryCreateExtractor(template.name, template.parameters)
+    val contract = defaultsContract ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
+    return contract.mokkeryCreateExtractor(template.name, template.parameters)
 }
 
 private fun CallTemplate.firstDefaultValuesMatcherOrNull() = matchers

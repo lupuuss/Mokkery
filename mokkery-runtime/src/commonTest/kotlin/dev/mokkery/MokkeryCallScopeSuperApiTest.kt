@@ -4,7 +4,7 @@ import dev.mokkery.internal.MissingSuperMethodException
 import dev.mokkery.internal.SuperTypeMustBeSpecifiedException
 import dev.mokkery.internal.MokkeryBlockingCallScope
 import dev.mokkery.internal.MokkerySuspendCallScope
-import dev.mokkery.test.TestCallDispatchers
+import dev.mokkery.test.TestInstanceContracts
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeFunctionCall
@@ -18,7 +18,7 @@ class MokkeryCallScopeSuperApiTest {
 
     private var classSupertypes: List<KClass<*>> = listOf(Unit::class)
 
-    private val dispatchers = TestCallDispatchers(
+    private val dispatchers = TestInstanceContracts(
         supers = mapOf(
             Unit::class to { args: List<Any?> -> args[0] as Int + 1 },
             Int::class to { args: List<Any?> -> args[0] as Int + 2 },

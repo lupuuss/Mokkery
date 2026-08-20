@@ -9,7 +9,6 @@ import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.addToCurrentFile
 import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.referencedGetterSymbol
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -19,9 +18,7 @@ import dev.mokkery.plugin.ir.annotations.toFilter
 import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
@@ -86,12 +83,10 @@ fun buildMockClass(
         mokkeryKind = mokkeryKind,
         classesToIntercept = listOf(classToMock),
     )
-    val defaultsConstructor = mockedClass.addMockClassConstructorForDefaults(listOf(classToMock))
-    mockedClass.addDefaultsExtractorFactory(defaultsConstructor)
     val functions = mockedClass.overrideInterceptedFunctions(listOf(classToMock)) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
-    mockedClass.addCallDispatchers(mokkeryKind, functions)
+    mockedClass.addInstanceContracts(mokkeryKind, listOf(classToMock), functions)
     recordSuperTypesLookUp(listOf(classToMock))
     return mockedClass
 }
@@ -121,12 +116,10 @@ fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
-    val defaultsConstructor = mockedClass.addMockClassConstructorForDefaults(classesToMock)
-    mockedClass.addDefaultsExtractorFactory(defaultsConstructor)
     val functions = mockedClass.overrideInterceptedFunctions(classesToMock) { function, functionId ->
         +irReturn(irInterceptMockMemberCall(function, functionId))
     }
-    mockedClass.addCallDispatchers(IrMokkeryKind.Mock, functions)
+    mockedClass.addInstanceContracts(IrMokkeryKind.Mock, classesToMock, functions)
     recordSuperTypesLookUp(classesToMock)
     return mockedClass
 }
@@ -241,49 +234,6 @@ private fun IrClass.addMockClassConstructor(
                 arguments[7] = irGet(parameters[2])
             }
         }
-    }
-}
-
-context(scope: TransformerScope)
-private fun IrClass.addMockClassConstructorForDefaults(
-    classesToIntercept: List<IrClass>,
-): IrConstructor {
-    val receiverParam = thisReceiver!!
-    return addConstructor().apply {
-        val ownerParam = addValueParameter("owner", irBuiltIns.anyType)
-        val functionNameParam = addValueParameter("functionName", irBuiltIns.stringType)
-        val parameterListType = irBuiltIns
-            .listClass
-            .typeWith(referencedDefaultType(MokkeryIr.Class.FunctionParameter))
-        val parametersParam = addValueParameter("parameters", parameterListType)
-        body = symbol.declarationIrBuilder.irBlockBody {
-            +irDelegatingConstructorWithStubs(
-                irClass = classesToIntercept.firstOrNull { it.isClass },
-                subClass = this@addMockClassConstructorForDefaults
-            )
-            +irCall(referenced(MokkeryIr.Function.setupMokkeryInstanceForDefaults)) {
-                arguments[0] = irGet(receiverParam)
-                arguments[1] = irGet(ownerParam)
-                arguments[2] = irGet(functionNameParam)
-                arguments[3] = irGet(parametersParam)
-            }
-        }
-    }
-}
-
-context(scope: TransformerScope)
-private fun IrClass.addDefaultsExtractorFactory(constructor: IrConstructor) {
-    val factoryClass = referenced(MokkeryIr.Class.DefaultsExtractorFactory)
-    superTypes += factoryClass.defaultType
-    val typeArguments = erasedTypeArguments
-    addOverridingMethod(pluginContext, factoryClass.requireSimpleFunctionOwner("mokkeryCreateExtractor")) { function ->
-        +irReturn(
-            irCallConstructor(constructor, typeArguments) {
-                arguments[0] = irGet(function.parameters[0])
-                arguments[1] = irGet(function.parameters[1])
-                arguments[2] = irGet(function.parameters[2])
-            }
-        )
     }
 }
 

@@ -9,10 +9,10 @@ import dev.mokkery.call
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.CallNotMockedException
+import dev.mokkery.internal.availableSuperCallTypes
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.dispatcher.availableSuperCallTypes
 import dev.mokkery.internal.matcher.callMatcher
 import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.rendering.callTraceRenderer

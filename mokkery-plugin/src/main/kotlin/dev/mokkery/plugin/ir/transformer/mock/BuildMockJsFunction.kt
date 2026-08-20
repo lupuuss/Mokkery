@@ -116,7 +116,7 @@ private fun IrBuilderWithScope.irLambdaSpyCallDispatcher(
             )
         )
     }
-    return irCallConstructor(referencedPrimaryConstructor(MokkeryIr.Class.LambdaSpyCallDispatcher)) {
+    return irCallConstructor(referencedPrimaryConstructor(MokkeryIr.Class.LambdaSpyCallsContract)) {
         arguments[0] = if (function.isSuspend) irNull() else adapter
         arguments[1] = if (function.isSuspend) adapter else irNull()
     }

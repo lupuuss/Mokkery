@@ -38,3 +38,6 @@ fun IrSimpleFunction.isSuperCallFor(subClass: IrClass): Boolean {
 fun IrSimpleFunction.findRegularParameters() = parameters.filter { it.kind == IrParameterKind.Regular }
 
 fun IrSimpleFunction.hasNonDispatchParameters() = parameters.any { it.kind != IrParameterKind.DispatchReceiver }
+
+fun IrSimpleFunction.hasDefaultParameters(): Boolean = parameters.any { it.defaultValue != null }
+        || overriddenSymbols.any { it.owner.hasDefaultParameters() }

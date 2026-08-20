@@ -7,11 +7,15 @@ import dev.mokkery.context.Function
 import dev.mokkery.context.FunctionCall
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.call
 import dev.mokkery.internal.context.callInterceptor
+import dev.mokkery.internal.contracts.superCallsContract
 import dev.mokkery.internal.utils.copyWithReplacedKClasses
 import dev.mokkery.internal.utils.takeIfImplementedOrAny
+import kotlin.collections.orEmpty
 import kotlin.reflect.KClass
 
 @PublishedApi
@@ -30,6 +34,10 @@ internal suspend fun MokkeryInstanceScope.interceptCallSuspend(
     vararg args: CallArgument,
 ): Any? = callInterceptor.intercept(suspendCallScope(name, returnType, args.asList(), functionId))
 
+
+internal fun MokkeryCallScope.availableSuperCallTypes(): List<KClass<*>> = superCallsContract
+    ?.mokkerySuperTypes(call.function.id)
+    .orEmpty()
 
 internal fun MokkeryBlockingCallScope.withContext(
     with: MokkeryContext = MokkeryContext.Empty

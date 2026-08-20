@@ -24,10 +24,8 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
+import dev.mokkery.internal.contracts.InstanceContractsProvider
 import dev.mokkery.internal.defaults.DefaultsExtractingInterceptor
-import dev.mokkery.internal.dispatcher.SpyCallDispatcher
-import dev.mokkery.internal.dispatcher.SuperCallDispatcher
-import dev.mokkery.internal.dispatcher.callDispatchersContext
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.interceptor.rootInstantiationListener
@@ -78,8 +76,7 @@ internal fun Any.setupMokkeryInstanceForCommon(
     typeArguments = typeArguments,
     mode = mode,
     spiedObject = spiedObject,
-    spyDispatcher = this as? SpyCallDispatcher,
-    superDispatcher = this as? SuperCallDispatcher,
+    contractsProvider = InstanceContractsProvider(this),
     block = block,
 )
 
@@ -90,8 +87,7 @@ internal fun Any.setupMokkeryInstance(
     typeArguments: List<List<KClass<*>>>,
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: SpyCallDispatcher?,
-    superDispatcher: SuperCallDispatcher?,
+    contractsProvider: InstanceContractsProvider,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ) {
     val baseContext = parent.instanceContext(
@@ -101,8 +97,7 @@ internal fun Any.setupMokkeryInstance(
         thisRef = this,
         mode = mode,
         spiedObject = spiedObject,
-        spyDispatcher = spyDispatcher,
-        superDispatcher = superDispatcher,
+        contractsProvider = contractsProvider,
     )
     val scope = this.mokkeryScope as MutableMokkeryInstanceScope
     scope.mokkeryContext = baseContext
@@ -150,8 +145,7 @@ private fun MokkeryScope.instanceContext(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    spyDispatcher: SpyCallDispatcher?,
-    superDispatcher: SuperCallDispatcher?
+    contractsProvider: InstanceContractsProvider,
 ): MokkeryContext {
     val tools = tools
     val spec = MokkeryInstanceSpec.create(
@@ -172,7 +166,7 @@ private fun MokkeryScope.instanceContext(
         .plus(tools.callMatcherFactory.create(spec.collection))
         .plus(CallTracingRegistry())
         .plus(AnsweringRegistry())
-        .plus(callDispatchersContext(spyDispatcher, superDispatcher))
+        .plus(contractsProvider)
         .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
         .keepOnTop(rootCallInterceptor)
 }

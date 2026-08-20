@@ -3,25 +3,34 @@ package dev.mokkery.plugin.ir.transformer.mock
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.pluginContext
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
+import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
+import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.referencedGetter
 import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.erasedUpperBound
+import dev.mokkery.plugin.ir.hasDefaultParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irThrow
 import dev.mokkery.plugin.ir.isSuperCallFor
 import dev.mokkery.plugin.ir.kClassReference
+import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
+import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeSubstitutionForSuperClass
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
+import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irAs
+import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irBranch
 import org.jetbrains.kotlin.ir.builders.irElseBranch
 import org.jetbrains.kotlin.ir.builders.irEquals
@@ -30,6 +39,7 @@ import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irWhen
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -37,31 +47,89 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
 
 context(scope: TransformerScope)
-fun IrClass.addCallDispatchers(mokkeryKind: IrMokkeryKind, functions: List<IrSimpleFunction>) {
+fun IrClass.addInstanceContracts(
+    mokkeryKind: IrMokkeryKind,
+    classesToIntercept: List<IrClass>,
+    functions: List<IrSimpleFunction>
+) {
     val supers = functions.map { member ->
         member.overriddenSymbols
             .map { it.owner }
             .filter { it.isSuperCallFor(this) }
     }
-    if (supers.any { it.isNotEmpty() }) addSuperCallDispatcher(functions, supers)
-    if (mokkeryKind == IrMokkeryKind.Spy) addSpyCallDispatcher(functions)
+    if (supers.any { it.isNotEmpty() }) {
+        addSuperCallsContract(functions, supers)
+    }
+    if (mokkeryKind == IrMokkeryKind.Spy) {
+        addSpyCallsContract(functions)
+    }
+    val hasDefaults = classesToIntercept.any { it.overridableFunctions.any(IrSimpleFunction::hasDefaultParameters) }
+    if (hasDefaults) {
+        val ctor = addMockClassConstructorForDefaults(classesToIntercept)
+        addDefaultsContract(ctor)
+    }
 }
 
 context(scope: TransformerScope)
-private fun IrClass.addSuperCallDispatcher(
+private fun IrClass.addDefaultsContract(constructor: IrConstructor) {
+    val factoryClass = referenced(MokkeryIr.Class.DefaultsContract)
+    superTypes += factoryClass.defaultType
+    val typeArguments = erasedTypeArguments
+    addOverridingMethod(pluginContext, factoryClass.requireSimpleFunctionOwner("mokkeryCreateExtractor")) { function ->
+        +irReturn(
+            irCallConstructor(constructor, typeArguments) {
+                arguments[0] = irGet(function.parameters[0])
+                arguments[1] = irGet(function.parameters[1])
+                arguments[2] = irGet(function.parameters[2])
+            }
+        )
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrClass.addMockClassConstructorForDefaults(
+    classesToIntercept: List<IrClass>,
+): IrConstructor {
+    val receiverParam = thisReceiver!!
+    return addConstructor().apply {
+        val ownerParam = addValueParameter("owner", irBuiltIns.anyType)
+        val functionNameParam = addValueParameter("functionName", irBuiltIns.stringType)
+        val parameterListType = irBuiltIns
+            .listClass
+            .typeWith(referencedDefaultType(MokkeryIr.Class.FunctionParameter))
+        val parametersParam = addValueParameter("parameters", parameterListType)
+        body = symbol.declarationIrBuilder.irBlockBody {
+            +irDelegatingConstructorWithStubs(
+                irClass = classesToIntercept.firstOrNull { it.isClass },
+                subClass = this@addMockClassConstructorForDefaults
+            )
+            +irCall(referenced(MokkeryIr.Function.setupMokkeryInstanceForDefaults)) {
+                arguments[0] = irGet(receiverParam)
+                arguments[1] = irGet(ownerParam)
+                arguments[2] = irGet(functionNameParam)
+                arguments[3] = irGet(parametersParam)
+            }
+        }
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrClass.addSuperCallsContract(
     functions: List<IrSimpleFunction>,
     supers: List<List<IrSimpleFunction>>,
 ) {
-    val dispatcherClass = referenced(MokkeryIr.Class.SuperCallDispatcher)
+    val dispatcherClass = referenced(MokkeryIr.Class.SuperCallsContract)
     superTypes += dispatcherClass.defaultType
     val kClassType = irBuiltIns.kClassClass.starProjectedType
-    addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner("mokkeryCallSuperTypes")) { dispatcher ->
+    addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner("mokkerySuperTypes")) { dispatcher ->
         +irReturn(
             irFunctionIdWhen(
                 type = dispatcher.returnType,
@@ -78,7 +146,7 @@ private fun IrClass.addSuperCallDispatcher(
         )
     }
     listOf(false, true).forEach { isSuspend ->
-        val name = if (isSuspend) "mokkeryDispatchSuperCallSuspend" else "mokkeryDispatchSuperCall"
+        val name = if (isSuspend) "mokkerySuperCallSuspend" else "mokkerySuperCall"
         addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner(name)) { dispatcher ->
             val superIndexParam = dispatcher.parameters[2]
             val argsParam = dispatcher.parameters[3]
@@ -92,7 +160,7 @@ private fun IrClass.addSuperCallDispatcher(
                         val calls = superFunctions.map { superFunction ->
                             irDispatchedCall(
                                 target = superFunction,
-                                mockedClass = this@addSuperCallDispatcher,
+                                mockedClass = this@addSuperCallsContract,
                                 dispatchReceiver = irGet(dispatcher.parameters[0]),
                                 argsParam = argsParam,
                                 superQualifierSymbol = superFunction.parentAsClass.symbol
@@ -116,12 +184,12 @@ private fun IrClass.addSuperCallDispatcher(
 }
 
 context(scope: TransformerScope)
-private fun IrClass.addSpyCallDispatcher(members: List<IrSimpleFunction>) {
-    val dispatcherClass = referenced(MokkeryIr.Class.SpyCallDispatcher)
+private fun IrClass.addSpyCallsContract(members: List<IrSimpleFunction>) {
+    val dispatcherClass = referenced(MokkeryIr.Class.SpyCallsContract)
     superTypes += dispatcherClass.defaultType
     val spiedObjectGetter = referencedGetter(MokkeryIr.Property.spiedObject)
     listOf(false, true).forEach { isSuspend ->
-        val name = if (isSuspend) "mokkeryDispatchSpyCallSuspend" else "mokkeryDispatchSpyCall"
+        val name = if (isSuspend) "mokkerySpyCallSuspend" else "mokkerySpyCall"
         addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner(name)) { dispatcher ->
             val argsParam = dispatcher.parameters[2]
             +irReturn(
@@ -132,7 +200,7 @@ private fun IrClass.addSpyCallDispatcher(members: List<IrSimpleFunction>) {
                         if (member.isSuspend != isSuspend) return@mapIndexedNotNull null
                         id to irDispatchedCall(
                             target = member.overriddenSymbols.first().owner,
-                            mockedClass = this@addSpyCallDispatcher,
+                            mockedClass = this@addSpyCallsContract,
                             dispatchReceiver = irCall(spiedObjectGetter) {
                                 arguments[0] = irGet(dispatcher.parameters[0])
                             },
