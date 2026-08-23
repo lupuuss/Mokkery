@@ -4,18 +4,16 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
-import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.transformer.factory.replaceFactory
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import dev.mokkery.plugin.ir.transformer.module.generateBodyIfModuleScopeGetter
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
 import dev.mokkery.plugin.ir.transformer.scope.overrideMokkerySuiteScopeIfNotOverridden
 import dev.mokkery.plugin.ir.transformer.scope.replaceMokkerySuiteScope
-import dev.mokkery.plugin.ir.transformer.templating.MatchersCompiler
+import dev.mokkery.plugin.ir.transformer.templating.compileIfMatcher
 import dev.mokkery.plugin.ir.transformer.templating.replaceEvery
 import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
@@ -34,8 +32,6 @@ import kotlin.time.TimeSource
 
 class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
 
-    private val matchersCompiler = MatchersCompiler(this)
-
     override fun visitClassNew(declaration: IrClass): IrStatement {
         declaration.transformChildrenVoid()
         declaration.overrideMokkerySuiteScopeIfNotOverridden()
@@ -44,7 +40,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
 
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         if (declaration is IrSimpleFunction) {
-            matchersCompiler.compileIfMatcher(declaration)
+            compileIfMatcher(declaration)
             declaration.generateBodyIfModuleScopeGetter()
         }
         return declaration.applyTransformChildrenVoid()
@@ -58,10 +54,10 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.mock -> expression.replaceMockCall()
             Mokkery.Name.mockMany -> expression.replaceMockManyCall()
             Mokkery.Name.spy -> expression.replaceSpyCall()
-            Mokkery.Name.every -> expression.replaceEvery(matchersCompiler)
-            Mokkery.Name.everySuspend -> expression.replaceEverySuspend(matchersCompiler)
-            Mokkery.Name.verify -> expression.replaceVerify(matchersCompiler)
-            Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
+            Mokkery.Name.every -> expression.replaceEvery()
+            Mokkery.Name.everySuspend -> expression.replaceEverySuspend()
+            Mokkery.Name.verify -> expression.replaceVerify()
+            Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend()
             Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
             Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
             Mokkery.Name.mockFactoryOf -> expression.replaceFactory(IrMokkeryKind.Mock)

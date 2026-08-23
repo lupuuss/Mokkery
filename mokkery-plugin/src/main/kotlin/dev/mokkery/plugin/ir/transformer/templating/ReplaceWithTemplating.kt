@@ -49,33 +49,29 @@ import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
-fun IrCall.replaceEvery(matchersCompiler: MatchersCompiler): IrExpression = replaceWithInternalEvery(
+fun IrCall.replaceEvery(): IrExpression = replaceWithInternalEvery(
     originalCall = this,
     toBeReplacedWith = referenced(MokkeryIr.Function.internalEvery).symbol,
-    matchersCompiler = matchersCompiler
 )
 
 context(scope: TransformerScope)
-fun IrCall.replaceEverySuspend(matchersCompiler: MatchersCompiler) = replaceWithInternalEvery(
+fun IrCall.replaceEverySuspend() = replaceWithInternalEvery(
     originalCall = this,
     toBeReplacedWith = referenced(MokkeryIr.Function.internalEverySuspend).symbol,
-    matchersCompiler = matchersCompiler
 )
 
 
 context(scope: TransformerScope)
-fun IrCall.replaceVerify(matchersCompiler: MatchersCompiler) = replaceWithInternalVerify(
+fun IrCall.replaceVerify() = replaceWithInternalVerify(
     originalCall = this,
     toBeReplacedWith = referenced(MokkeryIr.Function.internalVerify).symbol,
-    matchersCompiler = matchersCompiler
 )
 
 
 context(scope: TransformerScope)
-fun IrCall.replaceVerifySuspend(matchersCompiler: MatchersCompiler) = replaceWithInternalVerify(
+fun IrCall.replaceVerifySuspend() = replaceWithInternalVerify(
     originalCall = this,
     toBeReplacedWith = referenced(MokkeryIr.Function.internalVerifySuspend).symbol,
-    matchersCompiler = matchersCompiler
 )
 
 
@@ -83,14 +79,13 @@ context(scope: TransformerScope)
 private fun replaceWithInternalEvery(
     originalCall: IrCall,
     toBeReplacedWith: IrSimpleFunctionSymbol,
-    matchersCompiler: MatchersCompiler
 ) = originalCall.replaceDeclarationIrBuilder {
     irBlock {
         +irCall(toBeReplacedWith) {
             val templatingArgument = originalCall.arguments[0]
             arguments[0] = irGetMokkeryModuleScope()
             arguments[1] = when (templatingArgument) {
-                is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument, matchersCompiler)
+                is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument)
                 is IrFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
                 else -> error("Unsupported templating argument!")
             }
@@ -103,7 +98,6 @@ context(scope: TransformerScope)
 private fun replaceWithInternalVerify(
     originalCall: IrCall,
     toBeReplacedWith: IrSimpleFunctionSymbol,
-    matchersCompiler: MatchersCompiler
 ): IrExpression = originalCall.replaceDeclarationIrBuilder {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
     val mode = originalCall.arguments[regularParams[0]]
@@ -113,7 +107,7 @@ private fun replaceWithInternalVerify(
         +irCall(toBeReplacedWith) {
             arguments[0] = irGetMokkeryScopeFor(originalCall)
             arguments[1] = mode ?: irNull()
-            arguments[2] = irTemplatingLambdaFor(functionExpression = block, matchersCompiler = matchersCompiler)
+            arguments[2] = irTemplatingLambdaFor(functionExpression = block)
         }
     }
 }
@@ -121,7 +115,6 @@ private fun replaceWithInternalVerify(
 context(scope: TransformerScope)
 private fun IrBlockBuilder.irTemplatingLambdaFor(
     functionExpression: IrFunctionExpression,
-    matchersCompiler: MatchersCompiler,
 ): IrFunctionExpression {
     val function = functionExpression.function
     val lambdaType = irBuiltIns
@@ -130,7 +123,6 @@ private fun IrBlockBuilder.irTemplatingLambdaFor(
     return irLambdaOf(lambdaType) { func ->
         val matchersInliningTransformer = MatchersInliningTransformer(
             pluginScope = scope,
-            matchersCompiler = matchersCompiler,
             initialValueDeclarations = emptyList()
         )
         val templatingTransformer = TemplatingTransformer(

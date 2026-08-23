@@ -48,7 +48,6 @@ import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 
 class MatchersInliningTransformer(
     pluginScope: IrMokkeryPluginScope,
-    private val matchersCompiler: MatchersCompiler,
     initialValueDeclarations: List<IrValueDeclaration>
 ) : CoreTransformer(pluginScope) {
 
@@ -62,7 +61,7 @@ class MatchersInliningTransformer(
     private val inlineLiteralsAsMatchersFunc = referenced(MokkeryIr.Function.inlineLiteralsAsMatchers)
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val matcher = matchersCompiler.compileIfMatcher(expression.symbol.owner)
+        val matcher = compileIfMatcher(expression.symbol.owner)
         expression.transformChildrenVoid()
         if (matcher.isCompiledMatcher != true) return expression
         return expression.replaceDeclarationIrBuilder { replaceMatcher(expression) }
@@ -142,7 +141,7 @@ class MatchersInliningTransformer(
         val originalMatcherFunction = call.symbol.owner
         if (originalMatcherFunction == matchesFunction) return expression.arguments[1]!!
         if (originalMatcherFunction == matchesCompositeFunction) return replaceMatchesComposite(expression)
-        val matcherFunction = matchersCompiler.compileIfMatcher(originalMatcherFunction)
+        val matcherFunction = compileIfMatcher(originalMatcherFunction)
         val substitution = call.typeSubstitutionMap
         return irCall(matcherFunction) {
             call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
