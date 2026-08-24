@@ -1,15 +1,17 @@
 package dev.mokkery.internal.verify.render
 
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
 import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.assert
-import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeDefaultValueMatcher
 import dev.mokkery.test.fakeFunParam
+import dev.mokkery.test.fakeFunction
 import dev.mokkery.test.testRendering
 import kotlin.test.Test
 
@@ -20,22 +22,31 @@ class MatchersStatusRendererTest {
     private val context = argMatcherRenderer + descriptionRenderer
     private val renderer = MatchersStatusRenderer
 
+    private val function = fakeFunction(
+        name = "call",
+        parameters = listOf(
+            fakeFunParam<String>("a"),
+            fakeFunParam<Int>("b"),
+            fakeFunParam<List<String>>("c"),
+        ),
+    )
+    private val scope = TestMokkeryInstanceScope(functions = listOf(function))
+    private val instances = MokkeryCollection(listOf(scope))
+
     private val trace = fakeCallTrace(
-        args = listOf(
-            fakeCallArg(name = "a", value = "string"),
-            fakeCallArg(name = "b", value = 1),
-            fakeCallArg(name = "c", value = listOf("a", "b")),
-        )
+        name = "call",
+        args = listOf("string", 1, listOf("a", "b")),
     )
 
     @Test
     fun testRendersMatchersWithCallArgsProperly() {
         val template = fakeCallTemplate(
-            fakeFunParam<String>("a") to ArgMatcher.Equals("string"),
-            fakeFunParam<String>("b") to ArgMatcher.Any,
-            fakeFunParam<String>("c") to ArgMatcher.Equals(listOf("a", "b", "c")),
+            ArgMatcher.Equals("string"),
+            ArgMatcher.Any,
+            ArgMatcher.Equals(listOf("a", "b", "c")),
+            name = "call",
         )
-        testRendering(context) {
+        testRendering(context, instances) {
             renderer.assert(template to trace) {
                 """
                     [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
@@ -52,11 +63,12 @@ class MatchersStatusRendererTest {
     @Test
     fun testRendersDefaultsWithCallArgsWhenOtherMatchersMatching() {
         val template = fakeCallTemplate(
-            fakeFunParam<String>("a") to ArgMatcher.Equals("string"),
-            fakeFunParam<String>("b") to ArgMatcher.Any,
-            fakeFunParam<String>("c") to MaterializedDefaultValueMatcher(listOf("a", "b", "c")),
+            ArgMatcher.Equals("string"),
+            ArgMatcher.Any,
+            MaterializedDefaultValueMatcher(listOf("a", "b", "c")),
+            name = "call",
         )
-        testRendering(context) {
+        testRendering(context, instances) {
             renderer.assert(template to trace) {
                 """
                     [+] a: RENDERER_MATCHER ~ RENDERER_VALUE
@@ -73,11 +85,12 @@ class MatchersStatusRendererTest {
     @Test
     fun testRendersSkipsRenderingDefaultsWhenOtherMatchersDoesNotMatch() {
         val template = fakeCallTemplate(
-            fakeFunParam<String>("a") to ArgMatcher.Equals("str"),
-            fakeFunParam<String>("b") to ArgMatcher.Any,
-            fakeFunParam<String>("c") to fakeDefaultValueMatcher(),
+            ArgMatcher.Equals("str"),
+            ArgMatcher.Any,
+            fakeDefaultValueMatcher(),
+            name = "call",
         )
-        testRendering(context) {
+        testRendering(context, instances) {
             renderer.assert(template to trace) {
                 """
                     [-] a:

@@ -9,7 +9,7 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.mokkeryScope
 import dev.mokkery.internal.rendering.callTemplateRenderer
-import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.callTracing
 import dev.mokkery.rendering.MokkeryRenderingScope
@@ -64,7 +64,7 @@ private fun HierarchicalStringBuilder.callsSection(instance: MokkeryInstanceScop
             return@section
         }
         instance.withRenderingScope(receiverRendering = false) {
-            calls.forEach { line(callTraceRenderer.render(it)) }
+            calls.forEach { line(callEntryRenderer.render(it)) }
         }
     }
 }

@@ -17,6 +17,7 @@ import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.configurer.ClosableMokkeryConfigurer
+import dev.mokkery.internal.context.MemberFunctions
 import dev.mokkery.internal.context.MokkeryInstanceSpec
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
@@ -25,6 +26,7 @@ import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.contracts.InstanceContractsProvider
+import dev.mokkery.internal.contracts.memberFunctions
 import dev.mokkery.internal.defaults.DefaultsExtractingInterceptor
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
@@ -50,14 +52,17 @@ internal interface MutableMokkerySpyScope : MutableMokkeryInstanceScope, Mokkery
 @PublishedApi
 internal fun Any.setupMokkeryInstanceForDefaults(
     owner: Any,
-    functionName: String,
-    parameters: List<Function.Parameter>,
+    functionId: Long,
 ) {
     val scope = this.requireInstanceScope() as MutableMokkeryInstanceScope
     val extractorSpec = owner.requireInstanceScope()
         .instanceSpec
         .defaultsExtractorSpec(this)
-    scope.mokkeryContext = extractorSpec + DefaultsExtractingInterceptor(functionName, parameters)
+    val contracts = InstanceContractsProvider(this)
+    scope.mokkeryContext = extractorSpec
+        .plus(contracts)
+        .plus(DefaultsExtractingInterceptor(Function.Id(functionId)))
+        .plus(MemberFunctions.cached(contracts.memberFunctions))
 }
 
 @PublishedApi
@@ -97,7 +102,7 @@ internal fun Any.setupMokkeryInstance(
         thisRef = this,
         mode = mode,
         spiedObject = spiedObject,
-        contractsProvider = contractsProvider,
+        contracts = contractsProvider,
     )
     val scope = this.mokkeryScope as MutableMokkeryInstanceScope
     scope.mokkeryContext = baseContext
@@ -145,7 +150,7 @@ private fun MokkeryScope.instanceContext(
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
-    contractsProvider: InstanceContractsProvider,
+    contracts: InstanceContractsProvider,
 ): MokkeryContext {
     val tools = tools
     val spec = MokkeryInstanceSpec.create(
@@ -166,7 +171,8 @@ private fun MokkeryScope.instanceContext(
         .plus(tools.callMatcherFactory.create(spec.collection))
         .plus(CallTracingRegistry())
         .plus(AnsweringRegistry())
-        .plus(contractsProvider)
+        .plus(contracts)
+        .plus(MemberFunctions.cached(contracts.memberFunctions))
         .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
         .keepOnTop(rootCallInterceptor)
 }
@@ -185,14 +191,10 @@ internal val MokkeryInstanceScope.instanceId get() = instanceSpec.id
 
 @PublishedApi
 internal val MokkeryInstanceScope.instanceIdString: String
-    get() = withRenderingScope {
-        instanceIdRenderer.render(instanceId)
-    }
+    get() = withRenderingScope(useShortening = false) { instanceIdRenderer.render(instanceId) }
 
 internal val MokkeryInstanceScope.shortInstanceIdString
-    get(): String = withRenderingScope(instances = this.instanceSpec.collection) {
-        instanceIdRenderer.render(instanceId)
-    }
+    get(): String = withRenderingScope { instanceIdRenderer.render(instanceId) }
 
 @PublishedApi
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*> {

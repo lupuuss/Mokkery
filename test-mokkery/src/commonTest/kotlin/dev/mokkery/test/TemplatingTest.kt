@@ -132,6 +132,38 @@ class TemplatingTest {
     }
 
     @Test
+    fun testToStringMockCallInEveryBlock() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithFunctionCannotBeMocked("toString") {
+            every { mock.toString() }
+        }
+    }
+
+    @Test
+    fun testToStringMockCallInVerifyBlock() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithFunctionCannotBeMocked("toString") {
+            verify { mock.toString() }
+        }
+    }
+
+    @Test
+    fun testHashCodeMockCallInEveryBlock() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithFunctionCannotBeMocked("hashCode") {
+            every { mock.hashCode() }
+        }
+    }
+
+    @Test
+    fun testEqualsMockCallInEveryBlock() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithFunctionCannotBeMocked("equals") {
+            every { mock.equals("other") }
+        }
+    }
+
+    @Test
     fun testUnwrapping() {
         val mock = mock<RegularMethodsInterface>()
         val mocks = listOf(mock)
@@ -523,6 +555,12 @@ class TemplatingTest {
             """.trimIndent(),
             block = block
         )
+    }
+
+    private fun assertFailsWithFunctionCannotBeMocked(functionName: String, block: () -> Unit) {
+        assertMokkeryError("Function `$functionName` cannot be mocked!") {
+            block()
+        }
     }
 
     private fun assertFailsWithMockFinalCall(receiver: String, functionName: String, block: () -> Unit) {

@@ -5,23 +5,29 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.context.FunctionCall
+import dev.mokkery.internal.matcher.CallEntry
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import kotlin.reflect.KClass
 
-internal fun fakeCallTemplate(
-    vararg matchers: Pair<Function.Parameter, ArgMatcher<Any?>>,
-    typeName: String = "mock",
-    id: Long = 1,
+internal fun fakeFunction(
     name: String = "call",
-): CallTemplate {
-    return CallTemplate(
-        instanceId = MokkeryInstanceId(typeName, id),
-        name = name,
-        parameters = matchers.map { it.first },
-        matchers = matchers.associate { it.first.name to it.second },
-    )
-}
+    id: Long = name.hashCode().toLong(),
+    parameters: List<Function.Parameter> = emptyList(),
+    returnType: KClass<*> = Unit::class,
+) = Function(Function.Id(id), name, parameters, returnType)
+
+internal fun fakeCallTemplate(
+    vararg matchers: ArgMatcher<Any?>,
+    typeName: String = "mock",
+    instanceId: Long = 1,
+    name: String = "call",
+    functionId: Long = name.hashCode().toLong(),
+): CallTemplate = CallTemplate(
+    instanceId = MokkeryInstanceId(typeName, instanceId),
+    functionId = Function.Id(functionId),
+    matchers = matchers.toList(),
+)
 
 internal inline fun <reified T> fakeFunParam(
     name: String,
@@ -38,23 +44,34 @@ internal fun fakeCallTrace(
     typeName: String = "mock",
     id: Long = 1,
     name: String = "call",
-    args: List<CallArgument> = emptyList(),
+    functionId: Long = name.hashCode().toLong(),
+    args: List<Any?> = emptyList(),
     orderStamp: Long = 0
 ) = CallTrace(
     instanceId = MokkeryInstanceId(typeName, id),
-    name = name,
+    functionId = Function.Id(functionId),
     args = args,
     orderStamp = orderStamp,
+)
+
+internal fun fakeCallEntry(
+    typeName: String = "mock",
+    id: Long = 1,
+    name: String = "call",
+    functionId: Long = name.hashCode().toLong(),
+    args: List<Any?> = emptyList(),
+) = CallEntry(
+    instanceId = MokkeryInstanceId(typeName, id),
+    functionId = Function.Id(functionId),
+    args = args,
 )
 
 internal fun fakeFunctionCall(
     functionName: String = "fakeFunction",
     returnType: KClass<*> = Unit::class,
     args: List<CallArgument> = emptyList(),
-    id: Int = 0,
-): FunctionCall {
-    return  FunctionCall(
-        function = Function(functionName, args.map(CallArgument::parameter), returnType, id),
-        args = args
-    )
-}
+    id: Long = 0,
+): FunctionCall = FunctionCall(
+    function = fakeFunction(functionName, id, args.map(CallArgument::parameter), returnType),
+    args = args,
+)

@@ -1,17 +1,18 @@
 package dev.mokkery.test
 
 import dev.mokkery.internal.defaults.DefaultsMaterializer
+import dev.mokkery.internal.matcher.CallEntry
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
 internal class TestDefaultsMaterializer(
-    var calls: (CallTrace, CallTemplate) -> CallTemplate = { _, template -> template }
+    var calls: (CallTemplate, CallEntry) -> CallTemplate = { template, _ -> template }
 ) : DefaultsMaterializer {
     override fun materialize(
-        trace: CallTrace,
-        template: CallTemplate
-    ): CallTemplate = calls(trace, template)
+        template: CallTemplate,
+        entry: CallEntry
+    ): CallTemplate = calls(template, entry)
 }
 
 internal fun fakeDefaultValueMatcher(): DefaultValuesMatcher = DefaultValuesMatcher(

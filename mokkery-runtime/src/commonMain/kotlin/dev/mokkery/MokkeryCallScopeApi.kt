@@ -12,8 +12,9 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.contracts.SpyCallsContract
 import dev.mokkery.internal.contracts.SuperCallsContract
-import dev.mokkery.internal.contracts.spyCallsContract
-import dev.mokkery.internal.contracts.superCallsContract
+import dev.mokkery.internal.contracts.instanceContracts
+import dev.mokkery.internal.contracts.spyCalls
+import dev.mokkery.internal.contracts.superCalls
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.utils.bestName
 import kotlin.reflect.KClass
@@ -72,47 +73,47 @@ public suspend fun MokkerySuspendCallScope.callOriginal(args: List<Any?>): Any? 
  * Calls super method of [superType] with given [args]
  */
 public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
-    dispatchSuper(superType, args) { dispatcher, memberId, superTypeIndex ->
-        dispatcher.mokkerySuperCall(memberId, superTypeIndex, args)
+    dispatchSuper(superType, args) { dispatcher, id, superTypeIndex ->
+        dispatcher.mokkerySuperCall(id.value, superTypeIndex, args)
     }
 
 /**
  * Calls super method of [superType] with given [args]
  */
 public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
-    dispatchSuper(superType, args) { dispatcher, memberId, superTypeIndex ->
-        dispatcher.mokkerySuperCallSuspend(memberId, superTypeIndex, args)
+    dispatchSuper(superType, args) { dispatcher, id, superTypeIndex ->
+        dispatcher.mokkerySuperCallSuspend(id.value, superTypeIndex, args)
     }
 
 private inline fun <R> MokkeryCallScope.dispatchSuper(
     superType: KClass<*>,
     args: List<Any?>,
-    dispatch: (SuperCallsContract, memberId: Int, superTypeIndex: Int) -> R,
+    dispatch: (SuperCallsContract, id: dev.mokkery.context.Function.Id, superTypeIndex: Int) -> R,
 ): R {
     checkSuperArgs(args)
-    val contract = superCallsContract ?: throw MissingSuperMethodException(superType)
-    val memberId = call.function.id
-    val superTypeIndex = contract.mokkerySuperTypes(memberId).indexOf(superType)
+    val contract = instanceContracts.superCalls ?: throw MissingSuperMethodException(superType)
+    val id = call.function.id
+    val superTypeIndex = contract.mokkerySuperTypes(id.value).indexOf(superType)
     if (superTypeIndex < 0) throw MissingSuperMethodException(superType)
-    return dispatch(contract, memberId, superTypeIndex)
+    return dispatch(contract, id, superTypeIndex)
 }
 
 /**
  * Calls spied method with given [args].
  */
 public fun MokkeryBlockingCallScope.callSpied(args: List<Any?>): Any? = requireSpyContract(args)
-    .mokkerySpyCall(call.function.id, args)
+    .mokkerySpyCall(call.function.id.value, args)
 
 /**
  * Calls spied method with given [args].
  */
 public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? = requireSpyContract(args)
-    .mokkerySpyCallSuspend(call.function.id, args)
+    .mokkerySpyCallSuspend(call.function.id.value, args)
 
 private fun MokkeryCallScope.requireSpyContract(args: List<Any?>): SpyCallsContract {
     instanceSpec.requireSpy()
     checkSpiedArgs(args)
-    return spyCallsContract ?: throw MissingSpyMethodException()
+    return instanceContracts.spyCalls ?: throw MissingSpyMethodException()
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>

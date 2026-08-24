@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.rendering.Renderer
-import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
 import dev.mokkery.internal.rendering.indentationString
 import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withIndentation
@@ -30,7 +30,7 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
         appendOptionalGroup(results[CallMatchResult.SameReceiverMethodSignature], "Calls to the same method with failing matchers") { calls ->
             calls.forEach {
                 append(traceIndentationString)
-                appendLine(scope.callTraceRenderer.render(it))
+                appendLine(scope.callEntryRenderer.render(it))
                 append(scope.matcherStatus.render(template to it).withIndentation(2 * INDENT))
             }
         }
@@ -56,7 +56,7 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
     private fun StringBuilder.appendRenderedTracesFrom(traces: List<CallTrace>) {
         traces.forEach {
             append(traceIndentationString)
-            appendLine(scope.callTraceRenderer.render(it))
+            appendLine(scope.callEntryRenderer.render(it))
         }
     }
 }

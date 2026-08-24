@@ -1,183 +1,144 @@
 package dev.mokkery.internal.rendering.descriptor
 
 import dev.mokkery.call
+import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
-import dev.mokkery.internal.blockingCallScope
+import dev.mokkery.internal.rendering.mokkeryCollection
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeFunParam
+import dev.mokkery.test.fakeFunction
+import dev.mokkery.test.testBlockingCallScope
+import dev.mokkery.test.testRenderingScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class CallRenderDescriptorTest {
 
+    private val call = fakeFunction("call", parameters = listOf(fakeFunParam<Int>("p1"), fakeFunParam<Int>("p2")))
+    private val callOverload = fakeFunction("call", id = CALL_OVERLOAD_ID, parameters = listOf(fakeFunParam<Int>("p1")))
+    private val getter = fakeFunction("<get-foo>", parameters = listOf(fakeFunParam<Int>("<receiver>")))
+    private val setter = fakeFunction("<set-foo>", parameters = listOf(fakeFunParam<Int>("p1")))
+    private val scope = TestMokkeryInstanceScope(functions = listOf(call, callOverload, getter, setter))
+
+    private fun <R> withRendering(block: MokkeryRenderingScope.() -> R): R = testRenderingScope {
+        mokkeryCollection(MokkeryCollection(listOf(scope)))
+    }.block()
+
     @Test
-    fun testFunctionCallTemplateToDescriptor() {
-        val template = fakeCallTemplate(
-            name = "call",
-            matchers = arrayOf(
-                fakeFunParam<Int>(name = "p1") to ArgMatcher.Any
-            )
-        )
+    fun testFunctionCallTemplateToDescriptor() = withRendering {
+        val template = fakeCallTemplate(ArgMatcher.Any, functionId = CALL_OVERLOAD_ID)
         val descriptor = template.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("call", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
-        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(arguments[0])
-        assertEquals(template.parameters[0], arg0.parameter)
+        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(descriptor.arguments.single())
+        assertEquals(fakeFunParam<Int>("p1"), arg0.parameter)
         assertEquals(ArgMatcher.Any, arg0.matcher)
     }
 
     @Test
-    fun testGetterCallTemplateToDescriptor() {
-        val template = fakeCallTemplate(
-            name = "<get-foo>",
-            matchers = arrayOf(fakeFunParam<Int>(name = "<receiver>") to ArgMatcher.Any)
-        )
+    fun testGetterCallTemplateToDescriptor() = withRendering {
+        val template = fakeCallTemplate(ArgMatcher.Any, name = "<get-foo>")
         val descriptor = template.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
-        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(arguments[0])
-        assertEquals(template.parameters[0], arg0.parameter)
+        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(descriptor.arguments.single())
+        assertEquals(fakeFunParam<Int>("<receiver>"), arg0.parameter)
         assertEquals(ArgMatcher.Any, arg0.matcher)
     }
 
     @Test
-    fun testSetterCallTemplateToDescriptor() {
-        val template = fakeCallTemplate(
-            name = "<set-foo>",
-            matchers = arrayOf(
-                fakeFunParam<Int>(name = "p1") to ArgMatcher.Any
-            )
-        )
+    fun testSetterCallTemplateToDescriptor() = withRendering {
+        val template = fakeCallTemplate(ArgMatcher.Any, name = "<set-foo>")
         val descriptor = template.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
-        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(arguments[0])
-        assertEquals(template.parameters[0], arg0.parameter)
+        val arg0 = assertIs<ArgumentRenderDescriptor.Matcher>(descriptor.arguments.single())
+        assertEquals(fakeFunParam<Int>("p1"), arg0.parameter)
         assertEquals(ArgMatcher.Any, arg0.matcher)
     }
 
     @Test
-    fun testFunctionCallTraceToDescriptor() {
-        val trace = fakeCallTrace(
-            name = "call",
-            args = listOf(
-                fakeCallArg(name = "p1", value = 1),
-                fakeCallArg(name = "p2", value = 2),
-            )
-        )
+    fun testFunctionCallTraceToDescriptor() = withRendering {
+        val trace = fakeCallTrace(name = "call", args = listOf(1, 2))
         val descriptor = trace.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("call", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(2, arguments.size)
         assertEquals(
-            expected = trace.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = listOf(fakeCallArg(name = "p1", value = 1), fakeCallArg(name = "p2", value = 2)),
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 
     @Test
-    fun testGetterCallTraceToDescriptor() {
-        val trace = fakeCallTrace(
-            name = "<get-foo>",
-            args = listOf(fakeCallArg(name = "p1", value = 1))
-        )
+    fun testGetterCallTraceToDescriptor() = withRendering {
+        val trace = fakeCallTrace(name = "<get-foo>", args = listOf(1))
         val descriptor = trace.asCallRenderDescriptor()
-        assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
         assertEquals(
-            expected = trace.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = listOf(fakeCallArg(name = "<receiver>", value = 1)),
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 
     @Test
-    fun testSetterCallTraceToDescriptor() {
-        val trace = fakeCallTrace(
-            name = "<set-foo>",
-            args = listOf(fakeCallArg(name = "p1", value = 1))
-        )
+    fun testSetterCallTraceToDescriptor() = withRendering {
+        val trace = fakeCallTrace(name = "<set-foo>", args = listOf(1))
         val descriptor = trace.asCallRenderDescriptor()
-        assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
         assertEquals(
-            expected = trace.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = listOf(fakeCallArg(name = "p1", value = 1)),
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 
     @Test
     fun testFunctionCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().blockingCallScope(
+        val callScope = testBlockingCallScope<Int>(
             name = "call",
-            returnType = Int::class,
-            args = listOf(
-                fakeCallArg(name = "p1", value = 1),
-                fakeCallArg(name = "p2", value = 2),
-            ),
-            functionId = 0
+            args = listOf(fakeCallArg(name = "p1", value = 1), fakeCallArg(name = "p2", value = 2)),
         )
-        val descriptor = scope.asCallRenderDescriptor()
+        val descriptor = callScope.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("call", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(2, arguments.size)
         assertEquals(
-            expected = scope.call.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = callScope.call.args,
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 
     @Test
     fun testGetterCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().blockingCallScope(
+        val callScope = testBlockingCallScope<Int>(
             name = "<get-foo>",
-            returnType = Int::class,
             args = listOf(fakeCallArg(name = "p1", value = 1)),
-            functionId = 0
         )
-        val descriptor = scope.asCallRenderDescriptor()
-        assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
+        val descriptor = callScope.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
         assertEquals(
-            expected = scope.call.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = callScope.call.args,
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 
     @Test
     fun testSetterCallScopeToDescriptor() {
-        val scope = TestMokkeryInstanceScope().blockingCallScope(
+        val callScope = testBlockingCallScope<Int>(
             name = "<set-foo>",
-            returnType = Int::class,
             args = listOf(fakeCallArg(name = "p1", value = 1)),
-            functionId = 0
         )
-        val descriptor = scope.asCallRenderDescriptor()
-        assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
+        val descriptor = callScope.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)
-        val arguments = descriptor.arguments
-        assertEquals(1, arguments.size)
         assertEquals(
-            expected = scope.call.args,
-            actual = arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
+            expected = callScope.call.args,
+            actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
 }
+
+private const val CALL_OVERLOAD_ID = 3L

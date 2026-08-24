@@ -13,13 +13,12 @@ import dev.mokkery.internal.availableSuperCallTypes
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.matcher.CallEntry
+import dev.mokkery.internal.matcher.asCallEntry
 import dev.mokkery.internal.matcher.callMatcher
-import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.toCallTrace
 import dev.mokkery.matcher.capture.Capture
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
@@ -66,39 +65,37 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
     }
 
     override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
-        val trace = scope.toCallTrace(0)
+        val entry = scope.asCallEntry()
         val answers = _answers.value
         val callMatcher = scope.callMatcher
         val result = answers
-            .find { (template) -> callMatcher.match(trace, template).isMatching }
-        result?.first?.applyCapture(trace)
-        return result?.second ?: handleMissingAnswer(scope, trace)
+            .find { (template) -> callMatcher.areMatching(template, entry) }
+        result?.first?.applyCapture(entry)
+        return result?.second ?: handleMissingAnswer(scope, entry)
     }
 
     private fun handleMissingAnswer(
         scope: MokkeryCallScope,
-        trace: CallTrace
+        entry: CallEntry
     ): Answer<*> = when (val spec = scope.instanceSpec) {
         is MokkerySpySpec -> SpiedCallAnswer
         is MokkeryMockSpec -> when (spec.mode) {
             MockMode.autofill -> Answer.Autofill
             MockMode.original if scope.availableSuperCallTypes().isNotEmpty() -> SuperCallAnswer(SuperCall.original)
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> scope.withRenderingScope(instances = spec.collection) {
-                throw CallNotMockedException(name = callTraceRenderer.render(trace))
+            else -> scope.withRenderingScope {
+                throw CallNotMockedException(name = callEntryRenderer.render(entry))
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun CallTemplate.applyCapture(trace: CallTrace) {
-        matchers.forEach { (name, matcher) ->
-            if (matcher !is Capture<*>) return@forEach
+    private fun CallTemplate.applyCapture(entry: CallEntry) {
+        val args = entry.args
+        matchers.forEachIndexed { index, matcher ->
+            if (matcher !is Capture<*>) return@forEachIndexed
             val capture = matcher as Capture<Any?>
-            // a captured null is a legitimate value, so an argument that is not there at all
-            // must be skipped instead of being captured as null
-            val arg = trace.args.find { it.parameter.name == name } ?: return@forEach
-            capture.capture(arg.value)
+            capture.capture(args[index])
         }
     }
 

@@ -17,7 +17,7 @@ class ExhaustiveSoftVerifierTest {
     private val trace1 = fakeCallTrace(name = "call1")
     private val trace2 = fakeCallTrace(name = "call2")
 
-    private val callMatcher = TestCallMatcher { trace, template ->
+    private val callMatcher = TestCallMatcher { template, trace ->
         when (trace) {
             trace1 if template == template1 -> CallMatchResult.Matching
             trace2 if template == template2 -> CallMatchResult.Matching

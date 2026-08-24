@@ -6,9 +6,12 @@ import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.matcher.CallEntry
+import dev.mokkery.internal.rendering.function
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
 
 internal interface CallRenderDescriptor {
 
@@ -51,22 +54,28 @@ internal sealed interface ArgumentRenderDescriptor {
     data class Matcher(override val parameter: Function.Parameter, val matcher: ArgMatcher<*>): ArgumentRenderDescriptor
 }
 
-internal fun CallTrace.asCallRenderDescriptor(): CallRenderDescriptor {
+context(scope: MokkeryRenderingScope)
+internal fun CallEntry.asCallRenderDescriptor(): CallRenderDescriptor {
     val trace = this
+    val data = scope.function(trace.instanceId, trace.functionId)
     return object : CallRenderDescriptor {
         override val receiver: MokkeryInstanceId get() = trace.instanceId
-        override val function: FunctionRenderDescriptor get() = FunctionRenderDescriptor.parse(trace.name)
-        override val arguments: List<ArgumentRenderDescriptor> get() = trace.args.map { ArgumentRenderDescriptor.Value(it) }
+        override val function: FunctionRenderDescriptor get() = FunctionRenderDescriptor.parse(data.name)
+        override val arguments: List<ArgumentRenderDescriptor> get() = data.parameters.mapIndexed { index, parameter ->
+            ArgumentRenderDescriptor.Value(CallArgument(trace.args[index], parameter))
+        }
     }
 }
 
+context(scope: MokkeryRenderingScope)
 internal fun CallTemplate.asCallRenderDescriptor(): CallRenderDescriptor {
     val template = this
+    val data = scope.function(template.instanceId, template.functionId)
     return object : CallRenderDescriptor {
         override val receiver: MokkeryInstanceId get() = template.instanceId
-        override val function: FunctionRenderDescriptor get() = FunctionRenderDescriptor.parse(template.name)
-        override val arguments: List<ArgumentRenderDescriptor> get() = template.parameters.map {
-            ArgumentRenderDescriptor.Matcher(it, template.matchers.getValue(it.name))
+        override val function: FunctionRenderDescriptor get() = FunctionRenderDescriptor.parse(data.name)
+        override val arguments: List<ArgumentRenderDescriptor> get() = data.parameters.mapIndexed { index, parameter ->
+            ArgumentRenderDescriptor.Matcher(parameter, template.matchers[index])
         }
     }
 }

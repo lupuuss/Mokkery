@@ -5,9 +5,10 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
+import dev.mokkery.internal.context.functions
 import dev.mokkery.internal.defaults.DefaultsMaterializer
+import dev.mokkery.internal.getScope
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
 
 internal val MokkeryInstanceScope.callMatcher: CallMatcher
     get() = mokkeryContext.require(CallMatcher)
@@ -19,7 +20,9 @@ internal interface CallMatcher : MokkeryContext.Element {
 
     override val key: Key get() = Key
 
-    fun match(trace: CallTrace, template: CallTemplate): CallMatchResult
+    fun match(template: CallTemplate, entry: CallEntry): CallMatchResult
+
+    fun areMatching(template: CallTemplate, entry: CallEntry): Boolean
 
     companion object Key : MokkeryContext.Key<CallMatcher>
 
@@ -30,7 +33,7 @@ internal interface CallMatcher : MokkeryContext.Element {
         companion object {
 
             fun default(materializer: DefaultsMaterializer.Factory) = Factory {
-                CallMatcher(materializer.create(it))
+                CallMatcher(it, materializer.create(it))
             }
         }
     }
@@ -43,37 +46,43 @@ internal enum class CallMatchResult {
 internal inline val CallMatchResult.isMatching
     get() = this == CallMatchResult.Matching
 
-internal inline val CallMatchResult.isNotMatching
-    get() = this != CallMatchResult.Matching
-
 internal fun CallMatcher(
-    defaultsMaterializer: DefaultsMaterializer
-): CallMatcher = CallMatcherImpl(defaultsMaterializer)
+    collection: MokkeryCollection,
+    defaultsMaterializer: DefaultsMaterializer,
+): CallMatcher = CallMatcherImpl(collection, defaultsMaterializer)
 
 private class CallMatcherImpl(
-    private val defaultsMaterializer: DefaultsMaterializer
+    private val collection: MokkeryCollection,
+    private val defaultsMaterializer: DefaultsMaterializer,
 ) : CallMatcher {
 
-    override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult = when {
-        trace.instanceId != template.instanceId -> CallMatchResult.NotMatching
-        trace.name != template.name -> CallMatchResult.SameReceiver
-        !(trace hasTheSameParameters template) -> CallMatchResult.SameReceiverMethodOverload
-        trace.matchesArgsOf(template) -> CallMatchResult.Matching
+    override fun match(template: CallTemplate, entry: CallEntry): CallMatchResult = when {
+        template.instanceId != entry.instanceId -> CallMatchResult.NotMatching
+        template.functionId != entry.functionId -> template.functionMismatchResultAgainst(entry)
+        template.matchesArgsFrom(entry) -> CallMatchResult.Matching
         else -> CallMatchResult.SameReceiverMethodSignature
     }
 
-    private fun CallTrace.matchesArgsOf(template: CallTemplate): Boolean {
-        val materializedTemplate = defaultsMaterializer.materialize(this, template)
-        return args.all { arg -> materializedTemplate.matchers[arg.parameter.name]?.matches(arg.value) == true }
+    override fun areMatching(
+        template: CallTemplate,
+        entry: CallEntry
+    ): Boolean = template.instanceId == entry.instanceId
+            &&  template.functionId == entry.functionId
+            && template.matchesArgsFrom(entry)
+
+    private fun CallTemplate.matchesArgsFrom(entry: CallEntry): Boolean {
+        val matchers = defaultsMaterializer.materialize(this, entry).matchers
+        val args = entry.args
+        if (matchers.size != args.size) return false
+        for (index in args.indices) if (!matchers[index].matches(args[index])) return false
+        return true
     }
 
-    private infix fun CallTrace.hasTheSameParameters(template: CallTemplate): Boolean {
-        val args = args
-        val parameters = template.parameters
-        if (args.size != template.parameters.size) return false
-        for (i in 0..<args.size) {
-            if (args[i].parameter != parameters[i]) return false
+    private fun CallTemplate.functionMismatchResultAgainst(entry: CallEntry): CallMatchResult {
+        val scope = collection.getScope(entry.instanceId)
+        return when (scope.functions[entry.functionId].name) {
+            scope.functions[functionId].name -> CallMatchResult.SameReceiverMethodOverload
+            else -> CallMatchResult.SameReceiver
         }
-        return true
     }
 }

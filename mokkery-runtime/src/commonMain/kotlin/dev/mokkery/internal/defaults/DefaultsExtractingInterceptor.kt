@@ -5,16 +5,13 @@ import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.call
-import dev.mokkery.context.CallArgument
 import dev.mokkery.context.Function
-import dev.mokkery.context.FunctionCall
+import dev.mokkery.context.argValues
 import dev.mokkery.internal.context.ContextCallInterceptor
-import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.rendering.descriptor.FunctionRenderDescriptor
 
 internal class DefaultsExtractingInterceptor(
-    private val functionName: String,
-    private val parameters: List<Function.Parameter>,
+    private val functionId: Function.Id,
 ) : ContextCallInterceptor {
 
     override fun intercept(scope: MokkeryBlockingCallScope): Nothing = scope.throwArguments()
@@ -23,15 +20,10 @@ internal class DefaultsExtractingInterceptor(
 
     private fun MokkeryCallScope.throwArguments(): Nothing {
         val call = call
-        if (!call.isExtractedFunction()) throw UnsupportedDefaultValueException(call.function.name.readableName())
-        throw ArgumentsExtractedException(call.args.map(CallArgument::value))
-    }
-
-    private fun FunctionCall.isExtractedFunction(): Boolean {
-        if (function.name != functionName) return false
-        if (args.size != parameters.size) return false
-        for (index in args.indices) if (args[index].parameter != parameters[index]) return false
-        return true
+        if (call.function.id != functionId) {
+            throw UnsupportedDefaultValueException(call.function.name.readableName())
+        }
+        throw ArgumentsExtractedException(call.argValues)
     }
 }
 

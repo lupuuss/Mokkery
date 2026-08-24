@@ -27,8 +27,8 @@ class OrderVerifierErrorRendererTest {
             failedAt = fakeCallTemplate(),
             failedIndex = 1,
             results = listOf(
-                TemplateMatchingResult.Matching(fakeCallTrace(id = 1), fakeCallTemplate(id = 1)),
-                TemplateMatchingResult.NoMatch(fakeCallTemplate(id = 2))
+                TemplateMatchingResult.Matching(fakeCallTrace(id = 1), fakeCallTemplate(instanceId = 1)),
+                TemplateMatchingResult.NoMatch(fakeCallTemplate(instanceId = 2))
             )
         )
         testRendering(context) {

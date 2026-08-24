@@ -2,6 +2,7 @@ package dev.mokkery.test
 
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.context.MokkeryInstanceSpec
@@ -14,6 +15,7 @@ internal class TestMokkeryInstanceScope(
     typeArguments: List<List<KClass<*>>> = List(interceptedTypes.size) { emptyList() },
     mode: MockMode? = MockMode.strict,
     spiedObject: Any? = null,
+    functions: List<Function> = emptyList(),
     interceptor: TestContextCallInterceptor = TestContextCallInterceptor(),
     context: MokkeryContext = MokkeryContext.Empty
 ) : MokkeryInstanceScope {
@@ -25,5 +27,5 @@ internal class TestMokkeryInstanceScope(
         typeArguments = typeArguments,
         mode = mode,
         spiedObject = spiedObject,
-    ) + interceptor + context
+    ) + interceptor + TestInstanceContracts() + TestMemberFunctions(functions) + context
 }

@@ -2,6 +2,7 @@ package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -25,7 +26,12 @@ fun IrFunction.copyNonDispatchParametersWithoutDefaultsFrom(
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
     parameters += function.nonDispatchParameters.memoryOptimizedMap {
-        it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap)
+        it.copyTo(
+            irFunction = this,
+            origin = IrDeclarationOrigin.UNDERSCORE_PARAMETER,
+            defaultValue = null,
+            remapTypeMap = parameterMap
+        )
     }
 }
 

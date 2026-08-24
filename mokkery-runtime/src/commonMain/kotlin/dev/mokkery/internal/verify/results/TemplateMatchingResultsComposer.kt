@@ -1,7 +1,6 @@
 package dev.mokkery.internal.verify.results
 
 import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -21,7 +20,7 @@ private class TemplateMatchingResultsComposerImpl(
         val results = ArrayList<TemplateMatchingResult>(traces.size + templates.size)
         var currentTraces: List<CallTrace> = traces
         for (template in templates) {
-            val matchingCallIndex = currentTraces.indexOfFirst { callMatcher.match(it, template).isMatching }
+            val matchingCallIndex = currentTraces.indexOfFirst { callMatcher.areMatching(template, it) }
             if (matchingCallIndex == -1) {
                 results.add(TemplateMatchingResult.NoMatch(template))
                 continue

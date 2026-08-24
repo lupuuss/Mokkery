@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify.render
 
 import dev.mokkery.rendering.Renderer
 import dev.mokkery.internal.rendering.callTemplateRenderer
-import dev.mokkery.internal.rendering.callTraceRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
@@ -37,7 +37,7 @@ internal object TemplateMatchingResultsRenderer : Renderer<List<TemplateMatching
     ) {
         append("*".padEnd(columnSize, ' '))
         append("  ")
-        appendLine(scope.callTraceRenderer.render(call.trace))
+        appendLine(scope.callEntryRenderer.render(call.trace))
     }
 
     context(scope: MokkeryRenderingScope)
@@ -53,7 +53,7 @@ internal object TemplateMatchingResultsRenderer : Renderer<List<TemplateMatching
         append(" ".padEnd(columnSize))
         append("└ ")
         if (trace != null) {
-            appendLine(scope.callTraceRenderer.render(trace))
+            appendLine(scope.callEntryRenderer.render(trace))
         } else {
             appendLine("No matching call!")
         }

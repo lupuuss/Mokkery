@@ -1,6 +1,5 @@
 package dev.mokkery.internal.utils
 
-import dev.mokkery.context.CallArgument
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
@@ -18,11 +17,6 @@ internal expect fun KClass<*>.bestName(): String
  * TODO Remove when KClass is supported for interop types.
  */
 internal expect inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*>
-
-/*
- * Similarly to takeIfImplementedOrAny only relevant for K/N. It avoids copying List<CallArgs> on other platforms.
- */
-internal expect inline fun List<CallArgument>.copyWithReplacedKClasses(): List<CallArgument>
 
 @PublishedApi
 @Suppress("unused")

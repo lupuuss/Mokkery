@@ -3,19 +3,30 @@ package dev.mokkery.internal.contracts
 import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.require
+import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.utils.unsafeCast
 import kotlin.reflect.KClass
 
 internal interface InstanceContract
 
-internal val MokkeryCallScope.superCallsContract: SuperCallsContract?
-    get() = mokkeryContext[InstanceContractsProvider]?.find(SuperCallsContract::class)
+internal val MokkeryInstanceScope.instanceContracts: InstanceContractsProvider
+    get() = mokkeryContext.require(InstanceContractsProvider)
 
-internal val MokkeryCallScope.spyCallsContract: SpyCallsContract?
-    get() = mokkeryContext[InstanceContractsProvider]?.find(SpyCallsContract::class)
+internal val MokkeryCallScope.instanceContracts: InstanceContractsProvider
+    get() = mokkeryContext.require(InstanceContractsProvider)
 
-internal val MokkeryInstanceScope.defaultsContract: DefaultsContract?
-    get() = mokkeryContext[InstanceContractsProvider]?.find(DefaultsContract::class)
+internal val InstanceContractsProvider.superCalls: SuperCallsContract?
+    get() = find(SuperCallsContract::class)
+
+internal val InstanceContractsProvider.spyCalls: SpyCallsContract?
+    get() = find(SpyCallsContract::class)
+
+internal val InstanceContractsProvider.defaults: DefaultsContract?
+    get() = find(DefaultsContract::class)
+
+internal val InstanceContractsProvider.memberFunctions: MemberFunctionsContract
+    get() = find(MemberFunctionsContract::class) ?: mokkeryRuntimeError("Member functions contract is not available for this instance, but it should be!")
 
 internal interface InstanceContractsProvider : MokkeryContext.Element {
 
@@ -26,9 +37,9 @@ internal interface InstanceContractsProvider : MokkeryContext.Element {
     companion object Key : MokkeryContext.Key<InstanceContractsProvider>
 }
 
-internal fun InstanceContractsProvider(vararg refs: Any?): InstanceContractsProvider {
-    return InstanceContractsProviderImpl(refs.filterNotNull())
-}
+internal fun InstanceContractsProvider(
+    vararg refs: Any?
+): InstanceContractsProvider = InstanceContractsProviderImpl(refs.filterNotNull())
 
 private class InstanceContractsProviderImpl(
     private val refs: List<Any>

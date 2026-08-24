@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.core
 
+import dev.mokkery.plugin.fnv1a64
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.currentFileValue
@@ -27,27 +28,10 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
-import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.isSubtypeOf
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.Name
-
-context(scope: TransformerScope)
-fun IrBuilder.irCallListOfPairs(
-    pairs: List<Pair<IrExpression, IrExpression>>,
-    firstType: IrType,
-    secondType: IrType
-) = irCall(referenced(KotlinIr.Function.listOf)) {
-    val pairType = referenced(KotlinIr.Class.Pair).typeWith(firstType, secondType)
-    val varargs = irVararg(
-        elementType = pairType,
-        elements = pairs.map { irCreatePair(it.first, it.second) }
-    )
-    typeArguments[0] = pairType
-    arguments[0] = varargs
-}
-
 
 context(scope: TransformerScope)
 fun IrBuilder.irCallListOf(
@@ -76,17 +60,6 @@ fun IrBuilder.irCallEqMatcher(
     typeArguments = listOf(valueType)
 ) {
     arguments[0] = value
-}
-
-context(scope: TransformerScope)
-fun IrBuilder.irCreatePair(
-    first: IrExpression,
-    second: IrExpression
-): IrExpression = irCall(referenced(KotlinIr.Function.to)) {
-    typeArguments[0] = first.type
-    typeArguments[1] = second.type
-    arguments[0] = first
-    arguments[1] = second
 }
 
 context(scope: TransformerScope)
@@ -129,12 +102,6 @@ fun IrBuilderWithScope.irGetMokkeryModuleScope(): IrCall {
     }
 }
 
-private fun List<String>.hexHashString(): String {
-    var hash = 0xcbf29ce484222325UL
-    forEach {
-        it.forEach { c -> hash = (hash xor c.code.toULong()) * 0x100000001b3UL }
-    }
-    return hash.toString(36)
-}
+private fun List<String>.hexHashString(): String = fnv1a64(this).toULong().toString(36)
 
 private fun IrFile.kotlinFqNameStringWithName() = kotlinFqName.asString() + "." + this.name

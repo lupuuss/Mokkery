@@ -16,7 +16,7 @@ import kotlin.test.Test
 class TemplateGroupedMatchingResultsRendererTest {
 
     private val instanceIdRenderer = TestRenderer<MokkeryInstanceId>(MokkeryRendering.instanceIdKey) { "RENDERER_MOCK_ID" }
-    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callTraceKey) { "RENDERER_TRACE" }
+    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callEntryKey) { "RENDERER_TRACE" }
     private val matcherStatusRenderer = TestRenderer<Pair<CallTemplate, CallTrace>>(VerifyRendering.matcherStatus) {
         "RENDERER_MATCHERS\n"
     }

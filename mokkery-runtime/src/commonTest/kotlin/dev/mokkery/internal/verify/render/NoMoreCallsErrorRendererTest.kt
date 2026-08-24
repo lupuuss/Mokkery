@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 
 class NoMoreCallsErrorRendererTest {
 
-    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callTraceKey) { "CALL_TRACE" }
+    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callEntryKey) { "CALL_TRACE" }
     private val context = traceRenderer + MokkeryRendering.Factory.Default
     private val renderer = NoMoreCallsErrorRenderer
 

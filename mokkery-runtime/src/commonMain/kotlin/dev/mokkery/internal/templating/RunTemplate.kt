@@ -2,19 +2,19 @@
 
 package dev.mokkery.internal.templating
 
-import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.Function
+import dev.mokkery.internal.FunctionCannotBeMockedException
 import dev.mokkery.internal.MockCallExpectedException
 import dev.mokkery.internal.MockFinalMemberCallException
 import dev.mokkery.internal.MockMemberCallResultAccessException
-import dev.mokkery.internal.context.instanceSpec
+import dev.mokkery.internal.context.functions
 import dev.mokkery.internal.isMock
 import dev.mokkery.internal.rendering.descriptor.FunctionRenderDescriptor
 import dev.mokkery.internal.rendering.functionRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.shortInstanceIdString
-import dev.mokkery.internal.utils.takeIfImplementedOrAny
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.templating.MokkeryTemplatingScope
 import kotlin.reflect.KClass
@@ -63,35 +63,15 @@ internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T
 }
 
 @PublishedApi
-internal fun templatingFunctionParameter(
-    mock: Any,
-    mockedType: KClass<*>,
-    name: String,
-    isVararg: Boolean,
-    type: KClass<*>? = null,
-    typeArgumentIndex: Int = -1,
-): Function.Parameter = Function.Parameter(
-    name = name,
-    isVararg = isVararg,
-    type = type?.takeIfImplementedOrAny() ?: mock.requireInstanceScope()
-        .instanceSpec
-        .interceptedTypes
-        .single { it.type == mockedType }
-        .arguments[typeArgumentIndex]
-)
-
-@PublishedApi
 internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     mock: Any,
     mockedType: KClass<*>,
+    functionId: Long,
     functionName: String,
-    arguments: ((Any, KClass<*>) -> List<Pair<Function.Parameter, ArgMatcher<Any?>>>)? = null,
+    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
     original: (suspend () -> R)? = null
 ): RunTemplateResult<R> = when {
-    mock.isMock -> {
-        templatingRegistry.register(mock, functionName, arguments?.invoke(mock, mockedType).orEmpty())
-        RunTemplateResult.Empty(mock, functionName)
-    }
+    mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
     original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())
 }
@@ -100,16 +80,31 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
 internal fun <R> MokkeryTemplatingScope.runTemplate(
     mock: Any,
     mockedType: KClass<*>,
+    functionId: Long,
     functionName: String,
-    arguments: ((Any, KClass<*>) -> List<Pair<Function.Parameter, ArgMatcher<Any?>>>)? = null,
+    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
     original: (() -> R)? = null
 ): RunTemplateResult<R> = when {
-    mock.isMock -> {
-        templatingRegistry.register(mock, functionName, arguments?.invoke(mock, mockedType).orEmpty())
-        RunTemplateResult.Empty(mock, functionName)
-    }
+    mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
     original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())
+}
+
+private fun MokkeryTemplatingScope.registerTemplate(
+    mock: Any,
+    functionId: Long,
+    functionName: String,
+    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
+): RunTemplateResult.Empty {
+    val matchers = matchers?.invoke().orEmpty()
+    val scope = mock.requireInstanceScope()
+    val functions = scope.functions
+    val id = functions.normalizeId(Function.Id(functionId))
+    functions
+        .getOrNull(id)
+        ?: throw FunctionCannotBeMockedException(functionName = functionName.renderRawFunctionName(scope))
+    templatingRegistry.register(scope, id, matchers)
+    return RunTemplateResult.Empty(mock, functionName)
 }
 
 private fun mockCallExpectedError(
@@ -122,7 +117,7 @@ private fun mockCallExpectedError(
     call = functionName
 )
 
-private fun String.renderRawFunctionName(scope: MokkeryScope): String {
+private fun String.renderRawFunctionName(scope: MokkeryInstanceScope): String {
     val descriptor = FunctionRenderDescriptor.parse(this)
     return scope.withRenderingScope { functionRenderer.render(descriptor) }
 }

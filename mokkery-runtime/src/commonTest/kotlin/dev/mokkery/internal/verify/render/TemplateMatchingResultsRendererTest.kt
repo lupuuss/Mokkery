@@ -13,7 +13,7 @@ import kotlin.test.Test
 
 class TemplateMatchingResultsRendererTest {
 
-    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callTraceKey) { "RENDERER_TRACE" }
+    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callEntryKey) { "RENDERER_TRACE" }
     private val templateRenderer = TestRenderer<CallTemplate>(MokkeryRendering.callTemplateKey) { "RENDERER_TEMPLATE" }
     private val context = traceRenderer + templateRenderer
     private val renderer = TemplateMatchingResultsRenderer

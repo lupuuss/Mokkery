@@ -35,7 +35,7 @@ internal fun <T> MokkeryScope.internalEvery(
 
 private fun MokkeryTemplatingScope.singleCallExpectedError(): Nothing {
     val registry = templatingRegistry
-    withRenderingScope(instances = registry.collection) {
+    withRenderingScope {
         throw SingleCallInEveryBlockRequiredException(
             templates = registry.templates.map { callTemplateRenderer.render(it) }
         )

@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.types.makeNullable
@@ -83,8 +82,8 @@ fun buildMockClass(
         mokkeryKind = mokkeryKind,
         classesToIntercept = listOf(classToMock),
     )
-    val functions = mockedClass.overrideInterceptedFunctions(listOf(classToMock)) { function, functionId ->
-        +irReturn(irInterceptMockMemberCall(function, functionId))
+    val functions = mockedClass.overrideInterceptedFunctions(listOf(classToMock)) { function ->
+        +irReturn(irInterceptMockMemberCall(function))
     }
     mockedClass.addInstanceContracts(mokkeryKind, listOf(classToMock), functions)
     recordSuperTypesLookUp(listOf(classToMock))
@@ -116,8 +115,8 @@ fun buildManyMockClass(name: Name, classesToMock: List<IrClass>): IrClass {
         typeName = mockManyTypeName(manyMocksMarkerClass, classesToMock),
         classesToIntercept = classesToMock,
     )
-    val functions = mockedClass.overrideInterceptedFunctions(classesToMock) { function, functionId ->
-        +irReturn(irInterceptMockMemberCall(function, functionId))
+    val functions = mockedClass.overrideInterceptedFunctions(classesToMock) { function ->
+        +irReturn(irInterceptMockMemberCall(function))
     }
     mockedClass.addInstanceContracts(IrMokkeryKind.Mock, classesToMock, functions)
     recordSuperTypesLookUp(classesToMock)
@@ -140,34 +139,33 @@ private fun IrClass.overrideToString() {
 context(scope: TransformerScope)
 private fun IrClass.overrideInterceptedFunctions(
     classesToIntercept: List<IrClass>,
-    body: IrBlockBodyBuilder.(IrSimpleFunction, Int) -> Unit,
+    body: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
 ): List<IrSimpleFunction> {
     val annotationFilter = configuration.annotationSelector.toFilter()
     val parameterMap = classesToIntercept.createParametersMapTo(this)
-    var functionId = 0
     val functions = classesToIntercept
         .flatMap { it.overridableFunctions }
-        .groupBy(IrDeclaration::computeSignature)
+        .groupBy { it.computeSignature() }
         .map { (_, functions) ->
             addOverridingMethod(
                 context = pluginContext,
                 functions = functions,
                 parameterMap = parameterMap,
                 annotationFilter = annotationFilter,
-                block = { body(it, functionId++) }
+                block = { body(it) }
             )
         }
     val accessorFunctions = classesToIntercept
         .flatMap { it.overridableProperties }
-        .groupBy(IrDeclaration::computeSignature)
+        .groupBy { it.computeSignature() }
         .flatMap { (_, properties) ->
             addOverridingProperty(
                 context = pluginContext,
                 properties = properties,
                 parameterMap = parameterMap,
                 annotationFilter = annotationFilter,
-                getterBlock = { body(it, functionId++) },
-                setterBlock = { body(it, functionId++) }
+                getterBlock = { body(it) },
+                setterBlock = { body(it) }
             ).let { listOfNotNull(it.getter, it.setter) }
         }
     return functions + accessorFunctions

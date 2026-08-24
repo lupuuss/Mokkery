@@ -6,10 +6,10 @@ import kotlin.reflect.KClass
 @PublishedApi
 internal interface SuperCallsContract : InstanceContract {
 
-    fun mokkerySuperTypes(memberId: Int): List<KClass<*>>
+    fun mokkerySuperTypes(id: Long): List<KClass<*>>
 
-    fun mokkerySuperCall(memberId: Int, superIndex: Int, args: List<Any?>): Any?
+    fun mokkerySuperCall(id: Long, superIndex: Int, args: List<Any?>): Any?
 
-    suspend fun mokkerySuperCallSuspend(memberId: Int, superIndex: Int, args: List<Any?>): Any?
+    suspend fun mokkerySuperCallSuspend(id: Long, superIndex: Int, args: List<Any?>): Any?
 }
 

@@ -1,39 +1,40 @@
 package dev.mokkery.context
 
-import dev.drewhamilton.poko.Poko
-import kotlin.reflect.KClass
+import kotlin.hashCode
 
 /**
  * Argument for a mocked method call. It is a combination of a [parameter] and [value].
  */
-@Poko
-public class CallArgument internal constructor(
-    public val value: Any?,
-    public val parameter: Function.Parameter,
-) {
-
-    @PublishedApi internal constructor(
-        value: Any?,
-        name: String,
-        type: KClass<*>,
-    ) : this(value, Function.Parameter(name, type, false))
-
-    @PublishedApi internal constructor(
-        value: Any?,
-        name: String,
-        type: KClass<*>,
-        isVararg: Boolean,
-    ) : this(value, Function.Parameter(name, type, isVararg))
-
-    internal fun copy(type: KClass<*>): CallArgument {
-        val param = parameter
-        return CallArgument(
-            value = value,
-            parameter = Function.Parameter(
-                name = param.name,
-                type = type,
-                isVararg = param.isVararg
-            )
-        )
-    }
+public interface CallArgument {
+    public val value: Any?
+    public val parameter: Function.Parameter
 }
+
+internal fun CallArgument(
+    value: Any?,
+    parameter: Function.Parameter
+): CallArgument = CallArgumentImpl(value, parameter)
+
+internal abstract class AbstractCallArgument : CallArgument {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CallArgument) return false
+        if (this.value != other.value) return false
+        if (this.parameter != other.parameter) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = value.hashCode()
+        result = 31 * result + parameter.hashCode()
+        return result
+    }
+
+    override fun toString(): String = "CallArgument(value=$value, parameter=$parameter)"
+}
+
+private class CallArgumentImpl(
+    override val value: Any?,
+    override val parameter: Function.Parameter
+) : AbstractCallArgument()

@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 class NotVerifierErrorRendererTest {
 
     private val templateRenderer = TestRenderer<CallTemplate>(MokkeryRendering.callTemplateKey) { "CALL_TEMPLATE" }
-    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callTraceKey) { "CALL_TRACE" }
+    private val traceRenderer = TestRenderer<CallTrace>(MokkeryRendering.callEntryKey) { "CALL_TRACE" }
     private val context = templateRenderer + traceRenderer + MokkeryRendering.Factory.Default
     private val renderer = NotVerifierErrorRenderer
 

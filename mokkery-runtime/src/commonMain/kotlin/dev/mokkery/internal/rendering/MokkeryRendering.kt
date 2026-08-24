@@ -8,6 +8,7 @@ import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
+import dev.mokkery.internal.matcher.CallEntry
 import dev.mokkery.internal.names.AliasMokkeryCollection
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.withShorterNames
@@ -46,8 +47,8 @@ internal val MokkeryRenderingScope.callDescriptorRenderer: Renderer<CallRenderDe
 internal val MokkeryRenderingScope.callTemplateRenderer: Renderer<CallTemplate>
     get() = mokkeryContext.require(MokkeryRendering.callTemplateKey)
 
-internal val MokkeryRenderingScope.callTraceRenderer: Renderer<CallTrace>
-    get() = mokkeryContext.require(MokkeryRendering.callTraceKey)
+internal val MokkeryRenderingScope.callEntryRenderer: Renderer<CallEntry>
+    get() = mokkeryContext.require(MokkeryRendering.callEntryKey)
 
 internal val MokkeryRenderingScope.renderingFactory: MokkeryRendering.Factory
     get() = mokkeryContext.require(MokkeryRendering.Factory)
@@ -77,7 +78,7 @@ internal object MokkeryRendering {
             .plus(functionImpl)
             .plus(instanceIdImpl)
             .plus(callDescriptorImpl)
-            .plus(callTraceImpl)
+            .plus(callEntryImpl)
             .plus(callTemplateImpl)
             .plus(callScopeImpl)
             .memoized()
@@ -88,7 +89,7 @@ internal object MokkeryRendering {
     val functionKey by Renderer.key<FunctionRenderDescriptor>()
     val instanceIdKey by Renderer.key<MokkeryInstanceId>()
     val callDescriptorKey by Renderer.key<CallRenderDescriptor>()
-    val callTraceKey by Renderer.key<CallTrace>()
+    val callEntryKey by Renderer.key<CallEntry>()
     val callTemplateKey by Renderer.key<CallTemplate>()
     val callScopeKey by Renderer.key<MokkeryCallScope>()
 
@@ -97,7 +98,7 @@ internal object MokkeryRendering {
     val functionImpl: Renderer<FunctionRenderDescriptor> = FunctionRenderer()
     val instanceIdImpl: Renderer<MokkeryInstanceId> = MokkeryInstanceIdRenderer()
     val callDescriptorImpl: Renderer<CallRenderDescriptor> = CallDescriptorRenderer()
-    val callTraceImpl: Renderer<CallTrace> = CallTraceRenderer()
+    val callEntryImpl: Renderer<CallEntry> = CallEntryRenderer()
     val callTemplateImpl: Renderer<CallTemplate> = CallTemplateRenderer()
     val callScopeImpl: Renderer<MokkeryCallScope> = CallScopeRenderer()
 
@@ -266,10 +267,10 @@ private class CallTemplateRenderer : Renderer<CallTemplate> {
     override fun render(value: CallTemplate): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
 }
 
-private class CallTraceRenderer : Renderer<CallTrace> {
+private class CallEntryRenderer : Renderer<CallEntry> {
 
-    override val key get() = MokkeryRendering.callTraceKey
+    override val key get() = MokkeryRendering.callEntryKey
 
     context(scope: MokkeryRenderingScope)
-    override fun render(value: CallTrace): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
+    override fun render(value: CallEntry): String = scope.callDescriptorRenderer.render(value.asCallRenderDescriptor())
 }

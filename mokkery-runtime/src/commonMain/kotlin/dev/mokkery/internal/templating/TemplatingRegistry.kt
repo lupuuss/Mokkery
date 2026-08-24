@@ -1,5 +1,6 @@
 package dev.mokkery.internal.templating
 
+import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
@@ -19,9 +20,9 @@ internal interface TemplatingRegistry : MokkeryContext.Element {
     val templates: List<CallTemplate>
 
     fun register(
-        mock: Any,
-        functionName: String,
-        arguments: List<Pair<Function.Parameter, ArgMatcher<Any?>>>
+        scope: MokkeryInstanceScope,
+        functionId: Function.Id,
+        matchers: List<ArgMatcher<Any?>>
     )
 
     companion object Key : MokkeryContext.Key<TemplatingRegistry>
@@ -43,18 +44,16 @@ private class TemplatingRegistryImpl : TemplatingRegistry {
     override val templates: List<CallTemplate> get() = _templates
 
     override fun register(
-        mock: Any,
-        functionName: String,
-        arguments: List<Pair<Function.Parameter, ArgMatcher<Any?>>>
+        scope: MokkeryInstanceScope,
+        functionId: Function.Id,
+        matchers: List<ArgMatcher<Any?>>
     ) {
-        val scope = mock.requireInstanceScope()
         _collection.upsertScope(scope)
         _templates.add(
             CallTemplate(
                 instanceId = scope.instanceId,
-                name = functionName,
-                parameters = arguments.map { it.first },
-                matchers = arguments.associate { it.first.name to it.second },
+                functionId = functionId,
+                matchers = matchers,
             )
         )
     }

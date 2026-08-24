@@ -23,10 +23,10 @@ class AliasMokkeryInstanceCollectionTest {
     private val aliasMocks = instances.withAliasing { it.copy(typeName = it.typeName.removePrefix("package.")) }
 
     private val templates = listOf(
-        fakeCallTemplate(typeName = "package.foo", id = 0),
-        fakeCallTemplate(typeName = "package.foo", id = 0),
-        fakeCallTemplate(typeName = "package.test", id = 1),
-        fakeCallTemplate(typeName = "package.a", id = 2),
+        fakeCallTemplate(typeName = "package.foo", instanceId = 0),
+        fakeCallTemplate(typeName = "package.foo", instanceId = 0),
+        fakeCallTemplate(typeName = "package.test", instanceId = 1),
+        fakeCallTemplate(typeName = "package.a", instanceId = 2),
     )
     private val traces = listOf(
         fakeCallTrace(typeName = "package.foo", id = 0, orderStamp = 1),
@@ -38,10 +38,10 @@ class AliasMokkeryInstanceCollectionTest {
     @Test
     fun testAliasTemplatesWithShorterNames() {
         val expectedTemplates = listOf(
-            fakeCallTemplate(typeName = "foo", id = 0),
-            fakeCallTemplate(typeName = "foo", id = 0),
-            fakeCallTemplate(typeName = "test", id = 1),
-            fakeCallTemplate(typeName = "a", id = 2),
+            fakeCallTemplate(typeName = "foo", instanceId = 0),
+            fakeCallTemplate(typeName = "foo", instanceId = 0),
+            fakeCallTemplate(typeName = "test", instanceId = 1),
+            fakeCallTemplate(typeName = "a", instanceId = 2),
         )
         assertEquals(expectedTemplates, aliasMocks.aliasTemplates(templates))
     }

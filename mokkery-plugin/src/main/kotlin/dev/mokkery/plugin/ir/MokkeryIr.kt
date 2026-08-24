@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.Mokkery.dev_mokkery
 import dev.mokkery.plugin.Mokkery.dev_mokkery_annotations
-import dev.mokkery.plugin.Mokkery.dev_mokkery_context
 import dev.mokkery.plugin.Mokkery.dev_mokkery_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
@@ -56,14 +55,13 @@ object MokkeryIr {
         val MutableMokkerySpyScope by dev_mokkery_internal.refClass
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
-        val CallArgument by dev_mokkery_context.refClass
-        val FunctionParameter = dev_mokkery_context.refNestedClass("Function", "Parameter")
         val SuiteName by dev_mokkery_internal_context.refClass
 
         val MokkeryTemplatingScope by dev_mokkery_templating.refClass
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsContract by dev_mokkery_internal_contracts.refClass
+        val MemberFunctionsContract by dev_mokkery_internal_contracts.refClass
         val SpyCallsContract by dev_mokkery_internal_contracts.refClass
         val SuperCallsContract by dev_mokkery_internal_contracts.refClass
         val LambdaSpyCallsContract by dev_mokkery_internal_contracts.refClass
@@ -98,7 +96,6 @@ object MokkeryIr {
         val internalVerifyNoMoreCalls by dev_mokkery_internal.refFunction
         val runTemplate by dev_mokkery_internal_templating.refFunction
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
-        val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
         val instanceFactoryScope by dev_mokkery_internal_factory.refFunction
@@ -117,6 +114,8 @@ object MokkeryIr {
         val interceptCall by dev_mokkery_internal.refFunction
         val interceptCallSuspend by dev_mokkery_internal.refFunction
         val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction
+        val createFunction by dev_mokkery_internal_context.refFunction
+        val createFunctionParameter by dev_mokkery_internal_context.refFunction
     }
 
     object Property {

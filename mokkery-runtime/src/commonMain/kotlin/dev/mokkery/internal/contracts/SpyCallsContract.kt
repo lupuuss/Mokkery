@@ -4,7 +4,7 @@ package dev.mokkery.internal.contracts
 @PublishedApi
 internal interface SpyCallsContract : InstanceContract {
 
-    fun mokkerySpyCall(memberId: Int, args: List<Any?>): Any?
+    fun mokkerySpyCall(id: Long, args: List<Any?>): Any?
 
-    suspend fun mokkerySpyCallSuspend(memberId: Int, args: List<Any?>): Any?
+    suspend fun mokkerySpyCallSuspend(id: Long, args: List<Any?>): Any?
 }

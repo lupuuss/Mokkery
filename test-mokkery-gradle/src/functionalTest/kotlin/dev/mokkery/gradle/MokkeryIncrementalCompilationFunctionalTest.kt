@@ -290,7 +290,7 @@ private const val addedMember = "fun added(value: Double): Boolean"
 private val mockUserNames = listOf("MockUserA", "MockUserB", "MockUserC")
 
 @Language("kts")
-private fun settingsScript(kotlinPlugin: String) = """
+fun settingsScript(kotlinPlugin: String) = """
     pluginManagement {
         val kotlinVersion: String by settings
         val mokkeryVersion: String by settings

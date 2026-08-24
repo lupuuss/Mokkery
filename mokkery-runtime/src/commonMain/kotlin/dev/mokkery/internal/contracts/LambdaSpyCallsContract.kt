@@ -10,12 +10,12 @@ internal class LambdaSpyCallsContract(
     private val suspending: (suspend (List<Any?>) -> Any?)?,
 ) : SpyCallsContract {
 
-    override fun mokkerySpyCall(memberId: Int, args: List<Any?>): Any? {
+    override fun mokkerySpyCall(id: Long, args: List<Any?>): Any? {
         val lambda = blocking ?: mokkeryRuntimeError("Blocking spy call dispatched to a suspend lambda mock!")
         return lambda(args)
     }
 
-    override suspend fun mokkerySpyCallSuspend(memberId: Int, args: List<Any?>): Any? {
+    override suspend fun mokkerySpyCallSuspend(id: Long, args: List<Any?>): Any? {
         val lambda = suspending ?: mokkeryRuntimeError("Suspend spy call dispatched to a blocking lambda mock!")
         return lambda(args)
     }

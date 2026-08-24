@@ -3,12 +3,13 @@ package dev.mokkery.internal.verify.render
 import dev.mokkery.context.CallArgument
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
-import dev.mokkery.rendering.Renderer
+import dev.mokkery.internal.rendering.function
 import dev.mokkery.internal.rendering.mokkeryCollection
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderer
 import dev.mokkery.rendering.argMatcherRenderer
 import dev.mokkery.rendering.descriptionRenderer
 
@@ -19,7 +20,7 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
     context(scope: MokkeryRenderingScope)
     override fun render(value: Pair<CallTemplate, CallTrace>): String {
         val (template, trace) = value
-        val defaultMatchersCount = template.matchers.values.count { it is DefaultValuesMatcher }
+        val defaultMatchersCount = template.matchers.count { it is DefaultValuesMatcher }
         val nonDefaultMatchersCount = template.matchers.size - defaultMatchersCount
         val materializedTemplate = when {
             defaultMatchersCount == 0 -> template
@@ -27,12 +28,16 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
             trace.countNonDefaultMatching(template) == nonDefaultMatchersCount -> scope.tools
                 .defaultsMaterializerFactory
                 .create(scope.mokkeryCollection)
-                .materialize(trace, template)
+                .materialize(template, trace)
             else -> template
         }
+        val parameters = scope
+            .function(trace.instanceId, trace.functionId)
+            .parameters
         return buildString {
-            trace.args.forEach {
-                append(it.describeMatchingAgainst(materializedTemplate.matchers[it.parameter.name]))
+            parameters.forEachIndexed { index, parameter ->
+                val arg = CallArgument(trace.args.getOrNull(index), parameter)
+                append(arg.describeMatchingAgainst(materializedTemplate.matchers.getOrNull(index)))
             }
         }
     }
@@ -63,9 +68,11 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
         }
     }
 
-    private fun CallTrace.countNonDefaultMatching(template: CallTemplate): Int = args.count { arg ->
-        val matcher = template.matchers[arg.parameter.name]
-        if (matcher is DefaultValuesMatcher) return@count false
-        matcher?.matches(arg.value) == true
-    }
+    private fun CallTrace.countNonDefaultMatching(template: CallTemplate): Int = args
+        .withIndex()
+        .count { (index, arg) ->
+            val matcher = template.matchers.getOrNull(index)
+            if (matcher is DefaultValuesMatcher) return@count false
+            matcher?.matches(arg) == true
+        }
 }

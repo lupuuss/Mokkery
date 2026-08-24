@@ -6,41 +6,36 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
+import dev.mokkery.plugin.ir.mokkeryFunctionId
+import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
-import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
-import org.jetbrains.kotlin.ir.builders.irInt
+import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
-import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -162,53 +157,29 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
             arguments[0] = irGet(func.parameters[0])
             arguments[1] = dispatchReceiver
             arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
-            arguments[3] = irString(memberFunction.name.asString())
-            arguments[4] = when {
+            arguments[3] = irLong(memberFunction.mokkeryFunctionId)
+            arguments[4] = irString(memberFunction.name.asString())
+            arguments[5] = when {
                 !memberFunction.hasNonDispatchParameters() -> irNull()
-                else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
-                    val typeParameters = dispatchReceiver
-                        .type
-                        .classOrFail
-                        .owner
-                        .typeParameters
-                    +irReturn(irCallListOfTemplatingArguments(it, memberFunction, typeParameters))
+                else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
+                    +irReturn(irCallListOfAnyMatchers(memberFunction))
                 }
             }
-            arguments[5] = irNull()
+            arguments[6] = irNull()
         }
     }
 
 }
 
 context(scope: TransformerScope)
-private fun IrBuilderWithScope.irCallListOfTemplatingArguments(
-    lambda: IrSimpleFunction,
-    function: IrSimpleFunction,
-    parentClassTypeParameters: List<IrTypeParameter>,
-): IrCall {
-    val functionParameterFun = referenced(MokkeryIr.Function.templatingFunctionParameter)
+private fun IrBuilderWithScope.irCallListOfAnyMatchers(function: IrSimpleFunction): IrCall {
     val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
     val anyMatcherObject = argMatcherClass
         .nestedClasses
         .single { it.name.asString() == "Any" }
-    return irCallListOfPairs(
-        pairs = function.nonDispatchParameters.memoryOptimizedMap {
-            val param = irCall(functionParameterFun) {
-                arguments[0] = irGet(lambda.parameters[0])
-                arguments[1] = irGet(lambda.parameters[1])
-                arguments[2] = irString(it.name.asString())
-                arguments[3] = irBoolean(it.isVararg)
-                val typeParam = it.type.asTypeParamOrNull()
-                if (typeParam in parentClassTypeParameters) {
-                    arguments[5] = irInt(typeParam!!.index)
-                } else {
-                    arguments[4] = kClassReference(it.type.eraseTypeParameters())
-                }
-            }
-            param to irGetObject(anyMatcherObject.symbol)
-        },
-        firstType = referencedDefaultType(MokkeryIr.Class.FunctionParameter),
-        secondType = argMatcherClass.typeWith(irBuiltIns.anyNType)
+    return irCallListOf(
+        type = argMatcherClass.typeWith(irBuiltIns.anyNType),
+        elements = function.nonDispatchParameters.memoryOptimizedMap { irGetObject(anyMatcherObject.symbol) }
     )
 }
 

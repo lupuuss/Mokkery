@@ -1,21 +1,18 @@
 package dev.mokkery.internal.defaults
 
-import dev.mokkery.context.CallArgument
-import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MutableMokkeryInstanceScope
-import dev.mokkery.internal.instanceId
 import dev.mokkery.internal.matcher.DefaultValuesMatcher
 import dev.mokkery.internal.matcher.MaterializedDefaultValueMatcher
-import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeFunParam
+import dev.mokkery.test.fakeFunction
 import dev.mokkery.MokkeryRuntimeException
-import dev.mokkery.internal.contracts.DefaultsContract
 import dev.mokkery.test.TestInstanceContracts
+import dev.mokkery.test.fakeCallEntry
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -26,31 +23,21 @@ class DefaultsMaterializerTest {
     private object FakeExtractor : MutableMokkeryInstanceScope {
         override var mokkeryContext: MokkeryContext = MokkeryContext.Empty
     }
-    private val scope = TestMokkeryInstanceScope(context = TestInstanceContracts(defaultsExtractor = FakeExtractor))
+
+    private val scope = TestMokkeryInstanceScope(
+        functions = listOf(fakeFunction("call", parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<String>("j")))),
+        context = TestInstanceContracts(defaultsExtractor = FakeExtractor),
+    )
     private val instances = MokkeryCollection(listOf(scope))
     private val materializer = DefaultsMaterializer(instances)
-    private val trace = CallTrace(
-        instanceId = scope.instanceId,
-        name = "call",
-        args = listOf(
-            CallArgument(1, "i", Int::class, false),
-            CallArgument("Hello!", "j", String::class, false),
-        ),
-        orderStamp = 0
-    )
+    private val entry = fakeCallEntry(name = "call", args = listOf(1, "Hello!"))
+
+    private fun template(vararg matchers: ArgMatcher<Any?>) = fakeCallTemplate(*matchers, name = "call")
 
     @Test
     fun testReturnsIdentityWhenNoDefaultMatchers() {
-        val template = CallTemplate(
-            instanceId = scope.instanceId,
-            name = "call",
-            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
-            matchers = mapOf(
-                "i" to ArgMatcher.Equals(1),
-                "j" to ArgMatcher.Any
-            )
-        )
-        assertEquals(template, materializer.materialize(trace, template))
+        val template = template(ArgMatcher.Equals(1), ArgMatcher.Any)
+        assertEquals(template, materializer.materialize(template, entry))
     }
 
     @Test
@@ -62,51 +49,39 @@ class DefaultsMaterializerTest {
             argumentsPassed = args
             throw ArgumentsExtractedException(listOf(1, "Materialized!"))
         }
-        val template = CallTemplate(
-            instanceId = scope.instanceId,
-            name = "call",
-            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
-            matchers = mapOf(
-                "i" to ArgMatcher.Equals(1),
-                "j" to DefaultValuesMatcher(
-                    mask = 0b10L,
-                    extractingFunction = caller,
-                    isExtractingFunctionSuspend = false
-                )
+        val template = template(
+            ArgMatcher.Equals(1),
+            DefaultValuesMatcher(
+                mask = 0b10L,
+                extractingFunction = caller,
+                isExtractingFunctionSuspend = false
             )
         )
-        val resultTemplate = materializer.materialize(trace, template)
+        val resultTemplate = materializer.materialize(template, entry)
         assertEquals(template.instanceId, resultTemplate.instanceId)
-        assertEquals(template.name, resultTemplate.name)
-        assertEquals(template.parameters, resultTemplate.parameters)
+        assertEquals(template.functionId, resultTemplate.functionId)
         assertEquals(FakeExtractor, objectPassed)
-        assertEquals(trace.args.map { it.value }, argumentsPassed)
-        val expectedMatchers = mapOf<String, ArgMatcher<Int>>(
-            "i" to ArgMatcher.Equals(1),
-            "j" to MaterializedDefaultValueMatcher("Materialized!")
+        assertEquals(entry.args, argumentsPassed)
+        assertEquals<List<ArgMatcher<Any?>>>(
+            listOf(ArgMatcher.Equals(1), MaterializedDefaultValueMatcher("Materialized!")),
+            resultTemplate.matchers
         )
-        assertEquals(expectedMatchers, resultTemplate.matchers)
     }
 
     @Test
     fun testFailsWithMokkeryErrorWhenMaskYieldsFewerDefaultsThanMatchers() {
-        val template = CallTemplate(
-            instanceId = scope.instanceId,
-            name = "call",
-            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
-            matchers = mapOf(
-                "i" to ArgMatcher.Equals(1),
-                "j" to DefaultValuesMatcher(
-                    // no bit set, so nothing is extracted despite the matcher expecting a default
-                    mask = 0L,
-                    extractingFunction = { _: Any, _: List<Any?> ->
-                        throw ArgumentsExtractedException(listOf(1, "Materialized!"))
-                    },
-                    isExtractingFunctionSuspend = false
-                )
+        val template = template(
+            ArgMatcher.Equals(1),
+            DefaultValuesMatcher(
+                // no bit set, so nothing is extracted despite the matcher expecting a default
+                mask = 0L,
+                extractingFunction = { _: Any, _: List<Any?> ->
+                    throw ArgumentsExtractedException(listOf(1, "Materialized!"))
+                },
+                isExtractingFunctionSuspend = false
             )
         )
-        val exception = assertFailsWith<MokkeryRuntimeException> { materializer.materialize(trace, template) }
+        val exception = assertFailsWith<MokkeryRuntimeException> { materializer.materialize(template, entry) }
         assertContains(exception.message.orEmpty(), "Failed to materialize the default value of `j` in `call`!")
     }
 
@@ -119,29 +94,22 @@ class DefaultsMaterializerTest {
             argumentsPassed = args
             throw ArgumentsExtractedException(listOf(3, "Hello!"))
         }
-        val template = CallTemplate(
-            instanceId = scope.instanceId,
-            name = "call",
-            parameters = listOf(fakeFunParam<Int>("i"), fakeFunParam<Int>("j")),
-            matchers = mapOf(
-                "i" to DefaultValuesMatcher(
-                    mask = 0b01L,
-                    extractingFunction = caller,
-                    isExtractingFunctionSuspend = true
-                ),
-                "j" to ArgMatcher.Equals("Hello!")
-            )
+        val template = template(
+            DefaultValuesMatcher(
+                mask = 0b01L,
+                extractingFunction = caller,
+                isExtractingFunctionSuspend = true
+            ),
+            ArgMatcher.Equals("Hello!")
         )
-        val resultTemplate = materializer.materialize(trace, template)
+        val resultTemplate = materializer.materialize(template, entry)
         assertEquals(template.instanceId, resultTemplate.instanceId)
-        assertEquals(template.name, resultTemplate.name)
-        assertEquals(template.parameters, resultTemplate.parameters)
+        assertEquals(template.functionId, resultTemplate.functionId)
         assertEquals(FakeExtractor, objectPassed)
-        assertEquals(trace.args.map { it.value }, argumentsPassed)
-        val expectedMatchers = mapOf<String, ArgMatcher<Int>>(
-            "i" to MaterializedDefaultValueMatcher(3),
-            "j" to ArgMatcher.Equals("Hello!")
+        assertEquals(entry.args, argumentsPassed)
+        assertEquals<List<ArgMatcher<Any?>>>(
+            listOf(MaterializedDefaultValueMatcher(3), ArgMatcher.Equals("Hello!")),
+            resultTemplate.matchers
         )
-        assertEquals(expectedMatchers, resultTemplate.matchers)
     }
 }

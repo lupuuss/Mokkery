@@ -15,6 +15,8 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
+import dev.mokkery.plugin.ir.mokkeryFunctionId
+import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSet
@@ -37,7 +40,6 @@ import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
-import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
@@ -59,6 +61,11 @@ fun buildMockJsFunction(
                 irType = typeToMock,
                 isMutable = true
             )
+            val invokeFunctionId = typeToMock
+                .classOrFail
+                .owner
+                .requireSimpleFunctionOwner("invoke")
+                .mokkeryFunctionId
             val spiedVar = when (kind) {
                 IrMokkeryKind.Spy -> createTmpVariable(expression.arguments[regularMockParams[0]]!!)
                 IrMokkeryKind.Mock -> null
@@ -68,9 +75,8 @@ fun buildMockJsFunction(
                 +irReturn(
                     irInterceptMockCall(
                         mokkeryInstance = { irCall(scopeGetter) { arguments[0] = irGet(self) } },
-                        typeParamsContainer = typeToMock.classOrFail.owner,
-                        function = it,
-                        functionId = 0
+                        functionId = invokeFunctionId,
+                        function = it
                     )
                 )
             }
@@ -93,7 +99,24 @@ fun buildMockJsFunction(
                 arguments[7] = spiedVar
                     ?.let { irLambdaSpyCallDispatcher(irGet(it), lambda.function) }
                     ?: irNull()
-                arguments[8] = expression.arguments[regularMockParams[1]] ?: irNull()
+                val functionProviderType = irBuiltIns
+                    .functionN(0)
+                    .typeWith(listOf(referenced(MokkeryIr.Function.createFunction).returnType))
+                arguments[8] = irLambdaOf(functionProviderType) {
+                    +irReturn(
+                        irCallCreateFunction(
+                            mokkeryInstance = {
+                                irCall(referencedGetter(MokkeryIr.Property.jsFunctionMokkeryScope)) {
+                                    arguments[0] = irGet(lambdaVar)
+                                }
+                            },
+                            typeParamsContainer = typeToMock.classOrFail.owner,
+                            function = lambda.function,
+                            functionId = irLong(invokeFunctionId),
+                        )
+                    )
+                }
+                arguments[9] = expression.arguments[regularMockParams[1]] ?: irNull()
             }
             +irGet(lambdaVar)
         }

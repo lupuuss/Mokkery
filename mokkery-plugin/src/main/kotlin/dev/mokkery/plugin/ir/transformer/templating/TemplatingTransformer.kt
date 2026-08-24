@@ -9,17 +9,16 @@ import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
-import dev.mokkery.plugin.ir.asTypeParamOrNull
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
+import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallEqMatcher
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.core.irCallListOfPairs
 import org.jetbrains.kotlin.backend.common.ir.inline
 import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.Modality
@@ -30,7 +29,6 @@ import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
@@ -47,15 +45,12 @@ import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isVararg
@@ -73,9 +68,7 @@ class TemplatingTransformer(
     private val templatingScopeParam: IrValueParameter,
 ) : CoreTransformer(pluginScope) {
 
-    private val functionParameterClass = referenced(MokkeryIr.Class.FunctionParameter)
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    private val templatingParameterFun = referenced(MokkeryIr.Function.templatingFunctionParameter)
     private val defaultValuesMatcherConstructor = referencedPrimaryConstructor(MokkeryIr.Class.DefaultValuesMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
     private val runTemplateSuspendFun = referenced(MokkeryIr.Function.runTemplateSuspend)
@@ -106,16 +99,17 @@ class TemplatingTransformer(
                     arguments[0] = irGet(templatingScopeParam)
                     arguments[1] = irGet(receiverVar)
                     arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
-                    arguments[3] = irString(functionToReplace.name.asString())
-                    arguments[4] = when {
+                    arguments[3] = irLong(functionToReplace.mokkeryFunctionId)
+                    arguments[4] = irString(functionToReplace.name.asString())
+                    arguments[5] = when {
                         !functionToReplace.hasNonDispatchParameters() -> irNull()
-                        else -> irLambdaOf(runTemplateFun.parameters[4].type.makeNotNull()) {
+                        else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
                             createTemplatingArgumentsLambdaBody(it, expression)
                         }
                     }
-                    arguments[5] = when {
+                    arguments[6] = when {
                         expression.usesMatchers -> irNull()
-                        else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull().substitute(substitution)) {
+                        else -> irLambdaOf(runTemplateFun.parameters[6].type.makeNotNull().substitute(substitution)) {
                             val original = expression.deepCopyWithSymbols(initialParent = it)
                             original.arguments[0] = irGet(receiverVar)
                             +irReturn(original)
@@ -145,28 +139,15 @@ class TemplatingTransformer(
             else -> null
         }
         +irReturn(
-            irCallListOfPairs(
-                pairs = calledFunc.nonDispatchParameters.memoryOptimizedMap {
-                    val param = irCall(templatingParameterFun) {
-                        arguments[0] = irGet(lambda.parameters[0])
-                        arguments[1] = irGet(lambda.parameters[1])
-                        arguments[2] = irString(it.name.asString())
-                        arguments[3] = irBoolean(it.isVararg)
-                        val typeParam = it.type.asTypeParamOrNull()
-                        if (typeParam in expression.arguments[0]!!.type.classOrFail.owner.typeParameters) {
-                            arguments[5] = irInt(typeParam!!.index)
-                        } else {
-                            arguments[4] = kClassReference(it.type.eraseTypeParameters())
-                        }
-                    }
+            irCallListOf(
+                type = argMatcherClass.typeWith(irBuiltIns.anyNType),
+                elements = calledFunc.nonDispatchParameters.memoryOptimizedMap {
                     val argument = expression
                         .arguments[it]
                         ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
                         ?.patchDeclarationParents(lambda)
-                    param to replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
-                },
-                firstType = functionParameterClass.defaultType,
-                secondType = argMatcherClass.typeWith(context.irBuiltIns.anyNType)
+                    replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
+                }
             )
         )
     }
