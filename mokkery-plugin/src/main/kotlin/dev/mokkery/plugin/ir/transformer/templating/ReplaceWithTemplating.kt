@@ -17,6 +17,7 @@ import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -155,7 +156,10 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
         +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
             typeArguments[0] = originalCall.typeArguments[0]
             arguments[0] = irGet(func.parameters[0])
-            arguments[1] = dispatchReceiver
+            arguments[1] = when (memberFunction.modality) {
+                Modality.FINAL -> irCallCheckMockFinalMemberCall(dispatchReceiver, memberFunction)
+                else -> dispatchReceiver
+            }
             arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
             arguments[3] = irLong(memberFunction.mokkeryFunctionId)
             arguments[4] = irString(memberFunction.name.asString())
@@ -169,6 +173,16 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
         }
     }
 
+}
+
+context(scope: TransformerScope)
+private fun IrBuilderWithScope.irCallCheckMockFinalMemberCall(
+    receiver: IrExpression,
+    memberFunction: IrSimpleFunction,
+): IrExpression = irCall(referenced(MokkeryIr.Function.checkMockFinalMemberCall), receiver.type) {
+    arguments[0] = receiver
+    arguments[1] = irString(memberFunction.name.asString())
+    typeArguments[0] = receiver.type
 }
 
 context(scope: TransformerScope)

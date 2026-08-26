@@ -100,6 +100,14 @@ class TemplatingTest {
     }
 
     @Test
+    fun testFinalMockCallInEveryWithFunctionReference() {
+        val mock = mock<AbstractClassLevel1>()
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {
+            every(mock::finalMethod)
+        }
+    }
+
+    @Test
     fun testInlineMockCallInEveryBlock() {
         val mock = mock<AbstractClassLevel1>()
         assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "inlineMethod") {
@@ -481,6 +489,18 @@ class TemplatingTest {
             verify {
                 list[mock.callPrimitive(1)]
             }
+        }
+    }
+
+    @Test
+    fun testFailsWhenFunctionReferenceUsedWithNonMockOverridableType() {
+        assertMokkeryError(
+            """
+                Call to `get` was expected to be performed on a mock of List type, but the receiver was not a mock - it was an instance of EmptyList type => []
+            """.trimIndent()
+        ) {
+            val list = listOf<Int>()
+            every(list::get)
         }
     }
 
