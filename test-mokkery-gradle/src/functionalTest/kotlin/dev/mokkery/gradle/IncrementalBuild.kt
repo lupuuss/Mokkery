@@ -1,49 +1,34 @@
 package dev.mokkery.gradle
 
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 
-class IncrementalBuild(
-    private val projectDir: File,
-    private val properties: Map<String, String> = emptyMap(),
-) {
+fun incrementalBuild(projectDir: File, configure: GradleBuild.() -> Unit) = IncrementalBuild(projectDir, configure)
+
+class IncrementalBuild(projectDir: File, configure: GradleBuild.() -> Unit) {
 
     private val reportsDir = projectDir.resolve("build-reports")
 
-    fun file(path: String, content: String) {
-        projectDir
-            .resolve(path)
-            .apply { parentFile.mkdirs() }
-            .writeText(content.trimIndent())
+    private val build = gradleBuild(projectDir) {
+        property("kotlin.incremental", "true")
+        property("kotlin.build.report.output", "file")
+        property("kotlin.build.report.file.output_dir", reportsDir.invariantSeparatorsPath)
+        property("kotlin.build.report.verbose", "true")
+        configure()
     }
 
-    fun delete(path: String) {
-        check(projectDir.resolve(path).delete()) { "Failed to delete $path" }
-    }
+    fun file(path: String, content: String) = build.file(path, content)
 
-    fun build(vararg tasks: String) = run(tasks, GradleRunner::build)
+    fun delete(path: String) = build.delete(path)
 
-    fun buildAndFail(vararg tasks: String) = run(tasks, GradleRunner::buildAndFail)
+    fun build(vararg tasks: String) = run { build.build(*tasks) }
 
-    private fun run(tasks: Array<out String>, execute: (GradleRunner) -> BuildResult): IncrementalBuildResult {
+    fun buildAndFail(vararg tasks: String) = run { build.buildAndFail(*tasks) }
+
+    private fun run(execute: () -> BuildResult): IncrementalBuildResult {
         reportsDir.deleteRecursively()
-        val runner = GradleRunner
-            .create()
-            .withProjectDir(projectDir)
-            .withArguments(tasks.toList() + buildArguments())
-            .forwardOutput()
-        return IncrementalBuildResult(execute(runner), compiledSourcesByTask())
+        return IncrementalBuildResult(execute(), compiledSourcesByTask())
     }
-
-    private fun buildArguments() = properties.map { (name, value) -> "-P$name=$value" } + listOf(
-        "-Porg.gradle.jvmargs=-Xmx1g",
-        "-Pkotlin.daemon.jvmargs=-Xmx1g",
-        "-Pkotlin.incremental=true",
-        "-Pkotlin.build.report.output=file",
-        "-Pkotlin.build.report.file.output_dir=${reportsDir.invariantSeparatorsPath}",
-        "-Pkotlin.build.report.verbose=true",
-    )
 
     private fun compiledSourcesByTask(): Map<String, Set<String>> = reportsDir
         .listFiles()
@@ -64,11 +49,8 @@ class IncrementalBuild(
         .splitToSequence(COMPILE_ITERATION)
         .drop(1)
         .flatMap { it.lineSequence().drop(1).takeWhile { line -> line.startsWith(SOURCE_INDENT) } }
-        .map { it.trim().substringBefore(" <- ").toProjectPath() }
+        .map { build.projectPathOf(File(it.trim().substringBefore(" <- "))) }
         .toSet()
-
-    private fun String.toProjectPath() = replace(File.separatorChar, '/')
-        .removePrefix("${projectDir.invariantSeparatorsPath}/")
 }
 
 class IncrementalBuildResult(

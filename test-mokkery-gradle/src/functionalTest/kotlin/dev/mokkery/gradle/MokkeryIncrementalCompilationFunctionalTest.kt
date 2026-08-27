@@ -231,14 +231,8 @@ class MokkeryIncrementalCompilationFunctionalTest {
         assertEquals(emptySet(), result.compiledSources(jvm.testCompilation))
     }
 
-    private fun Target.project(kotlinVersion: String = MokkeryConfig.MINIMUM_KOTLIN_VERSION) = IncrementalBuild(
-        projectDir = projectDir,
-        properties = mapOf(
-            "kotlinVersion" to kotlinVersion,
-            "mokkeryVersion" to MokkeryConfig.VERSION,
-        ),
-    ).apply {
-        file("settings.gradle.kts", settingsScript(kotlinPlugin))
+    private fun Target.project(kotlinVersion: String = MokkeryConfig.MINIMUM_KOTLIN_VERSION) = incrementalBuild(projectDir) {
+        settings(kotlinPlugin, projectName = "ic-test", kotlinVersion = kotlinVersion)
         file("build.gradle.kts", buildScript)
         file(mainSource("Shared"), sharedInterface())
         file(mainSource("Unrelated"), unrelatedClass(value = 1))
@@ -288,41 +282,6 @@ private const val packageDir = "dev/mokkery/ic"
 private const val addedMember = "fun added(value: Double): Boolean"
 
 private val mockUserNames = listOf("MockUserA", "MockUserB", "MockUserC")
-
-@Language("kts")
-fun settingsScript(kotlinPlugin: String) = """
-    pluginManagement {
-        val kotlinVersion: String by settings
-        val mokkeryVersion: String by settings
-        plugins {
-            kotlin("$kotlinPlugin") version kotlinVersion
-            id("dev.mokkery") version mokkeryVersion
-        }
-        repositories {
-            mavenCentral {
-                content { excludeGroup("dev.mokkery") }
-            }
-            maven {
-                name = "testing"
-                url = uri("${BuildConfig.TESTING_REPO_URL}")
-            }
-        }
-    }
-
-    dependencyResolutionManagement {
-        repositories {
-            mavenCentral {
-                content { excludeGroup("dev.mokkery") }
-            }
-            maven {
-                name = "testing"
-                url = uri("${BuildConfig.TESTING_REPO_URL}")
-            }
-        }
-    }
-
-    rootProject.name = "ic-test"
-"""
 
 @Language("kts")
 private val jvmBuildScript = """
