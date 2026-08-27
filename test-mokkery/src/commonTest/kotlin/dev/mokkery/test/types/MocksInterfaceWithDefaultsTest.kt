@@ -11,8 +11,6 @@ import dev.mokkery.templating.ext
 import dev.mokkery.mock
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.DefaultsInterfaceLevel1
-import dev.mokkery.test.DefaultsInterfaceLevel2
-import dev.mokkery.test.ignoreOnJs
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import kotlinx.coroutines.test.runTest
@@ -62,7 +60,7 @@ class MocksInterfaceWithDefaultsTest {
     }
 
     @Test
-    fun testExtPropertyDefault() = ignoreOnJs("Calling supers of extension functions from IR is not supported on JS") {
+    fun testExtPropertyDefault() {
         every { mock.ext { any<Int>().extProperty } } calls original
         every { mock.ext { any<Int>().extProperty = any<Double>() } } calls original
         assertEquals(1.0, mock.run { 1.extProperty })
@@ -92,19 +90,18 @@ class MocksInterfaceWithDefaultsTest {
     }
 
     @Test
-    fun testExtPropertyGenericDefaults() =
-        ignoreOnJs("Calling supers of extension functions from IR is not supported on JS") {
-            every { mock.ext { any<String>().extPropertyGeneric } } calls original
-            every { mock.ext { any<String>().extPropertyGeneric = any<String>() } } calls original
-            assertEquals("1", mock.run { "1".extPropertyGeneric })
-            mock.run { "2".extPropertyGeneric = "2" }
-            verify {
-                mock.ext {
-                    "1".extPropertyGeneric
-                    "2".extPropertyGeneric = "2"
-                }
+    fun testExtPropertyGenericDefaults() {
+        every { mock.ext { any<String>().extPropertyGeneric } } calls original
+        every { mock.ext { any<String>().extPropertyGeneric = any<String>() } } calls original
+        assertEquals("1", mock.run { "1".extPropertyGeneric })
+        mock.run { "2".extPropertyGeneric = "2" }
+        verify {
+            mock.ext {
+                "1".extPropertyGeneric
+                "2".extPropertyGeneric = "2"
             }
         }
+    }
 
     @Test
     fun testCall() {
@@ -148,12 +145,10 @@ class MocksInterfaceWithDefaultsTest {
 
     @Test
     fun testCallExtensionDefaults() = runTest {
-        ignoreOnJs("Calling supers of extension functions from IR is not supported on JS") {
-            everySuspend { mock.ext { any<Int>().callExtension(any()) } } calls original
-            assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
-            everySuspend { mock.ext { any<Int>().callExtension(any()) } } calls superOf<DefaultsInterfaceLevel1<*>>()
-            assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
-            verifySuspend { mock.ext { 1.callExtension(ComplexType) } }
-        }
+        everySuspend { mock.ext { any<Int>().callExtension(any()) } } calls original
+        assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
+        everySuspend { mock.ext { any<Int>().callExtension(any()) } } calls superOf<DefaultsInterfaceLevel1<*>>()
+        assertEquals(ComplexType("1"), mock.run { 1.callExtension(ComplexType) })
+        verifySuspend { mock.ext { 1.callExtension(ComplexType) } }
     }
 }
