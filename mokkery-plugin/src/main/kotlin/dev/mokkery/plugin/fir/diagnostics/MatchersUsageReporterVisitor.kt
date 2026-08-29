@@ -413,17 +413,26 @@ class MatchersUsageReporterVisitor(
 
     private fun reportIllegalVarargMatchers(
         call: FirFunctionCall,
-        vararg: FirVarargArgumentsExpression
+        vararg: FirVarargArgumentsExpression,
+        allowArrayLiteral: Boolean = true,
     ): Unit = context(context) {
+        val soleArrayLiteralCall = vararg
+            .arguments
+            .singleOrNull()
+            ?.takeIf { allowArrayLiteral && it.isSpread() }
+            ?.extractArrayLiteralCall(session)
+        if (soleArrayLiteralCall != null) {
+            legalizedNonMemberFunctionWithMatchers += soleArrayLiteralCall
+            reportIllegalVarargMatchers(
+                call = call,
+                vararg = soleArrayLiteralCall.arguments[0] as FirVarargArgumentsExpression,
+                allowArrayLiteral = false,
+            )
+            return@context
+        }
         var varargMatchersCount = 0
         for (arg in vararg.arguments) {
             if (!arg.isSpread()) continue
-            val arrayLiteralCall = arg.extractArrayLiteralCall(session)
-            if (arrayLiteralCall != null) {
-                legalizedNonMemberFunctionWithMatchers += arrayLiteralCall
-                reportIllegalVarargMatchers(call, arrayLiteralCall.arguments[0] as FirVarargArgumentsExpression)
-                continue
-            }
             if (matchersProcessor.isMatcher(arg) && varargMatchersCount++ > 0) {
                 reporter.reportOn(arg.source, Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED)
             }
