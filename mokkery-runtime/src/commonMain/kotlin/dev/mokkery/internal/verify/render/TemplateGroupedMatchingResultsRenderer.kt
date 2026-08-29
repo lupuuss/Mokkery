@@ -16,13 +16,15 @@ internal object TemplateGroupedMatchingResultsRenderer : Renderer<TemplateGroupe
 
     private val traceIndentationString = indentationString(INDENT)
 
+    private val renderedGroups = CallMatchResult.entries - CallMatchResult.NotMatching
+
     override val key get() = VerifyRendering.templateGroupedMatchingResults
 
     context(scope: MokkeryRenderingScope)
     override fun render(value: TemplateGroupedMatchingResults): String = buildString {
         val (template, results) = value
         appendLine("Results for ${scope.instanceIdRenderer.render(value.template.instanceId)}:")
-        if (results.all { (_, value) -> value.isEmpty() }) {
+        if (renderedGroups.all { results[it].isNullOrEmpty() }) {
             appendLine("# No calls to this mock!")
             return@buildString
         }

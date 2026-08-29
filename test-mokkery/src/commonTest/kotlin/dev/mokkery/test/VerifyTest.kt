@@ -2,6 +2,7 @@ package dev.mokkery.test
 
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.mokkeryInternals
 import dev.mokkery.internal.resetMocksCounter
@@ -206,6 +207,38 @@ class VerifyTest {
         verify(exhaustive) {
             mock.callPrimitive(1)
             mock.callPrimitive(2)
+        }
+    }
+
+    @Test
+    fun testDetectsNoCallsWhenMockWasNeverCalled() {
+        assertVerifiedWith(
+            """
+                Expected any call, but no matching calls for RegularMethodsInterface(1).callPrimitive(input = 1)!
+                Results for RegularMethodsInterface(1):
+                # No calls to this mock!
+
+            """.trimIndent()
+        ) {
+            verify { mock.callPrimitive(1) }
+        }
+    }
+
+    @Test
+    fun testDetectsNoCallsWhenOnlyAnotherMockInScopeWasCalled() {
+        val scope = MokkerySuiteScope()
+        val scopedMock = scope.mock<RegularMethodsInterface>(autofill)
+        val otherScopedMock = scope.mock<RegularMethodsInterface>(autofill)
+        otherScopedMock.callPrimitive(1)
+        assertVerifiedWith(
+            """
+                Expected any call, but no matching calls for RegularMethodsInterface(2).callPrimitive(input = 1)!
+                Results for RegularMethodsInterface(2):
+                # No calls to this mock!
+
+            """.trimIndent()
+        ) {
+            scope.verify { scopedMock.callPrimitive(1) }
         }
     }
 

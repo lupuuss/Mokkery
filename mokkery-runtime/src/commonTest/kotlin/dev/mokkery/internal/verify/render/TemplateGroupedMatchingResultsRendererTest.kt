@@ -164,6 +164,24 @@ class TemplateGroupedMatchingResultsRendererTest {
         }
     }
 
+    @Test
+    fun testRendersEmptyStateWhenOnlyCallsToOtherMocks() {
+        testRendering(context) {
+            renderer.assert(
+                fakeMatchingResults(
+                    template,
+                    CallMatchResult.NotMatching to traces,
+                )
+            ) {
+                """
+                Results for RENDERER_MOCK_ID:
+                # No calls to this mock!
+
+                """.trimIndent()
+            }
+        }
+    }
+
     private fun fakeMatchingResults(
         template: CallTemplate,
         vararg groups: Pair<CallMatchResult, List<CallTrace>>,
