@@ -69,28 +69,27 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
         allTraces += scope.toCallTrace(id)
     }
 
-    override fun acquireVerifySession() = object : CallTracingRegistry.VerifySession {
+    override fun acquireVerifySession(): CallTracingRegistry.VerifySession {
+        verifiedTracesLock.lock()
+        return object : CallTracingRegistry.VerifySession {
 
-        private val allSnapshot = allTracesLock.withLock { allTraces.toMutableList() }
+            private val allSnapshot = allTracesLock.withLock { allTraces.toMutableList() }
 
-        init {
-            verifiedTracesLock.lock()
+            override val unverified: List<CallTrace>
+                get() = allSnapshot - verifiedTraces
+
+            override fun markVerified(trace: CallTrace) {
+                verifiedTraces.add(trace)
+            }
+
+            override fun resetAll() {
+                verifiedTraces.clear()
+                allTracesLock.withLock { allTraces.removeAll(allSnapshot.toSet()) }
+                allSnapshot.clear()
+            }
+
+            override fun close() = verifiedTracesLock.unlock()
         }
-
-        override val unverified: List<CallTrace>
-            get() = allSnapshot - verifiedTraces
-
-        override fun markVerified(trace: CallTrace) {
-            verifiedTraces.add(trace)
-        }
-
-        override fun resetAll() {
-            verifiedTraces.clear()
-            allTracesLock.withLock { allTraces.removeAll(allSnapshot.toSet()) }
-            allSnapshot.clear()
-        }
-
-        override fun close() = verifiedTracesLock.unlock()
     }
 
     override fun toString(): String = "CallTracingRegistry(all=$all)"
