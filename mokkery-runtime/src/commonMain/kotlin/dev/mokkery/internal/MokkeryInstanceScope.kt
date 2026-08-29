@@ -13,8 +13,8 @@ import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.keepOnTop
-import dev.mokkery.context.memoized
 import dev.mokkery.context.require
+import dev.mokkery.context.withMemoized
 import dev.mokkery.internal.answering.AnsweringRegistry
 import dev.mokkery.internal.configurer.ClosableMokkeryConfigurer
 import dev.mokkery.internal.context.MemberFunctions
@@ -165,16 +165,16 @@ private fun MokkeryScope.instanceContext(
         },
     )
     return mokkeryContext
-        .plus(forkedHooksOrEmpty())
-        .plus(rootInstantiationListener)
-        .plus(spec)
-        .plus(tools.callMatcherFactory.create(spec.collection))
-        .plus(CallTracingRegistry())
-        .plus(AnsweringRegistry())
-        .plus(contracts)
-        .plus(MemberFunctions.cached(contracts.memberFunctions))
-        .memoized() // we memoize only context elements that probably won't change - ContextCallInterceptor will change
-        .keepOnTop(rootCallInterceptor)
+        .withMemoized {
+            +forkedHooksOrEmpty()
+            +rootInstantiationListener
+            +spec
+            +tools.callMatcherFactory.create(spec.collection)
+            +CallTracingRegistry()
+            +AnsweringRegistry()
+            +contracts
+            +MemberFunctions.cached(contracts.memberFunctions)
+        }.keepOnTop(rootCallInterceptor)
 }
 
 internal expect val Any.mokkeryScope: MokkeryInstanceScope?

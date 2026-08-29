@@ -4,7 +4,6 @@ import dev.mokkery.MokkeryCallScope
 import dev.mokkery.configurer.minusAssign
 import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.context.memoized
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
@@ -19,7 +18,6 @@ import dev.mokkery.internal.rendering.descriptor.GetterRenderDescriptor
 import dev.mokkery.internal.rendering.descriptor.SetterRenderDescriptor
 import dev.mokkery.internal.rendering.descriptor.asCallRenderDescriptor
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
@@ -72,16 +70,17 @@ internal fun MokkeryRenderingConfigurer.useAliases(value: MokkeryCollection, nam
 internal object MokkeryRendering {
 
     val default by lazy {
-        Factory.Default
-            .plus(descriptionImpl)
-            .plus(argMatcherImpl)
-            .plus(functionImpl)
-            .plus(instanceIdImpl)
-            .plus(callDescriptorImpl)
-            .plus(callEntryImpl)
-            .plus(callTemplateImpl)
-            .plus(callScopeImpl)
-            .memoized()
+        MokkeryContext.memoized {
+            +Factory.Default
+            +descriptionImpl
+            +argMatcherImpl
+            +functionImpl
+            +instanceIdImpl
+            +callDescriptorImpl
+            +callEntryImpl
+            +callTemplateImpl
+            +callScopeImpl
+        }
     }
 
     val descriptionKey by Renderer.key<Any?>()

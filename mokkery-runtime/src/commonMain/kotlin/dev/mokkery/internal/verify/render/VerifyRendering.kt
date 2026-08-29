@@ -2,7 +2,7 @@ package dev.mokkery.internal.verify.render
 
 import dev.mokkery.MokkeryScope
 import dev.mokkery.configurer.plusAssign
-import dev.mokkery.context.memoized
+import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.tools
@@ -80,18 +80,19 @@ internal object VerifyRendering {
     val verifierError by Renderer.key<Verifier.Error>()
 
     val context by lazy {
-        NoMoreCallsErrorRenderer
-            .plus(TemplateMatchingResultsRenderer)
-            .plus(MatchersStatusRenderer)
-            .plus(ExtraUnverifiedCallsRenderer)
-            .plus(TemplateGroupedMatchingResultsRenderer)
-            .plus(SoftVerifierErrorRenderer)
-            .plus(NotVerifierErrorRenderer)
-            .plus(OrderVerifierErrorRenderer)
-            .plus(ExhaustiveOrderVerifierErrorRenderer)
-            .plus(ExhaustiveSoftVerifierErrorRenderer)
-            .plus(VerifierErrorRenderer)
-            .memoized()
+        MokkeryContext.memoized {
+            +NoMoreCallsErrorRenderer
+            +TemplateMatchingResultsRenderer
+            +MatchersStatusRenderer
+            +ExtraUnverifiedCallsRenderer
+            +TemplateGroupedMatchingResultsRenderer
+            +SoftVerifierErrorRenderer
+            +NotVerifierErrorRenderer
+            +OrderVerifierErrorRenderer
+            +ExhaustiveOrderVerifierErrorRenderer
+            +ExhaustiveSoftVerifierErrorRenderer
+            +VerifierErrorRenderer
+        }
     }
 }
 

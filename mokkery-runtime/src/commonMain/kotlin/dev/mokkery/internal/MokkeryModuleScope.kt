@@ -4,6 +4,7 @@ package dev.mokkery.internal
 
 import dev.mokkery.MockMode
 import dev.mokkery.MokkeryScope
+import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.Settings
 import dev.mokkery.internal.context.moduleNameContext
 import dev.mokkery.verify.VerifyMode
@@ -14,7 +15,9 @@ internal fun MokkeryScope.createModuleScope(
     defaultMockMode: MockMode,
     defaultVerifyMode: VerifyMode,
 ): MokkeryScope = MokkeryScope(
-    mokkeryContext
-            + Settings(defaultMockMode, defaultVerifyMode)
-            + moduleNameContext(moduleName)
+    MokkeryContext.memoized {
+        +mokkeryContext
+        +Settings(defaultMockMode, defaultVerifyMode)
+        +moduleNameContext(moduleName)
+    }
 )

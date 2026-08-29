@@ -59,6 +59,12 @@ public interface MokkeryContext {
 
         override fun toString(): String = "MokkeryContext.Empty"
     }
+
+    public companion object {
+
+        @InternalMokkeryApi
+        public inline fun memoized(build: MemoizedContextBuilder.() -> Unit): MokkeryContext = Empty.withMemoized(build)
+    }
 }
 
 /**
@@ -69,7 +75,27 @@ public fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryConte
 }
 
 @InternalMokkeryApi
-public fun MokkeryContext.memoized(): MokkeryContext = memoizedContext(this)
+public inline fun MokkeryContext.withMemoized(
+    build: MemoizedContextBuilder.() -> Unit
+): MokkeryContext = MemoizedContextBuilder().apply(build).build(this)
+
+@InternalMokkeryApi
+public class MemoizedContextBuilder {
+
+    private val elements = LinkedHashMap<MokkeryContext.Key<*>, MokkeryContext.Element>()
+
+    public operator fun MokkeryContext.Element.unaryPlus() {
+        elements[key] = this
+    }
+
+    public operator fun MokkeryContext.unaryPlus() {
+        if (this === MokkeryContext.Empty) return
+        forEach { +it }
+    }
+
+    @PublishedApi
+    internal fun build(fallback: MokkeryContext): MokkeryContext = memoizedContext(fallback, elements)
+}
 
 @InternalMokkeryApi
 public inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
