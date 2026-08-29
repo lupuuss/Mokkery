@@ -15,9 +15,9 @@ class SoftVerifierTest {
     private val template1 = fakeCallTemplate(name = "call1")
     private val template2 = fakeCallTemplate(name = "call2")
     private val template3 = fakeCallTemplate(name = "call3")
-    private val trace1 = fakeCallTrace(name = "call1")
-    private val trace2 = fakeCallTrace(name = "call2")
-    private val trace3 = fakeCallTrace(name = "call3")
+    private val trace1 = fakeCallTrace(traceId = 1)
+    private val trace2 = fakeCallTrace(traceId = 2)
+    private val trace3 = fakeCallTrace(traceId = 3)
 
     private val callMatcher = TestCallMatcher { template, trace ->
         when (trace) {

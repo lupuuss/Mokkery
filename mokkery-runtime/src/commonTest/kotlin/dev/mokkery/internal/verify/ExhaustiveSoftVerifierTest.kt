@@ -14,8 +14,8 @@ class ExhaustiveSoftVerifierTest {
 
     private val template1 = fakeCallTemplate(name = "call1")
     private val template2 = fakeCallTemplate(name = "call2")
-    private val trace1 = fakeCallTrace(name = "call1")
-    private val trace2 = fakeCallTrace(name = "call2")
+    private val trace1 = fakeCallTrace(traceId = 1)
+    private val trace2 = fakeCallTrace(traceId = 2)
 
     private val callMatcher = TestCallMatcher { template, trace ->
         when (trace) {
@@ -52,7 +52,7 @@ class ExhaustiveSoftVerifierTest {
 
     @Test
     fun testFailsWhenAdditionalCalls() {
-        val trace3 = fakeCallTrace(name = "call3")
+        val trace3 = fakeCallTrace(traceId = 3)
         val traces = listOf(trace1, trace2, trace3)
         val templates = listOf(template1, template2)
         val actual = verifier.verify(traces, templates)
@@ -62,7 +62,7 @@ class ExhaustiveSoftVerifierTest {
 
     @Test
     fun testFailsWhenAdditionalCallsInChangedOrder() {
-        val trace3 = fakeCallTrace(name = "call3")
+        val trace3 = fakeCallTrace(traceId = 3)
         val traces = listOf(trace2, trace1, trace3)
         val templates = listOf(template1, template2)
         val actual = verifier.verify(traces, templates)

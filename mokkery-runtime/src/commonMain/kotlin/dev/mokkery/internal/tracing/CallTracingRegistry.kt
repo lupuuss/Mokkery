@@ -65,7 +65,8 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
     override val all get() = allTracesLock.withLock { allTraces.toMutableList() }
 
     override fun trace(scope: MokkeryCallScope) = allTracesLock.withLock {
-        allTraces += scope.toCallTrace(scope.tools.callsCounter.next())
+        val id = CallTrace.Id(scope.tools.callsCounter.next())
+        allTraces += scope.toCallTrace(id)
     }
 
     override fun acquireVerifySession() = object : CallTracingRegistry.VerifySession {

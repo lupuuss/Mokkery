@@ -41,17 +41,17 @@ internal inline fun <reified T> fakeCallArg(
 ) = CallArgument(value, Function.Parameter(name, T::class, isVararg))
 
 internal fun fakeCallTrace(
+    traceId: Long = 1,
+    instanceId: Long = 1,
     typeName: String = "mock",
-    id: Long = 1,
-    name: String = "call",
+    name: String = "call$traceId",
     functionId: Long = name.hashCode().toLong(),
-    args: List<Any?> = emptyList(),
-    orderStamp: Long = 0
+    args: List<Any?> = emptyList()
 ) = CallTrace(
-    instanceId = MokkeryInstanceId(typeName, id),
+    id = CallTrace.Id(traceId),
+    instanceId = MokkeryInstanceId(typeName, instanceId),
     functionId = Function.Id(functionId),
     args = args,
-    orderStamp = orderStamp,
 )
 
 internal fun fakeCallEntry(

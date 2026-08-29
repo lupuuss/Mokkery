@@ -70,7 +70,7 @@ class CallRenderDescriptorTest {
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
         assertEquals("call", descriptor.function.name)
         assertEquals(
-            expected = listOf(fakeCallArg(name = "p1", value = 1), fakeCallArg(name = "p2", value = 2)),
+            expected = listOf(fakeCallArg(value = 1, name = "p1"), fakeCallArg(value = 2, name = "p2")),
             actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
@@ -81,7 +81,7 @@ class CallRenderDescriptorTest {
         val descriptor = trace.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)
         assertEquals(
-            expected = listOf(fakeCallArg(name = "<receiver>", value = 1)),
+            expected = listOf(fakeCallArg(value = 1, name = "<receiver>")),
             actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
@@ -92,7 +92,7 @@ class CallRenderDescriptorTest {
         val descriptor = trace.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)
         assertEquals(
-            expected = listOf(fakeCallArg(name = "p1", value = 1)),
+            expected = listOf(fakeCallArg(value = 1, name = "p1")),
             actual = descriptor.arguments.map { assertIs<ArgumentRenderDescriptor.Value>(it).arg }
         )
     }
@@ -101,7 +101,7 @@ class CallRenderDescriptorTest {
     fun testFunctionCallScopeToDescriptor() {
         val callScope = testBlockingCallScope<Int>(
             name = "call",
-            args = listOf(fakeCallArg(name = "p1", value = 1), fakeCallArg(name = "p2", value = 2)),
+            args = listOf(fakeCallArg(value = 1, name = "p1"), fakeCallArg(value = 2, name = "p2")),
         )
         val descriptor = callScope.asCallRenderDescriptor()
         assertEquals(MokkeryInstanceId("mock", 1), descriptor.receiver)
@@ -116,7 +116,7 @@ class CallRenderDescriptorTest {
     fun testGetterCallScopeToDescriptor() {
         val callScope = testBlockingCallScope<Int>(
             name = "<get-foo>",
-            args = listOf(fakeCallArg(name = "p1", value = 1)),
+            args = listOf(fakeCallArg(value = 1, name = "p1")),
         )
         val descriptor = callScope.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)
@@ -130,7 +130,7 @@ class CallRenderDescriptorTest {
     fun testSetterCallScopeToDescriptor() {
         val callScope = testBlockingCallScope<Int>(
             name = "<set-foo>",
-            args = listOf(fakeCallArg(name = "p1", value = 1)),
+            args = listOf(fakeCallArg(value = 1, name = "p1")),
         )
         val descriptor = callScope.asCallRenderDescriptor()
         assertEquals("foo", descriptor.function.name)

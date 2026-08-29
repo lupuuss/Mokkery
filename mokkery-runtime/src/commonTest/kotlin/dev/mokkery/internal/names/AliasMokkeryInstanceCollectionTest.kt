@@ -14,11 +14,11 @@ import kotlin.test.assertEquals
 class AliasMokkeryInstanceCollectionTest {
 
     private val instances = MokkeryCollection(
-        TestMokkeryInstanceScope(typeName = "package.foo", sequence = 0),
-        TestMokkeryInstanceScope(typeName = "package.test", sequence = 1),
-        TestMokkeryInstanceScope(typeName = "package.a", sequence = 2),
-        TestMokkeryInstanceScope(typeName = "package.bar", sequence = 3),
-        TestMokkeryInstanceScope(typeName = "package.far", sequence = 4),
+        TestMokkeryInstanceScope(instanceId = 0, typeName = "package.foo"),
+        TestMokkeryInstanceScope(instanceId = 1, typeName = "package.test"),
+        TestMokkeryInstanceScope(instanceId = 2, typeName = "package.a"),
+        TestMokkeryInstanceScope(instanceId = 3, typeName = "package.bar"),
+        TestMokkeryInstanceScope(instanceId = 4, typeName = "package.far"),
     )
     private val aliasMocks = instances.withAliasing { it.copy(typeName = it.typeName.removePrefix("package.")) }
 
@@ -29,10 +29,10 @@ class AliasMokkeryInstanceCollectionTest {
         fakeCallTemplate(typeName = "package.a", instanceId = 2),
     )
     private val traces = listOf(
-        fakeCallTrace(typeName = "package.foo", id = 0, orderStamp = 1),
-        fakeCallTrace(typeName = "package.bar", id = 3, orderStamp = 2),
-        fakeCallTrace(typeName = "package.bar", id = 3, orderStamp = 3),
-        fakeCallTrace(typeName = "package.far", id = 4, orderStamp = 4),
+        fakeCallTrace(traceId = 1, instanceId = 0, typeName = "package.foo"),
+        fakeCallTrace(traceId = 2, instanceId = 3, typeName = "package.bar"),
+        fakeCallTrace(traceId = 3, instanceId = 3, typeName = "package.bar"),
+        fakeCallTrace(traceId = 4, instanceId = 4, typeName = "package.far"),
     )
 
     @Test
@@ -48,13 +48,13 @@ class AliasMokkeryInstanceCollectionTest {
 
     @Test
     fun testAliasTracesWithShorterNames() {
-        val expectedTraces = listOf(
-            fakeCallTrace(typeName = "foo", id = 0, orderStamp = 1),
-            fakeCallTrace(typeName = "bar", id = 3, orderStamp = 2),
-            fakeCallTrace(typeName = "bar", id = 3, orderStamp = 3),
-            fakeCallTrace(typeName = "far", id = 4, orderStamp = 4),
+        val expectedInstanceIds = listOf(
+            MokkeryInstanceId("foo", 0),
+            MokkeryInstanceId("bar", 3),
+            MokkeryInstanceId("bar", 3),
+            MokkeryInstanceId("far", 4),
         )
-        assertEquals(expectedTraces, aliasMocks.aliasTraces(traces))
+        assertEquals(expectedInstanceIds, aliasMocks.aliasTraces(traces).map(CallTrace::instanceId))
     }
 
     @Test
@@ -78,7 +78,12 @@ private fun AliasMokkeryCollection.aliasTemplates(
 
 private fun AliasMokkeryCollection.aliasTrace(
     trace: CallTrace
-) = trace.copy(instanceId = mapOriginalToAlias(trace.instanceId))
+) = CallTrace(
+    instanceId = mapOriginalToAlias(trace.instanceId),
+    functionId = trace.functionId,
+    args = trace.args,
+    id = trace.id,
+)
 
 private fun AliasMokkeryCollection.aliasTemplate(
     template: CallTemplate

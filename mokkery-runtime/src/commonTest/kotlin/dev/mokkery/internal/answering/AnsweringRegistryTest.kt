@@ -9,14 +9,13 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.capture.CaptureMatcher
 import dev.mokkery.matcher.capture.asCapture
-import dev.mokkery.test.TestInstanceContracts
 import dev.mokkery.test.TestCallMatcher
+import dev.mokkery.test.TestInstanceContracts
 import dev.mokkery.test.TestMokkeryInstanceScope
 import dev.mokkery.test.TestNameShortener
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallEntry
 import dev.mokkery.test.fakeCallTemplate
-import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeFunParam
 import dev.mokkery.test.fakeFunction
 import dev.mokkery.test.testBlockingCallScope
@@ -27,7 +26,7 @@ import kotlin.test.assertFailsWith
 class AnsweringRegistryTest {
 
     private val function = fakeFunction("call", parameters = listOf(fakeFunParam<Int>("i")))
-    private val args = listOf(fakeCallArg(name = "i", value = 1))
+    private val args = listOf(fakeCallArg(value = 1, name = "i"))
     private val callMatcher = TestCallMatcher()
     private val tools = MokkeryTools(namesShortener = TestNameShortener())
     private val context = tools + mockSpec(MockMode.strict) + callMatcher
@@ -121,10 +120,10 @@ class AnsweringRegistryTest {
         answering.setup(template2, Answer.Const(3))
         answering.setup(template3, Answer.Const(4))
         val scope = testBlockingCallScope<Int>(
+            instanceId = 1,
             typeName = "mock",
-            sequence = 1,
             name = "call",
-            args = listOf(fakeCallArg(name = "1", value = 1)),
+            args = listOf(fakeCallArg(value = 1, name = "1")),
             context = context
         )
         answering.resolveAnswer(scope)
@@ -139,7 +138,7 @@ class AnsweringRegistryTest {
         val captured = mutableListOf<Any?>()
         answering.setup(fakeCallTemplate(CaptureMatcher(captured.asCapture(), ArgMatcher.Any)), Answer.Const(1))
         val scope = testBlockingCallScope<Int>(
-            args = listOf(fakeCallArg(name = "i", value = 1)),
+            args = listOf(fakeCallArg(value = 1, name = "i")),
             context = context
         )
         answering.resolveAnswer(scope)

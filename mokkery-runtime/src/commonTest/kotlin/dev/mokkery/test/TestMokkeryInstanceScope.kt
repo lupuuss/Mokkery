@@ -9,8 +9,8 @@ import dev.mokkery.internal.context.MokkeryInstanceSpec
 import kotlin.reflect.KClass
 
 internal class TestMokkeryInstanceScope(
+    instanceId: Long = 1,
     typeName: String = "mock",
-    sequence: Long = 1,
     interceptedTypes: List<KClass<*>> = listOf(Unit::class),
     typeArguments: List<List<KClass<*>>> = List(interceptedTypes.size) { emptyList() },
     mode: MockMode? = MockMode.strict,
@@ -21,7 +21,7 @@ internal class TestMokkeryInstanceScope(
 ) : MokkeryInstanceScope {
 
     override val mokkeryContext: MokkeryContext = MokkeryInstanceSpec.create(
-        id = MokkeryInstanceId(typeName, sequence),
+        id = MokkeryInstanceId(typeName, instanceId),
         thisRef = this,
         interceptedTypes = interceptedTypes,
         typeArguments = typeArguments,

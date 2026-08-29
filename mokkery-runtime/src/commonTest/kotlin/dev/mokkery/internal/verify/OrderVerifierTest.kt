@@ -14,8 +14,8 @@ class OrderVerifierTest {
 
     private val template1 = fakeCallTemplate(name = "call1")
     private val template2 = fakeCallTemplate(name = "call2")
-    private val trace1 = fakeCallTrace(name = "call1")
-    private val trace2 = fakeCallTrace(name = "call2")
+    private val trace1 = fakeCallTrace(traceId = 1)
+    private val trace2 = fakeCallTrace(traceId = 2)
 
 
     private val callMatcher = TestCallMatcher { template, trace ->
@@ -42,11 +42,11 @@ class OrderVerifierTest {
     @Test
     fun testSuccessWhenOrderIsSatisfiedWithCallsInBetween() {
         val traces = listOf(
-            fakeCallTrace(name = "call0"),
+            fakeCallTrace(traceId = 0),
             trace1,
-            fakeCallTrace(name = "call0"),
+            fakeCallTrace(traceId = 0),
             trace2,
-            fakeCallTrace(name = "call0")
+            fakeCallTrace(traceId = 0)
         )
         assertEquals(
             expected = Success(listOf(trace1, trace2)),
@@ -66,11 +66,11 @@ class OrderVerifierTest {
     @Test
     fun testReturnsOnlyExpectedTracesWhenSatisfiedWithAdditionalCalls() {
         val traces = listOf(
-            fakeCallTrace(name = "call0"),
+            fakeCallTrace(traceId = 0),
             trace1,
-            fakeCallTrace(name = "call0"),
+            fakeCallTrace(traceId = 0),
             trace2,
-            fakeCallTrace(name = "call0")
+            fakeCallTrace(traceId = 0)
         )
         assertEquals(
             expected = Success(listOf(trace1, trace2)),
@@ -99,7 +99,7 @@ class OrderVerifierTest {
 
     @Test
     fun testFailsWhenOrderIsNotSatisfiedWithAdditionalCalls() {
-        val trace0 = fakeCallTrace(name = "call0")
+        val trace0 = fakeCallTrace(traceId = 0)
         val traces = listOf(trace0, trace2, trace0, trace1, trace0)
         val templates = listOf(template1, template2)
         val actual = verifier.verify(traces, templates)

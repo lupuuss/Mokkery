@@ -7,8 +7,8 @@ import kotlin.test.assertEquals
 
 class MokkeryInstancesRegistryTest {
 
-    private val instance1 = TestMokkeryInstanceScope(sequence = 1)
-    private val instance2 = TestMokkeryInstanceScope(sequence = 2)
+    private val instance1 = TestMokkeryInstanceScope(instanceId = 1)
+    private val instance2 = TestMokkeryInstanceScope(instanceId = 2)
 
     @Test
     fun testCollectionContainsInitialAndRegisteredInstances() {

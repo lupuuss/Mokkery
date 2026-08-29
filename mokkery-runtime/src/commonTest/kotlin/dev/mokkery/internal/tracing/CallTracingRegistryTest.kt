@@ -54,11 +54,11 @@ class CallTracingRegistryTest {
         fakeFunction(name = name, parameters = listOf(fakeFunParam<Int>("arg")))
     }
 
-    private val instance1 = testInstance(sequence = 1)
-    private val instance2 = testInstance(sequence = 2)
+    private val instance1 = testInstance(instanceId = 1)
+    private val instance2 = testInstance(instanceId = 2)
 
-    private fun testInstance(sequence: Long) = TestMokkeryInstanceScope(
-        sequence = sequence,
+    private fun testInstance(instanceId: Long) = TestMokkeryInstanceScope(
+        instanceId = instanceId,
         functions = functions,
         context = tools + CallTracingRegistry(),
     )
@@ -72,8 +72,8 @@ class CallTracingRegistryTest {
             .callTracing
             .trace(instance1.blockingCallScope("call2", fakeCallArg(2)))
         val expected = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance1.callTrace("call2", 1, fakeCallArg(2)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance1.callTrace(1, "call2", fakeCallArg(2)),
         )
         assertEquals(expected, instance1.callTracing.all)
         assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
@@ -100,7 +100,7 @@ class CallTracingRegistryTest {
         instance1
             .callTracing
             .trace(instance1.blockingCallScope("call2", fakeCallArg(2)))
-        val expected = listOf(instance1.callTrace("call2", 1, fakeCallArg(2)),)
+        val expected = listOf(instance1.callTrace(1, "call2", fakeCallArg(2)),)
         instance1.callTracing.withVerifySession {
             markVerified(unverified.first())
             assertEquals(expected, unverified)
@@ -116,8 +116,8 @@ class CallTracingRegistryTest {
             .callTracing
             .trace(instance1.blockingCallScope("call2", fakeCallArg(2)))
         val expected = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance1.callTrace("call2", 1, fakeCallArg(2)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance1.callTrace(1, "call2", fakeCallArg(2)),
         )
         instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
         assertEquals(expected, instance1.callTracing.all)
@@ -131,7 +131,7 @@ class CallTracingRegistryTest {
         instance1
             .callTracing
             .trace(instance1.blockingCallScope("call2", fakeCallArg(2)))
-        val expected = listOf(instance1.callTrace("call2", 1, fakeCallArg(2)),)
+        val expected = listOf(instance1.callTrace(1, "call2", fakeCallArg(2)),)
         instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
         assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
     }
@@ -175,9 +175,9 @@ class CallTracingRegistryTest {
         instance1.callTracing.trace(instance1.blockingCallScope("call3", fakeCallArg(3)))
         val collection = MokkeryCollection(instance1, instance2)
         val expected = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance2.callTrace("call2", 1, fakeCallArg(2)),
-            instance1.callTrace("call3", 2, fakeCallArg(3)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance2.callTrace(1, "call2", fakeCallArg(2)),
+            instance1.callTrace(2, "call3", fakeCallArg(3)),
         )
         assertEquals(expected, collection.withVerifySession { unverified })
     }
@@ -190,10 +190,10 @@ class CallTracingRegistryTest {
         instance2.callTracing.trace(instance2.blockingCallScope("call4", fakeCallArg(4)))
         val collection = MokkeryCollection(instance1, instance2)
         val calls = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance2.callTrace("call2", 1, fakeCallArg(2)),
-            instance1.callTrace("call3", 2, fakeCallArg(3)),
-            instance2.callTrace("call4", 3, fakeCallArg(4)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance2.callTrace(1, "call2", fakeCallArg(2)),
+            instance1.callTrace(2, "call3", fakeCallArg(3)),
+            instance2.callTrace(3, "call4", fakeCallArg(4)),
         )
         collection.withVerifySession {
             markVerified(calls[1])
@@ -210,10 +210,10 @@ class CallTracingRegistryTest {
         instance2.callTracing.trace(instance2.blockingCallScope("call4", fakeCallArg(4)))
         val collection = MokkeryCollection(instance1, instance2)
         val calls = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance2.callTrace("call2", 1, fakeCallArg(2)),
-            instance1.callTrace("call3", 2, fakeCallArg(3)),
-            instance2.callTrace("call4", 3, fakeCallArg(4)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance2.callTrace(1, "call2", fakeCallArg(2)),
+            instance1.callTrace(2, "call3", fakeCallArg(3)),
+            instance2.callTrace(3, "call4", fakeCallArg(4)),
         )
         collection.withVerifySession {
             markVerified(calls[1])
@@ -231,10 +231,10 @@ class CallTracingRegistryTest {
         instance2.callTracing.trace(instance2.blockingCallScope("call4", fakeCallArg(4)))
         val collection = MokkeryCollection(instance1, instance2)
         val calls = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance2.callTrace("call2", 1, fakeCallArg(2)),
-            instance1.callTrace("call3", 2, fakeCallArg(3)),
-            instance2.callTrace("call4", 3, fakeCallArg(4)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance2.callTrace(1, "call2", fakeCallArg(2)),
+            instance1.callTrace(2, "call3", fakeCallArg(3)),
+            instance2.callTrace(3, "call4", fakeCallArg(4)),
         )
         collection.withVerifySession {
             markVerified(calls[1])
@@ -252,10 +252,10 @@ class CallTracingRegistryTest {
         instance2.callTracing.trace(instance2.blockingCallScope("call4", fakeCallArg(4)))
         val collection = MokkeryCollection(instance1, instance2)
         val calls = listOf(
-            instance1.callTrace("call1", 0, fakeCallArg(1)),
-            instance2.callTrace("call2", 1, fakeCallArg(2)),
-            instance1.callTrace("call3", 2, fakeCallArg(3)),
-            instance2.callTrace("call4", 3, fakeCallArg(4)),
+            instance1.callTrace(0, "call1", fakeCallArg(1)),
+            instance2.callTrace(1, "call2", fakeCallArg(2)),
+            instance1.callTrace(2, "call3", fakeCallArg(3)),
+            instance2.callTrace(3, "call4", fakeCallArg(4)),
         )
         collection.withVerifySession {
             markVerified(calls[1])
@@ -272,23 +272,23 @@ class CallTracingRegistryTest {
     fun testCompositeSessionReleasesAlreadyAcquiredSessionsWhenAcquiringFails() {
         val acquired = RecordingCallTracingRegistry()
         val collection = MokkeryCollection(
-            TestMokkeryInstanceScope(sequence = 1, context = tools + acquired),
-            TestMokkeryInstanceScope(sequence = 2, context = tools + FailingCallTracingRegistry()),
+            TestMokkeryInstanceScope(instanceId = 1, context = tools + acquired),
+            TestMokkeryInstanceScope(instanceId = 2, context = tools + FailingCallTracingRegistry()),
         )
         assertFails { collection.acquireVerifySession() }
         assertEquals(1, acquired.closedSessions)
     }
 
     private fun TestMokkeryInstanceScope.callTrace(
+        traceId: Long,
         name: String,
-        orderStamp: Long,
         vararg args: CallArgument,
     ) = fakeCallTrace(
+        traceId = traceId,
+        instanceId = instanceId.id,
         typeName = instanceId.typeName,
-        id = instanceId.id,
         name = name,
         args = args.map { it.value },
-        orderStamp = orderStamp
     )
 
     private fun TestMokkeryInstanceScope.blockingCallScope(

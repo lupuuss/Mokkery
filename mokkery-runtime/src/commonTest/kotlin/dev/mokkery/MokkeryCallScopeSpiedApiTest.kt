@@ -68,8 +68,8 @@ class MokkeryCallScopeSpiedApiTest {
         returnType = Int::class,
         args = listOf(fakeCallArg(1), fakeCallArg("str"))
     ) + TestMokkeryInstanceScope(
-        spiedObject = spiedObject,
         mode = if (spiedObject == null) MockMode.strict else null,
+        spiedObject = spiedObject,
         context = dispatchers
     ).mokkeryContext
 }
