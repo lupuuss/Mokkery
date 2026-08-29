@@ -9,6 +9,7 @@ import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.ObjectIsNotMockException
 import dev.mokkery.internal.ObjectIsNotSpyException
+import dev.mokkery.internal.contracts.CoreContract
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.requireInstanceScope
 import dev.mokkery.internal.utils.bestName
@@ -44,17 +45,13 @@ internal sealed interface MokkeryInstanceSpec : MokkeryContext.Element {
         fun create(
             id: MokkeryInstanceId,
             thisRef: Any,
-            interceptedTypes: List<KClass<*>>,
-            typeArguments: List<List<KClass<*>>>,
+            contract: CoreContract,
             mode: MockMode?,
             spiedObject: Any?
-        ): MokkeryInstanceSpec {
-            val types = interceptedTypes.mapIndexed { index, it -> InterceptedTypeSpec(it, typeArguments[index]) }
-            return when {
-                mode != null && spiedObject == null -> MokkeryMockSpec(id, thisRef, types, mode)
-                mode == null && spiedObject != null -> MokkerySpySpec(id, thisRef, types, spiedObject)
-                else -> mokkeryRuntimeError("Illegal state during MokkerySpec creation! Mock mode: $mode Spied object: $spiedObject")
-            }
+        ): MokkeryInstanceSpec = when {
+            mode != null && spiedObject == null -> MokkeryMockSpec(id, thisRef, contract, mode)
+            mode == null && spiedObject != null -> MokkerySpySpec(id, thisRef, contract, spiedObject)
+            else -> mokkeryRuntimeError("Illegal state during MokkerySpec creation! Mock mode: $mode Spied object: $spiedObject")
         }
     }
 }
@@ -62,10 +59,12 @@ internal sealed interface MokkeryInstanceSpec : MokkeryContext.Element {
 internal data class MokkeryMockSpec(
     override val id: MokkeryInstanceId,
     override val thisRef: Any,
-    override val interceptedTypes: List<InterceptedTypeSpec>,
+    val contract: CoreContract,
     val mode: MockMode,
     override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
+
+    override val interceptedTypes by lazy { contract.interceptedTypesSpec() }
 
     override fun toString(): String = "MokkeryMockSpec(" +
             "id='$id', " +
@@ -78,11 +77,12 @@ internal data class MokkeryMockSpec(
 internal data class MokkerySpySpec(
     override val id: MokkeryInstanceId,
     override val thisRef: Any,
-    override val interceptedTypes: List<InterceptedTypeSpec>,
+    val contract: CoreContract,
     val spiedObject: Any,
     override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
 
+    override val interceptedTypes by lazy { contract.interceptedTypesSpec() }
 
     override fun toString(): String = "MokkerySpySpec(" +
             "id='$id', " +
@@ -104,6 +104,9 @@ internal class InterceptedTypeSpec(val type: KClass<*>, val arguments: List<KCla
     }
 }
 
+private fun CoreContract.interceptedTypesSpec() = mokkeryInterceptedTypes.mapIndexed { index, type ->
+    InterceptedTypeSpec(type, mokkeryTypeArguments.getOrElse(index) { emptyList() })
+}
 
 private class SelfMokkeryCollection(
     private val thisRef: Any,

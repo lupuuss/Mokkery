@@ -61,7 +61,7 @@ object MokkeryIr {
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
         val DefaultsContract by dev_mokkery_internal_contracts.refClass
-        val MemberFunctionsContract by dev_mokkery_internal_contracts.refClass
+        val CoreContract by dev_mokkery_internal_contracts.refClass
         val SpyCallsContract by dev_mokkery_internal_contracts.refClass
         val SuperCallsContract by dev_mokkery_internal_contracts.refClass
         val LambdaSpyCallsContract by dev_mokkery_internal_contracts.refClass

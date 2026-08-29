@@ -95,6 +95,17 @@ class DefaultsTest {
     }
 
     @Test
+    fun testFailsWithClearErrorWhenGenericDefaultExpressionUsesProperty() {
+        val generic = mock<GenericDefaultsInterface<Int>> { every { defaultValue } returns 1 }
+        every { generic.callWithPropertyDefault(5) } returns "ok"
+        val exception = assertFailsWith<MokkeryRuntimeException> { generic.callWithPropertyDefault(5) }
+        assertEquals(
+            expectedMessage(generic, "callWithPropertyDefault(value = 5, other = default())", listOf("other"), "defaultValue"),
+            exception.message
+        )
+    }
+
+    @Test
     fun testFailsWithClearErrorWhenDefaultExpressionUsesProperty() {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.defaultName } returns "cfg"

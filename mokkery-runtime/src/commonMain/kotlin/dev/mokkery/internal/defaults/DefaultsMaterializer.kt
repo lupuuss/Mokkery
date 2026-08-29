@@ -3,7 +3,7 @@ package dev.mokkery.internal.defaults
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.functions
-import dev.mokkery.internal.contracts.instanceContracts
+import dev.mokkery.internal.contracts.contracts
 import dev.mokkery.internal.contracts.defaults
 import dev.mokkery.internal.getScope
 import dev.mokkery.internal.instanceIdString
@@ -116,7 +116,7 @@ private fun MokkeryInstanceScope.unsupportedDefaultValueError(
 }
 
 private fun MokkeryInstanceScope.createDefaultsExtractor(template: CallTemplate): Any {
-    val contract = instanceContracts.defaults ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
+    val contract = contracts.defaults ?: mokkeryRuntimeError("Default arguments are not supported by $instanceIdString!")
     return contract.mokkeryCreateExtractor(template.functionId.value)
 }
 

@@ -26,7 +26,7 @@ import dev.mokkery.internal.context.invokeInstantiationListener
 import dev.mokkery.internal.context.settings
 import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.contracts.InstanceContractsProvider
-import dev.mokkery.internal.contracts.memberFunctions
+import dev.mokkery.internal.contracts.core
 import dev.mokkery.internal.defaults.DefaultsExtractingInterceptor
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
@@ -62,23 +62,19 @@ internal fun Any.setupMokkeryInstanceForDefaults(
     scope.mokkeryContext = extractorSpec
         .plus(contracts)
         .plus(DefaultsExtractingInterceptor(Function.Id(functionId)))
-        .plus(MemberFunctions.cached(contracts.memberFunctions))
+        .plus(MemberFunctions.cached(contracts.core))
 }
 
 @PublishedApi
 internal fun Any.setupMokkeryInstanceForCommon(
     parent: MokkeryScope,
     typeName: String,
-    interceptedTypes: List<KClass<*>>,
-    typeArguments: List<List<KClass<*>>>,
     mode: MockMode?,
     spiedObject: Any?,
     block: MokkeryInstanceConfigurer.Block<Any, *>?,
 ): Unit = setupMokkeryInstance(
     parent = parent,
     typeName = typeName,
-    interceptedTypes = interceptedTypes,
-    typeArguments = typeArguments,
     mode = mode,
     spiedObject = spiedObject,
     contractsProvider = InstanceContractsProvider(this),
@@ -88,8 +84,6 @@ internal fun Any.setupMokkeryInstanceForCommon(
 internal fun Any.setupMokkeryInstance(
     parent: MokkeryScope,
     typeName: String,
-    interceptedTypes: List<KClass<*>>,
-    typeArguments: List<List<KClass<*>>>,
     mode: MockMode?,
     spiedObject: Any?,
     contractsProvider: InstanceContractsProvider,
@@ -97,8 +91,6 @@ internal fun Any.setupMokkeryInstance(
 ) {
     val baseContext = parent.instanceContext(
         typeName = typeName,
-        interceptedTypes = interceptedTypes,
-        typeArguments = typeArguments,
         thisRef = this,
         mode = mode,
         spiedObject = spiedObject,
@@ -118,13 +110,13 @@ private fun MokkeryInstanceSpec.defaultsExtractorSpec(ref: Any) = when (this) {
     is MokkeryMockSpec -> MokkeryMockSpec(
         id = id.defaultsExtractorId(),
         thisRef = ref,
-        interceptedTypes = interceptedTypes,
+        contract = contract,
         mode = mode,
     )
     is MokkerySpySpec -> MokkerySpySpec(
         id = id.defaultsExtractorId(),
         thisRef = ref,
-        interceptedTypes = interceptedTypes,
+        contract = contract,
         spiedObject = spiedObject,
     )
 }
@@ -145,8 +137,6 @@ private fun Any.applyConfigurerBlock(
 
 private fun MokkeryScope.instanceContext(
     typeName: String,
-    interceptedTypes: List<KClass<*>>,
-    typeArguments: List<List<KClass<*>>>,
     thisRef: Any,
     mode: MockMode?,
     spiedObject: Any?,
@@ -155,8 +145,7 @@ private fun MokkeryScope.instanceContext(
     val tools = tools
     val spec = MokkeryInstanceSpec.create(
         id = MokkeryInstanceId(typeName, tools.mocksCounter.next()),
-        interceptedTypes = interceptedTypes,
-        typeArguments = typeArguments,
+        contract = contracts.core,
         thisRef = thisRef,
         spiedObject = spiedObject,
         mode = when {
@@ -173,7 +162,7 @@ private fun MokkeryScope.instanceContext(
             +CallTracingRegistry()
             +AnsweringRegistry()
             +contracts
-            +MemberFunctions.cached(contracts.memberFunctions)
+            +MemberFunctions.cached(contracts.core)
         }.keepOnTop(rootCallInterceptor)
 }
 
@@ -198,9 +187,8 @@ internal val MokkeryInstanceScope.shortInstanceIdString
 
 @PublishedApi
 internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*> {
-    val spec = instanceSpec
     var index = 0
-    for (type in spec.interceptedTypes)
+    for (type in instanceSpec.interceptedTypes)
         for (typeArgument in type.arguments)
             if (totalIndex == index++) return typeArgument
     return Any::class

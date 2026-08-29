@@ -10,6 +10,8 @@ import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
+import dev.mokkery.plugin.ir.addOverridingProperty
+import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.erasedTypeArguments
 import dev.mokkery.plugin.ir.erasedUpperBound
@@ -38,6 +40,9 @@ import org.jetbrains.kotlin.ir.builders.irBranch
 import org.jetbrains.kotlin.ir.builders.irElseBranch
 import org.jetbrains.kotlin.ir.builders.irEquals
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetField
+import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
@@ -54,6 +59,7 @@ import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
@@ -77,7 +83,7 @@ fun IrClass.addInstanceContracts(
     if (mokkeryKind == IrMokkeryKind.Spy) {
         addSpyCallsContract(functions)
     }
-    addMemberFunctionsContract(functions)
+    addCoreContract(classesToIntercept, functions)
     val hasDefaults = classesToIntercept.any { it.overridableFunctions.any(IrSimpleFunction::hasDefaultParameters) }
     if (hasDefaults) {
         val ctor = addMockClassConstructorForDefaults(classesToIntercept)
@@ -208,9 +214,35 @@ private fun IrClass.addSpyCallsContract(functions: List<IrSimpleFunction>) {
 }
 
 context(scope: TransformerScope)
-private fun IrClass.addMemberFunctionsContract(functions: List<IrSimpleFunction>) {
-    val contractClass = referenced(MokkeryIr.Class.MemberFunctionsContract)
+private fun IrClass.addCoreContract(
+    classesToIntercept: List<IrClass>,
+    functions: List<IrSimpleFunction>,
+) {
+    val contractClass = referenced(MokkeryIr.Class.CoreContract)
     superTypes += contractClass.defaultType
+    val kClassType = irBuiltIns.kClassClass.starProjectedType
+    addOverridingProperty(
+        context = pluginContext,
+        property = contractClass.requirePropertyOwner("mokkeryInterceptedTypes"),
+        getterBlock = {
+            +irReturn(
+                irCallListOf(
+                    type = kClassType,
+                    elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
+                )
+            )
+        },
+        setterBlock = { }
+    )
+    val typeArgumentsField = this.fields.find { it.name.asString() == "_mokkeryTypeArguments" }
+    if (typeArgumentsField != null) {
+        addOverridingProperty(
+            context = pluginContext,
+            property = contractClass.requirePropertyOwner("mokkeryTypeArguments"),
+            getterBlock = { getter -> +irReturn(irGetField(irGet(getter.parameters[0]), typeArgumentsField)) },
+            setterBlock = { }
+        )
+    }
     addOverridingMethod(pluginContext, contractClass.requireSimpleFunctionOwner("mokkeryFunction")) { contractFunc ->
         val idParam = contractFunc.parameters[1]
         irReturnByFunctionId(
@@ -218,7 +250,7 @@ private fun IrClass.addMemberFunctionsContract(functions: List<IrSimpleFunction>
             branches = functions.map { func ->
                 func.mokkeryFunctionId to irCallCreateFunction(
                     mokkeryInstance = { irGet(contractFunc.parameters[0]) },
-                    typeParamsContainer = this@addMemberFunctionsContract,
+                    typeParamsContainer = this@addCoreContract,
                     function = func,
                     functionId = irGet(idParam),
                 )

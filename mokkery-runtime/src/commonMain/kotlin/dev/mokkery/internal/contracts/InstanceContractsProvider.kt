@@ -10,10 +10,10 @@ import kotlin.reflect.KClass
 
 internal interface InstanceContract
 
-internal val MokkeryInstanceScope.instanceContracts: InstanceContractsProvider
+internal val MokkeryInstanceScope.contracts: InstanceContractsProvider
     get() = mokkeryContext.require(InstanceContractsProvider)
 
-internal val MokkeryCallScope.instanceContracts: InstanceContractsProvider
+internal val MokkeryCallScope.contracts: InstanceContractsProvider
     get() = mokkeryContext.require(InstanceContractsProvider)
 
 internal val InstanceContractsProvider.superCalls: SuperCallsContract?
@@ -25,8 +25,8 @@ internal val InstanceContractsProvider.spyCalls: SpyCallsContract?
 internal val InstanceContractsProvider.defaults: DefaultsContract?
     get() = find(DefaultsContract::class)
 
-internal val InstanceContractsProvider.memberFunctions: MemberFunctionsContract
-    get() = find(MemberFunctionsContract::class) ?: mokkeryRuntimeError("Member functions contract is not available for this instance, but it should be!")
+internal val InstanceContractsProvider.core: CoreContract
+    get() = find(CoreContract::class) ?: mokkeryRuntimeError("Core contract is not available for this instance, but it should be!")
 
 internal interface InstanceContractsProvider : MokkeryContext.Element {
 

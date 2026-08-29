@@ -4,7 +4,7 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.Function
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
-import dev.mokkery.internal.contracts.MemberFunctionsContract
+import dev.mokkery.internal.contracts.CoreContract
 import dev.mokkery.internal.mokkeryRuntimeError
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
@@ -21,7 +21,7 @@ internal interface MemberFunctions : MokkeryContext.Element {
 
     companion object Key : MokkeryContext.Key<MemberFunctions> {
 
-        fun cached(contract: MemberFunctionsContract): MemberFunctions = CachedMemberFunctions(contract)
+        fun cached(contract: CoreContract): MemberFunctions = CachedMemberFunctions(contract)
     }
 }
 
@@ -29,7 +29,7 @@ internal val MokkeryInstanceScope.functions: MemberFunctions
     get() = mokkeryContext.require(MemberFunctions)
 
 private class CachedMemberFunctions(
-    private val contract: MemberFunctionsContract,
+    private val contract: CoreContract,
 ) : MemberFunctions {
 
     private val cache = atomic(emptyMap<Function.Id, Function>())

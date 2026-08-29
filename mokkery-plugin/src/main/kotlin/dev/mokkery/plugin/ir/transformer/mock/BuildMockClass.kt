@@ -19,7 +19,6 @@ import dev.mokkery.plugin.ir.computeSignature
 import dev.mokkery.plugin.ir.createParametersMapTo
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.overridableFunctions
 import dev.mokkery.plugin.ir.overridableProperties
 import dev.mokkery.plugin.ir.overridePropertyBackingField
@@ -29,19 +28,24 @@ import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.recordSuperTypesLookUp
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeWith
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
+import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
@@ -205,34 +209,55 @@ private fun IrClass.addMockClassConstructor(
                     }
                 }
             }
+        val field = when {
+            typeParameters.any { it.isNotEmpty() } -> buildTypeArgumentsField(
+                cls = this@addMockClassConstructor,
+                type = irBuiltIns.listClass.typeWith(irBuiltIns.listClass.typeWith(kClassType))
+            )
+            else -> null
+        }
         body = symbol.declarationIrBuilder.irBlockBody {
             +irDelegatingConstructorWithStubs(
                 irClass = classesToIntercept.firstOrNull { it.isClass },
                 subClass = this@addMockClassConstructor
             )
+            if (field != null) {
+                +irSetField(
+                    receiver = irGet(receiverParam),
+                    field = field,
+                    value = irCallListOf(
+                        type = irBuiltIns.listClass.typeWith(kClassType),
+                        elements = typeParameters.memoryOptimizedMap { params ->
+                            irCallListOf(
+                                type = kClassType,
+                                elements = params.memoryOptimizedMap { irGet(it) }
+                            )
+                        }
+                    )
+                )
+            }
             +irCall(referenced(MokkeryIr.Function.setupMokkeryInstanceForCommon)) {
                 arguments[0] = irGet(receiverParam)
                 arguments[1] = irGet(parameters[0])
                 arguments[2] = irString(typeName)
-                arguments[3] = irCallListOf(
-                    type = kClassType,
-                    elements = classesToIntercept.memoryOptimizedMap { kClassReference(it.defaultTypeErased) }
-                )
-                arguments[4] = irCallListOf(
-                    type = irBuiltIns.listClass.typeWith(kClassType),
-                    elements = typeParameters.memoryOptimizedMap { params ->
-                        irCallListOf(
-                            type = kClassType,
-                            elements = params.memoryOptimizedMap { irGet(it) }
-                        )
-                    }
-                )
-                arguments[5] = irGet(parameters[1])
-                arguments[6] = spyParam?.let(::irGet) ?: irNull()
-                arguments[7] = irGet(parameters[2])
+                arguments[3] = irGet(parameters[1])
+                arguments[4] = spyParam?.let(::irGet) ?: irNull()
+                arguments[5] = irGet(parameters[2])
             }
         }
     }
+}
+
+context(scope: TransformerScope)
+private fun buildTypeArgumentsField(cls: IrClass, type: IrType): IrField = irFactory.buildField {
+    this.name = Name.identifier("_mokkeryTypeArguments")
+    this.type = type
+    this.visibility = DescriptorVisibilities.PRIVATE
+    this.isFinal = true
+    this.origin = MokkeryIr.Origin
+}.also {
+    it.parent = cls
+    cls.declarations.add(it)
 }
 
 private fun IrConstructor.addSpyParameter(classesToIntercept: List<IrClass>): IrValueParameter {

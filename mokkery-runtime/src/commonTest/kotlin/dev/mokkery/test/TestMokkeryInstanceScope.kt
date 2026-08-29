@@ -20,12 +20,17 @@ internal class TestMokkeryInstanceScope(
     context: MokkeryContext = MokkeryContext.Empty
 ) : MokkeryInstanceScope {
 
+    private val contracts = TestInstanceContracts(
+        interceptedTypes = interceptedTypes,
+        typeArguments = typeArguments,
+        functions = functions,
+    )
+
     override val mokkeryContext: MokkeryContext = MokkeryInstanceSpec.create(
         id = MokkeryInstanceId(typeName, instanceId),
         thisRef = this,
-        interceptedTypes = interceptedTypes,
-        typeArguments = typeArguments,
+        contract = contracts,
         mode = mode,
         spiedObject = spiedObject,
-    ) + interceptor + TestInstanceContracts() + TestMemberFunctions(functions) + context
+    ) + interceptor + contracts + TestMemberFunctions(functions) + context
 }

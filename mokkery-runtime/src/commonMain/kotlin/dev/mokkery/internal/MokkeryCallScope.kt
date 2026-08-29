@@ -12,7 +12,7 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.lazyFunctionCall
 import dev.mokkery.internal.context.callInterceptor
 import dev.mokkery.internal.context.functions
-import dev.mokkery.internal.contracts.instanceContracts
+import dev.mokkery.internal.contracts.contracts
 import dev.mokkery.internal.contracts.superCalls
 import kotlin.reflect.KClass
 
@@ -28,7 +28,7 @@ internal suspend fun MokkeryInstanceScope.interceptCallSuspend(
     vararg args: Any?,
 ): Any? = callInterceptor.intercept(suspendCallScope(Function.Id(id), args.asList()))
 
-internal fun MokkeryCallScope.availableSuperCallTypes(): List<KClass<*>> = instanceContracts
+internal fun MokkeryCallScope.availableSuperCallTypes(): List<KClass<*>> = contracts
     .superCalls
     ?.mokkerySuperTypes(call.function.id.value)
     .orEmpty()

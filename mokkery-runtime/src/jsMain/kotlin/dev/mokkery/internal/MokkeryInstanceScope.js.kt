@@ -7,7 +7,7 @@ import dev.mokkery.configurer.MokkeryInstanceConfigurer
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.Function
 import dev.mokkery.internal.contracts.InstanceContractsProvider
-import dev.mokkery.internal.contracts.MemberFunctionsContract
+import dev.mokkery.internal.contracts.CoreContract
 import dev.mokkery.internal.contracts.SpyCallsContract
 import kotlin.reflect.KClass
 
@@ -36,11 +36,9 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
     this.setupMokkeryInstance(
         parent = parent,
         typeName = typeName,
-        interceptedTypes = listOf(interceptedType),
-        typeArguments = listOf(typeArguments),
         mode = mode,
         spiedObject = spiedObject,
-        contractsProvider = InstanceContractsProvider(JsMemberFunctionsContract(functionProvider), spyDispatcher),
+        contractsProvider = InstanceContractsProvider(JsCoreContract(interceptedType, typeArguments, functionProvider), spyDispatcher),
         block = block,
     )
 }
@@ -66,9 +64,15 @@ private class MokkeryJsFunSpyScope(
     override fun toString(): String = instanceIdString
 }
 
-private class JsMemberFunctionsContract(
+private class JsCoreContract(
+    private val interceptedType: KClass<*>,
+    private val typeArguments: List<KClass<*>>,
     private val provider: () -> Function
-) : MemberFunctionsContract {
+) : CoreContract {
+
+    override val mokkeryInterceptedTypes: List<KClass<*>> get() = listOf(interceptedType)
+
+    override val mokkeryTypeArguments: List<List<KClass<*>>> get() = listOf(typeArguments)
 
     override fun mokkeryFunction(id: Long): Function? = provider().takeIf { it.id.value == id }
 }

@@ -12,7 +12,7 @@ import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireSpy
 import dev.mokkery.internal.contracts.SpyCallsContract
 import dev.mokkery.internal.contracts.SuperCallsContract
-import dev.mokkery.internal.contracts.instanceContracts
+import dev.mokkery.internal.contracts.contracts
 import dev.mokkery.internal.contracts.spyCalls
 import dev.mokkery.internal.contracts.superCalls
 import dev.mokkery.internal.mokkeryRuntimeError
@@ -91,7 +91,7 @@ private inline fun <R> MokkeryCallScope.dispatchSuper(
     dispatch: (SuperCallsContract, id: dev.mokkery.context.Function.Id, superTypeIndex: Int) -> R,
 ): R {
     checkSuperArgs(args)
-    val contract = instanceContracts.superCalls ?: throw MissingSuperMethodException(superType)
+    val contract = contracts.superCalls ?: throw MissingSuperMethodException(superType)
     val id = call.function.id
     val superTypeIndex = contract.mokkerySuperTypes(id.value).indexOf(superType)
     if (superTypeIndex < 0) throw MissingSuperMethodException(superType)
@@ -113,7 +113,7 @@ public suspend fun MokkerySuspendCallScope.callSpied(args: List<Any?>): Any? = r
 private fun MokkeryCallScope.requireSpyContract(args: List<Any?>): SpyCallsContract {
     instanceSpec.requireSpy()
     checkSpiedArgs(args)
-    return instanceContracts.spyCalls ?: throw MissingSpyMethodException()
+    return contracts.spyCalls ?: throw MissingSpyMethodException()
 }
 
 private val MokkeryCallScope.methodOriginType: KClass<*>
