@@ -38,10 +38,23 @@ internal interface InstanceContractsProvider : MokkeryContext.Element {
 }
 
 internal fun InstanceContractsProvider(
-    vararg refs: Any?
-): InstanceContractsProvider = InstanceContractsProviderImpl(refs.filterNotNull())
+    ref: Any
+): InstanceContractsProvider = SingleRefContractsProvider(ref)
 
-private class InstanceContractsProviderImpl(
+internal fun InstanceContractsProvider(
+    vararg refs: Any?
+): InstanceContractsProvider = MultipleRefsInstanceContractsProvider(refs.filterNotNull())
+
+private class SingleRefContractsProvider(
+    private val ref: Any,
+) : InstanceContractsProvider {
+    override fun <T : InstanceContract> find(contract: KClass<T>): T? = when {
+        contract.isInstance(ref) -> ref.unsafeCast()
+        else -> null
+    }
+}
+
+private class MultipleRefsInstanceContractsProvider(
     private val refs: List<Any>
 ) : InstanceContractsProvider {
 
