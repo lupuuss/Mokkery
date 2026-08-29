@@ -255,6 +255,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("MatchersMustNotBeUsedInArrayLiteralsMixedWithOtherArguments.kt")
+        public void testMatchersMustNotBeUsedInArrayLiteralsMixedWithOtherArguments() {
+          run("MatchersMustNotBeUsedInArrayLiteralsMixedWithOtherArguments.kt");
+        }
+
+        @Test
         @TestMetadata("MatchersMustNotBeUsedInNestedClasses.kt")
         public void testMatchersMustNotBeUsedInNestedClasses() {
           run("MatchersMustNotBeUsedInNestedClasses.kt");
