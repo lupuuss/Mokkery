@@ -119,4 +119,17 @@ class ReverseDomainNameShortenerTest {
         )
         assertEquals(expectedShorterNames, shortener.shorten(names))
     }
+
+    @Test
+    fun testMapsSharedSubstringNames() {
+        assertEquals(
+            mapOf(
+                "z.pkg.AB" to "z.pkg.AB",
+                "pkg.AB" to "pkg.AB",
+                "pkg.A" to "A",
+            ),
+            shortener.shorten(setOf("z.pkg.AB", "pkg.AB", "pkg.A"))
+        )
+    }
+
 }
