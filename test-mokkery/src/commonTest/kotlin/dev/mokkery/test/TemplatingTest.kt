@@ -609,20 +609,6 @@ class TemplatingTest {
         )
     }
 
-    private fun assertFailsWithEmptyVerifyBlock(block: () -> Unit) {
-        assertMokkeryError(
-            expectedMessage = """
-                Given 'verify' block does not contain any call to a mock. It's very suspicious and most probably caused by misuse.
-                
-                Possible reasons:
-                * You are calling an object that is not a mock.
-                * You are calling a mock, but the member function is final.
-                * You are calling a mock, but it's an extension function instead of a member function.
-            """.trimIndent(),
-            block = block
-        )
-    }
-
     private interface ThrowableProvider {
 
         fun provide(): Throwable

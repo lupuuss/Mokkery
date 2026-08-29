@@ -7,6 +7,7 @@ import dev.mokkery.internal.blockingCallScope
 import dev.mokkery.internal.instanceId
 import dev.mokkery.test.TestCounter
 import dev.mokkery.test.TestMokkeryInstanceScope
+import dev.mokkery.test.assertTracesEqual
 import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.fakeCallTrace
 import dev.mokkery.test.fakeFunParam
@@ -75,8 +76,8 @@ class CallTracingRegistryTest {
             instance1.callTrace(0, "call1", fakeCallArg(1)),
             instance1.callTrace(1, "call2", fakeCallArg(2)),
         )
-        assertEquals(expected, instance1.callTracing.all)
-        assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
+        assertTracesEqual(expected, instance1.callTracing.all)
+        assertTracesEqual(expected, instance1.callTracing.withVerifySession { unverified })
     }
 
     @Test
@@ -103,7 +104,7 @@ class CallTracingRegistryTest {
         val expected = listOf(instance1.callTrace(1, "call2", fakeCallArg(2)),)
         instance1.callTracing.withVerifySession {
             markVerified(unverified.first())
-            assertEquals(expected, unverified)
+            assertTracesEqual(expected, unverified)
         }
     }
 
@@ -120,7 +121,7 @@ class CallTracingRegistryTest {
             instance1.callTrace(1, "call2", fakeCallArg(2)),
         )
         instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
-        assertEquals(expected, instance1.callTracing.all)
+        assertTracesEqual(expected, instance1.callTracing.all)
     }
 
     @Test
@@ -133,7 +134,7 @@ class CallTracingRegistryTest {
             .trace(instance1.blockingCallScope("call2", fakeCallArg(2)))
         val expected = listOf(instance1.callTrace(1, "call2", fakeCallArg(2)),)
         instance1.callTracing.withVerifySession { markVerified(unverified.first()) }
-        assertEquals(expected, instance1.callTracing.withVerifySession { unverified })
+        assertTracesEqual(expected, instance1.callTracing.withVerifySession { unverified })
     }
 
     @Test
@@ -179,7 +180,7 @@ class CallTracingRegistryTest {
             instance2.callTrace(1, "call2", fakeCallArg(2)),
             instance1.callTrace(2, "call3", fakeCallArg(3)),
         )
-        assertEquals(expected, collection.withVerifySession { unverified })
+        assertTracesEqual(expected, collection.withVerifySession { unverified })
     }
 
     @Test
@@ -198,7 +199,7 @@ class CallTracingRegistryTest {
         collection.withVerifySession {
             markVerified(calls[1])
             markVerified(calls[2])
-            assertEquals(listOf(calls[0], calls[3]), unverified)
+            assertTracesEqual(listOf(calls[0], calls[3]), unverified)
         }
     }
 
@@ -219,8 +220,8 @@ class CallTracingRegistryTest {
             markVerified(calls[1])
             markVerified(calls[2])
         }
-        assertEquals(listOf(calls[0]), instance1.callTracing.withVerifySession { unverified })
-        assertEquals(listOf(calls[3]), instance2.callTracing.withVerifySession { unverified })
+        assertTracesEqual(listOf(calls[0]), instance1.callTracing.withVerifySession { unverified })
+        assertTracesEqual(listOf(calls[3]), instance2.callTracing.withVerifySession { unverified })
     }
 
     @Test

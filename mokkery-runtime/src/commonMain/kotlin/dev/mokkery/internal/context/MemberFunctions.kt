@@ -7,7 +7,6 @@ import dev.mokkery.context.require
 import dev.mokkery.internal.contracts.MemberFunctionsContract
 import dev.mokkery.internal.mokkeryRuntimeError
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.loop
 import kotlinx.atomicfu.update
 
 internal interface MemberFunctions : MokkeryContext.Element {

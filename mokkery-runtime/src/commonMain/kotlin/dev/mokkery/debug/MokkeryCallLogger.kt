@@ -40,7 +40,7 @@ public class MokkeryCallLogger(
 
 
     override fun onIntercept(scope: MokkeryCallScope) {
-        scope.withRenderingScope {
+        scope.withRenderingScope(useAliasing = false) {
             scope.suiteName
                 ?.let { "[$it] " }
                 .orEmpty()

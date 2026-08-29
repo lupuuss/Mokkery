@@ -36,8 +36,8 @@ internal object MatchersStatusRenderer : Renderer<Pair<CallTemplate, CallTrace>>
             .parameters
         return buildString {
             parameters.forEachIndexed { index, parameter ->
-                val arg = CallArgument(trace.args.getOrNull(index), parameter)
-                append(arg.describeMatchingAgainst(materializedTemplate.matchers.getOrNull(index)))
+                val arg = CallArgument(trace.args[index], parameter)
+                append(arg.describeMatchingAgainst(materializedTemplate.matchers[index]))
             }
         }
     }
