@@ -197,9 +197,10 @@ fun IrClass.addOverridingProperty(
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
+        isVar = properties.any(IrProperty::isVar)
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
-        val baseGetter = property.getter
+        val baseGetter = properties.firstNotNullOfOrNull(IrProperty::getter)
         if (baseGetter != null) {
             val getter = addGetter()
             getter.overriddenSymbols = properties
@@ -213,7 +214,7 @@ fun IrClass.addOverridingProperty(
             getter.deepApplyAnnotationsFilter(annotationFilter)
             getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
-        val baseSetter = property.setter
+        val baseSetter = properties.firstNotNullOfOrNull(IrProperty::setter)
         if (baseSetter != null) {
             val setter = addSetter()
             setter.metadata = baseSetter.metadata
