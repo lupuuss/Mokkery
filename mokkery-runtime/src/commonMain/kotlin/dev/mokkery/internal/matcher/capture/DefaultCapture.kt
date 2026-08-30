@@ -16,5 +16,5 @@ internal data class DefaultContainerCapture<T>(
         lock.withLock { capturedValues.add(value) }
     }
 
-    override fun toString(): String = "container(${capturedValues.joinToString()})"
+    override fun toString(): String = lock.withLock { "container(${capturedValues.joinToString()})" }
 }
