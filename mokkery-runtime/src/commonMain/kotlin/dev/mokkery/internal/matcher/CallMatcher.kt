@@ -71,10 +71,16 @@ private class CallMatcherImpl(
             && template.matchesArgsFrom(entry)
 
     private fun CallTemplate.matchesArgsFrom(entry: CallEntry): Boolean {
-        val matchers = defaultsMaterializer.materialize(this, entry).matchers
+        val materialized = defaultsMaterializer.materialize(this, entry)
+        val matchers = materialized.matchers
         val args = entry.args
         if (matchers.size != args.size) return false
-        for (index in args.indices) if (!matchers[index].matches(args[index])) return false
+        for (index in args.indices) {
+            if (matchers[index].matches(args[index])) continue
+            if (matchers[index] !is MaterializedDefaultValueMatcher) return false
+            defaultsMaterializer.checkNonDeterministicDefaults(this, entry, materialized)
+            return false
+        }
         return true
     }
 
