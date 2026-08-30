@@ -55,6 +55,17 @@ class MocksManyTypesTest {
     }
 
     @Test
+    fun testMocksSetterWhenOnlySomeOfNameCollidingPropertiesAreMutable() {
+        every { mock.t2.property = any() } returns Unit
+        mock.t2.property = 10
+        mock.t3.property = 20
+        verify {
+            mock.t2.property = 10
+            mock.t3.property = 20
+        }
+    }
+
+    @Test
     fun testProperlyResolvesNameCollidingSuperCallsToMethods() {
         every { mock.t1.method(1) } calls superOf<A>()
         every { mock.t1.method(2) } calls superOf<B>()
@@ -108,9 +119,8 @@ class MocksManyTypesTest {
 
     private interface A {
 
-        var property: Int
+        val property: Int
             get() = 1
-            set(value) {}
 
         fun method(input: Int): String = "method($input) from A"
 
