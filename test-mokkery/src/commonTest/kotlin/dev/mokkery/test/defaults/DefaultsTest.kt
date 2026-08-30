@@ -1,25 +1,39 @@
 package dev.mokkery.test.defaults
 
 import dev.mokkery.MokkeryRuntimeException
+import dev.mokkery.MokkeryScope
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.returnsArgAt
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.internal.mokkeryInternals
+import dev.mokkery.internal.resetMocksCounter
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.templating.ext
 import dev.mokkery.test.FunctionDefaultsInterface
 import dev.mokkery.test.GenericDefaultsInterface
 import dev.mokkery.test.SelfReferencingDefaultsInterface
+import dev.mokkery.test.assertMokkeryError
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import kotlinx.coroutines.test.runTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+@OptIn(InternalMokkeryApi::class)
 class DefaultsTest {
 
     private val mock = mock<FunctionDefaultsInterface>()
+
+    @BeforeTest
+    fun before() {
+        MokkeryScope.global.mokkeryInternals.resetMocksCounter()
+        FunctionDefaultsInterface.resetTokens()
+    }
 
     @Test
     fun testWithComputedDefaults() {
@@ -98,11 +112,14 @@ class DefaultsTest {
     fun testFailsWithClearErrorWhenGenericDefaultExpressionUsesProperty() {
         val generic = mock<GenericDefaultsInterface<Int>> { every { defaultValue } returns 1 }
         every { generic.callWithPropertyDefault(5) } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { generic.callWithPropertyDefault(5) }
-        assertEquals(
-            expectedMessage(generic, "callWithPropertyDefault(value = 5, other = default())", listOf("other"), "defaultValue"),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = generic,
+            call = "callWithPropertyDefault(value = 5, other = default())",
+            omitted = listOf("other"),
+            usedMember = "defaultValue",
+        ) {
+            generic.callWithPropertyDefault(5)
+        }
     }
 
     @Test
@@ -110,11 +127,14 @@ class DefaultsTest {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.defaultName } returns "cfg"
         every { selfReferencing.callWithPropertyDefault(5) } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { selfReferencing.callWithPropertyDefault(5) }
-        assertEquals(
-            expectedMessage(selfReferencing, "callWithPropertyDefault(i = 5, name = default())", listOf("name"), "defaultName"),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = selfReferencing,
+            call = "callWithPropertyDefault(i = 5, name = default())",
+            omitted = listOf("name"),
+            usedMember = "defaultName",
+        ) {
+            selfReferencing.callWithPropertyDefault(5)
+        }
     }
 
     @Test
@@ -122,11 +142,14 @@ class DefaultsTest {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.defaultMail(5) } returns "mail"
         every { selfReferencing.callWithFunctionDefault(5) } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { selfReferencing.callWithFunctionDefault(5) }
-        assertEquals(
-            expectedMessage(selfReferencing, "callWithFunctionDefault(i = 5, mail = default())", listOf("mail"), "defaultMail"),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = selfReferencing,
+            call = "callWithFunctionDefault(i = 5, mail = default())",
+            omitted = listOf("mail"),
+            usedMember = "defaultMail",
+        ) {
+            selfReferencing.callWithFunctionDefault(5)
+        }
     }
 
     @Test
@@ -134,11 +157,14 @@ class DefaultsTest {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.overloaded(1, 2) } returns "n"
         every { selfReferencing.overloaded("s") } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { selfReferencing.overloaded("s") }
-        assertEquals(
-            expectedMessage(selfReferencing, "overloaded(x = \"s\", y = default())", listOf("y"), "overloaded"),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = selfReferencing,
+            call = "overloaded(x = \"s\", y = default())",
+            omitted = listOf("y"),
+            usedMember = "overloaded",
+        ) {
+            selfReferencing.overloaded("s")
+        }
     }
 
     @Test
@@ -146,11 +172,14 @@ class DefaultsTest {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.sameParameterNames(1, 2) } returns "n"
         every { selfReferencing.sameParameterNames("s") } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { selfReferencing.sameParameterNames("s") }
-        assertEquals(
-            expectedMessage(selfReferencing, "sameParameterNames(a = \"s\", b = default())", listOf("b"), "sameParameterNames"),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = selfReferencing,
+            call = "sameParameterNames(a = \"s\", b = default())",
+            omitted = listOf("b"),
+            usedMember = "sameParameterNames",
+        ) {
+            selfReferencing.sameParameterNames("s")
+        }
     }
 
     @Test
@@ -177,16 +206,14 @@ class DefaultsTest {
         val selfReferencing = mock<SelfReferencingDefaultsInterface>()
         every { selfReferencing.defaultName } returns "cfg"
         every { selfReferencing.mixedDefaults(5) } returns "ok"
-        val exception = assertFailsWith<MokkeryRuntimeException> { selfReferencing.mixedDefaults(5) }
-        assertEquals(
-            expectedMessage(
-                mock = selfReferencing,
-                call = "mixedDefaults(i = 5, name = default(), tag = default())",
-                omitted = listOf("name", "tag"),
-                usedMember = "defaultName"
-            ),
-            exception.message
-        )
+        assertUnsupportedDefaultException(
+            mock = selfReferencing,
+            call = "mixedDefaults(i = 5, name = default(), tag = default())",
+            omitted = listOf("name", "tag"),
+            usedMember = "defaultName",
+        ) {
+            selfReferencing.mixedDefaults(5)
+        }
     }
 
     @Test
@@ -217,6 +244,59 @@ class DefaultsTest {
     }
 
     @Test
+    fun testFailsOnCallWhenDefaultIsNotDeterministic() {
+        every { mock.callNonDeterministic(5) } returns "ok"
+        assertNonDeterministicDefaultsException(
+            mock = mock,
+            call = "callNonDeterministic(i = 5, token = default())",
+            functionName = "callNonDeterministic",
+            parameter = "token",
+            first = 1,
+            second = 2
+        ) {
+            mock.callNonDeterministic(5)
+        }
+    }
+
+    @Test
+    fun testFailsOnVerifyWhenDefaultIsNotDeterministic() {
+        every { mock.callNonDeterministic(5, any()) } returns "ok"
+        mock.callNonDeterministic(5)
+        assertNonDeterministicDefaultsException(
+            mock = mock,
+            call = "callNonDeterministic(i = 5, token = default())",
+            functionName = "callNonDeterministic",
+            parameter = "token",
+            first = 1,
+            second = 2
+        ){
+            verify { mock.callNonDeterministic(5) }
+        }
+    }
+
+    @Test
+    fun testFailsOnCallWhenDefaultValueHasNoStructuralEquality() {
+        every { mock.callIdentityDefault(5) } returns "ok"
+        assertNonDeterministicDefaultsException(
+            mock = mock,
+            call = "callIdentityDefault(i = 5, payload = default())",
+            functionName = "callIdentityDefault",
+            parameter = "payload",
+            first = "IdentityPayload",
+            second = "IdentityPayload",
+        ) {
+            mock.callIdentityDefault(5)
+        }
+    }
+
+    @Test
+    fun testWorksWithNonDeterministicDefaultPassedExplicitly() {
+        every { mock.callNonDeterministic(5, any()) } returns "ok"
+        assertEquals("ok", mock.callNonDeterministic(5))
+        verify { mock.callNonDeterministic(5, any()) }
+    }
+
+    @Test
     fun testDoesNotAffectIdsOfMocksCreatedAfterExtraction() {
         val first = mock<FunctionDefaultsInterface>()
         every { first.call(5) } returnsArgAt 1
@@ -225,12 +305,41 @@ class DefaultsTest {
         assertEquals(first.instanceIdNumber() + 1, second.instanceIdNumber())
     }
 
-    private fun expectedMessage(mock: Any, call: String, omitted: List<String>, usedMember: String): String =
-        "Call template `${mock.toString().substringAfterLast(".")}.$call` relies on the default value of" +
+    private fun assertNonDeterministicDefaultsException(
+        mock: Any,
+        call: String,
+        functionName: String,
+        parameter: String,
+        first: Any?,
+        second: Any?,
+        block: () -> Unit,
+    ) {
+        val expectedMessage = "Call template `${mock.callTemplateName(call)}` relies on the default value of" +
+                " `$parameter` in `$functionName`," +
+                " but Mokkery cannot match on it -" +
+                " evaluating that default twice produced values that are not equal ($first and $second)." +
+                " Either the default is not deterministic (random values, current time, counters, etc.)," +
+                " or its value does not implement structural equality." +
+                " Pass that argument explicitly in the `every`/`verify` block that registered this template."
+        assertMokkeryError(expectedMessage, block)
+    }
+
+    private fun assertUnsupportedDefaultException(
+        mock: Any,
+        call: String,
+        omitted: List<String>,
+        usedMember: String,
+        block: () -> Unit,
+    ) {
+        val expectedMessage = "Call template `${mock.callTemplateName(call)}` relies on the default value of" +
                 " ${omitted.joinToString { "`$it`" }}," +
                 " but one of those defaults is computed from `$usedMember` of the same mocked instance," +
                 " which Mokkery cannot resolve." +
                 " Pass that argument explicitly in the `every`/`verify` block that registered this template."
+        assertMokkeryError(expectedMessage, block)
+    }
+
+    private fun Any.callTemplateName(call: String): String = "${toString().substringAfterLast(".")}.$call"
 
     private fun Any.instanceIdNumber(): Long = toString()
         .substringAfterLast("(")

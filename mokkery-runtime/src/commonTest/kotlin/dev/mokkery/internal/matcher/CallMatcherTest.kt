@@ -2,6 +2,7 @@ package dev.mokkery.internal.matcher
 
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.functions
+import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.test.TestDefaultsMaterializer
 import dev.mokkery.test.TestMemberFunctions
@@ -100,6 +101,70 @@ class CallMatcherTest {
             it.copy(matchers = listOf(MaterializedDefaultValueMatcher(1)))
         }
         assertTrue(matcher.areMatching(template, entry))
+    }
+
+    @Test
+    fun testChecksNonDeterministicDefaultsWhenOnlyDefaultMatcherFails() {
+        var checked = 0
+        val template = fakeCallTemplate(ArgMatcher.Equals(1), fakeDefaultValueMatcher(), name = "call")
+        val entry = fakeCallEntry(name = "call", args = listOf(1, 2))
+        defaultsMaterializer.calls = { it, _ ->
+            it.copy(matchers = listOf(ArgMatcher.Equals(1), MaterializedDefaultValueMatcher(3)))
+        }
+        defaultsMaterializer.checks = { _, _, _ -> checked++ }
+        assertFalse(matcher.areMatching(template, entry))
+        assertEquals(1, checked)
+    }
+
+    @Test
+    fun testChecksNonDeterministicDefaultsWithMaterializedTemplate() {
+        val template = fakeCallTemplate(fakeDefaultValueMatcher(), name = "call")
+        val entry = fakeCallEntry(name = "call", args = listOf(1))
+        val materialized = template.copy(matchers = listOf(MaterializedDefaultValueMatcher(3)))
+        var checkedWith: Triple<CallTemplate, CallEntry, CallTemplate>? = null
+        defaultsMaterializer.calls = { _, _ -> materialized }
+        defaultsMaterializer.checks = { t, e, m -> checkedWith = Triple(t, e, m) }
+        assertFalse(matcher.areMatching(template, entry))
+        assertEquals(Triple(template, entry, materialized), checkedWith)
+    }
+
+    @Test
+    fun testChecksNonDeterministicDefaultsOnMatchAsWell() {
+        var checked = 0
+        val template = fakeCallTemplate(ArgMatcher.Equals(1), fakeDefaultValueMatcher(), name = "call")
+        val entry = fakeCallEntry(name = "call", args = listOf(1, 2))
+        defaultsMaterializer.calls = { it, _ ->
+            it.copy(matchers = listOf(ArgMatcher.Equals(1), MaterializedDefaultValueMatcher(3)))
+        }
+        defaultsMaterializer.checks = { _, _, _ -> checked++ }
+        assertEquals(CallMatchResult.SameReceiverMethodSignature, matcher.match(template, entry))
+        assertEquals(1, checked)
+    }
+
+    @Test
+    fun testDoesNotCheckNonDeterministicDefaultsWhenRegularMatcherFails() {
+        var checked = 0
+        val template = fakeCallTemplate(ArgMatcher.Equals(9), fakeDefaultValueMatcher(), name = "call")
+        val entry = fakeCallEntry(name = "call", args = listOf(1, 2))
+        defaultsMaterializer.calls = { it, _ ->
+            it.copy(matchers = listOf(ArgMatcher.Equals(9), MaterializedDefaultValueMatcher(3)))
+        }
+        defaultsMaterializer.checks = { _, _, _ -> checked++ }
+        assertFalse(matcher.areMatching(template, entry))
+        assertEquals(0, checked)
+    }
+
+    @Test
+    fun testDoesNotCheckNonDeterministicDefaultsWhenAllMatchersMatch() {
+        var checked = 0
+        val template = fakeCallTemplate(ArgMatcher.Equals(1), fakeDefaultValueMatcher(), name = "call")
+        val entry = fakeCallEntry(name = "call", args = listOf(1, 2))
+        defaultsMaterializer.calls = { it, _ ->
+            it.copy(matchers = listOf(ArgMatcher.Equals(1), MaterializedDefaultValueMatcher(2)))
+        }
+        defaultsMaterializer.checks = { _, _, _ -> checked++ }
+        assertTrue(matcher.areMatching(template, entry))
+        assertEquals(0, checked)
     }
 
     @Test
