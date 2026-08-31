@@ -331,6 +331,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     }
 
     @Test
+    @TestMetadata("AnonymousTypesMustNotBeMocked.kt")
+    public void testAnonymousTypesMustNotBeMocked() {
+      run("AnonymousTypesMustNotBeMocked.kt");
+    }
+
+    @Test
     @TestMetadata("FinalTypesMustNotBeMocked.kt")
     public void testFinalTypesMustNotBeMocked() {
       run("FinalTypesMustNotBeMocked.kt");

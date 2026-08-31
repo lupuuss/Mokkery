@@ -1,0 +1,1 @@
+/AnonymousTypesMustNotBeMocked.kt:12:5: error: Anonymous object types cannot be used with 'spy'.
