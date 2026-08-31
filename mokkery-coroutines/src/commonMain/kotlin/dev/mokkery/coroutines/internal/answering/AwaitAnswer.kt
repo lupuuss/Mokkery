@@ -15,5 +15,12 @@ internal class AwaitAnswer<T>(
     override suspend fun call(scope: MokkerySuspendCallScope): T = awaitable.await(scope)
 
     context(scope: MokkeryRenderingScope)
-    override fun render(): String = "awaits ${awaitable.render()}"
+    override fun render(): String = "awaits ${awaitable.renderOrDescription()}"
+}
+
+@Suppress("DEPRECATION")
+context(scope: MokkeryRenderingScope)
+private fun Awaitable<*>.renderOrDescription(): String = when (this) {
+    is Renderable -> render()
+    else -> description()
 }
