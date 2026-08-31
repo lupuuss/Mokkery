@@ -43,6 +43,8 @@ import org.jetbrains.kotlin.fir.packageFqName
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.toClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
@@ -204,11 +206,23 @@ class MocksCreationChecker(
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
     private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
         if (!checkInterceptionTypeParameter(source, type)) return false
+        if (!checkInterceptionAnonymousType(source, type)) return false
         val classSymbol = type.toRegularClassSymbol() ?: return false
         if (!checkInterceptionModality(source, classSymbol)) return false
         if (classSymbol.isInterface) return true
         if (!checkClassInterceptionRequirements(source, classSymbol)) return false
         return true
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkInterceptionAnonymousType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
+        if (type.toClassSymbol(context.session) !is FirAnonymousObjectSymbol) return true
+        reporter.reportOn(
+            source = source,
+            factory = Diagnostics.ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED,
+            a = funSymbol.name,
+        )
+        return false
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
@@ -462,6 +476,7 @@ class MocksCreationChecker(
         val DUPLICATE_TYPES_FOR_MOCK_MANY by error3<KtElement, ConeKotlinType, Name, String>()
         val FUNCTIONAL_TYPE_ON_JS by error2<KtElement, ConeKotlinType, Name>()
         val NOT_A_CLASS_LITERAL by error1<KtElement, Name>()
+        val ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED by error1<KtElement, Name>()
     }
 
     companion object {

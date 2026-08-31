@@ -82,6 +82,11 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             ),
         )
         it.put(
+            factory = Diagnostics.ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED,
+            message = "Anonymous object types cannot be used with ''{0}''.",
+            rendererA = CommonRenderers.NAME,
+        )
+        it.put(
             factory = Diagnostics.NOT_A_CLASS_LITERAL,
             message = "''{0}'' accepts only class literals (e.g. Foo::class) as arguments.",
             rendererA = CommonRenderers.NAME,
