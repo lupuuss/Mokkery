@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
  * Represents an operation that can be awaited during a mocked function call.
  * Result of this operation is returned by the mocked function call.
  */
-public interface Awaitable<out T> : Renderable {
+public interface Awaitable<out T> {
 
     /**
      * Suspends current function call until the awaited result is available.
@@ -37,12 +37,10 @@ public interface Awaitable<out T> : Renderable {
      * Provides a description of the awaitable action.
      */
     @Deprecated("Implement `dev.mokkery.rendering.Renderable.render` instead.")
-    public fun description(): String = context(MokkeryScope.global.mokkeryInternals.renderingScope) {
-        render()
+    public fun description(): String = when (this) {
+        is Renderable -> context(MokkeryScope.global.mokkeryInternals.renderingScope) { render() }
+        else -> toString()
     }
-
-    context(scope: MokkeryRenderingScope)
-    override fun render(): String = error("Not implemented.")
 
     public companion object {
 

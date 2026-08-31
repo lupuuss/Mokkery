@@ -4,6 +4,8 @@ import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.coroutines.TestAwaitable
 import dev.mokkery.coroutines.createMokkeryBlockingCallScope
 import dev.mokkery.coroutines.createMokkerySuspendCallScope
+import dev.mokkery.coroutines.answering.Awaitable
+import dev.mokkery.coroutines.testRendering
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,6 +39,16 @@ class AwaitAnswerTest {
         val scope = createMokkerySuspendCallScope()
         answer.call(scope)
         assertSame(scope, passedScope)
+    }
+
+    @Test
+    fun testRendersLegacyAwaitableDescription() {
+        // an `Awaitable` written against 3.4.x only overrides the deprecated `description()`
+        val legacy = object : Awaitable<Int> {
+            override suspend fun await(scope: MokkerySuspendCallScope): Int = 1
+            override fun description(): String = "legacyDescription()"
+        }
+        assertEquals("awaits legacyDescription()", testRendering { AwaitAnswer(legacy).render() })
     }
 
     @Test
