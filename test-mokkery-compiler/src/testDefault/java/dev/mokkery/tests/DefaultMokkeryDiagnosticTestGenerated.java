@@ -297,6 +297,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("MatchesCompositeArgIsDetectedPerCallSite.kt")
+        public void testMatchesCompositeArgIsDetectedPerCallSite() {
+          run("MatchesCompositeArgIsDetectedPerCallSite.kt");
+        }
+
+        @Test
         @TestMetadata("MatchesMustNotBeUsedWithCompositeMatchers.kt")
         public void testMatchesMustNotBeUsedWithCompositeMatchers() {
           run("MatchesMustNotBeUsedWithCompositeMatchers.kt");
