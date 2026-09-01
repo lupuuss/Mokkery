@@ -54,7 +54,7 @@ fun test() {
     }
 }
 
-private fun MokkeryMatcherScope.extracted() {
+private fun MokkeryTemplatingScope.extracted() {
    foo.getAll()
 }
 ```
@@ -108,7 +108,7 @@ Mokkery uses the following strategies to supply constructor arguments:
   Enable this behavior using the `stubs.allowConcreteClassInstantiation` flag.
 - Generating stub implementations for classes.
   **This requires explicit permission for the same reason as concrete classes instantiation.**
-  Enable this behavior using the `mokkery.stubs.allowClassInheritance` flag.
+  Enable this behavior using the `stubs.allowClassInheritance` flag.
 
 Mokkery selects the first applicable strategy based on the order listed above.
 
