@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.getArrayElementType
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.name.SpecialNames
 
 var IrFunction.isCompiledMatcher: Boolean? by irAttribute(copyByDefault = true)
 
@@ -21,7 +22,7 @@ context(scope: TransformerScope)
 fun compileIfMatcher(function: IrSimpleFunction): IrSimpleFunction {
     if (function.isCompiledMatcher != null) return function
     val matcherScopeType = referencedDefaultType(MokkeryIr.Class.MokkeryMatcherScope)
-    if (function.parameters.none { it.type == matcherScopeType }) {
+    if (function.name == SpecialNames.ANONYMOUS || function.parameters.none { it.type == matcherScopeType }) {
         function.isCompiledMatcher = false
         return function
     }

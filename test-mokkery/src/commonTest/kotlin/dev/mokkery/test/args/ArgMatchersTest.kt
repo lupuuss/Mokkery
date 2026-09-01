@@ -377,6 +377,14 @@ class ArgMatchersTest {
     }
 
     @Test
+    fun testCustomMatcherUsingScopeFunction() {
+        every { mock.callNullable(any()) } returns 0
+        every { mock.callNullable(nullWithScopeFunction()) } returns 1
+        assertEquals(1, mock.callNullable(null))
+        assertEquals(0, mock.callNullable(1))
+    }
+
+    @Test
     fun testCustomCompositeMatcher() {
         every { mock.callNullable(customAnd(not(isNull()), gte(1))) } returns 3
         assertEquals(3, mock.callNullable(1))
@@ -494,6 +502,11 @@ class ArgMatchersTest {
 
 
 private fun <T> MokkeryMatcherScope.isNull(): T = customMatcher { it == null }
+
+private fun <T> MokkeryMatcherScope.nullWithScopeFunction(): T {
+    val expected: Any? = run { null }
+    return customMatcher { it == expected }
+}
 
 private fun <T> MokkeryMatcherScope.customMatcher(block: (T) -> Boolean): T = matches { block(it) }
 

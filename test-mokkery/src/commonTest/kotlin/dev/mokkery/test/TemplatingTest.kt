@@ -420,6 +420,29 @@ class TemplatingTest {
     }
 
     @Test
+    fun testFailsWhenWrappingMockCallInRunScopeFunction() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            every {
+                run { mock.callPrimitive(1) }
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsRunScopeFunctionInEveryBlock() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(run { 1 }) } returns 2 }
+        assertEquals(2, mock.callPrimitive(1))
+    }
+
+    @Test
+    fun testAllowsRunScopeFunctionInVerifyBlock() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 0 }
+        mock.callPrimitive(1)
+        verify { run { mock.callPrimitive(1) } }
+    }
+
+    @Test
     fun testFailsWhenAccessingMockCallResultInAnotherCall() {
         val mock = mock<RegularMethodsInterface>()
         assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
