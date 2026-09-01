@@ -1,6 +1,7 @@
 package dev.mokkery.plugin.fir.diagnostics
 
 import dev.mokkery.plugin.Mokkery
+import dev.mokkery.plugin.fir.isInlinedInPlace
 import dev.mokkery.plugin.fir.isTemplatingFunction
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -35,7 +36,11 @@ class TemplatingDeclarationChecker(
 
     private fun FirFunction.isAllowedTemplatingBlock(
         session: FirSession
-    ): Boolean = isMokkeryTemplatingMethod() || this is FirAnonymousFunction && matchingParameterFunctionType
+    ): Boolean = isMokkeryTemplatingMethod() || isInlinedInPlace() || isTemplatingBlock(session)
+
+    private fun FirFunction.isTemplatingBlock(
+        session: FirSession
+    ) = this is FirAnonymousFunction && matchingParameterFunctionType
         ?.typeAnnotations
         ?.hasAnnotation(templatingBlockAnnotation, session) == true
 

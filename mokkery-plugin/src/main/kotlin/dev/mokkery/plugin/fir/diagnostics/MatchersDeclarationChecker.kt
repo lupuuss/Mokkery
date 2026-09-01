@@ -3,6 +3,7 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.getMatcherAnnotation
+import dev.mokkery.plugin.fir.isInlinedInPlace
 import dev.mokkery.plugin.fir.isMatcher
 import dev.mokkery.plugin.fir.isMokkeryMatcherScope
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -36,6 +37,7 @@ class MatchersDeclarationChecker(
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(declaration: FirFunction) {
         if (!declaration.symbol.isMatcher()) return
+        if (declaration.isInlinedInPlace()) return
         checkModality(declaration)
         checkExternal(declaration)
         checkOrigin(declaration)

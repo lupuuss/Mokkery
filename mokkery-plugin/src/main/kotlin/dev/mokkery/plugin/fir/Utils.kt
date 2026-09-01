@@ -2,6 +2,9 @@ package dev.mokkery.plugin.fir
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.SessionHolder
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
+import org.jetbrains.kotlin.fir.declarations.FirFunction
+import org.jetbrains.kotlin.fir.declarations.InlineStatus
 import org.jetbrains.kotlin.fir.declarations.declaredFunctions
 import org.jetbrains.kotlin.fir.declarations.declaredProperties
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -18,6 +21,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 
 context(session: SessionHolder)
 fun FirFunctionSymbol<*>.dispatchReceiverClassLikeSymbolOrNull() = dispatchReceiverType?.toClassLikeSymbol()
+
+fun FirFunction.isInlinedInPlace() = this is FirAnonymousFunction && inlineStatus == InlineStatus.Inline
 
 fun FirRegularClassSymbol.declaredMembers(session: FirSession): List<FirBasedSymbol<*>> {
     return declaredFunctions(session) + declaredProperties(session)
