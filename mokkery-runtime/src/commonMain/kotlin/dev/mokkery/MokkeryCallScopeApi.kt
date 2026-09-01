@@ -58,7 +58,6 @@ private fun MokkeryBlockingCallScope.superCallLambda(type: KClass<*>) = { it: Li
     this.callSuper(type, it)
 }
 
-
 /**
  * Calls original method implementation with given [args].
  */
@@ -73,29 +72,29 @@ public suspend fun MokkerySuspendCallScope.callOriginal(args: List<Any?>): Any? 
  * Calls super method of [superType] with given [args]
  */
 public fun MokkeryBlockingCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
-    dispatchSuper(superType, args) { dispatcher, id, superTypeIndex ->
-        dispatcher.mokkerySuperCall(id.value, superTypeIndex, args)
+    callSuper(superType, args) { contract, id, superTypeIndex ->
+        contract.mokkerySuperCall(id.value, superTypeIndex, args)
     }
 
 /**
  * Calls super method of [superType] with given [args]
  */
 public suspend fun MokkerySuspendCallScope.callSuper(superType: KClass<*>, args: List<Any?>): Any? =
-    dispatchSuper(superType, args) { dispatcher, id, superTypeIndex ->
-        dispatcher.mokkerySuperCallSuspend(id.value, superTypeIndex, args)
+    callSuper(superType, args) { contract, id, superTypeIndex ->
+        contract.mokkerySuperCallSuspend(id.value, superTypeIndex, args)
     }
 
-private inline fun <R> MokkeryCallScope.dispatchSuper(
+private inline fun <R> MokkeryCallScope.callSuper(
     superType: KClass<*>,
     args: List<Any?>,
-    dispatch: (SuperCallsContract, id: dev.mokkery.context.Function.Id, superTypeIndex: Int) -> R,
+    call: (contract: SuperCallsContract, id: dev.mokkery.context.Function.Id, superTypeIndex: Int) -> R,
 ): R {
     checkSuperArgs(args)
     val contract = contracts.superCalls ?: throw MissingSuperMethodException(superType)
-    val id = call.function.id
+    val id = this@callSuper.call.function.id
     val superTypeIndex = contract.mokkerySuperTypes(id.value).indexOf(superType)
     if (superTypeIndex < 0) throw MissingSuperMethodException(superType)
-    return dispatch(contract, id, superTypeIndex)
+    return call(contract, id, superTypeIndex)
 }
 
 /**
