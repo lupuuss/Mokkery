@@ -14,8 +14,11 @@ import dev.mokkery.configurer.configurer
 import dev.mokkery.configurer.minusAssign
 import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.MokkeryContext
+import dev.mokkery.debug.MokkeryCallLogger
 import dev.mokkery.every
 import dev.mokkery.interceptor.MokkeryCallHooks
+import dev.mokkery.interceptor.callHooks
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.mockMany
 import dev.mokkery.mockMode
@@ -189,6 +192,17 @@ class MockConfigurerTest {
         val configurer = captured!!
         assertFailsWith<MokkeryRuntimeException> { configurer.mokkeryContext }
         assertFailsWith<MokkeryRuntimeException> { configurer.mokkeryContext = MokkeryContext.Empty }
+    }
+
+    @Test
+    fun testNestedConfigurersInvocation() {
+        val mock = mock<RegularMethodsInterface> foo@{
+            mockMode = MockMode.strict
+            every { callComplex(any()) } returns mock {
+                mockMode = MockMode.autofill
+            }
+        }
+        assertEquals("", mock.callComplex(ComplexType("1")).id)
     }
 
     private data class TestElement(val value: String) : MokkeryContext.Element {
