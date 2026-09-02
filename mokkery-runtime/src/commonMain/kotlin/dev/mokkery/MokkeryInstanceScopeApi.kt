@@ -1,7 +1,7 @@
 package dev.mokkery
 
 import dev.mokkery.configurer.MokkeryMockConfigurer
-import dev.mokkery.configurer.configurer
+import dev.mokkery.configurer.mokkeryConfigurer
 import dev.mokkery.configurer.plusAssign
 import dev.mokkery.internal.context.instanceSpec
 import dev.mokkery.internal.context.requireMock
@@ -29,9 +29,9 @@ public var MokkeryMockConfigurer.mockMode: MockMode
  */
 context(aware: MokkeryMockConfigurer.Aware<T>)
 public var <T : Any> T.mockMode: MockMode
-    get() = configurer.mockMode
+    get() = mokkeryConfigurer.mockMode
     set(value) {
-        configurer.mockMode = value
+        mokkeryConfigurer.mockMode = value
     }
 
 /**
