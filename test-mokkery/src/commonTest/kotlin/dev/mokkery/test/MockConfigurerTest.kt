@@ -10,14 +10,12 @@ import dev.mokkery.answering.returns
 import dev.mokkery.configurer.MokkeryConfigurer
 import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.configurer.MokkerySpyConfigurer
-import dev.mokkery.configurer.configurer
+import dev.mokkery.configurer.mokkeryConfigurer
 import dev.mokkery.configurer.minusAssign
 import dev.mokkery.configurer.plusAssign
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.debug.MokkeryCallLogger
 import dev.mokkery.every
 import dev.mokkery.interceptor.MokkeryCallHooks
-import dev.mokkery.interceptor.callHooks
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.mockMany
@@ -36,7 +34,7 @@ class MockConfigurerTest {
     @Test
     fun testMockBlockAllowsMutatingContext() {
         val mock = mock<RegularMethodsInterface> {
-            configurer += TestElement("mock")
+            mokkeryConfigurer += TestElement("mock")
         }
         assertEquals(TestElement("mock"), MokkeryScope.from(mock).mokkeryContext[TestElement])
     }
@@ -44,7 +42,7 @@ class MockConfigurerTest {
     @Test
     fun testSpyBlockAllowsMutatingContext() {
         val spied = spy(listOf(1, 2, 3)) {
-            configurer += TestElement("spy")
+            mokkeryConfigurer += TestElement("spy")
         }
         assertEquals(TestElement("spy"), MokkeryScope.from(spied).mokkeryContext[TestElement])
     }
@@ -52,7 +50,7 @@ class MockConfigurerTest {
     @Test
     fun testMockManyBlockAllowsMutatingContext() {
         val mock = mockMany<RegularMethodsInterface, AutoCloseable> {
-            configurer += TestElement("mockMany")
+            mokkeryConfigurer += TestElement("mockMany")
         }
         assertEquals(TestElement("mockMany"), MokkeryScope.from(mock).mokkeryContext[TestElement])
     }
@@ -60,7 +58,7 @@ class MockConfigurerTest {
     @Test
     fun testFunctionMockBlockAllowsMutatingContext() {
         val mock = mock<() -> Unit> {
-            configurer += TestElement("function")
+            mokkeryConfigurer += TestElement("function")
         }
         assertEquals(TestElement("function"), MokkeryScope.from(mock).mokkeryContext[TestElement])
     }
@@ -68,7 +66,7 @@ class MockConfigurerTest {
     @Test
     fun testClassMockBlockAllowsMutatingContext() {
         val mock = mock<AbstractClassLevel1> {
-            configurer += TestElement("class")
+            mokkeryConfigurer += TestElement("class")
         }
         assertEquals(TestElement("class"), MokkeryScope.from(mock).mokkeryContext[TestElement])
     }
@@ -77,8 +75,8 @@ class MockConfigurerTest {
     fun testConfigurerTypeMatchesInstanceKind() {
         var fromMock: MokkeryConfigurer? = null
         var fromSpy: MokkeryConfigurer? = null
-        mock<RegularMethodsInterface> { fromMock = configurer }
-        spy(listOf(1, 2, 3)) { fromSpy = configurer }
+        mock<RegularMethodsInterface> { fromMock = mokkeryConfigurer }
+        spy(listOf(1, 2, 3)) { fromSpy = mokkeryConfigurer }
         assertTrue(fromMock is MokkeryMockConfigurer, "Expected mock configurer, but was $fromMock")
         assertTrue(fromSpy is MokkerySpyConfigurer, "Expected spy configurer, but was $fromSpy")
     }
@@ -88,7 +86,7 @@ class MockConfigurerTest {
         val scope = MokkerySuiteScope()
         val mock = scope.mock<RegularMethodsInterface> {
             assertEquals(emptyList(), scope.mocks)
-            configurer += TestElement("suite")
+            mokkeryConfigurer += TestElement("suite")
         }
         assertEquals(listOf(mock), scope.mocks)
         assertEquals(TestElement("suite"), MokkeryScope.from(mock).mokkeryContext[TestElement])
@@ -106,7 +104,7 @@ class MockConfigurerTest {
     @Test
     fun testSpiedFunctionBlockAllowsMutatingContext() {
         val spied = spy<(Int) -> Int>({ it }) {
-            configurer += TestElement("spiedFunction")
+            mokkeryConfigurer += TestElement("spiedFunction")
         }
         assertEquals(TestElement("spiedFunction"), MokkeryScope.from(spied).mokkeryContext[TestElement])
     }
@@ -114,8 +112,8 @@ class MockConfigurerTest {
     @Test
     fun testBlockAllowsRemovingElementAddedInSameBlock() {
         val mock = mock<RegularMethodsInterface> {
-            configurer += TestElement("removed")
-            configurer -= TestElement.Key
+            mokkeryConfigurer += TestElement("removed")
+            mokkeryConfigurer -= TestElement.Key
         }
         assertNull(MokkeryScope.from(mock).mokkeryContext[TestElement])
     }
@@ -123,7 +121,7 @@ class MockConfigurerTest {
     @Test
     fun testBlockAllowsRemovingElementProvidedByMokkery() {
         val mock = mock<RegularMethodsInterface> {
-            configurer -= MokkeryCallHooks
+            mokkeryConfigurer -= MokkeryCallHooks
         }
         assertNull(MokkeryScope.from(mock).mokkeryContext[MokkeryCallHooks])
     }
@@ -150,9 +148,9 @@ class MockConfigurerTest {
     fun testNestedBlocksConfigureTheirOwnInstances() {
         lateinit var nested: AutoCloseable
         val mock = mock<RegularMethodsInterface> {
-            configurer += TestElement("outer")
+            mokkeryConfigurer += TestElement("outer")
             nested = mock<AutoCloseable> {
-                configurer += TestElement("nested")
+                mokkeryConfigurer += TestElement("nested")
             }
         }
         assertEquals(TestElement("outer"), MokkeryScope.from(mock).mokkeryContext[TestElement])
@@ -165,8 +163,8 @@ class MockConfigurerTest {
         val mock = mock<RegularMethodsInterface> {
             val outer = this
             nested = mock<AutoCloseable> {
-                outer.configurer += TestElement("outerFromNested")
-                configurer += TestElement("nested")
+                outer.mokkeryConfigurer += TestElement("outerFromNested")
+                mokkeryConfigurer += TestElement("nested")
             }
         }
         assertEquals(TestElement("outerFromNested"), MokkeryScope.from(mock).mokkeryContext[TestElement])
@@ -179,7 +177,7 @@ class MockConfigurerTest {
             mock<RegularMethodsInterface> {
                 val outer = this
                 mock<RegularMethodsInterface> {
-                    outer.configurer += TestElement("outerFromNested")
+                    outer.mokkeryConfigurer += TestElement("outerFromNested")
                 }
             }
         }
@@ -188,7 +186,7 @@ class MockConfigurerTest {
     @Test
     fun testConfigurerFailsWhenUsedAfterBlock() {
         var captured: MokkeryMockConfigurer? = null
-        mock<RegularMethodsInterface> { captured = configurer }
+        mock<RegularMethodsInterface> { captured = mokkeryConfigurer }
         val configurer = captured!!
         assertFailsWith<MokkeryRuntimeException> { configurer.mokkeryContext }
         assertFailsWith<MokkeryRuntimeException> { configurer.mokkeryContext = MokkeryContext.Empty }
@@ -205,10 +203,26 @@ class MockConfigurerTest {
         assertEquals("", mock.callComplex(ComplexType("1")).id)
     }
 
+    @Test
+    fun testMockMethodsWinsWithConfigurerScopeExtensionAndAllowsSpecifyingConfigurerDirectly() {
+        val mock = mock<ConflictingInterface> {
+            mokkeryConfigurer.mockMode = MockMode.autoUnit
+            every { mockMode } returns MockMode.original
+        }
+        assertEquals(MockMode.original, mock.mockMode)
+        mock.callUnit()
+    }
+
     private data class TestElement(val value: String) : MokkeryContext.Element {
 
         override val key = Key
 
         companion object Key : MokkeryContext.Key<TestElement>
     }
+}
+
+private interface ConflictingInterface {
+
+    val mockMode: MockMode
+    fun callUnit()
 }

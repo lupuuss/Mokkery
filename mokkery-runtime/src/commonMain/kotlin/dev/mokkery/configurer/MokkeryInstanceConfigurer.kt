@@ -10,7 +10,7 @@ import dev.mokkery.MokkerySpyScope
  * @throws dev.mokkery.MokkeryRuntimeException if this instance is not the one being configured.
  */
 context(aware: MokkeryInstanceConfigurer.Aware<T, C>)
-public val <T : Any, C : MokkeryInstanceConfigurer> T.configurer: C
+public val <T : Any, C : MokkeryInstanceConfigurer> T.mokkeryConfigurer: C
     get() = aware.configurer(this)
 
 /**
