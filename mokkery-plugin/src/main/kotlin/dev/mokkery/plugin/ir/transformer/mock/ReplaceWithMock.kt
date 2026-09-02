@@ -79,11 +79,10 @@ private fun IrBuilderWithScope.irMockConstructorCall(
     arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = originalCall.arguments[regularParams[0]] ?: irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
-    val anyType = irBuiltIns.anyType
     originalCall.typeArguments
         .filterNotNull()
         .forEachIndexedTypeArgument { index, it ->
-            arguments[3 + index] = kClassReference(it ?: anyType)
+            arguments[3 + index] = it?.let(::kClassReference) ?: irNull()
         }
 }
 
@@ -97,11 +96,10 @@ private fun IrBuilderWithScope.irSpyConstructorCall(
     arguments[1] = irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     arguments[3] = originalCall.arguments[regularParams[0]]
-    val anyType = irBuiltIns.anyType
     originalCall.typeArguments
         .filterNotNull()
         .forEachIndexedTypeArgument { index, it ->
-            arguments[4 + index] = kClassReference(it ?: anyType)
+            arguments[4 + index] = it?.let(::kClassReference) ?: irNull()
         }
 }
 

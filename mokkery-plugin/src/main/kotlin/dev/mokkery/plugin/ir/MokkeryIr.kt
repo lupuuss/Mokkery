@@ -113,7 +113,7 @@ object MokkeryIr {
         val createModuleScope by dev_mokkery_internal.refFunction
         val interceptCall by dev_mokkery_internal.refFunction
         val interceptCallSuspend by dev_mokkery_internal.refFunction
-        val getTypeArgumentClassOrAny by dev_mokkery_internal_utils.refFunction
+        val getTypeArgumentClassOrNull by dev_mokkery_internal_utils.refFunction
         val createFunction by dev_mokkery_internal_context.refFunction
         val createFunctionParameter by dev_mokkery_internal_context.refFunction
     }

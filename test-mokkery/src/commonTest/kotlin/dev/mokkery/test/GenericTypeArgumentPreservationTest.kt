@@ -97,6 +97,16 @@ class GenericTypeArgumentPreservationTest {
     }
 
     @Test
+    fun testPreservesStarProjectionToAnyForFunction() {
+        @Suppress("UNCHECKED_CAST")
+        val mock = mock<Function1<*, *>>() as Function1<Any?, Any?>
+        every { mock(any()) } returns "1"
+        mock(1)
+        assertEquals(Any::class, capturedReturnType)
+        assertEquals(listOf(Any::class), capturedArgumentTypes)
+    }
+
+    @Test
     fun testPreservesGenericParameterToAnyWhenNoBounds() {
         fun <T> mockList() = mock<List<T>>()
         val mock = mockList<Any?>().apply {

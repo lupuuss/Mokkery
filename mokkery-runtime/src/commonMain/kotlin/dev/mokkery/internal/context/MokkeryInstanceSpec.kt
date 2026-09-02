@@ -5,6 +5,7 @@ import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
+import dev.mokkery.internal.MType
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MokkeryInstanceId
 import dev.mokkery.internal.ObjectIsNotMockException
@@ -12,8 +13,7 @@ import dev.mokkery.internal.ObjectIsNotSpyException
 import dev.mokkery.internal.contracts.CoreContract
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.requireInstanceScope
-import dev.mokkery.internal.utils.bestName
-import kotlin.reflect.KClass
+import dev.mokkery.internal.toMType
 
 internal val MokkeryCallScope.instanceSpec: MokkeryInstanceSpec
     get() = mokkeryContext.require(MokkeryInstanceSpec)
@@ -36,7 +36,7 @@ internal sealed interface MokkeryInstanceSpec : MokkeryContext.Element {
     override val key get() = Key
 
     val id: MokkeryInstanceId
-    val interceptedTypes: List<InterceptedTypeSpec>
+    val interceptedTypes: List<MType>
     val thisRef: Any
     val collection: MokkeryCollection
 
@@ -92,20 +92,8 @@ internal data class MokkerySpySpec(
 
 }
 
-internal class InterceptedTypeSpec(val type: KClass<*>, val arguments: List<KClass<*>>) {
-
-    override fun toString(): String = buildString {
-        append(type.bestName())
-        if (arguments.isNotEmpty()) {
-            append("<")
-            append(arguments.joinToString { it.bestName() })
-            append(">")
-        }
-    }
-}
-
 private fun CoreContract.interceptedTypesSpec() = mokkeryInterceptedTypes.mapIndexed { index, type ->
-    InterceptedTypeSpec(type, mokkeryTypeArguments.getOrElse(index) { emptyList() })
+    type.toMType(mokkeryTypeArguments.getOrElse(index) { emptyList() })
 }
 
 private class SelfMokkeryCollection(

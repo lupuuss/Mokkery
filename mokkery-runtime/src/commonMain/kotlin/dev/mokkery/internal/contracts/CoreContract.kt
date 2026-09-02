@@ -8,7 +8,7 @@ internal interface CoreContract : InstanceContract {
 
     val mokkeryInterceptedTypes: List<KClass<*>>
 
-    val mokkeryTypeArguments: List<List<KClass<*>>> get() = emptyList()
+    val mokkeryTypeArguments: List<List<KClass<*>?>> get() = emptyList()
 
     fun mokkeryNormalizeId(id: Long): Long = id
 

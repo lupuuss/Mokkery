@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildClass
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.builders.irEquals
 import org.jetbrains.kotlin.ir.builders.irGet
@@ -58,7 +57,6 @@ import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.irConstructorCall
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -217,7 +215,7 @@ context(scope: TransformerScope)
 private fun IrBuilderWithScope.buildKTypeArgumentAtCall(
     typeExpression: IrExpression,
     index: Int
-): IrExpression = irCall(referenced(MokkeryIr.Function.getTypeArgumentClassOrAny)) {
+): IrExpression = irCall(referenced(MokkeryIr.Function.getTypeArgumentClassOrNull)) {
     arguments[0] = typeExpression
     arguments[1] = irInt(index)
 }

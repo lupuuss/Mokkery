@@ -8,6 +8,7 @@ import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.argumentTypes
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
@@ -20,6 +21,7 @@ import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.typeArgumentsFrom
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -32,12 +34,11 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
-import org.jetbrains.kotlin.ir.types.typeOrFail
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
@@ -48,9 +49,8 @@ fun buildMockJsFunction(
     kind: IrMokkeryKind
 ): IrExpression {
     val typeToMock = expression.type
-    val typeArguments = typeToMock.let { it as IrSimpleType }
-        .arguments
-        .map { it.typeOrFail.eraseTypeParameters() }
+    val typeArguments = typeToMock.argumentTypes.memoryOptimizedMap { it?.eraseTypeParameters() }
+    val lambdaType = typeToMock.classOrFail.let { it.typeWith(it.owner.typeArgumentsFrom(typeArguments)) }
     return expression.replaceDeclarationIrBuilder {
         irBlock {
             val mockFun = expression.symbol.owner
@@ -70,7 +70,7 @@ fun buildMockJsFunction(
                 IrMokkeryKind.Spy -> createTmpVariable(expression.arguments[regularMockParams[0]]!!)
                 IrMokkeryKind.Mock -> null
             }
-            val lambda = irLambdaOf(typeToMock) {
+            val lambda = irLambdaOf(lambdaType) {
                 val scopeGetter = referencedGetter(MokkeryIr.Property.jsFunctionMokkeryScope)
                 +irReturn(
                     irInterceptMockCall(
@@ -88,8 +88,8 @@ fun buildMockJsFunction(
                 arguments[2] = irString(typeToMock.classFqName!!.asString())
                 arguments[3] = kClassReference(typeToMock)
                 arguments[4] = irCallListOf(
-                    type = irBuiltIns.kClassClass.starProjectedType,
-                    elements = typeArguments.memoryOptimizedMap { kClassReference(it) }
+                    type = irBuiltIns.kClassClass.starProjectedType.makeNullable(),
+                    elements = typeArguments.memoryOptimizedMap { it?.let(::kClassReference) ?: irNull() }
                 )
                 arguments[5] = when (kind) {
                     IrMokkeryKind.Spy -> irNull()
