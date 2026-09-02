@@ -198,7 +198,7 @@ private fun IrClass.addMockClassConstructor(
             IrMokkeryKind.Spy -> addSpyParameter(classesToIntercept)
             IrMokkeryKind.Mock -> null
         }
-        val kClassType = irBuiltIns.kClassClass.starProjectedType
+        val kClassType = irBuiltIns.kClassClass.starProjectedType.makeNullable()
         val typeParameters = classesToIntercept
             .memoryOptimizedMap { it.typeParameters }
             .let { classParams ->

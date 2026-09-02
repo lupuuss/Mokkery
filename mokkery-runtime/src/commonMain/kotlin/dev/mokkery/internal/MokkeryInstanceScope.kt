@@ -190,7 +190,7 @@ internal fun MokkeryInstanceScope.typeArgumentAt(totalIndex: Int): KClass<*> {
     var index = 0
     for (type in instanceSpec.interceptedTypes)
         for (typeArgument in type.arguments)
-            if (totalIndex == index++) return typeArgument
+            if (totalIndex == index++) return typeArgument ?: Any::class
     return Any::class
 }
 

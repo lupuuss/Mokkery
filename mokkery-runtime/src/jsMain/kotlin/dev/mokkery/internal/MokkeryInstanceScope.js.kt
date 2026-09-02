@@ -20,7 +20,7 @@ internal fun Any.setupMokkeryInstanceForJsFunction(
     parent: MokkeryScope,
     typeName: String,
     interceptedType: KClass<*>,
-    typeArguments: List<KClass<*>> = emptyList(),
+    typeArguments: List<KClass<*>?> = emptyList(),
     mode: MockMode?,
     spiedObject: Any?,
     spyDispatcher: SpyCallsContract?,
@@ -66,13 +66,13 @@ private class MokkeryJsFunSpyScope(
 
 private class JsCoreContract(
     private val interceptedType: KClass<*>,
-    private val typeArguments: List<KClass<*>>,
+    private val typeArguments: List<KClass<*>?>,
     private val provider: () -> Function
 ) : CoreContract {
 
     override val mokkeryInterceptedTypes: List<KClass<*>> get() = listOf(interceptedType)
 
-    override val mokkeryTypeArguments: List<List<KClass<*>>> get() = listOf(typeArguments)
+    override val mokkeryTypeArguments: List<List<KClass<*>?>> get() = listOf(typeArguments)
 
     override fun mokkeryFunction(id: Long): Function? = provider().takeIf { it.id.value == id }
 }

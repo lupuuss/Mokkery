@@ -20,9 +20,9 @@ internal expect inline fun KClass<*>.takeIfImplementedOrAny(): KClass<*>
 
 @PublishedApi
 @Suppress("unused")
-internal fun KType.getTypeArgumentClassOrAny(
+internal fun KType.getTypeArgumentClassOrNull(
     index: Int
-): KClass<*> = arguments
+): KClass<*>? = arguments
     .getOrNull(index)
     ?.type
-    ?.classifier as? KClass<*> ?: Any::class
+    ?.classifier as? KClass<*>
