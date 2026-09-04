@@ -64,7 +64,7 @@ internal data class MokkeryMockSpec(
     override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
 
-    override val interceptedTypes by lazy { contract.interceptedTypesSpec() }
+    override val interceptedTypes by lazy { contract.interceptedTypes() }
 
     override fun toString(): String = "MokkeryMockSpec(" +
             "id='$id', " +
@@ -82,7 +82,7 @@ internal data class MokkerySpySpec(
     override val collection: MokkeryCollection = SelfMokkeryCollection(thisRef, id)
 ) : MokkeryInstanceSpec {
 
-    override val interceptedTypes by lazy { contract.interceptedTypesSpec() }
+    override val interceptedTypes by lazy { contract.interceptedTypes() }
 
     override fun toString(): String = "MokkerySpySpec(" +
             "id='$id', " +
@@ -92,7 +92,7 @@ internal data class MokkerySpySpec(
 
 }
 
-private fun CoreContract.interceptedTypesSpec() = mokkeryInterceptedTypes.mapIndexed { index, type ->
+private fun CoreContract.interceptedTypes() = mokkeryInterceptedTypes.mapIndexed { index, type ->
     type.toMType(mokkeryTypeArguments.getOrElse(index) { emptyList() })
 }
 

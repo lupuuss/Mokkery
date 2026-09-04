@@ -11,6 +11,7 @@ import dev.mokkery.factory.spyFactoryOf
 import dev.mokkery.interceptor.callHooks
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.presets.preset
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
 import dev.mokkery.test.SpyTestInterface
@@ -114,5 +115,137 @@ class SpyFactoryTest {
             spy2[0]
             assertVerified { verify(exhaustive) { spy1.call(any()) } }
         }
+    }
+
+    @Test
+    fun appliesPresets() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> {
+                every { property } returns 1
+            }
+        }
+        assertEquals(1, factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+    }
+
+    @Test
+    fun appliesPresetsBeforeCreationBlock() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> {
+                every { property } returns 1
+                every { call(any()) } returns ComplexType.Companion("9")
+            }
+        }
+        val spy = factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()) {
+            every { property } returns 2
+        }
+        assertEquals(2, spy.property)
+        assertEquals(ComplexType.Companion("9"), spy.call(ComplexType.Companion("1")))
+    }
+
+    @Test
+    fun appliesAllPresetsForSameType() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> {
+                every { call(any()) } returns ComplexType.Companion("9")
+                every { property } returns 1
+            }
+            preset<SpyTestInterface<Int>> { every { property } returns 2 }
+        }
+        val spy = factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion())
+        assertEquals(2, spy.property)
+        assertEquals(ComplexType.Companion("9"), spy.call(ComplexType.Companion("1")))
+    }
+
+    @Test
+    fun appliesPresetsByTypeArguments() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> { every { property } returns 1 }
+        }
+        assertEquals(1, factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+        assertNull(factory.create<SpyTestInterface<String>>(SpyTestInterface.Companion()).property)
+    }
+
+    @Test
+    fun appliesStarProjectedPresetsToAllTypeArguments() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<*>> { every { call(any()) } returns ComplexType.Companion("9") }
+        }
+        val spy1 = factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion())
+        val spy2 = factory.create<SpyTestInterface<String>>(SpyTestInterface.Companion())
+        val spy3 = factory.create<SpyTestInterface<*>>(SpyTestInterface.Companion<Int>())
+        assertEquals(ComplexType.Companion("9"), spy1.call(ComplexType.Companion("1")))
+        assertEquals(ComplexType.Companion("9"), spy2.call(ComplexType.Companion("1")))
+        assertEquals(ComplexType.Companion("9"), spy3.call(ComplexType.Companion("1")))
+    }
+
+    @Test
+    fun appliesPresetsFromLeastToMostSpecificMatch() {
+        val applied = mutableListOf<String>()
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> {
+                applied += "exact"
+                every { call(any()) } returns ComplexType.Companion("8")
+            }
+            preset<SpyTestInterface<*>> {
+                applied += "star"
+                every { call(any()) } returns ComplexType.Companion("9")
+            }
+        }
+        val exact = factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion())
+        val star = factory.create<SpyTestInterface<String>>(SpyTestInterface.Companion())
+        assertEquals(listOf("star", "exact", "star"), applied)
+        assertEquals(ComplexType.Companion("8"), exact.call(ComplexType.Companion("1")))
+        assertEquals(ComplexType.Companion("9"), star.call(ComplexType.Companion("1")))
+    }
+
+    @Test
+    fun copyPreservesPresets() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> { every { property } returns 1 }
+        }
+        assertEquals(1, factory.copy().create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+    }
+
+    @Test
+    fun copyAppliesInheritedPresetsBeforeRegisteredOnes() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> {
+                every { property } returns 1
+                every { call(any()) } returns ComplexType.Companion("9")
+            }
+        }
+        val spy = factory
+            .copy { preset<SpyTestInterface<Int>> { every { property } returns 2 } }
+            .create<SpyTestInterface<Int>>(SpyTestInterface.Companion())
+        assertEquals(2, spy.property)
+        assertEquals(ComplexType.Companion("9"), spy.call(ComplexType.Companion("1")))
+    }
+
+    @Test
+    fun copyDoesNotShareRegisteredPresetsWithOriginalFactory() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> { every { property } returns 1 }
+        }
+        val newFactory = factory.copy { preset<SpyTestInterface<Int>> { every { property } returns 2 } }
+        assertEquals(1, factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+        assertEquals(2, newFactory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+    }
+
+    @Test
+    fun copyWithNewScopeRejectsPresets() = with(MokkerySuiteScope()) {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<SpyTestInterface<Int>> { every { property } returns 1 }
+        }
+        val newFactory = factory.copy(this)
+        assertNull(newFactory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).property)
+    }
+
+    @Test
+    fun ignoresPresetsOfUnsupportedTypes() {
+        val factory = spyFactoryOf(SpyTestInterface::class) {
+            preset<List<Int>> { every { size } returns 1 }
+        }
+        assertNull(factory.createOrNull(typeOf<List<Int>>(), listOf(1)))
+        assertEquals(ComplexType.Companion("2"), factory.create<SpyTestInterface<Int>>(SpyTestInterface.Companion()).call(ComplexType.Companion("1")))
     }
 }
