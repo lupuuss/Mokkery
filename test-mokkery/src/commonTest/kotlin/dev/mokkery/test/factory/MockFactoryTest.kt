@@ -2,7 +2,6 @@
 
 package dev.mokkery.test.factory
 
-import dev.mokkery.MockMode
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MokkeryRuntimeException
@@ -18,7 +17,9 @@ import dev.mokkery.factory.mockFactoryOf
 import dev.mokkery.factory.plus
 import dev.mokkery.matcher.any
 import dev.mokkery.mockMode
+import dev.mokkery.presets.preset
 import dev.mokkery.test.ComplexArgsInterface
+import dev.mokkery.test.GenericFunctionsInterface
 import dev.mokkery.test.RegularMethodsInterface
 import dev.mokkery.test.SuspendMethodsInterface
 import dev.mokkery.test.assertVerified
@@ -158,5 +159,149 @@ class MockFactoryTest {
             mock2.callPrimitive(2)
             assertVerified { verify(exhaustive) { mock1.callPrimitive(any()) } }
         }
+    }
+
+    @Test
+    fun appliesPresets() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            preset<RegularMethodsInterface> {
+                every { callPrimitive(any()) } returns 1
+            }
+        }
+        assertEquals(1, factory.create<RegularMethodsInterface>().callPrimitive(0))
+    }
+
+    @Test
+    fun appliesPresetsBeforeCreationBlock() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            preset<RegularMethodsInterface> {
+                every { callPrimitive(any()) } returns 1
+                every { callBoolean(any()) } returns true
+            }
+        }
+        val mock = factory.create<RegularMethodsInterface> { every { callPrimitive(any()) } returns 2 }
+        assertEquals(2, mock.callPrimitive(0))
+        assertEquals(true, mock.callBoolean(false))
+    }
+
+    @Test
+    fun appliesAllPresetsForSameType() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            defaultMockMode = autofill
+            preset<RegularMethodsInterface> {
+                every { callBoolean(any()) } returns true
+                every { callPrimitive(any()) } returns 1
+            }
+            preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 2 }
+        }
+        val mock = factory.create<RegularMethodsInterface>()
+        assertEquals(2, mock.callPrimitive(0))
+        assertEquals(true, mock.callBoolean(false))
+    }
+
+    @Test
+    fun appliesPresetsByTypeArguments() {
+        val factory = mockFactoryOf(GenericFunctionsInterface::class) {
+            defaultMockMode = autofill
+            preset<GenericFunctionsInterface<String>> { every { call(any()) } returns "1" }
+        }
+        assertEquals("1", factory.create<GenericFunctionsInterface<String>>().call("0"))
+        assertEquals(0, factory.create<GenericFunctionsInterface<Int>>().call(0))
+    }
+
+    @Test
+    fun appliesStarProjectedPresetsToAllTypeArguments() {
+        val factory = mockFactoryOf(GenericFunctionsInterface::class) {
+            preset<GenericFunctionsInterface<*>> { every { callGenericWithStarProjection(any()) } returns listOf(1) }
+        }
+        assertEquals(listOf(1), factory.create<GenericFunctionsInterface<String>>().callGenericWithStarProjection(listOf<Any>()))
+        assertEquals(listOf(1), factory.create<GenericFunctionsInterface<Int>>().callGenericWithStarProjection(listOf<Any>()))
+        assertEquals(listOf(1), factory.create<GenericFunctionsInterface<*>>().callGenericWithStarProjection(listOf<Any>()))
+    }
+
+    @Test
+    fun appliesPresetsFromLeastToMostSpecificMatch() {
+        val applied = mutableListOf<String>()
+        val factory = mockFactoryOf(GenericFunctionsInterface::class) {
+            preset<GenericFunctionsInterface<String>> {
+                applied += "exact"
+                every { callGenericWithStarProjection(any()) } returns listOf(2)
+            }
+            preset<GenericFunctionsInterface<*>> {
+                applied += "star"
+                every { callGenericWithStarProjection(any()) } returns listOf(1)
+            }
+        }
+        val exact = factory.create<GenericFunctionsInterface<String>>()
+        val star = factory.create<GenericFunctionsInterface<CharSequence>>()
+        assertEquals(listOf("star", "exact", "star"), applied)
+        assertEquals(listOf(2), exact.callGenericWithStarProjection(listOf<Any>()))
+        assertEquals(listOf(1), star.callGenericWithStarProjection(listOf<Any>()))
+    }
+
+    @Test
+    fun appliesEquallySpecificPresetsInRegistrationOrder() {
+        val applied = mutableListOf<String>()
+        val factory = mockFactoryOf(Map::class) {
+            defaultMockMode = autofill
+            preset<Map<String, *>> { applied += "first" }
+            preset<Map<*, Int>> { applied += "second" }
+            preset<Map<String, *>> { applied += "third" }
+        }
+        factory.create<Map<String, Int>>()
+        assertEquals(listOf("first", "second", "third"), applied)
+    }
+
+    @Test
+    fun copyPreservesPresets() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        }
+        assertEquals(1, factory.copy().create<RegularMethodsInterface>().callPrimitive(0))
+    }
+
+    @Test
+    fun copyAppliesInheritedPresetsBeforeRegisteredOnes() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            defaultMockMode = autofill
+            preset<RegularMethodsInterface> {
+                every { callPrimitive(any()) } returns 1
+                every { callBoolean(any()) } returns true
+            }
+        }
+        val mock = factory
+            .copy { preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 2 } }
+            .create<RegularMethodsInterface>()
+        assertEquals(2, mock.callPrimitive(0))
+        assertEquals(true, mock.callBoolean(false))
+    }
+
+    @Test
+    fun copyDoesNotShareRegisteredPresetsWithOriginalFactory() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        }
+        val newFactory = factory.copy { preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 2 } }
+        assertEquals(1, factory.create<RegularMethodsInterface>().callPrimitive(0))
+        assertEquals(2, newFactory.create<RegularMethodsInterface>().callPrimitive(0))
+    }
+
+    @Test
+    fun copyWithNewScopeRejectsPresets() = with(MokkerySuiteScope()) {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            preset<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        }
+        val newFactory = factory.copy(this) { defaultMockMode = autofill }
+        assertEquals(0, newFactory.create<RegularMethodsInterface>().callPrimitive(0))
+    }
+
+    @Test
+    fun ignoresPresetsOfUnsupportedTypes() {
+        val factory = mockFactoryOf(RegularMethodsInterface::class) {
+            defaultMockMode = autofill
+            preset<SuspendMethodsInterface> { everySuspend { callPrimitive(any()) } returns 1 }
+        }
+        assertNull(factory.createOrNull<SuspendMethodsInterface>())
+        assertEquals(0, factory.create<RegularMethodsInterface>().callPrimitive(0))
     }
 }

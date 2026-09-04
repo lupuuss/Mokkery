@@ -31,6 +31,7 @@ import dev.mokkery.internal.defaults.DefaultsExtractingInterceptor
 import dev.mokkery.internal.interceptor.forkedHooksOrEmpty
 import dev.mokkery.internal.interceptor.rootCallInterceptor
 import dev.mokkery.internal.interceptor.rootInstantiationListener
+import dev.mokkery.internal.presets.MokkeryInstancePresets
 import dev.mokkery.internal.rendering.instanceIdRenderer
 import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.CallTracingRegistry
@@ -99,11 +100,20 @@ internal fun Any.setupMokkeryInstance(
     val scope = this.mokkeryScope as MutableMokkeryInstanceScope
     scope.mokkeryContext = baseContext
     // now instance is in a "preconfigured" state
-    // we can apply user provided block with additional configuration
-    if (block != null) {
-        this.applyConfigurerBlock(scope, block)
-    }
+    // we can apply user provided blocks with additional configuration
+    val presets = baseContext[MokkeryInstancePresets]
+    if (presets != null && !presets.isEmpty) this.applyPresets(scope, presets)
+    if (block != null) this.applyConfigurerBlock(scope, block)
     this.invokeInstantiationListener()
+}
+
+private fun Any.applyPresets(
+    scope: MutableMokkeryInstanceScope,
+    presets: MokkeryInstancePresets
+) {
+    scope.instanceSpec.interceptedTypes.forEach { type ->
+        presets[type].forEach { this.applyConfigurerBlock(scope, it) }
+    }
 }
 
 private fun MokkeryInstanceSpec.defaultsExtractorSpec(ref: Any) = when (this) {

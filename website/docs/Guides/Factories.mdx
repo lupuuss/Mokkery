@@ -1,7 +1,7 @@
 ---
 description: Create mocks and spies from types resolved at runtime!
 ---
-# Mock and spy factories
+# Factories
 
 `mock` and `spy` require the type to be known at compile time - it is a type argument of the call.
 That's perfectly fine for regular test code, but it makes it hard to write utilities that decide what to mock
@@ -131,6 +131,104 @@ val factory = mockFactoryOf(Foo::class, Bar::class) {
 
 It is still possible to override it for a single instance with `mockMode` in the `create` block.
 
+### Presets
+
+`preset` registers a configuration block that is applied to every instance of a given type created by the factory.
+It is a good place for defaults that all instances of a type should share:
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import dev.mokkery.presets.preset
+
+val factory = mockFactoryOf(Foo::class, Bar::class) {
+    preset<Foo> {
+        every { call() } returns 1
+    }
+}
+
+factory.create<Foo>().call() // 1
+```
+
+A preset is applied before the block given to `create`, so a single instance can still override it:
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+
+val foo = factory.create<Foo> {
+    every { call() } returns 2 // wins over the preset
+}
+```
+
+Presets are matched by the exact type - a preset registered for a supertype of a created mock is not applied.
+Type arguments are matched by their classes, so each parameterization can be configured separately:
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import dev.mokkery.presets.preset
+
+val factory = mockFactoryOf(List::class) {
+    preset<List<String>> { every { size } returns 1 }
+    preset<List<Int>> { every { size } returns 2 }
+}
+
+factory.create<List<String>>().size // 1
+factory.create<List<Int>>().size // 2
+```
+
+A star projection matches any type argument:
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import dev.mokkery.presets.preset
+
+val factory = mockFactoryOf(List::class) {
+    preset<List<*>> { every { size } returns 1 }
+}
+
+factory.create<List<String>>().size // 1
+factory.create<List<Int>>().size // 1
+```
+
+Presets are cumulative - registering a preset for a type that already has one does not replace it.
+All matching presets are applied, from the least to the most specific match and in the registration order,
+so the most specific and the most recently registered one takes precedence:
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.factory.mockFactoryOf
+import dev.mokkery.presets.preset
+
+val factory = mockFactoryOf(List::class) {
+    preset<List<*>> {
+        every { size } returns 1
+        every { isEmpty() } returns false
+    }
+    preset<List<String>> { every { size } returns 2 }
+}
+
+val strings = factory.create<List<String>>()
+
+strings.size // 2 - the exact preset is applied after the star projected one
+strings.isEmpty() // false - still comes from the star projected preset
+```
+
+:::info
+Registering a preset for a type that the factory cannot create has no effect.
+:::
+
 ### Combining factories
 
 Factories can be combined with `+`. The resulting factory creates instances of all types from both sides,
@@ -168,3 +266,20 @@ val bazOrNull = factory.createOrNull<Baz>(BazImpl()) // null - Baz is not regist
 ```
 
 The spied object **must** be an instance of the given type.
+
+`defaultMockMode` does not apply to spies, but the remaining factory configuration works the same way,
+including [presets](#presets):
+
+```kotlin
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.factory.create
+import dev.mokkery.factory.spyFactoryOf
+import dev.mokkery.presets.preset
+
+val factory = spyFactoryOf(Foo::class) {
+    preset<Foo> { every { call() } returns 1 }
+}
+
+factory.create<Foo>(FooImpl()).call() // 1 - the spied object is not called
+```
