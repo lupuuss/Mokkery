@@ -1,0 +1,7 @@
+/MatchersMustNotBePassedToRegularFunctions.kt:6:12: error: Matchers can be only passed to mock methods.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:7:12: error: Matchers can be only passed to mock methods.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:8:5: error: Matchers can be only passed to mock methods.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:9:5: error: Matchers can be only passed to mock methods.

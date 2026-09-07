@@ -1,1 +1,1 @@
-
+/MatcherMustBeFinal.kt:5:5: error: Matcher must be final.
