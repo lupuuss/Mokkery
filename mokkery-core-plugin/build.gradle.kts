@@ -7,6 +7,7 @@ kotlin.sourceSets.all {
     languageSettings.apply {
         optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
         optIn("org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI")
+        optIn("org.jetbrains.kotlin.config.MessageCollectorAccess")
         optIn("dev.mokkery.annotations.InternalMokkeryApi")
     }
 }
