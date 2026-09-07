@@ -1,0 +1,11 @@
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(324,327): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(362,375): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(394,418): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(437,452): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(487,502): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/SpyFactoryOfArgumentsMustBeClassLiterals.kt:(620,623): error: 'spyFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.

@@ -1,37 +1,45 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
+import dev.mokkery.plugin.core.ir.transformer.referencedGetter
+import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
-import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.argumentTypes
+import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irGetEnumEntry
+import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.requirePropertyGetterOwner
+import dev.mokkery.plugin.ir.mokkeryFunctionId
+import dev.mokkery.plugin.ir.requireSimpleFunctionOwner
+import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.typeArgumentsFrom
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetObject
+import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSet
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
-import org.jetbrains.kotlin.ir.types.typeOrFail
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
@@ -41,72 +49,104 @@ fun buildMockJsFunction(
     kind: IrMokkeryKind
 ): IrExpression {
     val typeToMock = expression.type
-    val typeArguments = typeToMock.let { it as IrSimpleType }
-        .arguments
-        .map { it.typeOrFail.eraseTypeParameters() }
+    val typeArguments = typeToMock.argumentTypes.memoryOptimizedMap { it?.eraseTypeParameters() }
+    val lambdaType = typeToMock.classOrFail.let { it.typeWith(it.owner.typeArgumentsFrom(typeArguments)) }
     return expression.replaceDeclarationIrBuilder {
         irBlock {
             val mockFun = expression.symbol.owner
-            val extMockParam = mockFun.parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
-            val regularMockParams = mockFun.parameters - extMockParam
-            val parentScopeValue = when (extMockParam) {
-                null -> {
-                    val mokkeryScopeCompanion = referencedCompanion(MokkeryIr.Class.MokkeryScope)
-                    irCall(mokkeryScopeCompanion.requirePropertyGetterOwner("global")) {
-                        arguments[0] = irGetObject(mokkeryScopeCompanion.symbol)
-                    }
-                }
-                else -> expression.arguments[extMockParam]!!
-            }
-            val instanceScopeFun = referenced(MokkeryIr.Function.createInstanceScope)
-            // initialized later to properly pass js function reference to mokkery context and context back to function
-            val instanceVar = createTmpVariable(
+            val regularMockParams = mockFun.findRegularParameters()
+            val setupInstanceScopeFun = referenced(MokkeryIr.Function.setupMokkeryInstanceForJsFunction)
+            val self = createTmpVariable(
                 irExpression = irNull(),
-                irType = instanceScopeFun.returnType,
+                irType = typeToMock,
                 isMutable = true
             )
-            val lambdaVar = createTmpVariable(
-                irLambdaOf(typeToMock) {
+            val invokeFunctionId = typeToMock
+                .classOrFail
+                .owner
+                .requireSimpleFunctionOwner("invoke")
+                .mokkeryFunctionId
+            val spiedVar = when (kind) {
+                IrMokkeryKind.Spy -> createTmpVariable(expression.arguments[regularMockParams[0]]!!)
+                IrMokkeryKind.Mock -> null
+            }
+            val lambda = irLambdaOf(lambdaType) {
+                val scopeGetter = referencedGetter(MokkeryIr.Property.jsFunctionMokkeryScope)
+                +irReturn(
+                    irInterceptMockCall(
+                        mokkeryInstance = { irCall(scopeGetter) { arguments[0] = irGet(self) } },
+                        functionId = invokeFunctionId,
+                        function = it
+                    )
+                )
+            }
+            val lambdaVar = createTmpVariable(lambda)
+            +irSet(self, irGet(lambdaVar))
+            +irCall(setupInstanceScopeFun) {
+                arguments[0] = irGet(lambdaVar)
+                arguments[1] = irGetMokkeryScopeFor(expression)
+                arguments[2] = irString(typeToMock.classFqName!!.asString())
+                arguments[3] = kClassReference(typeToMock)
+                arguments[4] = irCallListOf(
+                    type = irBuiltIns.kClassClass.starProjectedType.makeNullable(),
+                    elements = typeArguments.memoryOptimizedMap { it?.let(::kClassReference) ?: irNull() }
+                )
+                arguments[5] = when (kind) {
+                    IrMokkeryKind.Spy -> irNull()
+                    IrMokkeryKind.Mock -> expression.arguments[regularMockParams[0]] ?: irNull()
+                }
+                arguments[6] = spiedVar?.let(::irGet) ?: irNull()
+                arguments[7] = spiedVar
+                    ?.let { irLambdaSpyCallDispatcher(irGet(it), lambda.function) }
+                    ?: irNull()
+                val functionProviderType = irBuiltIns
+                    .functionN(0)
+                    .typeWith(listOf(referenced(MokkeryIr.Function.createFunction).returnType))
+                arguments[8] = irLambdaOf(functionProviderType) {
                     +irReturn(
-                        irInterceptMockCall(
-                            mokkeryKind = kind,
-                            mokkeryInstance = irGet(instanceVar),
+                        irCallCreateFunction(
+                            mokkeryInstance = {
+                                irCall(referencedGetter(MokkeryIr.Property.jsFunctionMokkeryScope)) {
+                                    arguments[0] = irGet(lambdaVar)
+                                }
+                            },
                             typeParamsContainer = typeToMock.classOrFail.owner,
-                            function = it
+                            function = lambda.function,
+                            functionId = irLong(invokeFunctionId),
                         )
                     )
                 }
-            )
-            val mockModeClass = referenced(MokkeryIr.Class.MockMode)
-            +irSet(instanceVar, irCall(instanceScopeFun) {
-                arguments[0] = parentScopeValue
-                arguments[1] = irString(typeToMock.classFqName!!.asString())
-                arguments[2] = kClassReference(typeToMock)
-                arguments[3] = irCallListOf(
-                    type = irBuiltIns.kClassClass.starProjectedType,
-                    elements = typeArguments.memoryOptimizedMap { kClassReference(it) }
-                )
-                arguments[4] = irGet(lambdaVar)
-                arguments[5] =  when (kind) {
-                    IrMokkeryKind.Spy -> irNull()
-                    IrMokkeryKind.Mock -> expression
-                        .arguments[regularMockParams[0]!!]
-                        ?: irGetEnumEntry(mockModeClass, configuration.defaultMockMode)
-                }
-                arguments[6] = if (kind == IrMokkeryKind.Spy) expression.arguments[regularMockParams[0]!!]!! else irNull()
-            })
-            +irCall(referenced(MokkeryIr.Function.initializeInJsFunctionMock)) {
-                arguments[0] = irGet(instanceVar)
-                arguments[1] = irGet(lambdaVar)
-            }
-            +irCall(referenced(MokkeryIr.Function.invokeInstantiationListener)) {
-                arguments[0] = irGet(instanceVar)
-                arguments[1] = irGet(lambdaVar)
-            }
-            expression.arguments[regularMockParams[1]!!]?.let { block ->
-                +irInvoke(block, false, irGet(lambdaVar))
+                arguments[9] = expression.arguments[regularMockParams[1]] ?: irNull()
             }
             +irGet(lambdaVar)
         }
     }
+}
+
+context(scope: TransformerScope)
+private fun IrBuilderWithScope.irLambdaSpyCallDispatcher(
+    spiedLambda: IrExpression,
+    function: IrSimpleFunction,
+): IrExpression {
+    val adapter = irLambdaOf(function.dispatchLambdaType()) { lambda ->
+        val args = Array(function.parameters.size) { irCallListGet(irGet(lambda.parameters[0]), it) }
+        +irReturn(
+            irInvoke(
+                function = spiedLambda,
+                isSuspend = lambda.isSuspend,
+                args = args,
+                returnType = function.returnType
+            )
+        )
+    }
+    return irCallConstructor(referencedPrimaryConstructor(MokkeryIr.Class.LambdaSpyCallsContract)) {
+        arguments[0] = if (function.isSuspend) irNull() else adapter
+        arguments[1] = if (function.isSuspend) adapter else irNull()
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrSimpleFunction.dispatchLambdaType(): IrType {
+    val lambdaClass = if (isSuspend) irBuiltIns.suspendFunctionN(1) else irBuiltIns.functionN(1)
+    return lambdaClass.typeWith(irBuiltIns.listClass.owner.defaultTypeErased, returnType)
 }

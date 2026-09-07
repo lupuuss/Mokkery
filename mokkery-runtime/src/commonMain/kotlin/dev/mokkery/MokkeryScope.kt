@@ -1,8 +1,10 @@
 package dev.mokkery
 
-import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
+import dev.mokkery.internal.context.Settings
+import dev.mokkery.internal.interceptor.ForkedMokkeryCallHooks
+import dev.mokkery.internal.requireInstanceScope
 
 /**
  * Base interface for all scopes that are based on [MokkeryContext].
@@ -14,8 +16,21 @@ public interface MokkeryScope {
 
     public companion object {
 
-        @InternalMokkeryApi
-        public val global: MokkeryScope = MokkeryScope(MokkeryTools.default())
+        /**
+         * The root [MokkeryScope] that all other scopes derive from.
+         */
+        public val global: MokkeryScope = MokkeryScope(
+            MokkeryTools.default()
+                    + Settings.default()
+                    + ForkedMokkeryCallHooks()
+        )
+
+        /**
+         * Returns the [MokkeryInstanceScope] associated with the given [mock].
+         *
+         * @throws MokkeryRuntimeException if [mock] is not a Mokkery instance.
+         */
+        public fun from(mock: Any): MokkeryInstanceScope = mock.requireInstanceScope()
     }
 }
 

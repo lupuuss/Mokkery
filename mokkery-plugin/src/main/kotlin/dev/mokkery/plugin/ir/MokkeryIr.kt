@@ -2,12 +2,15 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.Mokkery.dev_mokkery
 import dev.mokkery.plugin.Mokkery.dev_mokkery_annotations
-import dev.mokkery.plugin.Mokkery.dev_mokkery_context
+import dev.mokkery.plugin.Mokkery.dev_mokkery_factory
+import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_context
-import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_defaults
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_contracts
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_templating
+import dev.mokkery.plugin.Mokkery.dev_mokkery_internal_utils
 import dev.mokkery.plugin.Mokkery.dev_mokkery_matcher
 import dev.mokkery.plugin.Mokkery.dev_mokkery_templating
 import dev.mokkery.plugin.Mokkery.dev_mokkery_verify
@@ -17,6 +20,7 @@ import dev.mokkery.plugin.core.ir.IrFunctionById
 import dev.mokkery.plugin.core.ir.IrFunctionReferencer
 import dev.mokkery.plugin.core.ir.IrPropertyById
 import dev.mokkery.plugin.core.ir.IrPropertyReferencer
+import dev.mokkery.plugin.ir.IrMokkeryKind.*
 import dev.mokkery.plugin.nestedClassId
 import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -46,17 +50,30 @@ object MokkeryIr {
 
         val MokkerySuiteScope by dev_mokkery.refClass
 
-        val MokkeryInstanceScope by dev_mokkery.refClass
+        val MutableMokkeryInstanceScope by dev_mokkery_internal.refClass
+        val MutableMokkeryMockScope by dev_mokkery_internal.refClass
+        val MutableMokkerySpyScope by dev_mokkery_internal.refClass
         val VerifyModeInternals by dev_mokkery_verify.refClass
 
-        val CallArgument by dev_mokkery_context.refClass
-        val FunctionParameter = dev_mokkery_context.refNestedClass("Function", "Parameter")
         val SuiteName by dev_mokkery_internal_context.refClass
 
         val MokkeryTemplatingScope by dev_mokkery_templating.refClass
         val RunTemplateResult by dev_mokkery_internal_templating.refClass
 
-        val DefaultsExtractorFactory by dev_mokkery_internal_defaults.refClass
+        val DefaultsContract by dev_mokkery_internal_contracts.refClass
+        val CoreContract by dev_mokkery_internal_contracts.refClass
+        val SpyCallsContract by dev_mokkery_internal_contracts.refClass
+        val SuperCallsContract by dev_mokkery_internal_contracts.refClass
+        val LambdaSpyCallsContract by dev_mokkery_internal_contracts.refClass
+        val MissingDispatcherCall by dev_mokkery_internal.refClass
+        val MockFactory by dev_mokkery_factory.refClass
+        val SpyFactory by dev_mokkery_factory.refClass
+        val InstanceFactoryConfigurer by dev_mokkery_factory_configurer.refClass
+
+        fun mokkeryInstanceScope(kind: IrMokkeryKind) = when (kind) {
+            Spy -> MutableMokkerySpyScope
+            Mock -> MutableMokkeryMockScope
+        }
 
         fun mockMany(value: Int): IrClassReferencer {
             return mockManyMap[value]
@@ -76,33 +93,36 @@ object MokkeryIr {
         val internalEverySuspend by dev_mokkery_internal.refFunction
         val internalVerify by dev_mokkery_internal.refFunction
         val internalVerifySuspend by dev_mokkery_internal.refFunction
+        val internalVerifyNoMoreCalls by dev_mokkery_internal.refFunction
         val runTemplate by dev_mokkery_internal_templating.refFunction
         val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
-        val templatingFunctionParameter by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
-        val MokkerySuiteScope by dev_mokkery.refFunction
-        val createInstanceScope by dev_mokkery_internal.refFunction
-        val createInstanceContext by dev_mokkery_internal.refFunction
-        val initializeInJsFunctionMock by dev_mokkery_internal.refFunction
+        val instanceFactoryScope by dev_mokkery_internal_factory.refFunction
+        val suiteScope by dev_mokkery_internal.refFunction
+        val suiteContext by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
-        val invokeInstantiationListener by dev_mokkery_internal_context.refFunction
-        val createBlockingCallScope by dev_mokkery_internal.refFunction
-        val createSuspendCallScope by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
-        val throwArguments by dev_mokkery_internal_defaults.refFunction
-        val methodWithoutDefaultsError by dev_mokkery_internal_defaults.refFunction
         val matches by dev_mokkery_matcher.refFunction { it.owner.parameters.size == 2 }
         val matchesComposite by dev_mokkery_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForDefaults by dev_mokkery_internal.refFunction
+        val setupMokkeryInstanceForJsFunction by dev_mokkery_internal.refFunction
+        val createModuleScope by dev_mokkery_internal.refFunction
+        val interceptCall by dev_mokkery_internal.refFunction
+        val interceptCallSuspend by dev_mokkery_internal.refFunction
+        val getTypeArgumentClassOrNull by dev_mokkery_internal_utils.refFunction
+        val createFunction by dev_mokkery_internal_context.refFunction
+        val createFunctionParameter by dev_mokkery_internal_context.refFunction
     }
 
     object Property {
 
         val instanceIdString by dev_mokkery_internal.refProperty
-        val spiedObject by dev_mokkery_internal.refProperty
-        val callInterceptor by dev_mokkery_internal_context.refProperty
+        val spiedObject by dev_mokkery.refProperty
+        val jsFunctionMokkeryScope by dev_mokkery_internal.refProperty
     }
 
     val Origin = IrDeclarationOrigin.GeneratedByPlugin(Key)

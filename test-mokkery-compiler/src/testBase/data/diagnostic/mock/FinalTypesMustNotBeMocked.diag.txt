@@ -1,0 +1,5 @@
+/FinalTypesMustNotBeMocked.kt:9:5: error: Type 'FinalClass' is final and cannot be used with 'spy'.
+
+/FinalTypesMustNotBeMocked.kt:10:10: error: Type 'FinalClass' is final and cannot be used with 'mock'.
+
+/FinalTypesMustNotBeMocked.kt:11:14: error: Type 'FinalClass' is final and cannot be used with 'mockMany'.

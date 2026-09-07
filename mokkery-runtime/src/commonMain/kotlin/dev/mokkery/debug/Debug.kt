@@ -1,16 +1,19 @@
 package dev.mokkery.debug
 
 import dev.mokkery.MokkeryInstanceScope
+import dev.mokkery.answering.Answer
 import dev.mokkery.internal.answering.answering
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
 import dev.mokkery.internal.instanceIdString
 import dev.mokkery.internal.mokkeryScope
-import dev.mokkery.internal.render.callTemplate
-import dev.mokkery.internal.render.callTrace
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.tracing.callTracing
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 
 /**
  * Returns json-like structure of [obj] details (tracked calls, configured answers etc.).
@@ -60,8 +63,9 @@ private fun HierarchicalStringBuilder.callsSection(instance: MokkeryInstanceScop
             line("")
             return@section
         }
-        val traceRenderer = instance.tools.renderers.callTrace(renderReceiver = false)
-        calls.forEach { line(traceRenderer.render(it)) }
+        instance.withRenderingScope(receiverRendering = false) {
+            calls.forEach { line(callEntryRenderer.render(it)) }
+        }
     }
 }
 
@@ -71,10 +75,18 @@ private fun HierarchicalStringBuilder.answersSection(instance: MokkeryInstanceSc
         if (answering.answers.isEmpty()) {
             line("")
         } else {
-            val templateRenderer = instance.tools.renderers.callTemplate(renderReceiver = false)
-            answering.answers.forEach { (template, answer) ->
-                line("${templateRenderer.render(template)} ${answer.description()}")
+            instance.withRenderingScope(receiverRendering = false) {
+                answering.answers.forEach { (template, answer) ->
+                    line("${callTemplateRenderer.render(template)} ${answer.renderOrDescription()}")
+                }
             }
         }
     }
+}
+
+@Suppress("DEPRECATION")
+context(scope: MokkeryRenderingScope)
+private fun Answer<*>.renderOrDescription(): String = when (this) {
+    is Renderable -> render()
+    else -> description()
 }

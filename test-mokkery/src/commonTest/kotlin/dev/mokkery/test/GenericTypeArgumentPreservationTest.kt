@@ -1,12 +1,13 @@
 package dev.mokkery.test
 
+import dev.mokkery.MokkeryCallScope
+import dev.mokkery.MokkeryScope
 import dev.mokkery.answering.returns
+import dev.mokkery.call
 import dev.mokkery.context.Function
 import dev.mokkery.every
-import dev.mokkery.interceptor.MokkeryCallInterceptor
 import dev.mokkery.interceptor.MokkeryCallListener
-import dev.mokkery.MokkeryCallScope
-import dev.mokkery.call
+import dev.mokkery.interceptor.callHooks
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.mockMany
@@ -33,12 +34,12 @@ class GenericTypeArgumentPreservationTest {
 
     @BeforeTest
     fun before() {
-        MokkeryCallInterceptor.beforeAnswering.register(listener)
+        MokkeryScope.global.callHooks.beforeAnswering.register(listener)
     }
 
     @AfterTest
     fun after() {
-        MokkeryCallInterceptor.beforeAnswering.unregister(listener)
+        MokkeryScope.global.callHooks.beforeAnswering.unregister(listener)
     }
 
     @Test
@@ -92,6 +93,16 @@ class GenericTypeArgumentPreservationTest {
         assertEquals(listOf(Int::class), capturedArgumentTypes)
         mock.contains(ComplexType)
         assertEquals(Boolean::class, capturedReturnType)
+        assertEquals(listOf(Any::class), capturedArgumentTypes)
+    }
+
+    @Test
+    fun testPreservesStarProjectionToAnyForFunction() {
+        @Suppress("UNCHECKED_CAST")
+        val mock = mock<Function1<*, *>>() as Function1<Any?, Any?>
+        every { mock(any()) } returns "1"
+        mock(1)
+        assertEquals(Any::class, capturedReturnType)
         assertEquals(listOf(Any::class), capturedArgumentTypes)
     }
 

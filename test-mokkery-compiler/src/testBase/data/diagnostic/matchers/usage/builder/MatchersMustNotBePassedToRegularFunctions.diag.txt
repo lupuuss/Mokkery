@@ -1,0 +1,7 @@
+/MatchersMustNotBePassedToRegularFunctions.kt:6:12: error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:7:12: error: Matchers can only be passed to member functions, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:8:5: error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBePassedToRegularFunctions.kt:9:5: error: Matchers can only be passed to member functions, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.

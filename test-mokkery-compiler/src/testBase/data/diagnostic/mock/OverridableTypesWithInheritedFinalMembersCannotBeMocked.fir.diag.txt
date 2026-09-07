@@ -1,0 +1,5 @@
+/OverridableTypesWithInheritedFinalMembersCannotBeMocked.kt:(285,288): error: Type 'Child' has final members and cannot be used with 'spy'. Final members: fun finalFromGrandParent(): Unit
+
+/OverridableTypesWithInheritedFinalMembersCannotBeMocked.kt:(301,306): error: Type 'Child' has final members and cannot be used with 'mock'. Final members: fun finalFromGrandParent(): Unit
+
+/OverridableTypesWithInheritedFinalMembersCannotBeMocked.kt:(323,328): error: Type 'Child' has final members and cannot be used with 'mockMany'. Final members: fun finalFromGrandParent(): Unit

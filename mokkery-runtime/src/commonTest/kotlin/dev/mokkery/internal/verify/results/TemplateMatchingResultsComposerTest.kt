@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class TemplateMatchingResultsComposerTest {
 
     private val callMatcher = TestCallMatcher { trace, template ->
-        if (trace.name == template.name) CallMatchResult.Matching else CallMatchResult.NotMatching
+        if (trace.functionId == template.functionId) CallMatchResult.Matching else CallMatchResult.NotMatching
     }
     private val builder = TemplateMatchingResultsComposer(callMatcher)
 

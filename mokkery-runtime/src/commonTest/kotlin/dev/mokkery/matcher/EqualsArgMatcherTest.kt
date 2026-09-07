@@ -1,5 +1,8 @@
 package dev.mokkery.matcher
 
+import dev.mokkery.internal.rendering.MokkeryRendering
+import dev.mokkery.test.TestRenderer
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,7 +25,8 @@ class EqualsArgMatcherTest {
     }
 
     @Test
-    fun testToStringReturnsCorrectDescription() {
-        assertEquals("1", matcher.toString())
+    fun testRenderReturnsCorrectDescription() {
+        val testRenderer = TestRenderer<Any?>(MokkeryRendering.descriptionKey) { "DESCRIPTION($it)" }
+        assertEquals("DESCRIPTION(1)", testRendering(testRenderer) { matcher.render() })
     }
 }

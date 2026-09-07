@@ -8,25 +8,25 @@ import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
 import dev.mokkery.internal.MonotonicCounter
-import dev.mokkery.internal.matcher.CallMatcherFactory
+import dev.mokkery.internal.defaults.DefaultsMaterializer
+import dev.mokkery.internal.matcher.CallMatcher
 import dev.mokkery.internal.mokkeryRuntimeError
 import dev.mokkery.internal.names.NameShortener
 import dev.mokkery.internal.names.ReverseDomainNameShortener
 import dev.mokkery.internal.names.withTypeArgumentsSupport
-import dev.mokkery.internal.render.Renderers
-import dev.mokkery.internal.verify.VerifierFactory
+import dev.mokkery.internal.verify.Verifier
 
 internal val MokkeryScope.tools: MokkeryTools
     get() = mokkeryContext.require(MokkeryTools)
 
 internal class MokkeryTools(
     namesShortener: NameShortener? = null,
-    callMatcherFactory: CallMatcherFactory? = null,
+    callMatcherFactory: CallMatcher.Factory? = null,
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
     autofillProvider: AutofillProvider<Any?>? = null,
-    verifierFactory: VerifierFactory? = null,
-    renderers: Renderers? = null,
+    verifierFactory: Verifier.Factory? = null,
+    defaultsMaterializerFactory: DefaultsMaterializer.Factory? = null
 ) : MokkeryContext.Element {
 
     private val _namesShortener: NameShortener? = namesShortener
@@ -35,33 +35,33 @@ internal class MokkeryTools(
     private val _mocksCounter = mocksCounter
     private val _autofillProvider = autofillProvider
     private val _verifierFactory = verifierFactory
-    private val _renderers = renderers
+    private val _defaultsMaterializerFactory = defaultsMaterializerFactory
 
     val namesShortener: NameShortener
         get() = _namesShortener ?: mokkeryRuntimeError("NamesShortener not present in the tools!")
-    val callMatcherFactory: CallMatcherFactory
-        get() = _callMatcherFactory ?: mokkeryRuntimeError("CallMatcher not present in call tools!")
+    val callMatcherFactory: CallMatcher.Factory
+        get() = _callMatcherFactory ?: mokkeryRuntimeError("CallMatcher.Factory not present in call tools!")
     val callsCounter: Counter
         get() = _callsCounter ?: mokkeryRuntimeError("Calls Counter not present in tools!")
     val mocksCounter: Counter
         get() = _mocksCounter ?: mokkeryRuntimeError("Mocks Counter not present in tools!")
     val autofillProvider: AutofillProvider<Any?>
         get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools!")
-    val verifierFactory: VerifierFactory
-        get() = _verifierFactory ?: mokkeryRuntimeError("VerifierFactory not present in tools!")
-    val renderers: Renderers
-        get() = _renderers ?: mokkeryRuntimeError("Renderers not present in tools!")
+    val verifierFactory: Verifier.Factory
+        get() = _verifierFactory ?: mokkeryRuntimeError("Verifier.Factory not present in tools!")
+    val defaultsMaterializerFactory: DefaultsMaterializer.Factory
+        get() = _defaultsMaterializerFactory ?: mokkeryRuntimeError("DefaultsMaterializer.Factory not present in tools!")
 
     override val key = Key
 
     fun copy(
         namesShortener: NameShortener? = _namesShortener,
-        callMatcherFactory: CallMatcherFactory? = _callMatcherFactory,
+        callMatcherFactory: CallMatcher.Factory? = _callMatcherFactory,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
         autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
-        verifierFactory: VerifierFactory? = _verifierFactory,
-        renderers: Renderers? = _renderers,
+        verifierFactory: Verifier.Factory? = _verifierFactory,
+        defaultsMaterializerFactory: DefaultsMaterializer.Factory? = _defaultsMaterializerFactory
     ) = MokkeryTools(
         namesShortener = namesShortener,
         callMatcherFactory = callMatcherFactory,
@@ -69,7 +69,7 @@ internal class MokkeryTools(
         mocksCounter = mocksCounter,
         autofillProvider = autofillProvider,
         verifierFactory = verifierFactory,
-        renderers = renderers,
+        defaultsMaterializerFactory = defaultsMaterializerFactory
     )
 
     companion object Key : MokkeryContext.Key<MokkeryTools> {
@@ -77,15 +77,16 @@ internal class MokkeryTools(
         fun default(): MokkeryTools {
             val mocksCounter = MonotonicCounter(1)
             val namesShortener = ReverseDomainNameShortener.withTypeArgumentsSupport()
-            val callMatcherFactory = CallMatcherFactory()
+            val materializerFactory = DefaultsMaterializer.Factory.default()
+            val callMatcherFactory = CallMatcher.Factory.default(materializerFactory)
             return MokkeryTools(
                 namesShortener = namesShortener,
                 callMatcherFactory = callMatcherFactory,
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
                 autofillProvider = AutofillProvider.forInternals,
-                verifierFactory = VerifierFactory(callMatcherFactory),
-                renderers = Renderers.default,
+                verifierFactory = Verifier.Factory.default(callMatcherFactory),
+                defaultsMaterializerFactory = materializerFactory,
             )
         }
     }

@@ -65,31 +65,31 @@ private class CallTracingRegistryImpl : CallTracingRegistry {
     override val all get() = allTracesLock.withLock { allTraces.toMutableList() }
 
     override fun trace(scope: MokkeryCallScope) = allTracesLock.withLock {
-        allTraces += scope.toCallTrace(scope.tools.callsCounter.next())
+        val id = CallTrace.Id(scope.tools.callsCounter.next())
+        allTraces += scope.toCallTrace(id)
     }
 
-    override fun acquireVerifySession() = object : CallTracingRegistry.VerifySession {
+    override fun acquireVerifySession(): CallTracingRegistry.VerifySession {
+        verifiedTracesLock.lock()
+        return object : CallTracingRegistry.VerifySession {
 
-        private val allSnapshot = allTracesLock.withLock { allTraces.toMutableList() }
+            private val allSnapshot = allTracesLock.withLock { allTraces.toMutableList() }
 
-        init {
-            verifiedTracesLock.lock()
+            override val unverified: List<CallTrace>
+                get() = allSnapshot - verifiedTraces
+
+            override fun markVerified(trace: CallTrace) {
+                verifiedTraces.add(trace)
+            }
+
+            override fun resetAll() {
+                verifiedTraces.clear()
+                allTracesLock.withLock { allTraces.removeAll(allSnapshot.toSet()) }
+                allSnapshot.clear()
+            }
+
+            override fun close() = verifiedTracesLock.unlock()
         }
-
-        override val unverified: List<CallTrace>
-            get() = allSnapshot - verifiedTraces
-
-        override fun markVerified(trace: CallTrace) {
-            verifiedTraces.add(trace)
-        }
-
-        override fun resetAll() {
-            verifiedTraces.clear()
-            allTracesLock.withLock { allTraces.removeAll(allSnapshot.toSet()) }
-            allSnapshot.clear()
-        }
-
-        override fun close() = verifiedTracesLock.unlock()
     }
 
     override fun toString(): String = "CallTracingRegistry(all=$all)"
@@ -99,10 +99,7 @@ private class CompositeVerifySessionImpl(
     collection: MokkeryCollection,
 ) : CallTracingRegistry.CompositeVerifySession {
 
-    override val sessions = collection
-        .scopes
-        .sortedBy { it.instanceId }
-        .associateTo(linkedMapOf()) { it.instanceId to it.callTracing.acquireVerifySession() }
+    override val sessions = collection.acquireAllSessions()
 
     override val unverified: List<CallTrace>
         get() = sessions
@@ -121,15 +118,34 @@ private class CompositeVerifySessionImpl(
         .markVerified(trace)
 
     override fun close() {
-        var error: MokkeryRuntimeException? = null
-        sessions.forEach { (_, lock) ->
-            try {
-                lock.close()
-            } catch (e: Throwable) {
-                if (error == null) error = MokkeryRuntimeException("Failure while releasing locks!")
-                error.addSuppressed(e)
-            }
-        }
-        error?.let { throw it }
+        sessions.values.closeAllCollectingFailures()?.let { throw it }
     }
+}
+
+// acquiring a session locks the underlying registry, so a failure in the middle has to release
+// everything acquired so far - otherwise those registries stay locked for good
+private fun MokkeryCollection.acquireAllSessions(): Map<MokkeryInstanceId, CallTracingRegistry.VerifySession> {
+    val acquired = linkedMapOf<MokkeryInstanceId, CallTracingRegistry.VerifySession>()
+    try {
+        scopes
+            .sortedBy { it.instanceId }
+            .forEach { acquired[it.instanceId] = it.callTracing.acquireVerifySession() }
+    } catch (e: Throwable) {
+        acquired.values.closeAllCollectingFailures()?.let(e::addSuppressed)
+        throw e
+    }
+    return acquired
+}
+
+private fun Iterable<CallTracingRegistry.VerifySession>.closeAllCollectingFailures(): MokkeryRuntimeException? {
+    var error: MokkeryRuntimeException? = null
+    forEach { session ->
+        try {
+            session.close()
+        } catch (e: Throwable) {
+            if (error == null) error = MokkeryRuntimeException("Failure while releasing locks!")
+            error.addSuppressed(e)
+        }
+    }
+    return error
 }

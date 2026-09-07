@@ -1,6 +1,7 @@
 package dev.mokkery.internal.verify.render
 
 import dev.mokkery.internal.matcher.CallMatchResult
+import dev.mokkery.internal.rendering.MokkeryRendering
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.verify.SoftVerifier
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
@@ -8,17 +9,17 @@ import dev.mokkery.test.TestRenderer
 import dev.mokkery.test.assert
 import dev.mokkery.test.fakeCallTemplate
 import dev.mokkery.test.fakeCallTrace
+import dev.mokkery.test.testRendering
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class SoftVerifierErrorRendererTest {
 
-    private val templateRenderer = TestRenderer<CallTemplate> { "CALL_TEMPLATE" }
-    private val matchingResultsRenderer = TestRenderer<TemplateGroupedMatchingResults> { "MATCHING_RESULTS" }
-    private val errorRenderer = SoftVerifierErrorRenderer(
-        templateRenderer = templateRenderer,
-        matchingResultsRenderer = matchingResultsRenderer,
-    )
+    private val templateRenderer = TestRenderer<CallTemplate>(MokkeryRendering.callTemplateKey) { "CALL_TEMPLATE" }
+    private val matchingResultsRenderer = TestRenderer<TemplateGroupedMatchingResults>(
+        VerifyRendering.templateGroupedMatchingResults
+    ) { "MATCHING_RESULTS" }
+    private val context = templateRenderer + matchingResultsRenderer
 
     @Test
     fun testRendersCorrectMessageWhenSpecificRangeExpected() {
@@ -85,7 +86,9 @@ class SoftVerifierErrorRendererTest {
             expectedAtMost = atMost,
             templateMatchingResults = results
         )
-        errorRenderer.assert(error) { expectedMessage() }
+        testRendering(context) {
+            SoftVerifierErrorRenderer.assert(error) { expectedMessage() }
+        }
         assertEquals(results.template, templateRenderer.recordedCalls.single())
         assertEquals(results, matchingResultsRenderer.recordedCalls.single())
     }

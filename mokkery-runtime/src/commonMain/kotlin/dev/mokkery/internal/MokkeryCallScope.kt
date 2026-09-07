@@ -2,17 +2,60 @@
 
 package dev.mokkery.internal
 
-import dev.mokkery.context.CallArgument
-import dev.mokkery.context.Function
-import dev.mokkery.context.FunctionCall
-import dev.mokkery.context.MokkeryContext
 import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkeryCallScope
 import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.MokkerySuspendCallScope
-import dev.mokkery.internal.context.AssociatedFunctions
-import dev.mokkery.internal.utils.copyWithReplacedKClasses
-import dev.mokkery.internal.utils.takeIfImplementedOrAny
+import dev.mokkery.call
+import dev.mokkery.context.Function
+import dev.mokkery.context.MokkeryContext
+import dev.mokkery.context.lazyFunctionCall
+import dev.mokkery.internal.context.callInterceptor
+import dev.mokkery.internal.context.functions
+import dev.mokkery.internal.contracts.contracts
+import dev.mokkery.internal.contracts.superCalls
 import kotlin.reflect.KClass
+
+@PublishedApi
+internal fun MokkeryInstanceScope.interceptCall(
+    id: Long,
+    vararg args: Any?,
+): Any? = callInterceptor.intercept(blockingCallScope(Function.Id(id), args.asList()))
+
+@PublishedApi
+internal suspend fun MokkeryInstanceScope.interceptCallSuspend(
+    id: Long,
+    vararg args: Any?,
+): Any? = callInterceptor.intercept(suspendCallScope(Function.Id(id), args.asList()))
+
+internal fun MokkeryCallScope.availableSuperCallTypes(): List<KClass<*>> = contracts
+    .superCalls
+    ?.mokkerySuperTypes(call.function.id.value)
+    .orEmpty()
+
+internal fun MokkeryBlockingCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkeryBlockingCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
+}
+
+internal fun MokkerySuspendCallScope.withContext(
+    with: MokkeryContext = MokkeryContext.Empty
+): MokkerySuspendCallScope = when {
+    with === MokkeryContext.Empty -> this
+    else -> MokkerySuspendCallScope(this.mokkeryContext + with)
+}
+
+internal fun MokkeryInstanceScope.blockingCallScope(
+    id: Function.Id,
+    args: List<Any?>,
+): MokkeryBlockingCallScope = MokkeryBlockingCallScope(callContext(id, args))
+
+internal fun MokkeryInstanceScope.suspendCallScope(
+    id: Function.Id,
+    args: List<Any?>,
+): MokkerySuspendCallScope = MokkerySuspendCallScope(callContext(id, args))
 
 internal fun MokkeryBlockingCallScope(context: MokkeryContext = MokkeryContext.Empty): MokkeryBlockingCallScope {
     return object : MokkeryBlockingCallScope {
@@ -30,51 +73,7 @@ internal fun MokkerySuspendCallScope(context: MokkeryContext = MokkeryContext.Em
     }
 }
 
-internal fun MokkeryBlockingCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkeryBlockingCallScope = when {
-    with === MokkeryContext.Empty -> this
-    else -> MokkeryBlockingCallScope(this.mokkeryContext + with)
-}
-
-internal fun MokkerySuspendCallScope.withContext(
-    with: MokkeryContext = MokkeryContext.Empty
-): MokkerySuspendCallScope = when {
-    with === MokkeryContext.Empty -> this
-    else -> MokkerySuspendCallScope(this.mokkeryContext + with)
-}
-
-internal fun MokkeryInstanceScope.createBlockingCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-) = MokkeryBlockingCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
-
-internal fun MokkeryInstanceScope.createSuspendCallScope(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>> = emptyMap(),
-    spyDelegate: kotlin.Function<Any?>? = null
-) = MokkerySuspendCallScope(createCallContext(name, returnType, args, supers, spyDelegate))
-
-private fun MokkeryInstanceScope.createCallContext(
-    name: String,
-    returnType: KClass<*>,
-    args: List<CallArgument>,
-    supers: Map<KClass<*>, kotlin.Function<Any?>>,
-    spyDelegate: kotlin.Function<Any?>?
-): MokkeryContext {
-    val safeArgs = args.copyWithReplacedKClasses()
-    val call = FunctionCall(
-        function = Function(
-            name = name,
-            parameters = args.map(CallArgument::parameter),
-            returnType = returnType.takeIfImplementedOrAny()
-        ),
-        args = safeArgs
-    )
-    return mokkeryContext + call + AssociatedFunctions(supers, spyDelegate)
-}
+private fun MokkeryInstanceScope.callContext(
+    id: Function.Id,
+    args: List<Any?>,
+): MokkeryContext = mokkeryContext + functions.lazyFunctionCall(id, args)

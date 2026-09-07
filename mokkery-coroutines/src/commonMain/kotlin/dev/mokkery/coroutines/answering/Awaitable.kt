@@ -1,15 +1,21 @@
 package dev.mokkery.coroutines.answering
 
+import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendCallDefinitionScope
+import dev.mokkery.call
 import dev.mokkery.context.argValues
 import dev.mokkery.coroutines.internal.answering.AwaitAllDeferred
 import dev.mokkery.coroutines.internal.answering.AwaitCancellation
 import dev.mokkery.coroutines.internal.answering.AwaitDelayed
 import dev.mokkery.coroutines.internal.answering.AwaitReceiveChannel
 import dev.mokkery.coroutines.internal.answering.AwaitSendChannel
-import dev.mokkery.MokkerySuspendCallScope
-import dev.mokkery.call
+import dev.mokkery.internal.mokkeryInternals
+import dev.mokkery.internal.renderingScope
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -30,7 +36,11 @@ public interface Awaitable<out T> {
     /**
      * Provides a description of the awaitable action.
      */
-    public fun description(): String
+    @Deprecated("Implement `dev.mokkery.rendering.Renderable.render` instead.")
+    public fun description(): String = when (this) {
+        is Renderable -> context(MokkeryScope.global.mokkeryInternals.renderingScope) { render() }
+        else -> toString()
+    }
 
     public companion object {
 
@@ -72,7 +82,11 @@ public interface Awaitable<out T> {
          * Suspends for the specified duration and returns [value].
          */
         public fun <T> delayed(value: T, by: Duration = 1.seconds): Awaitable<T> {
-            return AwaitDelayed(duration = by, valueDescription = value::toString, value = { value })
+            return AwaitDelayed(
+                duration = by,
+                valueDescription = { descriptionRenderer.render(value) },
+                value = { value }
+            )
         }
 
         /**

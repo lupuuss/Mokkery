@@ -4,17 +4,20 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.log
-import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
+import dev.mokkery.plugin.ir.transformer.factory.replaceFactory
+import dev.mokkery.plugin.ir.transformer.module.generateBodyIfModuleScopeGetter
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
-import dev.mokkery.plugin.ir.transformer.suite.overrideMokkerySuiteScopeIfNotOverridden
-import dev.mokkery.plugin.ir.transformer.templating.MatchersCompiler
+import dev.mokkery.plugin.ir.transformer.scope.overrideMokkerySuiteScopeIfNotOverridden
+import dev.mokkery.plugin.ir.transformer.scope.replaceMokkerySuiteScope
+import dev.mokkery.plugin.ir.transformer.templating.compileIfMatcher
 import dev.mokkery.plugin.ir.transformer.templating.replaceEvery
 import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
+import dev.mokkery.plugin.ir.transformer.templating.replaceVerifyNoMoreCalls
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifySuspend
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -23,15 +26,11 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.isSubpackageOf
 import kotlin.time.TimeSource
 
 class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
-
-    private val matchersCompiler = MatchersCompiler(this)
 
     override fun visitClassNew(declaration: IrClass): IrStatement {
         declaration.transformChildrenVoid()
@@ -40,7 +39,10 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
     }
 
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        if (declaration is IrSimpleFunction) matchersCompiler.compileIfMatcher(declaration)
+        if (declaration is IrSimpleFunction) {
+            compileIfMatcher(declaration)
+            declaration.generateBodyIfModuleScopeGetter()
+        }
         return declaration.applyTransformChildrenVoid()
     }
 
@@ -52,10 +54,14 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
             Mokkery.Name.mock -> expression.replaceMockCall()
             Mokkery.Name.mockMany -> expression.replaceMockManyCall()
             Mokkery.Name.spy -> expression.replaceSpyCall()
-            Mokkery.Name.every -> expression.replaceEvery(matchersCompiler)
-            Mokkery.Name.everySuspend -> expression.replaceEverySuspend(matchersCompiler)
-            Mokkery.Name.verify -> expression.replaceVerify(matchersCompiler)
-            Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend(matchersCompiler)
+            Mokkery.Name.every -> expression.replaceEvery()
+            Mokkery.Name.everySuspend -> expression.replaceEverySuspend()
+            Mokkery.Name.verify -> expression.replaceVerify()
+            Mokkery.Name.verifySuspend -> expression.replaceVerifySuspend()
+            Mokkery.Name.verifyNoMoreCalls -> expression.replaceVerifyNoMoreCalls()
+            Mokkery.Name.MokkerySuiteScope -> expression.replaceMokkerySuiteScope()
+            Mokkery.Name.mockFactoryOf -> expression.replaceFactory(IrMokkeryKind.Mock)
+            Mokkery.Name.spyFactoryOf -> expression.replaceFactory(IrMokkeryKind.Spy)
             else -> expression
         }
     }

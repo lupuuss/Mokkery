@@ -19,6 +19,7 @@ const sidebars = {
     items: [
      'Guides/Mocking',
      'Guides/Mocking_multiple_types',
+     'Guides/Factories',
      'Guides/Answers',
      'Guides/Matchers',
      'Guides/Spying',

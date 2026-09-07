@@ -10,9 +10,23 @@ private class TypeParametersSupportNameShortener(private val baseShortener: Name
     override fun shorten(names: Set<String>): Map<String, String> {
         names.shortenSingleNotParametrizedOrNull()?.let { return it }
         val mapping = baseShortener.shorten(names.flatMapTo(mutableSetOf(), ::extractNames))
-        return names.associateWith {
-            if (it.contains("<")) mapping.entries.fold(it) { longName, (key, value) -> longName.replace(key, value) }
-            else mapping.getValue(it)
+        val longestNamesFirst = mapping.keys.sortedByDescending(String::length)
+        return names.associateWith { name ->
+            if (name.contains("<")) name
+                .replaceIndividualLongNamesWithIndexes(longestNamesFirst)
+                .replaceIndexesWithShortNames(longestNamesFirst, mapping)
+            else mapping.getValue(name)
+        }
+    }
+
+    private fun String.replaceIndividualLongNamesWithIndexes(names: List<String>): String = names
+        .foldIndexed(this) { index, acc, longName ->
+            acc.replace(longName, "%$index%")
+        }
+
+    private fun String.replaceIndexesWithShortNames(names: List<String>, mapping: Map<String, String>): String {
+        return names.foldIndexed(this) { index, acc, longName ->
+            acc.replace("%$index%", mapping.getValue(longName))
         }
     }
 

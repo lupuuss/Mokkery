@@ -1,0 +1,22 @@
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:17:5: error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.
+
+
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:18:10: error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.
+
+
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:19:14: error: Type 'AbstractToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.
+
+
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:23:5: error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.
+
+
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:24:10: error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.
+
+
+/ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt:25:14: error: Type 'OpenToStub' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	AbstractParam: This class could be inherited to create a stub, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowClassInheritance` flag.

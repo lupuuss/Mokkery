@@ -12,32 +12,38 @@ import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.addSetter
+import org.jetbrains.kotlin.ir.builders.declarations.buildValueParameter
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
+import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.typeWithParameters
 import org.jetbrains.kotlin.ir.util.copyAnnotationsFrom
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
+import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.isMethodOfAny
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
@@ -46,6 +52,11 @@ import org.jetbrains.kotlin.utils.memoryOptimizedZip
 fun IrClass.requirePropertyOwner(name: String): IrProperty {
     val nameId = Name.identifier(name)
     return properties.first { it.name == nameId }
+}
+
+fun IrClass.requireFieldOwner(name: String): IrField {
+    val nameId = Name.identifier(name)
+    return fields.first { it.name == nameId }
 }
 
 fun IrClass.requirePropertyGetterOwner(name: String): IrSimpleFunction = requirePropertyOwner(name).getter!!
@@ -63,8 +74,21 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
-    memoryOptimizedFlatMap { (it as? IrSimpleType)?.arguments.orEmpty() }
-        .forEachIndexed { index, it -> block(index, it.typeOrNull?.eraseTypeParameters()) }
+    flattenArgumentTypes().forEachIndexed { index, it -> block(index, it?.eraseTypeParameters()) }
+}
+
+val IrClass.erasedTypeArguments: List<IrType> get() = typeArgumentsFrom(emptyList())
+
+fun IrClass.typeSubstitutionForSuperClass(superClass: IrClass): Map<IrTypeParameterSymbol, IrType>? {
+    if (this == superClass) return emptyMap()
+    superTypes.forEach { superType ->
+        val currentClass = superType.classOrNull?.owner ?: return@forEach
+        val currentSubstitution = superType.typeSubstitution
+        if (currentClass == superClass) return currentSubstitution
+        val substitution = currentClass.typeSubstitutionForSuperClass(superClass) ?: return@forEach
+        return substitution.mapValues { (_, type) -> type.substitute(currentSubstitution) }
+    }
+    return null
 }
 
 fun IrClass.addOverridingMethod(
@@ -81,9 +105,9 @@ fun IrClass.addOverridingMethod(
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = emptyMap(),
     annotationFilter: AnnotationFilter = AnnotationFilter.all,
     block: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit
-) {
+): IrSimpleFunction {
     val function = functions.first()
-    addFunction {
+    return addFunction {
         updateFrom(function)
         name = function.name
         modality = Modality.FINAL
@@ -165,17 +189,18 @@ fun IrClass.addOverridingProperty(
     annotationFilter: AnnotationFilter = AnnotationFilter.all,
     getterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
     setterBlock: IrBlockBodyBuilder.(IrSimpleFunction) -> Unit,
-) {
+): IrProperty {
     val property = properties.first()
-    addProperty {
+    return addProperty {
         updateFrom(property)
         name = property.name
         modality = Modality.FINAL
         origin = IrDeclarationOrigin.DEFINED
         isFakeOverride = false
+        isVar = properties.any(IrProperty::isVar)
     }.apply {
         overriddenSymbols = property.overriddenSymbols + properties.map(IrProperty::symbol)
-        val baseGetter = property.getter
+        val baseGetter = properties.firstNotNullOfOrNull(IrProperty::getter)
         if (baseGetter != null) {
             val getter = addGetter()
             getter.overriddenSymbols = properties
@@ -189,7 +214,7 @@ fun IrClass.addOverridingProperty(
             getter.deepApplyAnnotationsFilter(annotationFilter)
             getter.body = DeclarationIrBuilder(context, getter.symbol).irBlockBody { getterBlock(getter) }
         }
-        val baseSetter = property.setter
+        val baseSetter = properties.firstNotNullOfOrNull(IrProperty::setter)
         if (baseSetter != null) {
             val setter = addSetter()
             setter.metadata = baseSetter.metadata
@@ -219,16 +244,42 @@ fun IrClass.overridePropertyBackingField(context: IrGeneratorContext, property: 
             visibility = DescriptorVisibilities.PRIVATE
         }
         overriddenSymbols = listOf(property.symbol)
-        addGetter {
-            this.returnType = returnType
-            origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
-        }.apply {
-            parameters = listOf(createDispatchReceiverParameterWithClassParent())
-            body = DeclarationIrBuilder(context, symbol).irBlockBody {
-                +irReturn(irGetField(irGet(parameters[0]), backingField!!))
-            }
+        addDefaultGetter(context).overriddenSymbols = listOf(property.getter!!.symbol)
+        if (property.isVar) addDefaultSetter(context).overriddenSymbols = listOf(property.setter!!.symbol)
+    }
+}
+
+fun IrProperty.addDefaultGetter(context: IrGeneratorContext): IrSimpleFunction {
+    val backingField = backingField!!
+    return addGetter {
+        this.returnType = backingField.type
+        origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+    }.apply {
+        parameters = listOf(createDispatchReceiverParameterWithClassParent())
+        body = DeclarationIrBuilder(context, symbol).irBlockBody {
+            +irReturn(irGetField(irGet(parameters[0]), backingField))
         }
-        getter?.overriddenSymbols = listOf(property.getter!!.symbol)
+    }
+}
+
+fun IrProperty.addDefaultSetter(context: IrGeneratorContext): IrSimpleFunction {
+    val backingField = backingField!!
+    isVar = true
+    return addSetter {
+        this.returnType = context.irBuiltIns.unitType
+        origin = IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+    }.apply {
+        parameters = listOf(
+            createDispatchReceiverParameterWithClassParent(),
+            buildValueParameter(this) {
+                this.type = backingField.type
+                this.kind = IrParameterKind.Regular
+                this.name = Name.identifier("value")
+            }
+        )
+        body = DeclarationIrBuilder(context, symbol).irBlockBody {
+            +irSetField(irGet(parameters[0]), backingField, irGet(parameters[1]))
+        }
     }
 }
 

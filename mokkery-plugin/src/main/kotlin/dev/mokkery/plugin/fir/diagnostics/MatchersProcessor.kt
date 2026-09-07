@@ -69,20 +69,26 @@ class MatchersProcessor(private val session: FirSession) {
     fun extractMatcherType(call: FirFunctionCall): FirMatcherType? {
         val callee = call.calleeReference as? FirResolvedNamedReference ?: return null
         val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return null
+        if (symbol.isSingleArgumentMatches()) return FirMatcherType.of(call.hasCompositeArgument())
         return matchers.getOrPut(symbol) {
             when {
                 !symbol.isMatcher() -> RegularExpr
                 symbol.callableId == Mokkery.Callable.matchesComposite -> MatcherExpr(Composite)
-                symbol.callableId == Mokkery.Callable.matches && symbol.valueParameterSymbols.size == 1 -> {
-                    val compositeType = session
-                        .getRegularClassSymbolByClassId(Mokkery.ClassId.ArgMatcherComposite)!!
-                        .constructType(arrayOf(call.resolvedType))
-                    val arg = call.arguments[0]
-                    MatcherExpr(FirMatcherType.of(arg.resolvedType.isSubtypeOf(compositeType, session)))
-                }
                 else -> MatcherExpr(FirMatcherType.of(symbol.isCompositeMatcher(session)))
             }
         }.let { it as? MatcherExpr }?.type
+    }
+
+    private fun FirNamedFunctionSymbol.isSingleArgumentMatches(): Boolean = isMatcher()
+            && callableId == Mokkery.Callable.matches
+            && valueParameterSymbols.size == 1
+
+    private fun FirFunctionCall.hasCompositeArgument(): Boolean {
+        val argument = arguments.firstOrNull() ?: return false
+        val compositeType = session
+            .getRegularClassSymbolByClassId(Mokkery.ClassId.ArgMatcherComposite)!!
+            .constructType(arrayOf(resolvedType))
+        return argument.resolvedType.isSubtypeOf(compositeType, session)
     }
 
     fun extractMatcherType(expression: FirExpression?): FirMatcherType? {

@@ -4,6 +4,7 @@ import dev.mokkery.MokkeryInstanceScope
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.MutableMokkeryCollection
+import dev.mokkery.internal.snapshot
 import kotlinx.atomicfu.locks.ReentrantLock
 import kotlinx.atomicfu.locks.withLock
 
@@ -27,7 +28,8 @@ private class MokkeryInstancesRegistryImpl(mocks: List<MokkeryInstanceScope>) : 
     private val _mocks = MutableMokkeryCollection(mocks)
     private val lock = ReentrantLock()
 
-    override val collection: MokkeryCollection get() = lock.withLock { _mocks }
+    override val collection: MokkeryCollection
+        get() = lock.withLock { _mocks.snapshot() }
 
     override fun register(instance: MokkeryInstanceScope) = lock.withLock { _mocks.upsertScope(instance) }
 

@@ -2,7 +2,8 @@ package dev.mokkery.plugin.ir.annotations
 
 import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.options.AnnotationSelectorInternals
-import org.jetbrains.kotlin.backend.jvm.codegen.AnnotationCodegen.Companion.annotationClass
+import dev.mokkery.plugin.ir.compat.classSymbolCompat
+import org.jetbrains.kotlin.backend.common.extensions.IrGeneratedDeclarationsRegistrar
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -25,12 +26,12 @@ fun interface AnnotationFilter {
         fun named(names: Set<String>): AnnotationFilter {
             val fqNames = names.map { FqName(it) }
             return AnnotationFilter { annotations ->
-                annotations.filter { it.annotationClass.kotlinFqName in fqNames }
+                annotations.filter { it.classSymbolCompat.owner.kotlinFqName in fqNames }
             }
         }
 
         fun matches(regex: Regex) = AnnotationFilter { annotations ->
-            annotations.filter { it.annotationClass.kotlinFqName.asString().matches(regex) }
+            annotations.filter { it.classSymbolCompat.owner.kotlinFqName.asString().matches(regex) }
         }
     }
 }
@@ -56,19 +57,20 @@ internal fun IrSimpleFunction.deepApplyAnnotationsFilter(filter: AnnotationFilte
     applyAnnotationsFilter(filter)
     typeParameters.forEach { it.applyAnnotationsFilter(filter) }
     parameters.forEach { it.deepApplyAnnotationsRule(filter) }
-    returnType.applyAnnotationsFilter(filter)
+    returnType = returnType.withFilteredAnnotations(filter)
 }
 
 private fun IrValueParameter.deepApplyAnnotationsRule(filter: AnnotationFilter) {
     applyAnnotationsFilter(filter)
-    type.applyAnnotationsFilter(filter)
+    type = type.withFilteredAnnotations(filter)
+    varargElementType = varargElementType?.withFilteredAnnotations(filter)
 }
 
-private fun IrType.applyAnnotationsFilter(filter: AnnotationFilter) {
+private fun IrType.withFilteredAnnotations(filter: AnnotationFilter): IrType {
     val requiredAnnotations = filter.filter(annotations)
-    if (annotations == requiredAnnotations) return
+    if (annotations == requiredAnnotations) return this
     val requiredAnnotationsSet = requiredAnnotations.toSet()
-    type.removeAnnotations { it !in requiredAnnotationsSet }
+    return removeAnnotations { it !in requiredAnnotationsSet }
 }
 
 private fun IrMutableAnnotationContainer.applyAnnotationsFilter(filter: AnnotationFilter) {

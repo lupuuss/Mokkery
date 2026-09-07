@@ -8,23 +8,24 @@ import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.internal.annotations.Templating
 import dev.mokkery.internal.answering.UnifiedAnsweringScope
 import dev.mokkery.internal.answering.answering
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.callTemplate
-import dev.mokkery.internal.templating.createTemplatingScope
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
+import dev.mokkery.internal.templating.templatingScope
 import dev.mokkery.internal.templating.templatingRegistry
 import dev.mokkery.internal.utils.runSuspension
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.templating.MokkeryTemplatingScope
 
+@PublishedApi
 internal fun <T> MokkeryScope.internalEverySuspend(
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): SuspendAnsweringScope<T> = internalEvery<T> { runSuspension { block() } }.unsafeCast()
 
+@PublishedApi
 internal fun <T> MokkeryScope.internalEvery(
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
-    val scope = createTemplatingScope()
+    val scope = templatingScope()
     scope.apply(block)
     val registry = scope.templatingRegistry
     val template = registry.templates.singleOrNull() ?: scope.singleCallExpectedError()
@@ -34,11 +35,9 @@ internal fun <T> MokkeryScope.internalEvery(
 
 private fun MokkeryTemplatingScope.singleCallExpectedError(): Nothing {
     val registry = templatingRegistry
-    val aliases = registry
-        .collection
-        .withShorterNames(tools.namesShortener)
-    val renderer = tools
-        .renderers
-        .callTemplate(aliases = aliases)
-    throw SingleCallInEveryBlockRequiredException(templates = registry.templates.map(renderer::render),)
+    withRenderingScope {
+        throw SingleCallInEveryBlockRequiredException(
+            templates = registry.templates.map { callTemplateRenderer.render(it) }
+        )
+    }
 }

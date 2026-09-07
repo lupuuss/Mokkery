@@ -72,10 +72,6 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Passing matchers to methods is not legal inside matcher builders."
         )
         it.put(
-            factory = Diagnostics.MATCHER_PASSED_TO_NON_MEMBER_FUNCTION,
-            message = "Matchers can be only passed to mock methods."
-        )
-        it.put(
             factory = Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED,
             message = "Only one vararg matcher is allowed."
         )

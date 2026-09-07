@@ -11,7 +11,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver") version "0.8.0"
+    id("org.gradle.toolchains.foojay-resolver") version "1.0.0"
 }
 
 toolchainManagement {
@@ -40,3 +40,5 @@ include(":mokkery-runtime")
 include(":mokkery-coroutines")
 include(":test-mokkery")
 include(":test-mokkery-compiler")
+include(":test-mokkery-gradle")
+include(":test-mokkery-performance")

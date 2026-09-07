@@ -2,13 +2,12 @@ package dev.mokkery.internal.templating
 
 import dev.mokkery.MokkeryScope
 import dev.mokkery.context.MokkeryContext
-import dev.mokkery.internal.MokkeryCollection
 import dev.mokkery.internal.context.MokkeryInstancesRegistry
 import dev.mokkery.internal.orEmpty
 import dev.mokkery.internal.plus
 import dev.mokkery.templating.MokkeryTemplatingScope
 
-internal fun MokkeryScope.createTemplatingScope(): MokkeryTemplatingScope {
+internal fun MokkeryScope.templatingScope(): MokkeryTemplatingScope {
     return MokkeryTemplatingScope(mokkeryContext + TemplatingRegistry())
 }
 

@@ -2,6 +2,7 @@
 
 package dev.mokkery
 
+import dev.mokkery.configurer.MokkeryMockConfigurer
 import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
@@ -13,10 +14,13 @@ import dev.mokkery.internal.mokkeryIntrinsic
  * * interfaces (not sealed)
  * * function types
  * * Abstract/open classes.
+ *
+ * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T : Any> mock(
-    mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: T.() -> Unit = { }
+    mode: MockMode? = null,
+    block: MokkeryMockConfigurer.Block<T> = { }
 ): T = mokkeryIntrinsic
 
 /**
@@ -28,8 +32,11 @@ public fun <T : Any> mock(
  * * interfaces (not sealed)
  * * function types
  * * Abstract/open classes.
+ *
+ * @param mode determines the default behavior when no answer is provided. If not provided, default mode is used.
+ * @param block configures the mock right after its creation
  */
 public fun <T : Any> MokkerySuiteScope.mock(
-    mode: MockMode = MokkeryCompilerDefaults.mockMode,
-    block: T.() -> Unit = { }
+    mode: MockMode? = null,
+    block: MokkeryMockConfigurer.Block<T> = { }
 ): T = mokkeryIntrinsic

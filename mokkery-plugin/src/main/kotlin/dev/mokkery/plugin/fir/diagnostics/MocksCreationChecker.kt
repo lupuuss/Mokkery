@@ -3,7 +3,9 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.Mokkery.Callable
+import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.declaredMembers
+import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
 import dev.mokkery.plugin.stubsConfig
 import dev.mokkery.plugin.validationMode
 import org.jetbrains.kotlin.AbstractKtSourceElement
@@ -13,6 +15,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
+import org.jetbrains.kotlin.diagnostics.error1
 import org.jetbrains.kotlin.diagnostics.error2
 import org.jetbrains.kotlin.diagnostics.error3
 import org.jetbrains.kotlin.diagnostics.rendering.Renderer
@@ -31,12 +34,17 @@ import org.jetbrains.kotlin.fir.declarations.utils.isSealed
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
+import org.jetbrains.kotlin.fir.expressions.FirGetClassCall
+import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
+import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.isPrimitiveType
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.packageFqName
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.toClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
@@ -49,6 +57,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.isSomeFunctionType
+import org.jetbrains.kotlin.fir.types.resolvedType
 import org.jetbrains.kotlin.fir.types.toConeTypeProjection
 import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.fir.types.typeContext
@@ -65,10 +74,12 @@ import org.jetbrains.kotlin.types.model.isNullableType
 class MocksCreationChecker(
     configuration: CompilerConfiguration,
 ) : FirFunctionCallChecker(MppCheckerKind.Common) {
+
     private val mock = Callable.mock
     private val mockMany = Callable.mockMany
     private val spy = Callable.spy
-
+    private val mockFactoryOf = Callable.mockFactoryOf
+    private val spyFactoryOf = Callable.spyFactoryOf
 
     private val validationMode = configuration.validationMode
     private val stubsConfig = configuration.stubsConfig
@@ -85,7 +96,30 @@ class MocksCreationChecker(
             when (symbol.callableId) {
                 mock, spy -> checkInterception(expression)
                 mockMany -> checkManyInterceptions(expression)
+                mockFactoryOf, spyFactoryOf -> checkFactory(expression)
             }
+        }
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkFactory(expression: FirFunctionCall) {
+        val argumentMapping = expression.allNonDispatchArgumentsMapping(funSymbol)
+        val varargParam = funSymbol.valueParameterSymbols.find { it.isVararg } ?: return
+        val varargExpr = argumentMapping[varargParam] as? FirVarargArgumentsExpression ?: return
+        for (arg in varargExpr.arguments) {
+            val clsLiteral = arg.unwrapExpressionOrArgument()
+            if (clsLiteral !is FirGetClassCall || clsLiteral.argument !is FirResolvedQualifier) {
+                reporter.reportOn(
+                    source = arg.source,
+                    factory = Diagnostics.NOT_A_CLASS_LITERAL,
+                    a = funSymbol.name,
+                )
+                continue
+            }
+            val typeSource = clsLiteral.argument.source
+            val type = clsLiteral.argument.resolvedType
+            if (!checkInterceptionType(typeSource, type)) continue
+            if (!checkJsFunctionalType(typeSource, type)) continue
         }
     }
 
@@ -146,8 +180,22 @@ class MocksCreationChecker(
         val funClass = classMapping.keys.find { it.defaultType().isSomeFunctionType(context.session) } ?: return true
         reporter.reportOn(
             source = classMapping.getValue(funClass).first().source,
-            factory = Diagnostics.FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY,
+            factory = Diagnostics.FUNCTIONAL_TYPE_ON_JS,
             a = classMapping.getValue(funClass).first().toConeTypeProjection().type!!,
+            b = funSymbol.name,
+        )
+        return false
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkJsFunctionalType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
+        if (!context.session.moduleData.platform.isJs()) return true
+        val classType = type.toRegularClassSymbol()?.defaultType() ?: return true
+        if (!classType.isSomeFunctionType(context.session)) return true
+        reporter.reportOn(
+            source = source,
+            factory = Diagnostics.FUNCTIONAL_TYPE_ON_JS,
+            a = classType,
             b = funSymbol.name,
         )
         return false
@@ -158,11 +206,23 @@ class MocksCreationChecker(
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
     private fun checkInterceptionType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
         if (!checkInterceptionTypeParameter(source, type)) return false
+        if (!checkInterceptionAnonymousType(source, type)) return false
         val classSymbol = type.toRegularClassSymbol() ?: return false
         if (!checkInterceptionModality(source, classSymbol)) return false
         if (classSymbol.isInterface) return true
         if (!checkClassInterceptionRequirements(source, classSymbol)) return false
         return true
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkInterceptionAnonymousType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
+        if (type.toClassSymbol(context.session) !is FirAnonymousObjectSymbol) return true
+        reporter.reportOn(
+            source = source,
+            factory = Diagnostics.ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED,
+            a = funSymbol.name,
+        )
+        return false
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
@@ -218,9 +278,8 @@ class MocksCreationChecker(
         }
         checkConstructorPossibleToStub(source, classSymbol, constructors)
         val inheritedSymbols = classSymbol
-            .resolvedSuperTypes
+            .allSuperClassSymbols()
             .asSequence()
-            .mapNotNull { it.toRegularClassSymbol() }
             .flatMap { it.declaredMembers(context.session) }
         val allDeclarationSymbols = classSymbol
             .declaredMembers(context.session)
@@ -239,6 +298,19 @@ class MocksCreationChecker(
             c = finalDeclarations,
         )
         return false
+    }
+
+    context(context: CheckerContext)
+    private fun FirRegularClassSymbol.allSuperClassSymbols(): Set<FirRegularClassSymbol> {
+        val visited = linkedSetOf<FirRegularClassSymbol>()
+        fun visit(symbol: FirRegularClassSymbol) {
+            for (superType in symbol.resolvedSuperTypes) {
+                val superSymbol = superType.toRegularClassSymbol() ?: continue
+                if (visited.add(superSymbol)) visit(superSymbol)
+            }
+        }
+        visit(this)
+        return visited
     }
 
     private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {
@@ -322,7 +394,9 @@ class MocksCreationChecker(
     context(context: CheckerContext)
     private fun FirConstructorSymbol.isPossibleToStub(
         typesStack: Set<ConeKotlinType> = emptySet()
-    ) = isAccessible() && valueParameterSymbols.all { it.resolvedReturnType.isPossibleToStub(typesStack) }
+    ) = isAccessible() && valueParameterSymbols.all {
+        it.hasDefaultValue || it.resolvedReturnType.isPossibleToStub(typesStack)
+    }
 
     context(context: CheckerContext)
     private fun ConeKotlinType.isPossibleToStub(typesStack: Set<ConeKotlinType> = emptySet()): Boolean {
@@ -337,8 +411,9 @@ class MocksCreationChecker(
     }
 
     context(context: CheckerContext)
-    private fun ConeKotlinType.isPossibleToStubByDefault() = context(context.session.typeContext) {
-        isNullableType()
+    private fun ConeKotlinType.isPossibleToStubByDefault(): Boolean {
+        val isNullable = context(context.session.typeContext) { isNullableType() }
+        return isNullable
                 || isAnyOf(defaultTypesToStub)
                 || isSomeFunctionType(context.session)
                 || toRegularClassSymbol()?.let { cls ->
@@ -351,7 +426,6 @@ class MocksCreationChecker(
                             || fqName.isSubpackageOf(Kotlin.kotlin_sequences)
                 } == true
                 || isSubtypeOfThrowable(context.session)
-
     }
 
     private fun FirRegularClassSymbol?.isRegularInterface(): Boolean = this?.classKind == ClassKind.INTERFACE && !this.isSealed
@@ -400,7 +474,9 @@ class MocksCreationChecker(
         val NO_CONSTRUCTOR_TO_STUB by error2<KtElement, Name, List<Pair<ConeKotlinType, StubError>>>()
         val MULTIPLE_SUPER_CLASSES_FOR_MOCK_MANY by error2<KtElement, Name, List<ConeKotlinType>>()
         val DUPLICATE_TYPES_FOR_MOCK_MANY by error3<KtElement, ConeKotlinType, Name, String>()
-        val FUNCTIONAL_TYPE_ON_JS_FOR_MOCK_MANY by error2<KtElement, ConeKotlinType, Name>()
+        val FUNCTIONAL_TYPE_ON_JS by error2<KtElement, ConeKotlinType, Name>()
+        val NOT_A_CLASS_LITERAL by error1<KtElement, Name>()
+        val ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED by error1<KtElement, Name>()
     }
 
     companion object {

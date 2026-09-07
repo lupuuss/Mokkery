@@ -1,7 +1,6 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.matcher.isNotMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
@@ -16,7 +15,7 @@ internal class ExhaustiveOrderVerifier(
         if (callTemplates.size != callTraces.size) return failure(callTraces, callTemplates)
         callTraces
             .zip(callTemplates)
-            .filter { (trace, template) -> callMatcher.match(trace, template).isNotMatching }
+            .filterNot { (trace, template) -> callMatcher.areMatching(template, trace) }
             .forEach { _ -> return failure(callTraces, callTemplates) }
         return Verifier.Result.Success(callTraces)
     }

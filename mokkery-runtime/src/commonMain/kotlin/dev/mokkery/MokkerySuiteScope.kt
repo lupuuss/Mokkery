@@ -1,8 +1,9 @@
+@file:Suppress("unused")
 package dev.mokkery
 
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.MokkerySuiteScopeNotImplementedException
-import dev.mokkery.internal.context.MokkeryInstancesRegistry
+import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
  * A scope for a test suite that uses Mokkery mocks. It enables automation and strict exhaustiveness checks.
@@ -72,10 +73,6 @@ public interface MokkerySuiteScope : MokkeryScope {
  *
  * Check interface documentation for details.
  */
-public fun MokkerySuiteScope(context: MokkeryContext = MokkeryContext.Empty): MokkerySuiteScope {
-    return object : MokkerySuiteScope {
-        override val mokkeryContext = MokkeryScope.global.mokkeryContext + MokkeryInstancesRegistry() + context
-
-        override fun toString(): String = "MokkerySuiteScope(mokkeryContext=$mokkeryContext)"
-    }
-}
+public fun MokkerySuiteScope(
+    context: MokkeryContext = MokkeryContext.Empty
+): MokkerySuiteScope = mokkeryIntrinsic

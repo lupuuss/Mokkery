@@ -2,8 +2,8 @@ package dev.mokkery.test
 
 import dev.mokkery.MockMode.autofill
 import dev.mokkery.MokkeryScope
+import dev.mokkery.MokkerySuiteScope
 import dev.mokkery.annotations.InternalMokkeryApi
-import dev.mokkery.internal.MokkeryInternals
 import dev.mokkery.internal.mokkeryInternals
 import dev.mokkery.internal.resetMocksCounter
 import dev.mokkery.mock
@@ -15,7 +15,7 @@ import dev.mokkery.verify.VerifyMode.Companion.exhaustiveOrder
 import dev.mokkery.verify.VerifyMode.Companion.inRange
 import dev.mokkery.verify.VerifyMode.Companion.not
 import dev.mokkery.verify.VerifyMode.Companion.order
-import kotlin.test.BeforeTest
+import dev.mokkery.verifyNoMoreCalls
 import kotlin.test.Test
 
 class VerifyTest {
@@ -211,6 +211,38 @@ class VerifyTest {
     }
 
     @Test
+    fun testDetectsNoCallsWhenMockWasNeverCalled() {
+        assertVerifiedWith(
+            """
+                Expected any call, but no matching calls for RegularMethodsInterface(1).callPrimitive(input = 1)!
+                Results for RegularMethodsInterface(1):
+                # No calls to this mock!
+
+            """.trimIndent()
+        ) {
+            verify { mock.callPrimitive(1) }
+        }
+    }
+
+    @Test
+    fun testDetectsNoCallsWhenOnlyAnotherMockInScopeWasCalled() {
+        val scope = MokkerySuiteScope()
+        val scopedMock = scope.mock<RegularMethodsInterface>(autofill)
+        val otherScopedMock = scope.mock<RegularMethodsInterface>(autofill)
+        otherScopedMock.callPrimitive(1)
+        assertVerifiedWith(
+            """
+                Expected any call, but no matching calls for RegularMethodsInterface(2).callPrimitive(input = 1)!
+                Results for RegularMethodsInterface(2):
+                # No calls to this mock!
+
+            """.trimIndent()
+        ) {
+            scope.verify { scopedMock.callPrimitive(1) }
+        }
+    }
+
+    @Test
     fun testDetectsPresentCallsNot() {
         mock.callPrimitive(1)
         assertVerifiedWith(
@@ -340,5 +372,65 @@ class VerifyTest {
         }
     }
 
+    @Test
+    fun testVerifyNoMoreCallsDetectsUnverifiedCalls() {
+        mock.callPrimitive(1)
+        assertVerifiedWith(
+            """
+            No unverified calls expected, but these are present:
+            * RegularMethodsInterface(1).callPrimitive(input = 1)
 
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock)
+        }
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsDetectsUnverifiedCallsOfEveryMockInInvocationOrder() {
+        val otherMock = mock<RegularMethodsInterface>(autofill)
+        otherMock.callPrimitive(1)
+        mock.callPrimitive(2)
+        otherMock.callPrimitive(3)
+        assertVerifiedWith(
+            """
+            No unverified calls expected, but these are present:
+            * RegularMethodsInterface(2).callPrimitive(input = 1)
+            * RegularMethodsInterface(1).callPrimitive(input = 2)
+            * RegularMethodsInterface(2).callPrimitive(input = 3)
+
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock, otherMock)
+        }
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsReportsOnlyUnverifiedCallsOfEveryMock() {
+        val otherMock = mock<RegularMethodsInterface>(autofill)
+        otherMock.callPrimitive(1)
+        mock.callPrimitive(2)
+        verify { otherMock.callPrimitive(1) }
+        assertVerifiedWith(
+            """
+            No unverified calls expected, but these are present:
+            * RegularMethodsInterface(1).callPrimitive(input = 2)
+
+            """.trimIndent()
+        ) {
+            verifyNoMoreCalls(mock, otherMock)
+        }
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsPassWhenAllCallsVerified() {
+        mock.callPrimitive(1)
+        verify { mock.callPrimitive(1) }
+        verifyNoMoreCalls(mock)
+    }
+
+    @Test
+    fun testVerifyNoMoreCallsPassWhenNoCalls() {
+        verifyNoMoreCalls(mock)
+    }
 }

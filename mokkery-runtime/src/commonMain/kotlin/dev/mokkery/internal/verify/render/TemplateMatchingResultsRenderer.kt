@@ -1,14 +1,18 @@
 package dev.mokkery.internal.verify.render
 
-import dev.mokkery.internal.render.Renderer
+import dev.mokkery.rendering.Renderer
+import dev.mokkery.internal.rendering.callTemplateRenderer
+import dev.mokkery.internal.rendering.callEntryRenderer
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateMatchingResult
+import dev.mokkery.rendering.MokkeryRenderingScope
 
-internal class TemplateMatchingResultsRenderer(
-    private val traceRenderer: Renderer<CallTrace>,
-    private val templateRenderer: Renderer<CallTemplate>,
-) : Renderer<List<TemplateMatchingResult>> {
+internal object TemplateMatchingResultsRenderer : Renderer<List<TemplateMatchingResult>> {
+
+    override val key get() = VerifyRendering.templateMatchingResults
+
+    context(scope: MokkeryRenderingScope)
     override fun render(value: List<TemplateMatchingResult>): String = buildString {
         var templateCounter = 1
         val indexingColumnSize = value.size.toString().length + 2
@@ -26,12 +30,17 @@ internal class TemplateMatchingResultsRenderer(
         }
     }
 
-    private fun StringBuilder.appendUnverifiedCallLine(call: TemplateMatchingResult.UnverifiedCall, columnSize: Int) {
+    context(scope: MokkeryRenderingScope)
+    private fun StringBuilder.appendUnverifiedCallLine(
+        call: TemplateMatchingResult.UnverifiedCall,
+        columnSize: Int
+    ) {
         append("*".padEnd(columnSize, ' '))
         append("  ")
-        appendLine(traceRenderer.render(call.trace))
+        appendLine(scope.callEntryRenderer.render(call.trace))
     }
 
+    context(scope: MokkeryRenderingScope)
     private fun StringBuilder.appendTemplateLines(
         template: CallTemplate,
         trace: CallTrace?,
@@ -40,11 +49,11 @@ internal class TemplateMatchingResultsRenderer(
     ) {
         append("$index. ".padEnd(columnSize))
         append("┌ ")
-        appendLine(templateRenderer.render(template))
+        appendLine(scope.callTemplateRenderer.render(template))
         append(" ".padEnd(columnSize))
         append("└ ")
         if (trace != null) {
-            appendLine(traceRenderer.render(trace))
+            appendLine(scope.callEntryRenderer.render(trace))
         } else {
             appendLine("No matching call!")
         }

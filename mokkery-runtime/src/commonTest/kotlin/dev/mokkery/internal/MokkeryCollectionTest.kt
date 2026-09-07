@@ -8,9 +8,9 @@ import kotlin.test.assertNotEquals
 
 class MokkeryCollectionTest {
 
-    private val instance1 = TestMokkeryInstanceScope(sequence = 0)
-    private val instance2 = TestMokkeryInstanceScope(sequence = 1)
-    private val instance3 = TestMokkeryInstanceScope(sequence = 2)
+    private val instance1 = TestMokkeryInstanceScope(instanceId = 0)
+    private val instance2 = TestMokkeryInstanceScope(instanceId = 1)
+    private val instance3 = TestMokkeryInstanceScope(instanceId = 2)
 
     @Test
     fun testEmptyCollection() {

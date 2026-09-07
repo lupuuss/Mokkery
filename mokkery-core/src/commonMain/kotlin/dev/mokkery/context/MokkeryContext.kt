@@ -3,7 +3,8 @@ package dev.mokkery.context
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.context.CombinedContext
-import dev.mokkery.internal.context.MemoizedContext
+import dev.mokkery.internal.context.KeepOnTopContext
+import dev.mokkery.internal.context.memoizedContext
 
 /**
  *  A set of [MokkeryContext.Element]s.
@@ -58,6 +59,12 @@ public interface MokkeryContext {
 
         override fun toString(): String = "MokkeryContext.Empty"
     }
+
+    public companion object {
+
+        @InternalMokkeryApi
+        public inline fun memoized(build: MemoizedContextBuilder.() -> Unit): MokkeryContext = Empty.withMemoized(build)
+    }
 }
 
 /**
@@ -68,7 +75,27 @@ public fun <T : MokkeryContext.Element> MokkeryContext.require(key: MokkeryConte
 }
 
 @InternalMokkeryApi
-public fun MokkeryContext.memoized(): MokkeryContext = MemoizedContext(this)
+public inline fun MokkeryContext.withMemoized(
+    build: MemoizedContextBuilder.() -> Unit
+): MokkeryContext = MemoizedContextBuilder().apply(build).build(this)
+
+@InternalMokkeryApi
+public class MemoizedContextBuilder {
+
+    private val elements = LinkedHashMap<MokkeryContext.Key<*>, MokkeryContext.Element>()
+
+    public operator fun MokkeryContext.Element.unaryPlus() {
+        elements[key] = this
+    }
+
+    public operator fun MokkeryContext.unaryPlus() {
+        if (this === MokkeryContext.Empty) return
+        forEach { +it }
+    }
+
+    @PublishedApi
+    internal fun build(fallback: MokkeryContext): MokkeryContext = memoizedContext(fallback, elements)
+}
 
 @InternalMokkeryApi
 public inline fun MokkeryContext.forEach(crossinline block: (MokkeryContext.Element) -> Unit) {
@@ -90,3 +117,8 @@ public fun <T : MutableCollection<MokkeryContext.Element>> MokkeryContext.toColl
 
 @InternalMokkeryApi
 public fun MokkeryContext.toList(): List<MokkeryContext.Element> = toCollection(ArrayList())
+
+@InternalMokkeryApi
+public infix fun MokkeryContext.keepOnTop(
+    element: MokkeryContext.Element
+): MokkeryContext = KeepOnTopContext(this - element.key, element)

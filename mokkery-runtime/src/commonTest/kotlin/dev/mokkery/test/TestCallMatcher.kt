@@ -1,15 +1,16 @@
 package dev.mokkery.test
 
+import dev.mokkery.internal.matcher.CallEntry
 import dev.mokkery.internal.matcher.CallMatchResult
 import dev.mokkery.internal.matcher.CallMatcher
+import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
 
 internal class TestCallMatcher(
-    var calls: (trace: CallTrace, template: CallTemplate) -> CallMatchResult = { _, _ -> CallMatchResult.NotMatching }
+    var calls: (template: CallTemplate, entry: CallEntry) -> CallMatchResult = { _, _ -> CallMatchResult.NotMatching }
 ): CallMatcher {
-    private val _recordedCalls = mutableListOf<Pair<CallTrace, CallTemplate>>()
-    val recordedCalls: List<Pair<CallTrace, CallTemplate>> = _recordedCalls
+    private val _recordedCalls = mutableListOf<Pair<CallTemplate, CallEntry>>()
+    val recordedCalls: List<Pair<CallTemplate, CallEntry>> = _recordedCalls
 
     fun returns(value: CallMatchResult) {
         calls = { _, _ -> value }
@@ -28,8 +29,16 @@ internal class TestCallMatcher(
         calls = { _, _ -> valuesQueue.removeAt(0) }
     }
 
-    override fun match(trace: CallTrace, template: CallTemplate): CallMatchResult {
-        _recordedCalls.add(trace to template)
-        return calls(trace, template)
+    override fun match(template: CallTemplate, entry: CallEntry): CallMatchResult {
+        _recordedCalls.add(template to entry)
+        return calls(template, entry)
+    }
+
+    override fun areMatching(
+        template: CallTemplate,
+        entry: CallEntry
+    ): Boolean {
+        _recordedCalls.add(template to entry)
+        return calls(template, entry).isMatching
     }
 }

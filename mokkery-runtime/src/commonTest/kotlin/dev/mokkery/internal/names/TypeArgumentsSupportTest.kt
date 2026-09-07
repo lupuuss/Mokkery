@@ -12,6 +12,11 @@ class TypeArgumentsSupportTest {
         "org.test.Far" to "Far",
         "kotlin.String" to "String",
         "kotlin.Map" to "Map",
+        "z.pkg.AB" to "z.pkg.AB",
+        "pkg.AB" to "pkg.AB",
+        "pkg.A" to "A",
+        "a.z.B.C" to "C",
+        "z.B" to "B",
     )
     private val baseShortener = TestNameShortener { it.associateWith(predefinedMappings::getValue) }
     private val nameShortener = baseShortener.withTypeArgumentsSupport()
@@ -53,5 +58,21 @@ class TypeArgumentsSupportTest {
             "kotlin.Map<kotlin.String, kotlin.String>" to "Map<String, String>",
         )
         assertEquals(expected, nameShortener.shorten(names))
+    }
+
+    @Test
+    fun testMapsSharedSubstringNames() {
+        assertEquals(
+            mapOf("pkg.A<pkg.AB>" to "A<pkg.AB>", "z.pkg.AB" to "z.pkg.AB"),
+            nameShortener.shorten(setOf("pkg.A<pkg.AB>", "z.pkg.AB"))
+        )
+    }
+
+    @Test
+    fun testMapsNamesSharingNonPrefixSubstring() {
+        assertEquals(
+            mapOf("a.z.B.C<z.B>" to "C<B>", "z.B" to "B"),
+            nameShortener.shorten(setOf("a.z.B.C<z.B>", "z.B"))
+        )
     }
 }

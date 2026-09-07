@@ -1,6 +1,7 @@
 package dev.mokkery.coroutines.internal.answering
 
 import dev.mokkery.coroutines.await
+import dev.mokkery.coroutines.testRendering
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -13,7 +14,7 @@ class AwaitAllDeferredTest {
 
     @Test
     fun testCreatesProperDescription() {
-        val result = awaitable.description()
+        val result = testRendering { awaitable.render() }
         assertTrue { result.startsWith("all(") }
         assertTrue { result.endsWith(")") }
         val nestedListStr = result.removePrefix("all(").removeSuffix(")")

@@ -1,0 +1,11 @@
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:15:19: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:16:35: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:17:19: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:18:19: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:19:35: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.
+
+/MockFactoryOfArgumentsMustBeClassLiterals.kt:24:19: error: 'mockFactoryOf' accepts only class literals (e.g. Foo::class) as arguments.

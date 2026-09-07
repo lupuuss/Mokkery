@@ -5,6 +5,8 @@ import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.internal.utils.asListOrNull
 import dev.mokkery.internal.utils.unsafeCast
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
 import kotlin.reflect.KClass
 
 internal const val OBSOLETE_VARARGS_MESSAGE = "Obsolete varargs API. Read `VarArgMatcher` docs for more details."
@@ -63,11 +65,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
     @DelicateMokkeryApi
     @Poko
     @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAllMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"), DeprecationLevel.ERROR)
-    public class AllThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
+    public class AllThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>(), Renderable {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.all(predicate)
 
-        override fun toString(): String = "${varargNameByElementType(type)}All {...}"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "${varargNameByElementType(type)}All {...}"
     }
 
     /**
@@ -77,11 +80,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
     @DelicateMokkeryApi
     @Poko
     @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("CollectionArgMatchers.ArrayAnyMatch", "dev.mokkery.matcher.collections.CollectionArgMatchers"), DeprecationLevel.ERROR)
-    public class AnyThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>() {
+    public class AnyThat<T>(private val type: KClass<*>, private val predicate: (T) -> Boolean) : Base<T>(), Renderable {
 
         override fun matchesVarargs(varargs: List<T>): Boolean = varargs.any(predicate)
 
-        override fun toString(): String = "${varargNameByElementType(type)}Any { ... }"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "${varargNameByElementType(type)}Any { ... }"
     }
 
     /**
@@ -91,11 +95,12 @@ public sealed interface VarArgMatcher : ArgMatcher<Any?> {
     @DelicateMokkeryApi
     @Poko
     @Deprecated(OBSOLETE_VARARGS_MESSAGE, ReplaceWith("ArgMatcher.Any", "dev.mokkery.matcher.ArgMatcher"), DeprecationLevel.ERROR)
-    public class AnyOf(private val type: KClass<*>) : Base<Any?>() {
+    public class AnyOf(private val type: KClass<*>) : Base<Any?>(), Renderable {
 
         override fun matchesVarargs(varargs: List<Any?>): Boolean = true
 
-        override fun toString(): String = "any${varargNameByElementType(type).capitalize()}()"
+        context(scope: MokkeryRenderingScope)
+        override fun render(): String = "any${varargNameByElementType(type).capitalize()}()"
     }
 }
 

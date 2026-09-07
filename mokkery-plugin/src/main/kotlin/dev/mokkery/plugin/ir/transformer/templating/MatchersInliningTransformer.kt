@@ -5,14 +5,14 @@ import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
-import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.argumentTypes
 import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irInvoke
 import dev.mokkery.plugin.ir.irVararg
+import dev.mokkery.plugin.ir.transformer.core.irCallEqMatcher
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
@@ -41,11 +42,12 @@ import org.jetbrains.kotlin.ir.types.isArray
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.getArrayElementType
 import org.jetbrains.kotlin.ir.util.isSubclassOf
+import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.transformInPlace
+import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 
 class MatchersInliningTransformer(
     pluginScope: IrMokkeryPluginScope,
-    private val matchersCompiler: MatchersCompiler,
     initialValueDeclarations: List<IrValueDeclaration>
 ) : CoreTransformer(pluginScope) {
 
@@ -54,13 +56,12 @@ class MatchersInliningTransformer(
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
     private val spreadArgMatcherFun = referenced(MokkeryIr.Function.spread)
     private val argMatchersScopeType = referencedDefaultType(MokkeryIr.Class.MokkeryMatcherScope)
-    private val argMatcherEqualsClass = referencedPrimaryConstructor(MokkeryIr.Class.ArgMatcherEquals)
     private val matchesFunction = referenced(MokkeryIr.Function.matches)
     private val matchesCompositeFunction = referenced(MokkeryIr.Function.matchesComposite)
     private val inlineLiteralsAsMatchersFunc = referenced(MokkeryIr.Function.inlineLiteralsAsMatchers)
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val matcher = matchersCompiler.compileIfMatcher(expression.symbol.owner)
+        val matcher = compileIfMatcher(expression.symbol.owner)
         expression.transformChildrenVoid()
         if (matcher.isCompiledMatcher != true) return expression
         return expression.replaceDeclarationIrBuilder { replaceMatcher(expression) }
@@ -140,13 +141,14 @@ class MatchersInliningTransformer(
         val originalMatcherFunction = call.symbol.owner
         if (originalMatcherFunction == matchesFunction) return expression.arguments[1]!!
         if (originalMatcherFunction == matchesCompositeFunction) return replaceMatchesComposite(expression)
-        val matcherFunction = matchersCompiler.compileIfMatcher(originalMatcherFunction)
+        val matcherFunction = compileIfMatcher(originalMatcherFunction)
+        val substitution = call.typeSubstitutionMap
         return irCall(matcherFunction) {
             call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
             matcherFunction
                 .parameters
                 .forEachIndexed { i, it ->
-                    arguments[it] = replaceNestedTemplatingArg(expression.arguments[i], it)
+                    arguments[it] = replaceNestedTemplatingArg(expression.arguments[i], it, substitution)
                 }
         }
     }
@@ -171,11 +173,12 @@ class MatchersInliningTransformer(
     private fun IrBuilderWithScope.replaceNestedTemplatingArg(
         arg: IrExpression?,
         param: IrValueParameter,
+        substitution: Map<IrTypeParameterSymbol, IrType>,
     ): IrExpression? = when {
         param.kind == IrParameterKind.DispatchReceiver || param.type == argMatchersScopeType -> arg
-        arg is IrVararg && param.isMatchersVararg -> replaceCompositeVararg(arg, param.varargElementType!!)
+        arg is IrVararg && param.isMatchersVararg -> replaceCompositeVararg(arg, param.varargElementType!!.substitute(substitution))
         arg == null -> null
-        else -> arg.performEqMatcherWrapping(param.type)
+        else -> arg.performEqMatcherWrapping(param.type.substitute(substitution))
     }
 
     private fun IrVararg.usesMatchers() = elements.any {
@@ -201,10 +204,8 @@ class MatchersInliningTransformer(
         )
     }
 
-    private fun callEqMatcher(expression: IrExpression) = expression.replaceDeclarationIrBuilder {
-        irCallConstructor(argMatcherEqualsClass) {
-            arguments[0] = expression
-        }
+    private fun callEqMatcher(expression: IrExpression, targetType: IrType) = expression.replaceDeclarationIrBuilder {
+        irCallEqMatcher(expression, targetType.argMatcherTypeArgumentOrNull() ?: expression.type)
     }
 
     private fun spreadLiteralsAsMatchers(spread: IrSpreadElement): IrSpreadElement = IrSpreadElementImpl(
@@ -219,9 +220,12 @@ class MatchersInliningTransformer(
 
     private fun spreadArgMatcher(expression: IrExpression) = expression.replaceDeclarationIrBuilder {
         irCall(spreadArgMatcherFun) {
+            typeArguments[0] = expression.type.argMatcherTypeArgumentOrNull() ?: irBuiltIns.anyNType
             arguments[0] = expression
         }
     }
+
+    private fun IrType.argMatcherTypeArgumentOrNull() = argumentTypes.singleOrNull()
 
     private fun IrType.isMatcher(): Boolean {
         val classSymbol = classOrNull ?: return false
@@ -237,7 +241,7 @@ class MatchersInliningTransformer(
     private fun IrExpression.performEqMatcherWrapping(targetType: IrType): IrExpression {
         return when {
             !targetType.isMatcher() -> this
-            !this.type.isMatcher() -> callEqMatcher(this)
+            !this.type.isMatcher() -> callEqMatcher(this, targetType)
             else -> this
         }
     }

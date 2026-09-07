@@ -46,6 +46,7 @@ internal fun <R, T : SequentialAnswerBuilder<R>> AnsweringScope<R>.unifiedSequen
 
 private fun <T> Iterator<T>.cycle(): Iterator<T> {
     val list = asSequence().toList()
+    if (list.isEmpty()) return list.iterator()
     var i = 0
-    return generateSequence { list[i++ % list.size] }.iterator()
+    return generateSequence { list[i].also { i = (i + 1) % list.size } }.iterator()
 }

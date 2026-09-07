@@ -9,22 +9,17 @@ import dev.mokkery.call
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.CallNotMockedException
-import dev.mokkery.internal.MokkeryCollection
+import dev.mokkery.internal.availableSuperCallTypes
 import dev.mokkery.internal.context.MokkeryMockSpec
 import dev.mokkery.internal.context.MokkerySpySpec
 import dev.mokkery.internal.context.instanceSpec
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.matcher.isMatching
-import dev.mokkery.internal.names.withShorterNames
-import dev.mokkery.internal.render.callTrace
-import dev.mokkery.internal.requireInstanceScope
+import dev.mokkery.internal.matcher.CallEntry
+import dev.mokkery.internal.matcher.asCallEntry
+import dev.mokkery.internal.matcher.callMatcher
+import dev.mokkery.internal.rendering.callEntryRenderer
+import dev.mokkery.internal.rendering.withRenderingScope
 import dev.mokkery.internal.templating.CallTemplate
-import dev.mokkery.internal.tracing.CallTrace
-import dev.mokkery.internal.tracing.toCallTrace
-import dev.mokkery.internal.toMokkeryCollection
 import dev.mokkery.matcher.capture.Capture
-import dev.mokkery.self
-import dev.mokkery.supers
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 
@@ -70,47 +65,37 @@ private class AnsweringRegistryImpl : AnsweringRegistry {
     }
 
     override fun resolveAnswer(scope: MokkeryCallScope): Answer<*> {
-        val trace = scope.toCallTrace(0)
-        val collection = scope.self
-            .requireInstanceScope()
-            .toMokkeryCollection()
-        val callMatcher = scope.tools.callMatcherFactory.create(collection)
+        val entry = scope.asCallEntry()
         val answers = _answers.value
+        val callMatcher = scope.callMatcher
         val result = answers
-            .find { (template) -> callMatcher.match(trace, template).isMatching }
-        result?.first?.applyCapture(trace)
-        return result?.second ?: handleMissingAnswer(scope, collection, trace)
+            .find { (template) -> callMatcher.areMatching(template, entry) }
+        result?.first?.applyCapture(entry)
+        return result?.second ?: handleMissingAnswer(scope, entry)
     }
 
     private fun handleMissingAnswer(
         scope: MokkeryCallScope,
-        collection: MokkeryCollection,
-        trace: CallTrace
+        entry: CallEntry
     ): Answer<*> = when (val spec = scope.instanceSpec) {
         is MokkerySpySpec -> SpiedCallAnswer
         is MokkeryMockSpec -> when (spec.mode) {
             MockMode.autofill -> Answer.Autofill
-            MockMode.original if scope.supers.isNotEmpty() -> SuperCallAnswer(SuperCall.original)
+            MockMode.original if scope.availableSuperCallTypes().isNotEmpty() -> SuperCallAnswer(SuperCall.original)
             MockMode.autoUnit if scope.call.function.returnType == Unit::class -> Answer.Const(Unit)
-            else -> {
-                val aliases = collection.withShorterNames(scope.tools.namesShortener)
-                throw CallNotMockedException(
-                    name = scope.tools
-                        .renderers
-                        .callTrace(aliases = aliases)
-                        .render(trace)
-                )
+            else -> scope.withRenderingScope {
+                throw CallNotMockedException(name = callEntryRenderer.render(entry))
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun CallTemplate.applyCapture(trace: CallTrace) {
-        matchers.forEach { (name, matcher) ->
-            if (matcher !is Capture<*>) return@forEach
+    private fun CallTemplate.applyCapture(entry: CallEntry) {
+        val args = entry.args
+        matchers.forEachIndexed { index, matcher ->
+            if (matcher !is Capture<*>) return@forEachIndexed
             val capture = matcher as Capture<Any?>
-            val argValue = trace.args.find { it.parameter.name == name }?.value
-            capture.capture(argValue)
+            capture.capture(args[index])
         }
     }
 

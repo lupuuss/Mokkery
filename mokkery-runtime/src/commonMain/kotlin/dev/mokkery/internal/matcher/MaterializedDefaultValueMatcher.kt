@@ -1,12 +1,14 @@
 package dev.mokkery.internal.matcher
 
-import dev.mokkery.MokkeryScope
-import dev.mokkery.internal.context.tools
 import dev.mokkery.matcher.ArgMatcher
+import dev.mokkery.rendering.MokkeryRenderingScope
+import dev.mokkery.rendering.Renderable
+import dev.mokkery.rendering.descriptionRenderer
 
-internal data class MaterializedDefaultValueMatcher(val defaultValue: Any?) : ArgMatcher<Any?> {
+internal data class MaterializedDefaultValueMatcher(val defaultValue: Any?) : ArgMatcher<Any?>, Renderable {
 
     override fun matches(arg: Any?): Boolean = arg == defaultValue
 
-    override fun toString(): String = "default() => ${MokkeryScope.global.tools.renderers.description.render(defaultValue)}"
+    context(scope: MokkeryRenderingScope)
+    override fun render(): String = "default() => ${scope.descriptionRenderer.render(defaultValue)}"
 }

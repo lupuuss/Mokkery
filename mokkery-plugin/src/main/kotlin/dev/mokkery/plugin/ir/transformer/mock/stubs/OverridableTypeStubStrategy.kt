@@ -9,6 +9,7 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.overrideAllOverridableFunctions
 import dev.mokkery.plugin.ir.overrideAllOverridableProperties
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
+import dev.mokkery.plugin.ir.transformer.core.recordSuperTypesLookUp
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
@@ -46,7 +47,7 @@ class OverridableTypeStubStrategy(
                 val constructorWithStubs = baseClass
                     .defaultConstructor
                     ?.takeIf { it.visibility in acceptedVisibilities }
-                    ?.let { it to emptyList() }
+                    ?.let { it to emptyList<Stub?>() }
                     ?: strategy.provideConstructorWithStubs(baseClass, acceptedVisibilities)
                     ?: return null
                 buildStubClass(
@@ -75,7 +76,7 @@ private fun buildStubClass(
     name: Name,
     original: IrClass,
     baseClass: IrClass,
-    constructorWithStubs: Pair<IrConstructor, List<Stub>>
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>
 ): IrClass {
     val cls = irFactory.buildClass { this.name = name }
     cls.addToCurrentFile()
@@ -91,6 +92,7 @@ private fun buildStubClass(
                 +irDelegatingConstructorWithStubs(constructorWithStubs)
             }
         }
+    recordSuperTypesLookUp(listOf(original))
     cls.overrideAllOverridableFunctions(pluginContext, original) { stubFunctionBody(it) }
     cls.overrideAllOverridableProperties(
         context = pluginContext,

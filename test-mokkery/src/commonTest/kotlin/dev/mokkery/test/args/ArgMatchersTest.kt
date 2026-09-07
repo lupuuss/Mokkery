@@ -11,7 +11,9 @@ import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.capture.get
 import dev.mokkery.matcher.capture.getIfPresent
+import dev.mokkery.matcher.capture.isPresent
 import dev.mokkery.matcher.capture.onArg
 import dev.mokkery.matcher.capture.propagateCapture
 import dev.mokkery.matcher.collections.containsAllInts
@@ -47,6 +49,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(DelicateMokkeryApi::class)
 class ArgMatchersTest {
@@ -300,6 +303,16 @@ class ArgMatchersTest {
     }
 
     @Test
+    fun testCaptureOfNullIntoSlot() {
+        val slot = Capture.slot<Int?>()
+        every { mock.callNullable(capture(slot)) } returns 3
+        mock.callNullable(1)
+        mock.callNullable(null)
+        assertTrue(slot.isPresent)
+        assertEquals(null, slot.get())
+    }
+
+    @Test
     fun testCaptureWithNonDefaultMatcher() {
         val slot = Capture.slot<Int>()
         every { mock.callManyPrimitives(capture(slot, 2), 1.0) } returns ComplexType
@@ -359,6 +372,14 @@ class ArgMatchersTest {
     fun testCustomRegularMatcher() {
         every { mock.callNullable(any()) } returns 0
         every { mock.callNullable(isNull()) } returns 1
+        assertEquals(1, mock.callNullable(null))
+        assertEquals(0, mock.callNullable(1))
+    }
+
+    @Test
+    fun testCustomMatcherUsingScopeFunction() {
+        every { mock.callNullable(any()) } returns 0
+        every { mock.callNullable(nullWithScopeFunction()) } returns 1
         assertEquals(1, mock.callNullable(null))
         assertEquals(0, mock.callNullable(1))
     }
@@ -481,6 +502,11 @@ class ArgMatchersTest {
 
 
 private fun <T> MokkeryMatcherScope.isNull(): T = customMatcher { it == null }
+
+private fun <T> MokkeryMatcherScope.nullWithScopeFunction(): T {
+    val expected: Any? = run { null }
+    return customMatcher { it == expected }
+}
 
 private fun <T> MokkeryMatcherScope.customMatcher(block: (T) -> Boolean): T = matches { block(it) }
 

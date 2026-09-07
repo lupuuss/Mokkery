@@ -1,0 +1,7 @@
+/TemplatingMustNotBeNested.kt:13:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:14:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:18:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:19:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.

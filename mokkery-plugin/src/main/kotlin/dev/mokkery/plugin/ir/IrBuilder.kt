@@ -1,8 +1,6 @@
 package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irIfThen
-import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -13,8 +11,8 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
-import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.parent
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -30,15 +28,17 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
+import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
-import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrClassReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetEnumValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrThrowImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -51,6 +51,8 @@ import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.invokeFun
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
+import org.jetbrains.kotlin.ir.util.substitute
+import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.name.Name
 
 // use until resolved https://youtrack.jetbrains.com/issue/KT-66178/kClassReference-extension-returns-incorrect-IrClassReferenceImpl
@@ -86,14 +88,9 @@ fun IrBuilder.irCallConstructor(
     constructor: IrConstructor,
     typeArguments: List<IrType> = emptyList(),
     block: IrConstructorCall.() -> Unit = { }
-) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments).apply { block() }
-
-fun IrBuilderWithScope.irIfNotNull(arg: IrExpression, then: IrExpression): IrWhen {
-    return irIfThen(
-        condition = irNot(irEqualsNull(argument = arg)),
-        thenPart = then
-    )
-}
+) = irCallConstructor(callee = constructor.symbol, typeArguments = typeArguments)
+    .apply { block() }
+    .substituteDefaultType()
 
 fun IrBuilderWithScope.irLambdaOf(
     lambdaType: IrType,
@@ -129,25 +126,19 @@ fun IrBuilderWithScope.irLambdaOf(
     )
 }
 
-fun IrBuilderWithScope.irInvokeIfNotNull(
-    function: IrExpression,
-    isSuspend: Boolean,
-    vararg args: IrExpression
-): IrWhen {
-    return irIfNotNull(
-        function,
-        irInvoke(function, isSuspend, *args)
-    )
-}
-
 fun IrBuilder.irInvoke(
     function: IrExpression,
     isSuspend: Boolean,
-    vararg args: IrExpression
+    vararg args: IrExpression,
+    returnType: IrType? = null,
 ): IrFunctionAccessExpression {
     val functionClass =
         context.irBuiltIns.let { if (isSuspend) it.suspendFunctionN(args.size) else it.functionN(args.size) }
-    return irCall(functionClass.invokeFun!!) {
+    val invokeFun = functionClass.invokeFun!!
+    val callType = returnType
+        ?: function.type.argumentTypes.lastOrNull()
+        ?: invokeFun.returnType
+    return irCall(invokeFun, callType) {
         arguments[0] = function
         args.forEachIndexed { index, arg ->
             arguments[index + 1] = arg
@@ -156,7 +147,7 @@ fun IrBuilder.irInvoke(
 }
 
 inline fun IrBuilder.irCall(symbol: IrSimpleFunctionSymbol, block: IrCall.() -> Unit = { }): IrCall {
-    return irCall(symbol, symbol.owner.returnType).apply(block)
+    return irCall(symbol, symbol.owner.returnType).apply(block).substituteDefaultType()
 }
 
 inline fun IrBuilder.irCall(
@@ -164,7 +155,20 @@ inline fun IrBuilder.irCall(
     type: IrType = func.returnType,
     block: IrCall.() -> Unit = { }
 ): IrCall {
-    return irCall(func.symbol, type).apply(block)
+    return irCall(func.symbol, type).apply(block).substituteDefaultType()
+}
+
+/**
+ * Applies type arguments of this expression to its type, if it was left as the declared return type of the callee.
+ *
+ * Without it, calls to generic functions keep a type that references type parameters of the callee,
+ * which is invalid IR outside of the callee scope.
+ */
+fun <E : IrFunctionAccessExpression> E.substituteDefaultType(): E = apply {
+    val callee = symbol.owner
+    if (type != callee.returnType) return@apply
+    if (typeArguments.isEmpty() || typeArguments.any { it == null }) return@apply
+    type = callee.returnType.substitute(typeSubstitutionMap)
 }
 
 fun IrBuilder.irCall(
@@ -182,15 +186,20 @@ fun IrBuilder.irCall(
     typeArgumentsCount = typeArgumentsCount,
     origin = origin,
     superQualifierSymbol = superQualifierSymbol
-).apply(block)
+).apply(block).substituteDefaultType()
 
 fun IrBuilder.irSetPropertyField(
     thisParam: IrValueParameter,
     property: IrProperty,
     value: IrExpression
-): IrSetField {
-    return irSetField(irGet(thisParam), property.backingField!!, value)
-}
+): IrSetField = irSetField(irGet(thisParam), property.backingField!!, value)
+
+fun IrBuilder.irThrow(value: IrExpression): IrThrow = IrThrowImpl(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = context.irBuiltIns.nothingType,
+    value = value
+)
 
 fun IrBuilder.irVararg(elementType: IrType, elements: List<IrVarargElement>): IrVararg = IrVarargImpl(
     startOffset = startOffset,

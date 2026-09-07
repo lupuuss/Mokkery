@@ -104,4 +104,49 @@ class HookCallInterceptorTest {
         hookCallInterceptor.unregister(b)
         assertEquals(-10, hookCallInterceptor.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
     }
+
+    @Test
+    fun testForkCallsInterceptorsRegisteredInParent() {
+        hookCallInterceptor.register(TestMokkeryCallInterceptor(interceptBlock = { 6 }))
+        val fork = hookCallInterceptor.fork()
+        assertEquals(6, fork.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
+    }
+
+    @Test
+    fun testForkCallsInterceptorsRegisteredInParentSuspend() = runTest {
+        hookCallInterceptor.register(TestMokkeryCallInterceptor(interceptSuspendBlock = { 7 }))
+        val fork = hookCallInterceptor.fork()
+        assertEquals(7, fork.intercept(testSuspendCallScope<Int>(context = nextInterceptor)))
+    }
+
+    @Test
+    fun testForkCallsInterceptorsRegisteredInParentAfterFork() {
+        val fork = hookCallInterceptor.fork()
+        hookCallInterceptor.register(TestMokkeryCallInterceptor(interceptBlock = { 6 }))
+        assertEquals(6, fork.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
+    }
+
+    @Test
+    fun testForkCallsParentInterceptorsBeforeLocalOnes() {
+        hookCallInterceptor.register(TestMokkeryCallInterceptor(interceptBlock = { it.nextIntercept() as Int * 2 }))
+        val fork = hookCallInterceptor.fork()
+        fork.register(TestMokkeryCallInterceptor(interceptBlock = { it.nextIntercept() as Int + 1 }))
+        assertEquals(-18, fork.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
+    }
+
+    @Test
+    fun testInterceptorRegisteredInForkDoesNotAffectParent() {
+        val fork = hookCallInterceptor.fork()
+        fork.register(TestMokkeryCallInterceptor(interceptBlock = { 6 }))
+        assertEquals(-10, hookCallInterceptor.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
+    }
+
+    @Test
+    fun testInterceptorUnregisteredInParentIsNotCalledInFork() {
+        val interceptor = TestMokkeryCallInterceptor(interceptBlock = { 6 })
+        hookCallInterceptor.register(interceptor)
+        val fork = hookCallInterceptor.fork()
+        hookCallInterceptor.unregister(interceptor)
+        assertEquals(-10, fork.intercept(testBlockingCallScope<Int>(context = nextInterceptor)))
+    }
 }

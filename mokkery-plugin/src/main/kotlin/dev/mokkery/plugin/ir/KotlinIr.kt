@@ -7,9 +7,7 @@ import org.jetbrains.kotlin.ir.util.isVararg
 
 object KotlinIr {
     object Function {
-        val to by kotlin.refFunction
         val listOf by kotlin_collections.refFunction { it.owner.parameters.firstOrNull()?.isVararg == true }
-        val mapOf by kotlin_collections.refFunction { it.owner.parameters.firstOrNull()?.isVararg == true }
         val emptyList by kotlin_collections.refFunction
         val emptySet by kotlin_collections.refFunction
         val emptyMap by kotlin_collections.refFunction
@@ -17,9 +15,10 @@ object KotlinIr {
         val mutableListOf by kotlin_collections.refFunction { it.owner.parameters.isEmpty() }
         val mutableSetOf by kotlin_collections.refFunction { it.owner.parameters.isEmpty() }
         val mutableMapOf by kotlin_collections.refFunction { it.owner.parameters.isEmpty() }
+        val lazy by kotlin.refFunction { it.owner.parameters.size == 1 }
     }
     object Class {
-        val Pair by kotlin.refClass
         val List by kotlin_collections.refClass
+        val Lazy by kotlin.refClass
     }
 }

@@ -2,14 +2,8 @@
 
 package dev.mokkery
 
-import dev.mokkery.context.require
 import dev.mokkery.internal.annotations.Templating
-import dev.mokkery.internal.context.MokkeryInstancesRegistry
-import dev.mokkery.internal.context.tools
-import dev.mokkery.internal.requireInstanceScope
-import dev.mokkery.internal.tracing.withVerifySession
 import dev.mokkery.internal.mokkeryIntrinsic
-import dev.mokkery.internal.verify.render.noMoreCallsError
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.verify.VerifyMode
 
@@ -20,17 +14,21 @@ import dev.mokkery.verify.VerifyMode
  *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun verify(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**
  * Just like [verify], but allows suspendable function calls.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun verifySuspend(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
@@ -44,9 +42,11 @@ public fun verifySuspend(
  *
  * Provided [block] **must** be a lambda and all mock calls **must** occur directly inside it. Extracting [block]
  * content to functions is prohibited.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun MokkerySuiteScope.verify(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
@@ -54,35 +54,20 @@ public fun MokkerySuiteScope.verify(
  * Just like [verify], but allows suspendable function calls.
  *
  * If verify mode is exhaustive, mocks from [MokkerySuiteScope] are also checked.
+ *
+ * @param mode determines how strict the verification should be. If not provided, default value is used.
  */
 public fun MokkerySuiteScope.verifySuspend(
-    mode: VerifyMode = MokkeryCompilerDefaults.verifyMode,
+    mode: VerifyMode? = null,
     block: @Templating suspend MokkeryTemplatingScope.() -> Unit
 ): Unit = mokkeryIntrinsic
 
 /**
  * Asserts that all given [mocks] have all their registered calls verified with [verify] or [verifySuspend].
  */
-public fun verifyNoMoreCalls(vararg mocks: Any) {
-    val instances = mocks.map(Any::requireInstanceScope)
-    MokkerySuiteScope(MokkeryInstancesRegistry(instances = instances)).verifyNoMoreCalls()
-}
+public fun verifyNoMoreCalls(vararg mocks: Any): Unit = mokkeryIntrinsic
 
 /**
  * Asserts that all mocks from given [MokkerySuiteScope] have no unverified calls.
  */
-public fun MokkerySuiteScope.verifyNoMoreCalls() {
-    val collection = mokkeryContext
-        .require(MokkeryInstancesRegistry)
-        .collection
-    collection.withVerifySession {
-        sessions.forEach { (id, session) ->
-            if (session.unverified.isNotEmpty()) {
-                val renderer = tools
-                    .renderers
-                    .noMoreCallsError(tools.namesShortener, collection)
-                throw AssertionError(renderer.render(id to unverified))
-            }
-        }
-    }
-}
+public fun MokkerySuiteScope.verifyNoMoreCalls(): Unit = mokkeryIntrinsic

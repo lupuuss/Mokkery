@@ -2,6 +2,7 @@
 
 package dev.mokkery
 
+import dev.mokkery.configurer.MokkerySpyConfigurer
 import dev.mokkery.internal.mokkeryIntrinsic
 
 /**
@@ -13,11 +14,13 @@ import dev.mokkery.internal.mokkeryIntrinsic
  * * interfaces (not sealed)
  * * function types
  * * Abstract/open classes.
+ *
+ * @param block configures the spy right after its creation
  */
 @Suppress("UNUSED_PARAMETER")
 public fun <T : Any> spy(
     obj: T,
-    block: T.() -> Unit = { }
+    block: MokkerySpyConfigurer.Block<T> = { }
 ): T = mokkeryIntrinsic
 
 
@@ -30,9 +33,11 @@ public fun <T : Any> spy(
  * * Interfaces (not sealed)
  * * Function types
  * * Abstract/open classes.
+ *
+ * @param block configures the spy right after its creation
  */
 public fun <T : Any> MokkerySuiteScope.spy(
     obj: T,
-    block: T.() -> Unit = { }
+    block: MokkerySpyConfigurer.Block<T> = { }
 ): T = mokkeryIntrinsic
 

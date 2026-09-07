@@ -4,6 +4,7 @@ import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.irCallConstructor
+import dev.mokkery.plugin.ir.typeSubstitutionForSuperClass
 import dev.mokkery.plugin.stubsConfig
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilder
@@ -18,12 +19,12 @@ import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
-import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
-    irClass: IrClass?
+    irClass: IrClass?,
+    subClass: IrClass,
 ): IrDelegatingConstructorCall {
     val defaultConstructor = irClass?.defaultConstructor
     return when {
@@ -35,7 +36,8 @@ fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
                 val constructor = strategy
                     .provideConstructorWithStubs(
                         cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities
+                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
+                        substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
                     ) ?: failedToProvideStubsError(irClass)
                 irDelegatingConstructorWithStubs(constructor)
             }
@@ -44,31 +46,23 @@ fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
 }
 
 fun IrBuilder.irCallConstructorWithStubs(
-    constructorWithStubs: Pair<IrConstructor, List<Stub>>,
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>,
     typeArguments: List<IrType> = emptyList(),
     block: IrConstructorCall.() -> Unit = { },
 ): IrConstructorCall {
     val (constructor, stubs) = constructorWithStubs
     return irCallConstructor(constructor, typeArguments) {
-        stubs.forEachIndexed { i, stub ->
-            val params = constructor.parameters
-            if (!params[i].hasDefaultValue()) {
-                arguments[i] = stub.expression
-            }
-        }
+        stubs.forEachIndexed { i, stub -> arguments[i] = stub?.expression }
         block()
     }
 }
 
-fun IrBuilder.irDelegatingConstructorWithStubs(constructorWithStubs: Pair<IrConstructor, List<Stub>>): IrDelegatingConstructorCall {
+fun IrBuilder.irDelegatingConstructorWithStubs(
+    constructorWithStubs: Pair<IrConstructor, List<Stub?>>
+): IrDelegatingConstructorCall {
     val (constructor, stubs) = constructorWithStubs
     return irDelegatingConstructorCall(constructor).apply {
-        val params = constructor.parameters
-        stubs.forEachIndexed { i, stub ->
-            if (!params[i].hasDefaultValue()) {
-                arguments[i] = stub.expression
-            }
-        }
+        stubs.forEachIndexed { i, stub -> arguments[i] = stub?.expression }
     }
 }
 

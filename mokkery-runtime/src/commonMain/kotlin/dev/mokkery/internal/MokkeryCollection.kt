@@ -37,8 +37,6 @@ internal fun MutableMokkeryCollection(
     vararg values: MokkeryInstanceScope
 ): MutableMokkeryCollection = MutableMokkeryCollection(values.asList())
 
-internal fun MokkeryInstanceScope.toMokkeryCollection(): MokkeryCollection = SingletonMokkeryCollection(this)
-
 internal fun MokkeryCollection?.orEmpty(): MokkeryCollection = this ?: EmptyMokkeryCollection
 
 internal operator fun MokkeryCollection.plus(
@@ -63,6 +61,8 @@ internal fun MokkeryCollection(
 internal fun MutableMokkeryCollection(
     values: List<MokkeryInstanceScope>
 ): MutableMokkeryCollection = MokkeryCollectionImpl(values.associateByTo(linkedMapOf()) { it.instanceId })
+
+internal fun MokkeryCollection.snapshot(): MokkeryCollection = MokkeryCollection(scopes.toList())
 
 private class MokkeryCollectionImpl(
     private val map: LinkedHashMap<MokkeryInstanceId, MokkeryInstanceScope>

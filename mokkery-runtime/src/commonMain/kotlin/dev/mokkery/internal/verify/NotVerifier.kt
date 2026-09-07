@@ -1,7 +1,6 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 
@@ -15,8 +14,8 @@ internal class NotVerifier(
     ): Verifier.Result {
         callTemplates.forEach { template ->
             callTraces.forEach { trace ->
-                if (callMatcher.match(trace, template).isMatching) {
-                    val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
+                if (callMatcher.areMatching(template, trace)) {
+                    val matching = callTraces.filter { callMatcher.areMatching(template, it) }
                     return Verifier.Result.Failure(Error(template, matching))
                 }
             }

@@ -1,29 +1,26 @@
 package dev.mokkery.plugin.ir.transformer.mock
 
-import dev.mokkery.plugin.core.context.configuration
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.platform
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
-import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
-import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.ir.IrMokkeryKind.Mock
 import dev.mokkery.plugin.ir.IrMokkeryKind.Spy
-import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.findExtensionParam
 import dev.mokkery.plugin.ir.findRegularParameters
+import dev.mokkery.plugin.ir.flattenArgumentTypes
 import dev.mokkery.plugin.ir.forEachIndexedTypeArgument
 import dev.mokkery.plugin.ir.irCallConstructor
-import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.isAnyFunction
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.transformer.core.findOrBuildClassInCurrentFile
-import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeGlobal
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
+import dev.mokkery.plugin.ir.typeArgumentsFrom
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -77,22 +74,15 @@ context(scope: TransformerScope)
 private fun IrBuilderWithScope.irMockConstructorCall(
     cls: IrClass,
     originalCall: IrCall
-) = irCallConstructor(cls.primaryConstructor!!) {
+) = irCallConstructor(cls.primaryConstructor!!, cls.mockedClassTypeArguments(originalCall)) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
-    arguments[0] = originalCall.symbol.owner
-        .findExtensionParam()
-        ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryScopeGlobal()
-    arguments[1] = originalCall.arguments[regularParams[0]] ?: irGetEnumEntry(
-        referenced(MokkeryIr.Class.MockMode),
-        configuration.defaultMockMode
-    )
+    arguments[0] = irGetMokkeryScopeFor(originalCall)
+    arguments[1] = originalCall.arguments[regularParams[0]] ?: irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
-    val anyType = irBuiltIns.anyType
     originalCall.typeArguments
         .filterNotNull()
         .forEachIndexedTypeArgument { index, it ->
-            arguments[3 + index] = kClassReference(it ?: anyType)
+            arguments[3 + index] = it?.let(::kClassReference) ?: irNull()
         }
 }
 
@@ -100,19 +90,19 @@ context(scope: TransformerScope)
 private fun IrBuilderWithScope.irSpyConstructorCall(
     cls: IrClass,
     originalCall: IrCall,
-) = irCallConstructor(cls.primaryConstructor!!) {
+) = irCallConstructor(cls.primaryConstructor!!, cls.mockedClassTypeArguments(originalCall)) {
     val regularParams = originalCall.symbol.owner.findRegularParameters()
-    arguments[0] = originalCall.symbol.owner
-        .findExtensionParam()
-        ?.let(originalCall.arguments::get)
-        ?: irGetMokkeryScopeGlobal()
+    arguments[0] = irGetMokkeryScopeFor(originalCall)
     arguments[1] = irNull()
     arguments[2] = originalCall.arguments[regularParams[1]] ?: irNull()
     arguments[3] = originalCall.arguments[regularParams[0]]
-    val anyType = irBuiltIns.anyType
     originalCall.typeArguments
         .filterNotNull()
         .forEachIndexedTypeArgument { index, it ->
-            arguments[4 + index] = kClassReference(it ?: anyType)
+            arguments[4 + index] = it?.let(::kClassReference) ?: irNull()
         }
 }
+
+private fun IrClass.mockedClassTypeArguments(originalCall: IrCall): List<IrType> = typeArgumentsFrom(
+    originalCall.typeArguments.filterNotNull().flattenArgumentTypes()
+)

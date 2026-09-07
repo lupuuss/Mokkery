@@ -1,7 +1,6 @@
 package dev.mokkery.internal.verify
 
 import dev.mokkery.internal.matcher.CallMatcher
-import dev.mokkery.internal.matcher.isMatching
 import dev.mokkery.internal.templating.CallTemplate
 import dev.mokkery.internal.tracing.CallTrace
 import dev.mokkery.internal.verify.results.TemplateGroupedMatchingResults
@@ -13,9 +12,9 @@ internal class ExhaustiveSoftVerifier(
     override fun verify(callTraces: List<CallTrace>, callTemplates: List<CallTemplate>): Verifier.Result {
         val unverifiedCalls = callTraces.toMutableList()
         callTemplates.forEach { template ->
-            val matching = callTraces.filter { callMatcher.match(it, template).isMatching }
+            val matching = callTraces.filter { callMatcher.areMatching(template, it) }
             if (matching.isEmpty()) {
-                val matchingResults = callTraces.groupBy { callMatcher.match(it, template) }
+                val matchingResults = callTraces.groupBy { callMatcher.match(template, it) }
                 val results = TemplateGroupedMatchingResults(template = template, calls = matchingResults)
                 return Verifier.Result.Failure(Error.NoMatch(results))
             }

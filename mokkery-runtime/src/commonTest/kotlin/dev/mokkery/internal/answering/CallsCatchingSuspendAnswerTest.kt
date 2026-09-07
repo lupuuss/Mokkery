@@ -3,7 +3,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.CallArgs
 import dev.mokkery.answering.SuspendCallDefinitionScope
-import dev.mokkery.context.CallArgument
+import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.callBlocking
 import dev.mokkery.test.callSuspend
 import dev.mokkery.test.fakeFunctionCall
@@ -19,7 +19,7 @@ class CallsCatchingSuspendAnswerTest {
 
     private val functionCall = fakeFunctionCall(
         returnType = Int::class,
-        args = listOf(CallArgument(2, "i", Int::class, false))
+        args = listOf(fakeCallArg(value = 2, name = "i"))
     )
 
     @Test

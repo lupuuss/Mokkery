@@ -5,8 +5,10 @@ import dev.mokkery.internal.options.MokkeryOptionProjection
 import dev.mokkery.internal.options.MokkeryOptionsContainer
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
 @InternalMokkeryApi
@@ -17,6 +19,18 @@ public abstract class BaseMokkeryGradlePlugin: KotlinCompilerPluginSupportPlugin
     public abstract fun optionProjection(project: Project): MokkeryOptionProjection<MokkeryGradleProperty<Any>>
 
     public abstract fun rule(project: Project): ApplicationRule
+
+    public fun sourceSetsForDependencies(
+        project: Project,
+    ): List<KotlinSourceSet> {
+        val rule = rule(project)
+        val applicableSourceSets = project.kotlinExtension
+            .sourceSets
+            .filter { rule.isApplicable(it) }
+            .toSet()
+        return applicableSourceSets
+            .filter { sourceSet -> sourceSet.dependsOn.none { it in applicableSourceSets } }
+    }
 
     public fun applyOptionConventions(project: Project) {
         val projection = optionProjection(project)

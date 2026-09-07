@@ -10,17 +10,21 @@ import kotlin.properties.ReadOnlyProperty
 object Mokkery {
 
     val dev_mokkery by fqName
+    val dev_mokkery_factory by fqName
+    val dev_mokkery_factory_configurer by fqName
     val dev_mokkery_verify by fqName
     val dev_mokkery_annotations by fqName
     val dev_mokkery_internal_annotations by fqName
     val dev_mokkery_templating by fqName
     val dev_mokkery_context by fqName
     val dev_mokkery_internal by fqName
+    val dev_mokkery_internal_factory by fqName
+    val dev_mokkery_internal_utils by fqName
     val dev_mokkery_internal_context by fqName
+    val dev_mokkery_internal_contracts by fqName
     val dev_mokkery_matcher by fqName
     val dev_mokkery_internal_templating by fqName
     val dev_mokkery_internal_matcher by fqName
-    val dev_mokkery_internal_defaults by fqName
 
     object Name {
         val mock by dev_mokkery.fqName
@@ -30,11 +34,16 @@ object Mokkery {
         val everySuspend by dev_mokkery.fqName
         val verify by dev_mokkery.fqName
         val verifySuspend by dev_mokkery.fqName
+        val verifyNoMoreCalls by dev_mokkery.fqName
         val ext by dev_mokkery_templating.fqName
         val ctx by dev_mokkery_templating.fqName
+        val mockFactoryOf by dev_mokkery_factory.fqName
+        val spyFactoryOf by dev_mokkery_factory.fqName
+        val MokkerySuiteScope by dev_mokkery.fqName
     }
 
     object Callable {
+        val module by dev_mokkery.callableId
         val mock by dev_mokkery.callableId
         val mockMany by dev_mokkery.callableId
         val spy by dev_mokkery.callableId
@@ -46,9 +55,13 @@ object Mokkery {
         val ctx by dev_mokkery_templating.callableId
         val matches by dev_mokkery_matcher.callableId
         val matchesComposite by dev_mokkery_matcher.callableId
+        val mockFactoryOf by dev_mokkery_factory.callableId
+        val spyFactoryOf by dev_mokkery_factory.callableId
     }
 
     object ClassId {
+        val MokkeryScope by dev_mokkery.classId
+        val MokkeryScopeCompanion = dev_mokkery.nestedClassId("MokkeryScope", "Companion")
         val MokkeryMatcherScope by dev_mokkery_matcher.classId
         val MokkeryTemplatingScope by dev_mokkery_templating.classId
         val Matcher by dev_mokkery_annotations.classId

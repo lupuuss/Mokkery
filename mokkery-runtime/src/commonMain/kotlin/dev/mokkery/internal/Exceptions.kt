@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 internal val mokkeryIntrinsic: Nothing
     get() = throw MokkeryIntrinsicException()
 
+@PublishedApi
 internal fun mokkeryRuntimeError(message: String): Nothing = throw MokkeryRuntimeException(message)
 
 internal class CallNotMockedException(name: String) : MokkeryRuntimeException(message = "Call $name not mocked!")
@@ -45,9 +46,6 @@ internal class SingleCallInEveryBlockRequiredException(
             }
         }
     }
-)
-internal class SuspiciousEmptyVerifyBlockException : MokkeryRuntimeException(
-    "Given 'verify' block does not contain any call to a mock. It's very suspicious and most probably caused by misuse.\n\n$noTemplatesCommonReasons"
 )
 
 private val noTemplatesCommonReasons = """
@@ -93,6 +91,10 @@ internal class IncorrectArgsForSuperMethodException(expectedCount: Int, actualCo
 
 internal class IncorrectArgsForSpiedMethodException(expectedCount: Int, actualCount: Int) : MokkeryRuntimeException(
     "Spied call requires $expectedCount arguments but $actualCount provided!"
+)
+
+internal class ArgIndexOutOfBoundsException(index: Int, argsCount: Int) : MokkeryRuntimeException(
+    "Cannot provide an argument at index $index - the call has $argsCount argument(s)!"
 )
 
 internal class MissingSpyMethodException : MokkeryRuntimeException("Spied method not found!")
@@ -146,3 +148,12 @@ internal class MockCallExpectedException(
 ) : MokkeryRuntimeException(
     "Call to `$call` was expected to be performed on a mock of ${mockedType.simpleName ?: "anonymous"} type, but the receiver was not a mock - it was an instance of ${mock::class.simpleName ?: "anonymous"} type => $mock"
 )
+
+internal class FunctionCannotBeMockedException(
+    functionName: String,
+) : MokkeryRuntimeException(
+    "Function `$functionName` cannot be mocked!"
+)
+
+@PublishedApi
+internal class MissingDispatcherCall : MokkeryRuntimeException("Missing dispatcher call!")

@@ -6,6 +6,7 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.capture.get
 import dev.mokkery.matcher.collections.containsAllInts
 import dev.mokkery.matcher.collections.containsAnyInt
 import dev.mokkery.matcher.gte
@@ -184,6 +185,20 @@ class ArgsMixingTest {
     }
 
     @Test
+    fun testEmptySpreadLiteral() {
+        every { mock.callPrimitiveVarargs(0, *intArrayOf()) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(0))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1) }
+    }
+
+    @Test
+    fun testEmptySpreadLiteralMixedWithLiterals() {
+        every { mock.callPrimitiveVarargs(0, 1, *intArrayOf()) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(0, 1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1, 2) }
+    }
+
+    @Test
     fun testVarargsWithCapture() {
         val container = Capture.container<Int>()
         every { mock.callPrimitiveVarargs(any(), any(), capture(container)) } returns 1
@@ -201,9 +216,18 @@ class ArgsMixingTest {
         mock.callPrimitiveVarargs(1, 1, 2, 3, 3)
         mock.callPrimitiveVarargs(1, 1, 2, 3, 4, 3)
         val expected = listOf(intArrayOf(2), intArrayOf(2, 3), intArrayOf(2, 3, 4))
+        assertEquals(expected.size, container.values.size)
         expected.zip(container.values).forEach { (a, b) ->
             assertContentEquals(a, b)
         }
+    }
+
+    @Test
+    fun testVarargsWildcardOnlyWithCapture() {
+        val slot = Capture.slot<IntArray>()
+        every { mock.callPrimitiveVarargs(any(), *capture(slot, any())) } returns 1
+        mock.callPrimitiveVarargs(1, 7, 8)
+        assertContentEquals(intArrayOf(7, 8), slot.get())
     }
 
     @Test

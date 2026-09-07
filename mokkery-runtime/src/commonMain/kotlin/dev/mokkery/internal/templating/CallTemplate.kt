@@ -6,7 +6,6 @@ import dev.mokkery.matcher.ArgMatcher
 
 internal data class CallTemplate(
     val instanceId: MokkeryInstanceId,
-    val name: String,
-    val parameters: List<Function.Parameter>,
-    val matchers: Map<String, ArgMatcher<Any?>>
+    val functionId: Function.Id,
+    val matchers: List<ArgMatcher<Any?>>
 )

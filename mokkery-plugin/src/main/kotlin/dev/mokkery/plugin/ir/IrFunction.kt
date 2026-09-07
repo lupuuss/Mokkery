@@ -1,6 +1,8 @@
 package dev.mokkery.plugin.ir
 
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -24,22 +26,24 @@ fun IrFunction.copyNonDispatchParametersWithoutDefaultsFrom(
     parameterMap: Map<IrTypeParameter, IrTypeParameter> = mapOf()
 ) {
     parameters += function.nonDispatchParameters.memoryOptimizedMap {
-        it.copyTo(this, defaultValue = null, remapTypeMap = parameterMap)
+        it.copyTo(
+            irFunction = this,
+            origin = IrDeclarationOrigin.UNDERSCORE_PARAMETER,
+            defaultValue = null,
+            remapTypeMap = parameterMap
+        )
     }
 }
 
-fun IrSimpleFunction.isSuperCallFor(originalFunction: IrFunction): Boolean {
+fun IrSimpleFunction.isSuperCallFor(subClass: IrClass): Boolean {
     if (modality != Modality.OPEN) return false
     val parent = parentClassOrNull ?: return false
-    val originalFunctionParentSupertypes = originalFunction.parentClassOrNull
-        ?.superTypes
-        ?.memoryOptimizedMap { it.eraseTypeParameters() }
-        .orEmpty()
-    return parent.defaultTypeErased in originalFunctionParentSupertypes
+    return parent.defaultTypeErased in subClass.superTypes.memoryOptimizedMap { it.eraseTypeParameters() }
 }
-
-fun IrSimpleFunction.findExtensionParam() = parameters.find { it.kind == IrParameterKind.ExtensionReceiver }
 
 fun IrSimpleFunction.findRegularParameters() = parameters.filter { it.kind == IrParameterKind.Regular }
 
 fun IrSimpleFunction.hasNonDispatchParameters() = parameters.any { it.kind != IrParameterKind.DispatchReceiver }
+
+fun IrSimpleFunction.hasDefaultParameters(): Boolean = parameters.any { it.defaultValue != null }
+        || overriddenSymbols.any { it.owner.hasDefaultParameters() }

@@ -3,7 +3,7 @@ package dev.mokkery.internal.answering
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.BlockingCallDefinitionScope
 import dev.mokkery.answering.CallArgs
-import dev.mokkery.context.CallArgument
+import dev.mokkery.test.fakeCallArg
 import dev.mokkery.test.callBlocking
 import dev.mokkery.test.fakeFunctionCall
 import kotlin.test.Test
@@ -17,7 +17,7 @@ class CallsCatchingAnswerTest {
 
     private val functionCall = fakeFunctionCall(
         returnType = Int::class,
-        args = listOf(CallArgument(2, "i", Int::class, false))
+        args = listOf(fakeCallArg(value = 2, name = "i"))
     )
 
     @Test
