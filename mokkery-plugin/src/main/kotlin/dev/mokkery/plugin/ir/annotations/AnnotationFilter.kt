@@ -2,14 +2,16 @@ package dev.mokkery.plugin.ir.annotations
 
 import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.options.AnnotationSelectorInternals
-import org.jetbrains.kotlin.backend.jvm.codegen.AnnotationCodegen.Companion.annotationClass
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrAnnotation
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.removeAnnotations
 import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.name.FqName
 
 fun interface AnnotationFilter {
@@ -74,3 +76,11 @@ private fun IrType.applyAnnotationsFilter(filter: AnnotationFilter) {
 private fun IrMutableAnnotationContainer.applyAnnotationsFilter(filter: AnnotationFilter) {
     annotations = filter.filter(annotations)
 }
+
+/**
+ * Kotlin 2.4.20 changed the parameter type of `AnnotationCodegen.annotationClass` and deprecated
+ * [IrAnnotation.symbol], so the annotation class is resolved through [IrConstructorCall], which is
+ * a supertype of [IrAnnotation] with an unchanged signature in every supported Kotlin version.
+ */
+private val IrConstructorCall.annotationClass: IrClass
+    get() = symbol.owner.parentAsClass
