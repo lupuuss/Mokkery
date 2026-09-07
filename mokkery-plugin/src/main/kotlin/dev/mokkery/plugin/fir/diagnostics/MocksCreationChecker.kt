@@ -341,7 +341,7 @@ class MocksCreationChecker(
         isNullableType()
                 || isAnyOf(defaultTypesToStub)
                 || isSomeFunctionType(context.session)
-                || toRegularClassSymbol()?.let { cls ->
+                || toRegularClassSymbol(context.session)?.let { cls ->
                     val fqName = cls.packageFqName()
                     cls.isRegularInterface()
                             || cls.isEnumClass
