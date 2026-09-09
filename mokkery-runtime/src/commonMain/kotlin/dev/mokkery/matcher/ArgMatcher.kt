@@ -95,49 +95,4 @@ public fun interface ArgMatcher<in T> {
          */
         override fun capture(value: T)
     }
-
-    /**
-     * Matches an argument that is not equal to [value].
-     * **DEPRECATED: This API is obsolete and will be removed!**
-     */
-    @Poko
-    @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
-    public class NotEqual<T>(public val value: T) : ArgMatcher<T>, Renderable {
-
-        override fun matches(arg: T): Boolean = arg != value
-
-        context(scope: MokkeryRenderingScope)
-        override fun render(): String = "neq(${scope.descriptionRenderer.render(value)})"
-    }
-
-    /**
-     * Matches an argument whose reference is not equal to [value]'s reference.
-     * **DEPRECATED: This API is obsolete and will be removed!**
-     */
-    @Deprecated("This API is obsolete and will be removed!", level = DeprecationLevel.ERROR)
-    public class NotEqualRef<T>(public val value: T) : ArgMatcher<T>, Renderable {
-
-        override fun matches(arg: T): Boolean = arg !== value
-
-        context(scope: MokkeryRenderingScope)
-        override fun render(): String = "neqRef(${scope.descriptionRenderer.render(value)})"
-    }
-
-    /**
-     *  Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toStringFun].
-     *
-     *  **DEPRECATED: This API is considered obsolete. Implement `ArgMatcher` instead.**
-     */
-    @Poko
-    @Deprecated("This API is considered obsolete. Implement `ArgMatcher` instead.", level = DeprecationLevel.ERROR)
-    public class Matching<T>(
-        public val predicate: (T) -> Boolean,
-        public val toStringFun: (() -> String)
-    ) : ArgMatcher<T>, Renderable {
-
-        override fun matches(arg: T): Boolean = predicate(arg)
-
-        context(scope: MokkeryRenderingScope)
-        override fun render(): String = toStringFun()
-    }
 }

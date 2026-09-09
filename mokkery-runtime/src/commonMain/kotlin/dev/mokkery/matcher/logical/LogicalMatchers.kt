@@ -48,25 +48,11 @@ public object LogicalMatchers {
     }
 
     /**
-     * Matches argument that does not satisfy [matcher].
+     * Matches argument that does not satisfy any of [matchers].
      */
     @DelicateMokkeryApi
     @Poko
     public class Not<T>(public val matchers: List<ArgMatcher<T>>) : ArgMatcher.Composite<T>, Renderable {
-
-        @Deprecated(
-            "This field should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
-            ReplaceWith("matchers[0]"),
-            DeprecationLevel.ERROR
-        )
-        public val matcher: ArgMatcher<T> get() = matchers[0]
-
-        @Deprecated(
-            "This constructor should not be used anymore. Now, `Not` matcher might contain more than one matcher.",
-            ReplaceWith("Not(listOf<_>(matcher))"),
-            DeprecationLevel.ERROR
-        )
-        public constructor(matcher: ArgMatcher<T>) : this(listOf(matcher))
 
         override fun matches(arg: T): Boolean = matchers.none { it.matches(arg) }
 

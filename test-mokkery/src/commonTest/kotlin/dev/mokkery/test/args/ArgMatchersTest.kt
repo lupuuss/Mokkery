@@ -21,8 +21,6 @@ import dev.mokkery.matcher.collections.contentDeepEq
 import dev.mokkery.matcher.collections.contentEq
 import dev.mokkery.matcher.collections.isIn
 import dev.mokkery.matcher.collections.isNotIn
-import dev.mokkery.matcher.eq
-import dev.mokkery.matcher.eqRef
 import dev.mokkery.matcher.gt
 import dev.mokkery.matcher.gte
 import dev.mokkery.matcher.logical.LogicalMatchers
@@ -34,10 +32,6 @@ import dev.mokkery.matcher.lte
 import dev.mokkery.matcher.matches
 import dev.mokkery.matcher.matchesBy
 import dev.mokkery.matcher.matchesComposite
-import dev.mokkery.matcher.matching
-import dev.mokkery.matcher.matchingBy
-import dev.mokkery.matcher.neq
-import dev.mokkery.matcher.neqRef
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.matcher.ofType
 import dev.mokkery.matcher.ref
@@ -90,57 +84,9 @@ class ArgMatchersTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
 
-    @Suppress("DEPRECATION_ERROR")
-    @Test
-    fun testMatchingMatcher() {
-        every { mock.callPrimitive(matching { it % 2 == 0 }) } returns 3
-        assertEquals(3, mock.callPrimitive(2))
-        assertEquals(3, mock.callPrimitive(4))
-        assertEquals(3, mock.callPrimitive(6))
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
-    }
-
-    @Suppress("DEPRECATION_ERROR")
-    @Test
-    fun testMatchingWithToStringMatcher() {
-        every { mock.callPrimitive(matching(toString = { "isEven()" }) { it % 2 == 0 }) } returns 4
-        assertEquals(4, mock.callPrimitive(2))
-        assertEquals(4, mock.callPrimitive(4))
-        assertEquals(4, mock.callPrimitive(6))
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
-    }
-
-    @Suppress("DEPRECATION_ERROR")
-    @Test
-    fun testMatchingByMatcher() {
-        fun Int.isEven() = this % 2 == 0
-        every { mock.callPrimitive(matchingBy(Int::isEven)) } returns 5
-        assertEquals(5, mock.callPrimitive(2))
-        assertEquals(5, mock.callPrimitive(4))
-        assertEquals(5, mock.callPrimitive(6))
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
-    }
-
     @Test
     fun testEqualityMatchers() {
         every { mock.callManyPrimitives(1, not(1.0)) } returns ComplexType
-        assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
-        assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
-        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 2.0) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(1, 1.0) }
-        assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 1.0) }
-    }
-
-    @Suppress("DEPRECATION_ERROR")
-    @Test
-    fun testDeprecatedEqualityMatchers() {
-        every { mock.callManyPrimitives(eq(1), neq(1.0)) } returns ComplexType
         assertEquals(ComplexType, mock.callManyPrimitives(1, 2.0))
         assertEquals(ComplexType, mock.callManyPrimitives(1, 3.0))
         assertFailsWith<MokkeryRuntimeException> { mock.callManyPrimitives(2, 2.0) }
@@ -154,18 +100,6 @@ class ArgMatchersTest {
         val ref2 = ComplexType("a")
         every { mock.callComplex(not(ref(ref2))) } returns ComplexType
         every { mock.callComplex(ref(ref1)) } returns ref1
-        assertEquals(ComplexType, mock.callComplex(ComplexType("a")))
-        assertEquals(ref1, mock.callComplex(ref1))
-        assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ref2) }
-    }
-
-    @Suppress("DEPRECATION_ERROR")
-    @Test
-    fun testDeprecatedRefEqualityMatchers() {
-        val ref1 = ComplexType("a")
-        val ref2 = ComplexType("a")
-        every { mock.callComplex(neqRef(ref2)) } returns ComplexType
-        every { mock.callComplex(eqRef(ref1)) } returns ref1
         assertEquals(ComplexType, mock.callComplex(ComplexType("a")))
         assertEquals(ref1, mock.callComplex(ref1))
         assertFailsWith<MokkeryRuntimeException> { mock.callComplex(ref2) }
@@ -490,12 +424,6 @@ class ArgMatchersTest {
         assertEquals(1, mock.callPrimitive(1))
     }
 
-    @Test
-    fun testDeprecatedScope() {
-        every { mock.callPrimitive(deprecatedEq(1)) } returns 1
-        assertEquals(1, mock.callPrimitive(1))
-    }
-
 
     private fun MokkeryMatcherScope.xor(@Matcher left: Int, @Matcher right: Int): Int = not(and(left, right))
 }
@@ -551,6 +479,3 @@ private fun MokkeryMatcherScope.containsAllIntsEq(value: Int): IntArray = contai
 private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsAllIntsEq(value))
 
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
-
-@Suppress("DEPRECATION_ERROR")
-private fun <T> dev.mokkery.matcher.ArgMatchersScope.deprecatedEq(value: T) = matches<T> { it == value }
