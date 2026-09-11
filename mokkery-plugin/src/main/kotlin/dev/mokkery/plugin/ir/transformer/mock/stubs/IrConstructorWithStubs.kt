@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.BodyPrintingStrategy
 import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.defaultConstructor
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 
@@ -25,22 +24,18 @@ context(scope: TransformerScope)
 fun IrBlockBodyBuilder.irDelegatingConstructorWithStubs(
     irClass: IrClass?,
     subClass: IrClass,
-): IrDelegatingConstructorCall {
-    val defaultConstructor = irClass?.defaultConstructor
-    return when {
-        irClass == null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
-        defaultConstructor != null -> irDelegatingConstructorCall(defaultConstructor)
-        else -> {
-            val strategy = StubStrategy.default(configuration.stubsConfig)
-            context(stubStrategyScope(strategy = strategy, builder = this)) {
-                val constructor = strategy
-                    .provideConstructorWithStubs(
-                        cls = irClass,
-                        visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
-                        substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
-                    ) ?: failedToProvideStubsError(irClass)
-                irDelegatingConstructorWithStubs(constructor)
-            }
+): IrDelegatingConstructorCall = when (irClass) {
+    null -> irDelegatingConstructorCall(irBuiltIns.anyClass.owner.primaryConstructor!!)
+    else -> {
+        val strategy = StubStrategy.default(configuration.stubsConfig)
+        context(stubStrategyScope(strategy = strategy, builder = this)) {
+            val constructorWithStubs = strategy
+                .provideConstructorWithStubs(
+                    cls = irClass,
+                    visibilities = ConstructableClassStubStrategy.acceptedVisibilities,
+                    substitution = subClass.typeSubstitutionForSuperClass(irClass).orEmpty()
+                ) ?: failedToProvideStubsError(irClass)
+            irDelegatingConstructorWithStubs(constructorWithStubs)
         }
     }
 }

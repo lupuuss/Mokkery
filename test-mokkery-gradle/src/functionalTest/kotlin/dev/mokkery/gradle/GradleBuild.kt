@@ -68,13 +68,15 @@ fun GradleBuild.settings(
     projectName: String,
     kotlinVersion: String = MokkeryConfig.MINIMUM_KOTLIN_VERSION,
     extraKotlinPlugins: List<String> = emptyList(),
+    extraMokkeryPlugins: List<String> = emptyList(),
 ) {
     property("kotlinVersion", kotlinVersion)
     property("mokkeryVersion", MokkeryConfig.VERSION)
     val plugins = listOf(
         "kotlin(\"$kotlinPlugin\") version kotlinVersion",
         "id(\"dev.mokkery\") version mokkeryVersion",
-    ) + extraKotlinPlugins.map { "id(\"$it\") version kotlinVersion" }
+    ) + extraMokkeryPlugins.map { "id(\"$it\") version mokkeryVersion" } +
+            extraKotlinPlugins.map { "id(\"$it\") version kotlinVersion" }
     file("settings.gradle.kts", settingsScript(plugins, projectName))
 }
 

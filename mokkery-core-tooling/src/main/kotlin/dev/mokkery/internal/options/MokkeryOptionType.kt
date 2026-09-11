@@ -4,6 +4,7 @@ import dev.mokkery.MockMode
 import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.internal.serialization.AnnotationSelectorSerializer
 import dev.mokkery.internal.serialization.BooleanSerializer
+import dev.mokkery.internal.serialization.FqNameSerializer
 import dev.mokkery.internal.serialization.MokkerySerializer
 import dev.mokkery.internal.serialization.VerifyModeSerializer
 import dev.mokkery.internal.serialization.enumSerializer
@@ -22,6 +23,11 @@ public data class MokkeryOptionType<T>(
         public val boolean: MokkeryOptionType<Boolean> = MokkeryOptionType(
             description = "<true|false>",
             serializer = BooleanSerializer
+        )
+
+        public val fqName: MokkeryOptionType<String> = MokkeryOptionType(
+            description = "<fq-name>",
+            serializer = FqNameSerializer
         )
 
         public val verifyMode: MokkeryOptionType<VerifyMode> = MokkeryOptionType(
