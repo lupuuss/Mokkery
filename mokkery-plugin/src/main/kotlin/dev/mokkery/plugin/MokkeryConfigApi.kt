@@ -7,6 +7,8 @@ import dev.mokkery.plugin.core.getSingleOrDefault
 import dev.mokkery.plugin.ir.transformer.mock.stubs.MokkeryStubsConfig
 import dev.mokkery.verify.VerifyMode
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.moduleName
+import org.jetbrains.kotlin.name.Name
 
 val CompilerConfiguration.defaultMockMode: MockMode
     get() = getSingleOrDefault(MokkeryOptions.Core.defaultMockMode)
@@ -31,3 +33,9 @@ val CompilerConfiguration.stubsConfig: MokkeryStubsConfig
 
 val CompilerConfiguration.annotationSelector: AnnotationSelector
     get() = getSingleOrDefault(MokkeryOptions.Annotations.copyToMock)
+
+val CompilerConfiguration.moduleHash: String
+    get() = fnv1a64(moduleName.orEmpty()).toULong().toString(36)
+
+val CompilerConfiguration.moduleScopeName: Name
+    get() = Name.identifier("module_$moduleHash")

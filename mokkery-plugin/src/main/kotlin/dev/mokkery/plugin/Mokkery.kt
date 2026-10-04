@@ -16,7 +16,6 @@ object Mokkery {
     val dev_mokkery_annotations by fqName
     val dev_mokkery_internal_annotations by fqName
     val dev_mokkery_templating by fqName
-    val dev_mokkery_context by fqName
     val dev_mokkery_internal by fqName
     val dev_mokkery_internal_factory by fqName
     val dev_mokkery_internal_utils by fqName
@@ -40,10 +39,10 @@ object Mokkery {
         val mockFactoryOf by dev_mokkery_factory.fqName
         val spyFactoryOf by dev_mokkery_factory.fqName
         val MokkerySuiteScope by dev_mokkery.fqName
+        val MokkeryScopeModuleGetter = FqName("$dev_mokkery.MokkeryScope.Companion.<get-module>")
     }
 
     object Callable {
-        val module by dev_mokkery.callableId
         val mock by dev_mokkery.callableId
         val mockMany by dev_mokkery.callableId
         val spy by dev_mokkery.callableId
@@ -61,7 +60,6 @@ object Mokkery {
 
     object ClassId {
         val MokkeryScope by dev_mokkery.classId
-        val MokkeryScopeCompanion = dev_mokkery.nestedClassId("MokkeryScope", "Companion")
         val MokkeryMatcherScope by dev_mokkery_matcher.classId
         val MokkeryTemplatingScope by dev_mokkery_templating.classId
         val Matcher by dev_mokkery_annotations.classId
