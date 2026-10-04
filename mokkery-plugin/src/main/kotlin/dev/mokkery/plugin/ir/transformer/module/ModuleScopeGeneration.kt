@@ -1,6 +1,5 @@
 package dev.mokkery.plugin.ir.transformer.module
 
-import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.cacheKey
 import dev.mokkery.plugin.core.caches
 import dev.mokkery.plugin.core.context.configuration
@@ -13,6 +12,7 @@ import dev.mokkery.plugin.core.ir.transformer.currentFileValue
 import dev.mokkery.plugin.core.ir.transformer.declarationIrBuilder
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedCompanion
+import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.defaultMockMode
 import dev.mokkery.plugin.defaultVerifyMode
 import dev.mokkery.plugin.ir.KotlinIr
@@ -22,6 +22,8 @@ import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irGetEnumEntry
 import dev.mokkery.plugin.ir.irLambdaOf
 import dev.mokkery.plugin.ir.requirePropertyGetterOwner
+import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
+import dev.mokkery.plugin.moduleScopeName
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verify.VerifyModeInternals.Soft
 import org.jetbrains.kotlin.config.moduleName
@@ -41,9 +43,9 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.callableId
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.primaryConstructor
@@ -57,20 +59,21 @@ val moduleScopePropertyAccessor: IrSimpleFunction
         currentFileValue
             .module
             .files
-            .firstNotNullOfOrNull { it.findDeclaration<IrProperty>(IrProperty::isModuleScope) }
+            .firstNotNullOfOrNull { file -> file.findDeclaration<IrProperty> { it.isModuleScope } }
             ?.getter
-            ?: error("Declaration ${Mokkery.Callable.module} could not be found!")
+            ?: error("Module scope declaration could not be found!")
     }
 
+context(scope: TransformerScope)
 private val IrProperty.isModuleScope: Boolean
-    get() = origin == MokkeryIr.Origin && callableId == Mokkery.Callable.module
+    get() = origin == MokkeryIr.Origin && name == configuration.moduleScopeName
 
 context(scope: TransformerScope)
 fun IrSimpleFunction.generateBodyIfModuleScopeGetter() {
-    if (correspondingPropertySymbol?.owner?.isModuleScope != true) return
+    val property = correspondingPropertySymbol?.owner?.takeIf { it.isModuleScope } ?: return
     val scopeType = returnType
     body = symbol.declarationIrBuilder {
-        val field = buildModuleScopeFieldInCurrentFile(scopeType)
+        val field = buildModuleScopeFieldInCurrentFile(property.name, scopeType)
         val valueGetter = referenced(KotlinIr.Class.Lazy).requirePropertyGetterOwner("value")
         irBlockBody {
             +irReturn(irCall(valueGetter, scopeType) { arguments[0] = irGetField(null, field) })
@@ -79,9 +82,9 @@ fun IrSimpleFunction.generateBodyIfModuleScopeGetter() {
 }
 
 context(scope: TransformerScope)
-private fun buildModuleScopeFieldInCurrentFile(scopeType: IrType): IrField {
+private fun buildModuleScopeFieldInCurrentFile(propertyName: Name, scopeType: IrType): IrField {
     val field = irFactory.buildField {
-        name = Name.identifier("_mokkeryModuleScope")
+        name = Name.identifier("_$propertyName")
         visibility = DescriptorVisibilities.PRIVATE
         isFinal = true
         isStatic = true
@@ -136,3 +139,6 @@ private fun VerifyMode.toIrClass(): IrClass {
         .nestedClasses
         .find { it.name.asString() == simpleName }!!
 }
+
+context(scope: TransformerScope)
+fun IrCall.replaceModuleScope(): IrExpression = replaceDeclarationIrBuilder { irGetMokkeryModuleScope() }

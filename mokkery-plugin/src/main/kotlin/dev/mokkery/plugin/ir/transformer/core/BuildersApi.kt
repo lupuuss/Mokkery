@@ -95,12 +95,7 @@ fun IrBuilderWithScope.irGetMokkeryScopeFor(call: IrCall): IrExpression {
 }
 
 context(scope: TransformerScope)
-fun IrBuilderWithScope.irGetMokkeryModuleScope(): IrCall {
-    val scopeCompanion = referencedCompanion(MokkeryIr.Class.MokkeryScope)
-    return irCall(moduleScopePropertyAccessor) {
-        arguments[0] = irGetObject(scopeCompanion.symbol)
-    }
-}
+fun IrBuilderWithScope.irGetMokkeryModuleScope(): IrCall = irCall(moduleScopePropertyAccessor)
 
 private fun List<String>.hexHashString(): String = fnv1a64(this).toULong().toString(36)
 

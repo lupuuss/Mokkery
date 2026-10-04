@@ -1,9 +1,11 @@
 package dev.mokkery
 
+import dev.mokkery.annotations.InternalMokkeryApi
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.internal.context.MokkeryTools
 import dev.mokkery.internal.context.Settings
 import dev.mokkery.internal.interceptor.ForkedMokkeryCallHooks
+import dev.mokkery.internal.mokkeryIntrinsic
 import dev.mokkery.internal.requireInstanceScope
 
 /**
@@ -31,6 +33,10 @@ public interface MokkeryScope {
          * @throws MokkeryRuntimeException if [mock] is not a Mokkery instance.
          */
         public fun from(mock: Any): MokkeryInstanceScope = mock.requireInstanceScope()
+
+        @InternalMokkeryApi
+        public val module: MokkeryScope
+            get() = mokkeryIntrinsic
     }
 }
 

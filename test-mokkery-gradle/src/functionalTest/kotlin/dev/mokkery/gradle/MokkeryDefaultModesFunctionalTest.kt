@@ -158,7 +158,6 @@ private fun modesTest(mockMode: Mode, verifyMode: Mode) = """
     import dev.mokkery.internal.defaultVerifyMode
     import dev.mokkery.internal.mokkeryInternals
     import dev.mokkery.mock
-    import dev.mokkery.module
     import dev.mokkery.verify
     import dev.mokkery.verify.VerifyMode
     import kotlin.test.Test
