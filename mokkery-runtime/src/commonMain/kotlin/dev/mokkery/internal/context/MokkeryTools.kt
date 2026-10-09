@@ -3,7 +3,6 @@
 package dev.mokkery.internal.context
 
 import dev.mokkery.MokkeryScope
-import dev.mokkery.answering.autofill.AutofillProvider
 import dev.mokkery.context.MokkeryContext
 import dev.mokkery.context.require
 import dev.mokkery.internal.Counter
@@ -24,7 +23,6 @@ internal class MokkeryTools(
     callMatcherFactory: CallMatcher.Factory? = null,
     callsCounter: Counter? = null,
     mocksCounter: Counter? = null,
-    autofillProvider: AutofillProvider<Any?>? = null,
     verifierFactory: Verifier.Factory? = null,
     defaultsMaterializerFactory: DefaultsMaterializer.Factory? = null
 ) : MokkeryContext.Element {
@@ -33,7 +31,6 @@ internal class MokkeryTools(
     private val _callMatcherFactory = callMatcherFactory
     private val _callsCounter = callsCounter
     private val _mocksCounter = mocksCounter
-    private val _autofillProvider = autofillProvider
     private val _verifierFactory = verifierFactory
     private val _defaultsMaterializerFactory = defaultsMaterializerFactory
 
@@ -45,8 +42,6 @@ internal class MokkeryTools(
         get() = _callsCounter ?: mokkeryRuntimeError("Calls Counter not present in tools!")
     val mocksCounter: Counter
         get() = _mocksCounter ?: mokkeryRuntimeError("Mocks Counter not present in tools!")
-    val autofillProvider: AutofillProvider<Any?>
-        get() = _autofillProvider ?: mokkeryRuntimeError("AutofillProvider not present in tools!")
     val verifierFactory: Verifier.Factory
         get() = _verifierFactory ?: mokkeryRuntimeError("Verifier.Factory not present in tools!")
     val defaultsMaterializerFactory: DefaultsMaterializer.Factory
@@ -59,7 +54,6 @@ internal class MokkeryTools(
         callMatcherFactory: CallMatcher.Factory? = _callMatcherFactory,
         callsCounter: Counter? = _callsCounter,
         mocksCounter: Counter? = _mocksCounter,
-        autofillProvider: AutofillProvider<Any?>? = _autofillProvider,
         verifierFactory: Verifier.Factory? = _verifierFactory,
         defaultsMaterializerFactory: DefaultsMaterializer.Factory? = _defaultsMaterializerFactory
     ) = MokkeryTools(
@@ -67,7 +61,6 @@ internal class MokkeryTools(
         callMatcherFactory = callMatcherFactory,
         callsCounter = callsCounter,
         mocksCounter = mocksCounter,
-        autofillProvider = autofillProvider,
         verifierFactory = verifierFactory,
         defaultsMaterializerFactory = defaultsMaterializerFactory
     )
@@ -84,7 +77,6 @@ internal class MokkeryTools(
                 callMatcherFactory = callMatcherFactory,
                 callsCounter = MonotonicCounter(Long.MIN_VALUE),
                 mocksCounter = mocksCounter,
-                autofillProvider = AutofillProvider.forInternals,
                 verifierFactory = Verifier.Factory.default(callMatcherFactory),
                 defaultsMaterializerFactory = materializerFactory,
             )
