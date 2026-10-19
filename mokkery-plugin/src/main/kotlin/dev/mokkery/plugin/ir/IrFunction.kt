@@ -45,5 +45,7 @@ fun IrSimpleFunction.findRegularParameters() = parameters.filter { it.kind == Ir
 
 fun IrSimpleFunction.hasNonDispatchParameters() = parameters.any { it.kind != IrParameterKind.DispatchReceiver }
 
+fun IrSimpleFunction.hasDispatchReceiver() = parameters.any { it.kind == IrParameterKind.DispatchReceiver }
+
 fun IrSimpleFunction.hasDefaultParameters(): Boolean = parameters.any { it.defaultValue != null }
         || overriddenSymbols.any { it.owner.hasDefaultParameters() }

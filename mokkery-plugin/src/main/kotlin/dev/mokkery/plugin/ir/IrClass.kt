@@ -284,7 +284,7 @@ fun IrProperty.addDefaultSetter(context: IrGeneratorContext): IrSimpleFunction {
 }
 
 val IrClass.overridableFunctions
-    get() = functions.filter { it.isOverridable && !it.isMethodOfAny() }
+    get() = functions.filter { it.isOverridable && it.hasDispatchReceiver() && !it.isMethodOfAny() }
 
 val IrClass.overridableProperties
     get() = properties.filter { it.isOverridable }

@@ -441,6 +441,38 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     }
 
     @Nested
+    @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java")
+    @TestDataPath("$PROJECT_ROOT")
+    public class Java {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java/" + fileName);
+      }
+
+      @Test
+      public void testAllFilesPresentInJava() {
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java"), Pattern.compile("^(.+)\\.kt$"), null, true);
+      }
+
+      @Test
+      @TestMetadata("JavaTypesCanBeMocked.kt")
+      public void testJavaTypesCanBeMocked() {
+        run("JavaTypesCanBeMocked.kt");
+      }
+
+      @Test
+      @TestMetadata("JavaTypesWithFinalMembersCannotBeMocked.kt")
+      public void testJavaTypesWithFinalMembersCannotBeMocked() {
+        run("JavaTypesWithFinalMembersCannotBeMocked.kt");
+      }
+
+      @Test
+      @TestMetadata("JavaTypesWithNotNullConstructorParametersCannotBeStubbed.kt")
+      public void testJavaTypesWithNotNullConstructorParametersCannotBeStubbed() {
+        run("JavaTypesWithNotNullConstructorParametersCannotBeStubbed.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many")
     @TestDataPath("$PROJECT_ROOT")
     public class Many {

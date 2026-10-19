@@ -4,7 +4,6 @@ import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.MembersValidationMode
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
-import dev.mokkery.plugin.fir.declaredMembers
 import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
 import dev.mokkery.plugin.stubsConfig
 import dev.mokkery.plugin.validationMode
@@ -24,7 +23,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.isSubtypeOfThrowable
-import org.jetbrains.kotlin.fir.declarations.constructors
+import org.jetbrains.kotlin.fir.analysis.checkers.unsubstitutedScope
 import org.jetbrains.kotlin.fir.declarations.utils.isEnumClass
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
@@ -44,9 +43,13 @@ import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.resolve.toClassSymbol
+import org.jetbrains.kotlin.fir.scopes.collectAllFunctions
+import org.jetbrains.kotlin.fir.scopes.collectAllProperties
+import org.jetbrains.kotlin.fir.scopes.getDeclaredConstructors
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
@@ -265,7 +268,7 @@ class MocksCreationChecker(
         classSymbol: FirRegularClassSymbol
     ): Boolean {
         val constructors = classSymbol
-            .constructors(context.session)
+            .enhancedConstructors()
             .filter { it.isAccessible() }
         if (constructors.isEmpty()) {
             reporter.reportOn(
@@ -277,15 +280,8 @@ class MocksCreationChecker(
             return false
         }
         checkConstructorPossibleToStub(source, classSymbol, constructors)
-        val inheritedSymbols = classSymbol
-            .allSuperClassSymbols()
-            .asSequence()
-            .flatMap { it.declaredMembers(context.session) }
-        val allDeclarationSymbols = classSymbol
-            .declaredMembers(context.session)
-            .asSequence()
-            .plus(inheritedSymbols)
-        val finalDeclarations = allDeclarationSymbols
+        val finalDeclarations = classSymbol
+            .enhancedMembers()
             .filterOutWasmSpecialProperties() // TODO Remove when not detectable by FIR
             .filterNot { it.isValid(validationMode) }
             .toList()
@@ -298,19 +294,6 @@ class MocksCreationChecker(
             c = finalDeclarations,
         )
         return false
-    }
-
-    context(context: CheckerContext)
-    private fun FirRegularClassSymbol.allSuperClassSymbols(): Set<FirRegularClassSymbol> {
-        val visited = linkedSetOf<FirRegularClassSymbol>()
-        fun visit(symbol: FirRegularClassSymbol) {
-            for (superType in symbol.resolvedSuperTypes) {
-                val superSymbol = superType.toRegularClassSymbol() ?: continue
-                if (visited.add(superSymbol)) visit(superSymbol)
-            }
-        }
-        visit(this)
-        return visited
     }
 
     private fun FirBasedSymbol<*>.isValid(validationMode: MembersValidationMode): Boolean {
@@ -371,7 +354,7 @@ class MocksCreationChecker(
             .toRegularClassSymbol()
             ?: return listOf(type to StubError.NoAccessibleConstructors)
         val constructors = cls
-            .constructors(context.session)
+            .enhancedConstructors()
             .filter { it.isAccessible() }
         if (constructors.isEmpty()) return listOf(type to StubError.NoAccessibleConstructors)
         val problems = constructors.flatMap { ctor ->
@@ -438,7 +421,7 @@ class MocksCreationChecker(
     ): Boolean = context(context.session.typeContext) {
         this.classKind == ClassKind.CLASS
                 && this.isOverridable()
-                && this.constructors(context.session).any { it.isPossibleToStub(typesStack) }
+                && this.enhancedConstructors().any { it.isPossibleToStub(typesStack) }
     }
 
     context(context: CheckerContext)
@@ -447,7 +430,7 @@ class MocksCreationChecker(
     ): Boolean = context(context.session.typeContext) {
         this.classKind == ClassKind.CLASS
                 && this.isInstantiable()
-                && this.constructors(context.session).any { it.isPossibleToStub(typesStack) }
+                && this.enhancedConstructors().any { it.isPossibleToStub(typesStack) }
     }
 
     private fun ConeKotlinType.isAnyOf(classIds: Set<ClassId>): Boolean {
@@ -460,6 +443,15 @@ class MocksCreationChecker(
     private fun FirRegularClassSymbol.isOverridable() = modality in overridableModalities
 
     private fun FirConstructorSymbol.isAccessible() = visibility in accessibleVisibility
+
+    context(context: CheckerContext)
+    private fun FirClassSymbol<*>.enhancedConstructors() = unsubstitutedScope(context).getDeclaredConstructors()
+
+    context(context: CheckerContext)
+    private fun FirClassSymbol<*>.enhancedMembers(): Sequence<FirCallableSymbol<*>> {
+        val scope = unsubstitutedScope(context)
+        return scope.collectAllFunctions().asSequence() + scope.collectAllProperties().filterIsInstance<FirPropertySymbol>()
+    }
 
     object Diagnostics : KtDiagnosticsContainer() {
 

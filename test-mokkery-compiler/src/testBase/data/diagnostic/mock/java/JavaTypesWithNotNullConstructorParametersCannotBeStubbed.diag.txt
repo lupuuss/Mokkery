@@ -1,0 +1,2 @@
+/main.kt:27:10: error: Type 'NotNullParameter' has available constructors but none cannot be fully supplied with arguments. Problematic argument types:
+	Dependency: This class could be instantiated, but it requires explicit permission due to potential execution of unintended code. Enable it in your Gradle file with `mokkery.stubs.allowConcreteClassInstantiation` flag.
