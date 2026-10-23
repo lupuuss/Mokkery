@@ -1,0 +1,7 @@
+/ModuleInitializerMustBeTopLevelFunction.kt:(67,109): error: Module initializer must be a top-level function.
+
+/ModuleInitializerMustBeTopLevelFunction.kt:(143,198): error: Module initializer must be a top-level function.
+
+/ModuleInitializerMustBeTopLevelFunction.kt:(226,274): error: Module initializer must be a top-level function.
+
+/ModuleInitializerMustBeTopLevelFunction.kt:(295,336): error: Module initializer must be a top-level function.

@@ -1,0 +1,3 @@
+/ModuleInitializerMustNotBeSuspend.kt:(98,141): error: Module initializer must not be suspend.
+
+/ModuleInitializerMustNotBeSuspend.kt:(143,215): error: Module initializer must not be suspend.

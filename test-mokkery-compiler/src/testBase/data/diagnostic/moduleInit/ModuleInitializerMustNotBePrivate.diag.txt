@@ -1,0 +1,3 @@
+/ModuleInitializerMustNotBePrivate.kt:4:1: error: Module initializer must not be private.
+
+/ModuleInitializerMustNotBePrivate.kt:7:1: error: Module initializer must not be private.

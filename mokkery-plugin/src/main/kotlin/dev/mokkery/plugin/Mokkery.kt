@@ -14,6 +14,7 @@ object Mokkery {
     val dev_mokkery_factory_configurer by fqName
     val dev_mokkery_verify by fqName
     val dev_mokkery_annotations by fqName
+    val dev_mokkery_configurer by fqName
     val dev_mokkery_internal_annotations by fqName
     val dev_mokkery_templating by fqName
     val dev_mokkery_internal by fqName
@@ -63,6 +64,8 @@ object Mokkery {
         val MokkeryMatcherScope by dev_mokkery_matcher.classId
         val MokkeryTemplatingScope by dev_mokkery_templating.classId
         val Matcher by dev_mokkery_annotations.classId
+        val MokkeryModuleInit by dev_mokkery_annotations.classId
+        val MokkeryConfigurer by dev_mokkery_configurer.classId
         val ArgMatcher by dev_mokkery_matcher.classId
         val ArgMatcherComposite = dev_mokkery_matcher.nestedClassId("ArgMatcher", "Composite")
         val Templating by dev_mokkery_internal_annotations.classId

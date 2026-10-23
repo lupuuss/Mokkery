@@ -1,0 +1,19 @@
+/ModuleInitializerInvalidParameters.kt:(256,307): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(309,379): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(381,457): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(459,533): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(535,631): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(633,732): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(734,848): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(850,915): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(917,985): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:(987,1087): error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.

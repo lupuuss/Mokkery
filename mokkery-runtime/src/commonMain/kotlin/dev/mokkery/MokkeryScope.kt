@@ -41,7 +41,7 @@ public interface MokkeryScope {
          *
          * The scope derives from [global] and carries the module's default [MockMode] and [dev.mokkery.verify.VerifyMode]
          * configured in the Mokkery Gradle plugin. It is created lazily on first access, which also runs the module's
-         * [dev.mokkery.annotations.MokkeryInit] functions.
+         * [dev.mokkery.annotations.MokkeryModuleInit] functions.
          */
         public val module: MokkeryScope
             get() = mokkeryIntrinsic

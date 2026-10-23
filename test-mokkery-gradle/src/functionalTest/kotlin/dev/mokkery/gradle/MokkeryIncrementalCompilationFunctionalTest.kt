@@ -231,6 +231,135 @@ class MokkeryIncrementalCompilationFunctionalTest {
         assertEquals(emptySet(), result.compiledSources(jvm.testCompilation))
     }
 
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `keeps module initializers when an unrelated test source changes`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = true))
+        build.build(target.testTask)
+
+        build.file(target.testSource("UnrelatedTest"), unrelatedTest(repeats = 2))
+        val result = build.build(target.testCompilation)
+
+        assertEquals(
+            setOf(
+                target.testSource("UnrelatedTest"),
+                target.testSource("ModuleInitializer"),
+                target.testSource("ModuleConfigurer"),
+            ),
+            result.compiledSources(target.testCompilation),
+        )
+
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `runs module initializers annotated in an incremental round`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = false))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = false))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = false))
+        build.build(target.testTask)
+
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = true))
+
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `stops running module initializers whose annotation was removed`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = true))
+        build.build(target.testTask)
+
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = false))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = false))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = false))
+
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `stops running module initializers whose files were deleted`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = true))
+        build.build(target.testTask)
+
+        build.delete(target.testSource("ModuleInitializer"))
+        build.delete(target.testSource("ModuleConfigurer"))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest(initialized = false))
+
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `runs module initializers when only their annotation was added`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = false))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = false))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = false))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest())
+        build.build(target.testTask)
+
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = true))
+        val result = build.build(target.testCompilation)
+
+        assertTrue(target.testSource("ModuleInitTest") !in result.compiledSources(target.testCompilation))
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `stops running module initializers when only their annotation was removed`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest())
+        build.build(target.testTask)
+
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = false))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = false))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = false))
+        val result = build.build(target.testCompilation)
+
+        assertTrue(target.testSource("ModuleInitTest") !in result.compiledSources(target.testCompilation))
+        build.build(target.testTask)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Target::class)
+    fun `stops running module initializers when only their files were deleted`(target: Target) {
+        val build = target.project()
+        build.file(target.testSource("ModuleInitializer"), moduleInitializer(annotated = true))
+        build.file(target.testSource("ModuleConfigurer"), moduleConfigurer(annotated = true))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = true))
+        build.file(target.testSource("ModuleInitTest"), moduleInitTest())
+        build.build(target.testTask)
+
+        build.delete(target.testSource("ModuleInitializer"))
+        build.delete(target.testSource("ModuleConfigurer"))
+        build.file(target.testSource("ModuleInitExpectation"), moduleInitExpectation(initialized = false))
+        val result = build.build(target.testCompilation)
+
+        assertTrue(target.testSource("ModuleInitTest") !in result.compiledSources(target.testCompilation))
+        build.build(target.testTask)
+    }
+
     private fun Target.project(kotlinVersion: String = MokkeryConfig.MINIMUM_KOTLIN_VERSION) = incrementalBuild(projectDir) {
         settings(kotlinPlugin, projectName = "ic-test", kotlinVersion = kotlinVersion)
         file("build.gradle.kts", buildScript)
@@ -487,6 +616,56 @@ private fun sharedMockTest(callsAddedMember: Boolean = false, users: List<String
             listOf(${users.joinToString { "$it().mock" }}).forEach { mock ->
                 ${if (callsAddedMember) addedMemberCall else existingMemberCall}
             }
+        }
+    }
+"""
+
+private fun moduleInitializer(annotated: Boolean) = """
+    package $packageName
+
+    import dev.mokkery.annotations.MokkeryModuleInit
+
+    ${if (annotated) "@MokkeryModuleInit" else ""}
+    fun initializeModule() {
+        moduleInitialized = true
+    }
+"""
+
+private fun moduleConfigurer(annotated: Boolean) = """
+    package $packageName
+
+    import dev.mokkery.annotations.MokkeryModuleInit
+    import dev.mokkery.configurer.MokkeryConfigurer
+
+    ${if (annotated) "@MokkeryModuleInit" else ""}
+    fun configureModule(configurer: MokkeryConfigurer) {
+        moduleConfigured = true
+    }
+"""
+
+private fun moduleInitExpectation(initialized: Boolean) = """
+    package $packageName
+
+    val expectedModuleInit = $initialized
+"""
+
+private fun moduleInitTest(initialized: Boolean? = null) = """
+    package $packageName
+
+    import dev.mokkery.mock
+    import kotlin.test.Test
+    import kotlin.test.assertEquals
+
+    var moduleInitialized = false
+    var moduleConfigured = false
+
+    class ModuleInitTest {
+
+        @Test
+        fun runsModuleInitializers() {
+            mock<Shared>()
+            assertEquals(${initialized ?: "expectedModuleInit"}, moduleInitialized)
+            assertEquals(${initialized ?: "expectedModuleInit"}, moduleConfigured)
         }
     }
 """

@@ -2,6 +2,7 @@ package dev.mokkery.plugin.ir
 
 import dev.mokkery.plugin.Mokkery.dev_mokkery
 import dev.mokkery.plugin.Mokkery.dev_mokkery_annotations
+import dev.mokkery.plugin.Mokkery.dev_mokkery_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_factory
 import dev.mokkery.plugin.Mokkery.dev_mokkery_factory_configurer
 import dev.mokkery.plugin.Mokkery.dev_mokkery_internal
@@ -35,6 +36,8 @@ import kotlin.properties.ReadOnlyProperty
 object MokkeryIr {
     object Class {
         val Matcher by dev_mokkery_annotations.refClass
+        val MokkeryModuleInit by dev_mokkery_annotations.refClass
+        val MokkeryConfigurer by dev_mokkery_configurer.refClass
         val MockMode by dev_mokkery.refClass
         val MokkeryScope by dev_mokkery.refClass
         val MokkeryMatcherScope by dev_mokkery_matcher.refClass
@@ -116,6 +119,8 @@ object MokkeryIr {
         val getTypeArgumentClassOrNull by dev_mokkery_internal_utils.refFunction
         val createFunction by dev_mokkery_internal_context.refFunction
         val createFunctionParameter by dev_mokkery_internal_context.refFunction
+        val moduleScopeLazy by dev_mokkery_internal.refFunction
+        val runModuleInitializer by dev_mokkery_internal.refFunction
     }
 
     object Property {

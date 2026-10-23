@@ -1,13 +1,13 @@
 package dev.mokkery.plugin
 
-import dev.mokkery.plugin.fir.gen.MokkeryModuleScopeFirGenerator
 import dev.mokkery.plugin.fir.diagnostics.MatchersDeclarationChecker
 import dev.mokkery.plugin.fir.diagnostics.MatchersUsageReporterVisitor
 import dev.mokkery.plugin.fir.diagnostics.MocksCreationChecker
+import dev.mokkery.plugin.fir.diagnostics.ModuleInitializerDeclarationChecker
 import dev.mokkery.plugin.fir.diagnostics.MokkeryFirCheckersExtension
 import dev.mokkery.plugin.fir.diagnostics.TemplatingChecker
 import dev.mokkery.plugin.fir.diagnostics.TemplatingDeclarationChecker
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import dev.mokkery.plugin.fir.gen.MokkeryModuleScopeFirGenerator
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGenerationApi
@@ -26,6 +26,7 @@ class MokkeryFirRegistrar(private val config: CompilerConfiguration) : FirExtens
                 MocksCreationChecker.Diagnostics,
                 TemplatingChecker.Diagnostics,
                 TemplatingDeclarationChecker.Diagnostics,
+                ModuleInitializerDeclarationChecker.Diagnostics,
             )
         }
     }

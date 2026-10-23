@@ -544,6 +544,62 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
   }
 
   @Nested
+  @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit")
+  @TestDataPath("$PROJECT_ROOT")
+  public class ModuleInit {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit/" + fileName);
+    }
+
+    @Test
+    public void testAllFilesPresentInModuleInit() {
+      KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit"), Pattern.compile("^(.+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerInvalidParameters.kt")
+    public void testModuleInitializerInvalidParameters() {
+      run("ModuleInitializerInvalidParameters.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustBeTopLevelFunction.kt")
+    public void testModuleInitializerMustBeTopLevelFunction() {
+      run("ModuleInitializerMustBeTopLevelFunction.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotBePrivate.kt")
+    public void testModuleInitializerMustNotBePrivate() {
+      run("ModuleInitializerMustNotBePrivate.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotBeSuspend.kt")
+    public void testModuleInitializerMustNotBeSuspend() {
+      run("ModuleInitializerMustNotBeSuspend.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotHaveTypeParameters.kt")
+    public void testModuleInitializerMustNotHaveTypeParameters() {
+      run("ModuleInitializerMustNotHaveTypeParameters.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerOnExpect.kt")
+    public void testModuleInitializerOnExpect() {
+      run("ModuleInitializerOnExpect.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializersValid.kt")
+    public void testModuleInitializersValid() {
+      run("ModuleInitializersValid.kt");
+    }
+  }
+
+  @Nested
   @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/templating")
   @TestDataPath("$PROJECT_ROOT")
   public class Templating {
