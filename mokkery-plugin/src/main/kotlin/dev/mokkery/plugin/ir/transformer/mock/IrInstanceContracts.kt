@@ -11,6 +11,7 @@ import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.addOverridingMethod
 import dev.mokkery.plugin.ir.addOverridingProperty
+import dev.mokkery.plugin.ir.copyNonDispatchParametersWithoutDefaultsFrom
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.erasedTypeArguments
@@ -29,10 +30,13 @@ import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.mock.stubs.irDelegatingConstructorWithStubs
 import dev.mokkery.plugin.ir.typeSubstitutionForSuperClass
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
+import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.irAs
 import org.jetbrains.kotlin.ir.builders.irBlockBody
@@ -58,6 +62,7 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.starProjectedType
+import org.jetbrains.kotlin.ir.util.createDispatchReceiverParameterWithClassParent
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.fields
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -65,6 +70,7 @@ import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.substitute
+import org.jetbrains.kotlin.name.Name
 
 context(scope: TransformerScope)
 fun IrClass.addInstanceContracts(
@@ -136,51 +142,49 @@ private fun IrClass.addSuperCallsContract(
     val dispatcherClass = referenced(MokkeryIr.Class.SuperCallsContract)
     superTypes += dispatcherClass.defaultType
     val kClassType = irBuiltIns.kClassClass.starProjectedType
-    addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner("mokkerySuperTypes")) { contractFunc ->
-        irReturnByFunctionId(
-            subject = contractFunc.parameters[1],
-            branches = supers.mapIndexedNotNull { index, superFunctions ->
-                if (superFunctions.isEmpty()) return@mapIndexedNotNull null
-                functions[index].mokkeryFunctionId to irCallListOf(
+    addFunctionIdDispatcher(
+        contractFunction = dispatcherClass.requireSimpleFunctionOwner("mokkerySuperTypes"),
+        branches = supers.mapIndexedNotNull { index, superFunctions ->
+            if (superFunctions.isEmpty()) return@mapIndexedNotNull null
+            FunctionIdBranch(id = functions[index].mokkeryFunctionId, weight = superFunctions.size + 1) {
+                irCallListOf(
                     type = kClassType,
                     elements = superFunctions.map { kClassReference(it.parentAsClass.defaultTypeErased) }
                 )
-            },
-            elseResult = { irCallListOf(kClassType, emptyList()) }
-        )
-    }
+            }
+        },
+        elseResult = { irCallListOf(kClassType, emptyList()) }
+    )
     listOf(false, true).forEach { isSuspend ->
         val name = if (isSuspend) "mokkerySuperCallSuspend" else "mokkerySuperCall"
-        addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner(name)) { superCallFunc ->
-            val superIndexParam = superCallFunc.parameters[2]
-            val argsParam = superCallFunc.parameters[3]
-            irReturnByFunctionId(
-                subject = superCallFunc.parameters[1],
-                branches = functions.mapIndexedNotNull { index, func ->
-                    val superFunctions = supers[index]
-                    if (superFunctions.isEmpty() || func.isSuspend != isSuspend) return@mapIndexedNotNull null
+        addFunctionIdDispatcher(
+            contractFunction = dispatcherClass.requireSimpleFunctionOwner(name),
+            branches = functions.mapIndexedNotNull { index, func ->
+                val superFunctions = supers[index]
+                if (superFunctions.isEmpty() || func.isSuspend != isSuspend) return@mapIndexedNotNull null
+                FunctionIdBranch(id = func.mokkeryFunctionId, weight = func.dispatchWeight * superFunctions.size) { superCallFunc ->
                     val calls = superFunctions.map { superFunction ->
                         irDynamicCall(
                             target = superFunction,
                             mockedClass = this@addSuperCallsContract,
                             dispatchReceiver = irGet(superCallFunc.parameters[0]),
-                            argsParam = argsParam,
+                            argsParam = superCallFunc.parameters[3],
                             superQualifierSymbol = superFunction.parentAsClass.symbol
                         )
                     }
-                    func.mokkeryFunctionId to when (calls.size) {
+                    when (calls.size) {
                         1 -> calls.single()
                         else -> irWhenInt(
                             type = irBuiltIns.anyNType,
-                            subjectParam = superIndexParam,
+                            subjectParam = superCallFunc.parameters[2],
                             branches = calls.mapIndexed { index, call -> index to call },
                             elseResult = { irThrowMissingDispatcherCall() }
                         )
                     }
-                },
-                elseResult = { irThrowMissingDispatcherCall() }
-            )
-        }
+                }
+            },
+            elseResult = { irThrowMissingDispatcherCall() }
+        )
     }
 }
 
@@ -191,25 +195,24 @@ private fun IrClass.addSpyCallsContract(functions: List<IrSimpleFunction>) {
     val spiedObjectGetter = referencedGetter(MokkeryIr.Property.spiedObject)
     listOf(false, true).forEach { isSuspend ->
         val name = if (isSuspend) "mokkerySpyCallSuspend" else "mokkerySpyCall"
-        addOverridingMethod(pluginContext, dispatcherClass.requireSimpleFunctionOwner(name)) { contractFunc ->
-            val argsParam = contractFunc.parameters[2]
-            irReturnByFunctionId(
-                subject = contractFunc.parameters[1],
-                branches = functions.mapNotNull { func ->
-                    if (func.isSuspend != isSuspend) return@mapNotNull null
-                    func.mokkeryFunctionId to irDynamicCall(
+        addFunctionIdDispatcher(
+            contractFunction = dispatcherClass.requireSimpleFunctionOwner(name),
+            branches = functions.mapNotNull { func ->
+                if (func.isSuspend != isSuspend) return@mapNotNull null
+                FunctionIdBranch(id = func.mokkeryFunctionId, weight = func.dispatchWeight) { contractFunc ->
+                    irDynamicCall(
                         target = func.overriddenSymbols.first().owner,
                         mockedClass = this@addSpyCallsContract,
                         dispatchReceiver = irCall(spiedObjectGetter) {
                             arguments[0] = irGet(contractFunc.parameters[0])
                         },
-                        argsParam = argsParam,
+                        argsParam = contractFunc.parameters[2],
                         superQualifierSymbol = null
                     )
-                },
-                elseResult = { irThrowMissingDispatcherCall() }
-            )
-        }
+                }
+            },
+            elseResult = { irThrowMissingDispatcherCall() }
+        )
     }
 }
 
@@ -243,21 +246,20 @@ private fun IrClass.addCoreContract(
             setterBlock = { }
         )
     }
-    addOverridingMethod(pluginContext, contractClass.requireSimpleFunctionOwner("mokkeryFunction")) { contractFunc ->
-        val idParam = contractFunc.parameters[1]
-        irReturnByFunctionId(
-            subject = idParam,
-            branches = functions.map { func ->
-                func.mokkeryFunctionId to irCallCreateFunction(
+    addFunctionIdDispatcher(
+        contractFunction = contractClass.requireSimpleFunctionOwner("mokkeryFunction"),
+        branches = functions.map { func ->
+            FunctionIdBranch(id = func.mokkeryFunctionId, weight = func.dispatchWeight) { contractFunc ->
+                irCallCreateFunction(
                     mokkeryInstance = { irGet(contractFunc.parameters[0]) },
                     typeParamsContainer = this@addCoreContract,
                     function = func,
-                    functionId = irGet(idParam),
+                    functionId = irGet(contractFunc.parameters[1]),
                 )
-            },
-            elseResult = { irNull() }
-        )
-    }
+            }
+        },
+        elseResult = { irNull() }
+    )
     val aliases = functions.flatMap { member ->
         val pivot = member.mokkeryFunctionId
         member.mokkeryFunctionIds
@@ -265,14 +267,11 @@ private fun IrClass.addCoreContract(
             .map { it to pivot }
     }
     if (aliases.isEmpty()) return
-    addOverridingMethod(pluginContext, contractClass.requireSimpleFunctionOwner("mokkeryNormalizeId")) { contractFunc ->
-        val idParam = contractFunc.parameters[1]
-        irReturnByFunctionId(
-            subject = idParam,
-            branches = aliases.map { (alias, pivot) -> alias to irLong(pivot) },
-            elseResult = { irGet(idParam) }
-        )
-    }
+    addFunctionIdDispatcher(
+        contractFunction = contractClass.requireSimpleFunctionOwner("mokkeryNormalizeId"),
+        branches = aliases.map { (alias, pivot) -> FunctionIdBranch(id = alias, weight = 1) { irLong(pivot) } },
+        elseResult = { irGet(it.parameters[1]) }
+    )
 }
 
 context(scope: TransformerScope)
@@ -313,32 +312,124 @@ private fun IrBuilderWithScope.irDynamicCall(
     }
 }
 
+private class FunctionIdBranch(
+    val id: Long,
+    val weight: Int,
+    val result: IrBuilderWithScope.(IrSimpleFunction) -> IrExpression,
+)
+
+private const val MAX_DISPATCHER_CHUNK_WEIGHT = 350
+
+private val IrSimpleFunction.dispatchWeight get() = nonDispatchParameters.size + 2
+
+context(scope: TransformerScope)
+private fun IrClass.addFunctionIdDispatcher(
+    contractFunction: IrSimpleFunction,
+    branches: List<FunctionIdBranch>,
+    elseResult: IrBuilderWithScope.(IrSimpleFunction) -> IrExpression,
+) {
+    val chunks = branches
+        .groupBy { it.id.toInt() }
+        .toSortedMap()
+        .values
+        .chunkedByWeight()
+    if (chunks.size <= 1) {
+        addOverridingMethod(pluginContext, contractFunction) { irReturnByFunctionId(it, branches, elseResult) }
+        return
+    }
+    val chunkFunctions = chunks.mapIndexed { index, chunk ->
+        addDispatcherChunk(contractFunction, index, chunk, elseResult)
+    }
+    val lessOrEqual = irBuiltIns.lessOrEqualFunByOperandType.getValue(irBuiltIns.intClass)
+    addOverridingMethod(pluginContext, contractFunction) { function ->
+        val idToCheckInt = createTmpVariable(irCallToInt(irGet(function.parameters[1])))
+        +irReturn(
+            irWhen(
+                type = contractFunction.returnType,
+                branches = chunks.dropLast(1).mapIndexed { index, chunk ->
+                    irBranch(
+                        condition = irCall(lessOrEqual) {
+                            arguments[0] = irGet(idToCheckInt)
+                            arguments[1] = irInt(chunk.last().id.toInt())
+                        },
+                        result = irCallDispatcherChunk(chunkFunctions[index], function)
+                    )
+                } + irElseBranch(irCallDispatcherChunk(chunkFunctions.last(), function))
+            )
+        )
+    }
+}
+
+private fun Collection<List<FunctionIdBranch>>.chunkedByWeight(): List<List<FunctionIdBranch>> {
+    val chunks = mutableListOf<MutableList<FunctionIdBranch>>()
+    var weight = 0
+    forEach { group ->
+        val groupWeight = group.sumOf(FunctionIdBranch::weight)
+        if (chunks.isEmpty() || weight + groupWeight > MAX_DISPATCHER_CHUNK_WEIGHT) {
+            chunks += mutableListOf<FunctionIdBranch>()
+            weight = 0
+        }
+        chunks.last() += group
+        weight += groupWeight
+    }
+    return chunks
+}
+
+context(scope: TransformerScope)
+private fun IrClass.addDispatcherChunk(
+    contractFunction: IrSimpleFunction,
+    index: Int,
+    branches: List<FunctionIdBranch>,
+    elseResult: IrBuilderWithScope.(IrSimpleFunction) -> IrExpression,
+): IrSimpleFunction = addFunction {
+    name = Name.identifier("${contractFunction.name}Chunk$index")
+    returnType = contractFunction.returnType
+    visibility = DescriptorVisibilities.PRIVATE
+    modality = Modality.FINAL
+    isSuspend = contractFunction.isSuspend
+}.apply {
+    parameters = listOf(createDispatchReceiverParameterWithClassParent())
+    copyNonDispatchParametersWithoutDefaultsFrom(contractFunction)
+    body = symbol.declarationIrBuilder.irBlockBody { irReturnByFunctionId(this@apply, branches, elseResult) }
+}
+
+private fun IrBuilderWithScope.irCallDispatcherChunk(
+    chunk: IrSimpleFunction,
+    function: IrSimpleFunction,
+): IrExpression = irCall(chunk.symbol) {
+    function.parameters.forEachIndexed { index, param -> arguments[index] = irGet(param) }
+}
+
 context(scope: TransformerScope)
 private fun IrBlockBodyBuilder.irReturnByFunctionId(
-    subject: IrValueDeclaration,
-    branches: List<Pair<Long, IrExpression>>,
-    elseResult: () -> IrExpression,
+    function: IrSimpleFunction,
+    branches: List<FunctionIdBranch>,
+    elseResult: IrBuilderWithScope.(IrSimpleFunction) -> IrExpression,
 ) {
+    val subject = function.parameters[1]
     if (branches.isNotEmpty()) {
         val idToCheckInt = createTmpVariable(irCallToInt(irGet(subject)))
         +irWhen(
             type = irBuiltIns.unitType,
             branches = branches
-                .groupBy { (id, _) -> id.toInt() }
+                .groupBy { it.id.toInt() }
                 .map { (lowerId, sharedLowerId) ->
                     irBranch(
                         condition = irEquals(irGet(idToCheckInt), irInt(lowerId)),
                         result = irWhen(
                             type = irBuiltIns.unitType,
-                            branches = sharedLowerId.map { (id, result) ->
-                                irBranch(irEquals(irGet(subject), irLong(id)), irReturn(result))
+                            branches = sharedLowerId.map { branch ->
+                                irBranch(
+                                    condition = irEquals(irGet(subject), irLong(branch.id)),
+                                    result = irReturn(branch.result(this, function))
+                                )
                             }
                         )
                     )
                 }
         )
     }
-    +irReturn(elseResult())
+    +irReturn(elseResult(function))
 }
 
 private fun IrBuilderWithScope.irWhenInt(
