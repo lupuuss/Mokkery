@@ -1,0 +1,3 @@
+/ModuleInitializerMustNotHaveTypeParameters.kt:4:1: error: Module initializer must not have type parameters.
+
+/ModuleInitializerMustNotHaveTypeParameters.kt:7:1: error: Module initializer must not have type parameters.

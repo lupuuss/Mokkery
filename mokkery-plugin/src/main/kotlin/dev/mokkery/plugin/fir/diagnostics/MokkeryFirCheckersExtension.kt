@@ -21,7 +21,8 @@ class MokkeryFirCheckersExtension(
     override val declarationCheckers = object : DeclarationCheckers() {
         override val functionCheckers = setOf(
             MatchersDeclarationChecker(configuration),
-            TemplatingDeclarationChecker(configuration)
+            TemplatingDeclarationChecker(configuration),
+            ModuleInitializerDeclarationChecker(),
         )
     }
 }

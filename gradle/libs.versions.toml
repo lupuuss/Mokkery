@@ -1,15 +1,15 @@
 [versions]
 kotlinMininumSupported = "2.4.0"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 kotlinx-coroutines = "1.10.2"
-buildconfig = "5.7.0"
+buildconfig = "6.1.2"
 google-autoservice = "1.1.1"
-atomicfu = "0.31.0"
-kotlinx-benchmark = "0.4.17"
-dokka = "2.1.0"
-poko = "0.23.1"
-vanniktech-publish-plugin = "0.36.0"
-gradle-portal-publish = "2.0.0"
+atomicfu = "0.33.0"
+kotlinx-benchmark = "0.5.0"
+dokka = "2.2.0"
+poko = "0.23.2"
+vanniktech-publish-plugin = "0.37.0"
+gradle-portal-publish = "2.2.1"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

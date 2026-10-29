@@ -1,0 +1,19 @@
+/ModuleInitializerInvalidParameters.kt:9:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:12:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:15:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:18:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:21:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:24:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:27:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:31:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:34:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.
+
+/ModuleInitializerInvalidParameters.kt:37:1: error: Module initializer must have no parameters or a single parameter of type 'dev.mokkery.configurer.MokkeryConfigurer' or 'dev.mokkery.MokkeryScope'.

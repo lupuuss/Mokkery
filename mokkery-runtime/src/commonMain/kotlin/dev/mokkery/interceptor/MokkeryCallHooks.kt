@@ -22,12 +22,15 @@ public val <T : Any> T.callHooks: MokkeryCallHooks
 /**
  * Provides access to hooks that allow registering custom [MokkeryCallInterceptor]s in the call pipeline.
  *
- * Hooks are arbitrarily scoped. Currently, there are 3 scopes to register call interceptors:
+ * Hooks are arbitrarily scoped. Currently, there are 4 scopes to register call interceptors:
  * * Global - [MokkeryScope.global]
+ * * Module - [MokkeryScope.module]
  * * Suite-level [dev.mokkery.MokkerySuiteScope]
  * * Instance-level [MokkeryScope.from]
  *
  * Interceptors registered in a broader scope (e.g. global one) affect narrower scopes (e.g. instance-level one).
+ *
+ * Module-level hooks can be registered in [dev.mokkery.annotations.MokkeryModuleInit] functions.
  */
 public interface MokkeryCallHooks : MokkeryContext.Element {
 

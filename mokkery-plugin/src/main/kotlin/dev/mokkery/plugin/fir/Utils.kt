@@ -5,8 +5,6 @@ import org.jetbrains.kotlin.fir.SessionHolder
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.InlineStatus
-import org.jetbrains.kotlin.fir.declarations.declaredFunctions
-import org.jetbrains.kotlin.fir.declarations.declaredProperties
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirSpreadArgumentExpression
@@ -17,16 +15,11 @@ import org.jetbrains.kotlin.fir.resolve.isArrayOfCall
 import org.jetbrains.kotlin.fir.resolve.toClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 
 context(session: SessionHolder)
 fun FirFunctionSymbol<*>.dispatchReceiverClassLikeSymbolOrNull() = dispatchReceiverType?.toClassLikeSymbol()
 
 fun FirFunction.isInlinedInPlace() = this is FirAnonymousFunction && inlineStatus == InlineStatus.Inline
-
-fun FirRegularClassSymbol.declaredMembers(session: FirSession): List<FirBasedSymbol<*>> {
-    return declaredFunctions(session) + declaredProperties(session)
-}
 
 fun FirFunctionCall.allNonDispatchArgumentsMapping(symbol: FirFunctionSymbol<*>): Map<FirBasedSymbol<*>, FirExpression> {
     val contextSymbols = symbol.contextParameterSymbols

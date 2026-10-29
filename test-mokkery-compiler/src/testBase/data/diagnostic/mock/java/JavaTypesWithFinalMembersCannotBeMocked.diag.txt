@@ -1,0 +1,5 @@
+/main.kt:29:10: error: Type 'WithFinalMethod' has final members and cannot be used with 'mock'. Final members: fun method(): Unit
+
+/main.kt:30:10: error: Type 'InheritsFinalMethod' has final members and cannot be used with 'mock'. Final members: fun method(): Unit
+
+/main.kt:31:10: error: Type 'WithFinalGetter' has final members and cannot be used with 'mock'. Final members: fun getValue(): String!

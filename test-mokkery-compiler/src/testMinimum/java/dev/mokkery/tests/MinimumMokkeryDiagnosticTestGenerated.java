@@ -441,6 +441,38 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     }
 
     @Nested
+    @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java")
+    @TestDataPath("$PROJECT_ROOT")
+    public class Java {
+      private void run(String fileName) {
+        runTest("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java/" + fileName);
+      }
+
+      @Test
+      public void testAllFilesPresentInJava() {
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/mock/java"), Pattern.compile("^(.+)\\.kt$"), null, true);
+      }
+
+      @Test
+      @TestMetadata("JavaTypesCanBeMocked.kt")
+      public void testJavaTypesCanBeMocked() {
+        run("JavaTypesCanBeMocked.kt");
+      }
+
+      @Test
+      @TestMetadata("JavaTypesWithFinalMembersCannotBeMocked.kt")
+      public void testJavaTypesWithFinalMembersCannotBeMocked() {
+        run("JavaTypesWithFinalMembersCannotBeMocked.kt");
+      }
+
+      @Test
+      @TestMetadata("JavaTypesWithNotNullConstructorParametersCannotBeStubbed.kt")
+      public void testJavaTypesWithNotNullConstructorParametersCannotBeStubbed() {
+        run("JavaTypesWithNotNullConstructorParametersCannotBeStubbed.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/mock/many")
     @TestDataPath("$PROJECT_ROOT")
     public class Many {
@@ -508,6 +540,62 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       public void testParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked() {
         run("ParametrizedConstructorNoConstructorToStubConcreteInstantiationEnabledCannotBeMocked.kt");
       }
+    }
+  }
+
+  @Nested
+  @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit")
+  @TestDataPath("$PROJECT_ROOT")
+  public class ModuleInit {
+    private void run(String fileName) {
+      runTest("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit/" + fileName);
+    }
+
+    @Test
+    public void testAllFilesPresentInModuleInit() {
+      KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/moduleInit"), Pattern.compile("^(.+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerInvalidParameters.kt")
+    public void testModuleInitializerInvalidParameters() {
+      run("ModuleInitializerInvalidParameters.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustBeTopLevelFunction.kt")
+    public void testModuleInitializerMustBeTopLevelFunction() {
+      run("ModuleInitializerMustBeTopLevelFunction.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotBePrivate.kt")
+    public void testModuleInitializerMustNotBePrivate() {
+      run("ModuleInitializerMustNotBePrivate.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotBeSuspend.kt")
+    public void testModuleInitializerMustNotBeSuspend() {
+      run("ModuleInitializerMustNotBeSuspend.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerMustNotHaveTypeParameters.kt")
+    public void testModuleInitializerMustNotHaveTypeParameters() {
+      run("ModuleInitializerMustNotHaveTypeParameters.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializerOnExpect.kt")
+    public void testModuleInitializerOnExpect() {
+      run("ModuleInitializerOnExpect.kt");
+    }
+
+    @Test
+    @TestMetadata("ModuleInitializersValid.kt")
+    public void testModuleInitializersValid() {
+      run("ModuleInitializersValid.kt");
     }
   }
 
