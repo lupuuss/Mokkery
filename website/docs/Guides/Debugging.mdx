@@ -39,7 +39,44 @@ You can also create this debug string manually using `mokkeryDebugString` and pr
 
 ## Logging calls
 
-To log each call to a mock, use `MokkeryCallLogger`:
+To log each call to a mock, register `MokkeryCallLogger` in call hooks.
+
+### Globally
+
+For quick debugging, you can simply use:
+
+```kotlin
+MokkeryScope.global.callHooks.beforeAnswering.register(MokkeryCallLogger())
+```
+
+### Specific mock
+
+It's possible to register the logger just for a specific mock:
+
+```kotlin
+MokkeryScope.from(mock).callHooks.beforeAnswering.register(MokkeryCallLogger())
+
+// or on init
+
+mock<Foo> {
+    callHooks.beforeAnswering.register(MokkeryCallLogger())
+}
+```
+
+### Factory
+
+It is possible to register the logger for [mock and spy factories](../Guides/Factories).
+The logger is then applied to every instance created by a given factory:
+
+```kotlin
+val factory = mockFactoryOf(Foo::class, Bar::class) {
+    callHooks.beforeAnswering.register(MokkeryCallLogger())
+}
+```
+
+### Test class
+
+To log calls only for the duration of a single test class, register the logger before each test and unregister it after:
 
 ```kotlin
 private val logger = MokkeryCallLogger()
@@ -54,31 +91,30 @@ fun after() {
     MokkeryScope.global.callHooks.beforeAnswering.unregister(logger)
 }
 ```
-This approach ensures the logger is added only for the duration of a single test class.
 
-For quick debugging, you can simply use:
+### Module
 
-```kotlin
-MokkeryScope.global.callHooks.beforeAnswering.register(MokkeryCallLogger())
-```
-
-It's possible to register logger just for specific mock:
+To register the logger once for a whole module, use a top-level function annotated with `@MokkeryModuleInit`.
+Mokkery calls it once, when Mokkery is first used in the module (e.g. a mock is created):
 
 ```kotlin
-MokkeryScope.from(mock).callHooks.beforeAnswering.register(MokkeryCallLogger())
-
-// or on init
-
-mock<Foo> {
-    callHooks.beforeAnswering.register(MokkeryCallLogger())
+@MokkeryModuleInit
+fun init(scope: MokkeryScope) {
+    scope.callHooks.beforeAnswering.register(MokkeryCallLogger())
 }
 ```
 
-It is possible to register logger for [mock and spy factories](../Guides/Factories).
-The logger is then applied to every instance created by a given factory:
+The logger registered on `scope` applies only to mocks created in this module, so mocks created in other modules
+(e.g. shared test utilities) are not affected. It's also possible to register the logger in `MokkeryScope.global`
+from an initializer, so it applies to mocks from all modules:
 
 ```kotlin
-val factory = mockFactoryOf(Foo::class, Bar::class) {
-    callHooks.beforeAnswering.register(MokkeryCallLogger())
+@MokkeryModuleInit
+fun init() {
+    MokkeryScope.global.callHooks.beforeAnswering.register(MokkeryCallLogger())
 }
 ```
+
+However, the logger is registered only when the initializer runs. For this to work correctly, the first Mokkery call
+in your tests must come from the module that declares the initializer. Otherwise, calls made before that, e.g. on mocks
+created by shared test utilities, are not logged.
