@@ -2,7 +2,7 @@
 kotlinMininumSupported = "2.4.0"
 kotlin = "2.4.21"
 kotlinx-coroutines = "1.10.2"
-buildconfig = "5.7.0"
+buildconfig = "6.1.2"
 google-autoservice = "1.1.1"
 atomicfu = "0.31.0"
 kotlinx-benchmark = "0.4.17"
