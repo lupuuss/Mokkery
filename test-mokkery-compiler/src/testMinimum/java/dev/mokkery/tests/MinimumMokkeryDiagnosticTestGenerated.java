@@ -631,6 +631,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     }
 
     @Test
+    @TestMetadata("JavaFieldReferenceMustNotBePassedToEvery.kt")
+    public void testJavaFieldReferenceMustNotBePassedToEvery() {
+      run("JavaFieldReferenceMustNotBePassedToEvery.kt");
+    }
+
+    @Test
     @TestMetadata("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt")
     public void testMustNotDeclareFunctionsAcceptingMokkeryTemplatingScope() {
       run("MustNotDeclareFunctionsAcceptingMokkeryTemplatingScope.kt");
@@ -643,9 +649,27 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
     }
 
     @Test
+    @TestMetadata("PropertyReferenceChainMustNotBePassedToEvery.kt")
+    public void testPropertyReferenceChainMustNotBePassedToEvery() {
+      run("PropertyReferenceChainMustNotBePassedToEvery.kt");
+    }
+
+    @Test
+    @TestMetadata("PropertyReferenceWithoutBoundObjectMustNotBePassedToEvery.kt")
+    public void testPropertyReferenceWithoutBoundObjectMustNotBePassedToEvery() {
+      run("PropertyReferenceWithoutBoundObjectMustNotBePassedToEvery.kt");
+    }
+
+    @Test
     @TestMetadata("TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt")
     public void testTemplatingLambdasMustNotBePassedToTemplatingFunctions() {
       run("TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt");
+    }
+
+    @Test
+    @TestMetadata("ValuePassedToEveryPropertyOverloadMustBeActualReference.kt")
+    public void testValuePassedToEveryPropertyOverloadMustBeActualReference() {
+      run("ValuePassedToEveryPropertyOverloadMustBeActualReference.kt");
     }
 
     @Test

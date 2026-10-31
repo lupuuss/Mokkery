@@ -1,0 +1,3 @@
+/main.kt:(188,198): error: Field reference passed to 'every' is not supported. Only property references are allowed.
+
+/main.kt:(220,230): error: Field reference passed to 'every' is not supported. Only property references are allowed.

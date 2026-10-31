@@ -27,16 +27,20 @@ import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -45,10 +49,10 @@ import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
-fun IrCall.replaceEvery(): IrExpression = replaceWithInternalEvery(
-    originalCall = this,
-    toBeReplacedWith = referenced(MokkeryIr.Function.internalEvery).symbol,
-)
+fun IrCall.replaceEvery(): IrExpression = when (val templatingArgument = arguments[0]) {
+    is IrPropertyReference -> replaceWithInternalEveryProperty(this, templatingArgument)
+    else -> replaceWithInternalEvery(this, referenced(MokkeryIr.Function.internalEvery).symbol)
+}
 
 context(scope: TransformerScope)
 fun IrCall.replaceEverySuspend() = replaceWithInternalEvery(
@@ -87,6 +91,91 @@ private fun replaceWithInternalEvery(
             }
             typeArguments[0] = originalCall.typeArguments[0]
         }
+    }
+}
+
+context(scope: TransformerScope)
+private fun replaceWithInternalEveryProperty(
+    originalCall: IrCall,
+    propertyReference: IrPropertyReference,
+) = originalCall.replaceDeclarationIrBuilder {
+    val getterFunction = propertyReference.getter!!.owner
+    val setterSymbol = propertyReference.setter
+    val targetFun = referenced(
+        if (setterSymbol != null) MokkeryIr.Function.internalEveryMutableProperty
+        else MokkeryIr.Function.internalEveryProperty
+    )
+    val valueType = originalCall.typeArguments[0] ?: irBuiltIns.anyNType
+    val configureBlock = if (setterSymbol != null) originalCall.arguments.getOrNull(1) else null
+    val resultType = when {
+        configureBlock != null -> irBuiltIns.unitType
+        else -> targetFun.returnType.substitute(mapOf(targetFun.typeParameters[0].symbol to valueType))
+    }
+    irBlock(resultType = resultType) {
+        val receiverVar = createTmpVariable(propertyReference.arguments[0]!!)
+        val realPropertyArg = propertyReference.deepCopyWithSymbols().apply {
+            arguments[0] = irGet(receiverVar)
+        }
+        +irCall(targetFun.symbol) {
+            arguments[0] = irGetMokkeryModuleScope()
+            arguments[1] = realPropertyArg
+            arguments[2] = irPropertyTemplatingLambdaFor(receiverVar, getterFunction, setterSymbol?.owner, valueType)
+            if (setterSymbol != null) {
+                arguments[3] = configureBlock ?: irNull()
+            }
+            typeArguments[0] = valueType
+        }
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrBuilderWithScope.irPropertyTemplatingLambdaFor(
+    receiverVar: IrValueDeclaration,
+    getterFunction: IrSimpleFunction,
+    setterFunction: IrSimpleFunction?,
+    valueType: IrType,
+): IrFunctionExpression {
+    val lambdaType = irBuiltIns.functionN(1)
+        .typeWith(listOf(referencedDefaultType(MokkeryIr.Class.MokkeryTemplatingScope), irBuiltIns.unitType))
+    return irLambdaOf(lambdaType) { func ->
+        +irRunPropertyAccessorTemplateCall(irGet(func.parameters[0]), irGet(receiverVar), getterFunction, valueType)
+        if (setterFunction != null) {
+            +irRunPropertyAccessorTemplateCall(
+                templatingScopeGet = irGet(func.parameters[0]),
+                dispatchReceiver = irGet(receiverVar),
+                accessorFunction = setterFunction,
+                resultType = irBuiltIns.unitType
+            )
+        }
+    }
+}
+
+context(scope: TransformerScope)
+private fun IrBuilderWithScope.irRunPropertyAccessorTemplateCall(
+    templatingScopeGet: IrExpression,
+    dispatchReceiver: IrExpression,
+    accessorFunction: IrSimpleFunction,
+    resultType: IrType,
+): IrExpression {
+    val runTemplateFun = referenced(MokkeryIr.Function.runTemplate)
+    val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to resultType)
+    return irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
+        typeArguments[0] = resultType
+        arguments[0] = templatingScopeGet
+        arguments[1] = when (accessorFunction.modality) {
+            Modality.FINAL -> irCallCheckMockFinalMemberCall(dispatchReceiver, accessorFunction)
+            else -> dispatchReceiver
+        }
+        arguments[2] = kClassReference(accessorFunction.parentAsClass.defaultTypeErased)
+        arguments[3] = irLong(accessorFunction.mokkeryFunctionId)
+        arguments[4] = irString(accessorFunction.name.asString())
+        arguments[5] = when {
+            !accessorFunction.hasNonDispatchParameters() -> irNull()
+            else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
+                +irReturn(irCallListOfAnyMatchers(accessorFunction))
+            }
+        }
+        arguments[6] = irNull()
     }
 }
 

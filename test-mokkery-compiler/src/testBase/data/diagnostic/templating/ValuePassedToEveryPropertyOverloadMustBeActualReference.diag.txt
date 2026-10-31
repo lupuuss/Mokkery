@@ -1,0 +1,5 @@
+/ValuePassedToEveryPropertyOverloadMustBeActualReference.kt:15:11: error: Argument passed to 'every' for param 'property: KProperty<T>' must be a property reference expression.
+
+/ValuePassedToEveryPropertyOverloadMustBeActualReference.kt:16:11: error: Argument passed to 'every' for param 'property: KMutableProperty<T>' must be a property reference expression.
+
+/ValuePassedToEveryPropertyOverloadMustBeActualReference.kt:17:11: error: Argument passed to 'every' for param 'property: KMutableProperty<T>' must be a property reference expression.

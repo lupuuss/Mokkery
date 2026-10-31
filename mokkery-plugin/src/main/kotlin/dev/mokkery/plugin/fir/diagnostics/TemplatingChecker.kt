@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
+import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
@@ -42,6 +43,12 @@ class TemplatingChecker(
         Callable.verifySuspend
     )
 
+    private val referenceClassIds = setOf(
+        StandardClassIds.KFunction,
+        StandardClassIds.KProperty,
+        StandardClassIds.KMutableProperty,
+    )
+
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(expression: FirFunctionCall) {
         val callee = expression.calleeReference as? FirResolvedNamedReference ?: return
@@ -55,22 +62,62 @@ class TemplatingChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
     private fun checkTemplating(expression: FirFunctionCall) {
-        val blockArgument = expression
-            .arguments
-            .last()
-            .unwrapArgument()
-        checkTemplatingArgument(blockArgument.source ?: expression.source, blockArgument)
+        val mapping = (expression.argumentList as? FirResolvedArgumentList)?.mapping
+        val referenceEntry = mapping?.entries?.firstOrNull { (_, param) ->
+            param.symbol.resolvedReturnType.classId in referenceClassIds
+        }
+        val (rawArgument, parameter) = when {
+            referenceEntry != null -> referenceEntry.key to referenceEntry.value.symbol
+            else -> expression.arguments.last() to funSymbol.valueParameterSymbols.last()
+        }
+        val blockArgument = rawArgument.unwrapArgument()
+        checkTemplatingArgument(blockArgument.source ?: expression.source, blockArgument, parameter)
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
-    private fun checkTemplatingArgument(source: AbstractKtSourceElement?, argument: FirExpression) {
-        val blockParameter = funSymbol
-            .valueParameterSymbols
-            .firstOrNull()
+    private fun checkTemplatingArgument(
+        source: AbstractKtSourceElement?,
+        argument: FirExpression,
+        blockParameter: FirValueParameterSymbol?,
+    ) {
         val classId = blockParameter?.resolvedReturnType?.classId
         when (classId) {
             StandardClassIds.KFunction -> checkTemplatingReference(source, argument)
+            StandardClassIds.KProperty, StandardClassIds.KMutableProperty -> {
+                checkTemplatingPropertyReference(source, argument, blockParameter)
+            }
             else -> checkTemplatingBlock(source, argument)
+        }
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkTemplatingPropertyReference(
+        source: AbstractKtSourceElement?,
+        argument: FirExpression,
+        parameter: FirValueParameterSymbol,
+    ) {
+        if (argument !is FirCallableReferenceAccess) return reporter.reportOn(
+            source = argument.source,
+            factory = Diagnostics.PROPERTY_PARAM_MUST_BE_REFERENCE,
+            a = funSymbol.name,
+            b = parameter,
+        )
+        if (argument.toResolvedCallableSymbol() !is FirPropertySymbol) return reporter.reportOn(
+            source = source,
+            factory = Diagnostics.FIELD_REFERENCE_NOT_ALLOWED,
+            a = funSymbol.name,
+        )
+        val receiver = argument.dispatchReceiver
+            ?: return reporter.reportOn(
+                source = source,
+                factory = Diagnostics.PROPERTY_REFERENCE_NOT_BOUND,
+                a = funSymbol.name,
+            )
+        if (receiver is FirCallableReferenceAccess) {
+            return reporter.reportOn(
+                source = source,
+                factory = Diagnostics.PROPERTY_REFERENCE_CHAIN_NOT_ALLOWED,
+            )
         }
     }
 
@@ -152,5 +199,9 @@ class TemplatingChecker(
         val FUNCTION_REFERENCE_NOT_BOUND by error1<KtElement, Name>()
         val FUNCTION_REFERENCE_CHAIN_NOT_ALLOWED by error0<KtElement>()
         val PROPERTY_FUNCTION_REFERENCE_MUST_BE_ACCESSOR by error1<KtElement, Name>()
+        val PROPERTY_PARAM_MUST_BE_REFERENCE by error2<KtElement, Name, FirValueParameterSymbol>()
+        val PROPERTY_REFERENCE_NOT_BOUND by error1<KtElement, Name>()
+        val PROPERTY_REFERENCE_CHAIN_NOT_ALLOWED by error0<KtElement>()
+        val FIELD_REFERENCE_NOT_ALLOWED by error1<KtElement, Name>()
     }
 }

@@ -94,6 +94,8 @@ object MokkeryIr {
     object Function {
         val internalEvery by dev_mokkery_internal.refFunction
         val internalEverySuspend by dev_mokkery_internal.refFunction
+        val internalEveryProperty by dev_mokkery_internal.refFunction
+        val internalEveryMutableProperty by dev_mokkery_internal.refFunction
         val internalVerify by dev_mokkery_internal.refFunction
         val internalVerifySuspend by dev_mokkery_internal.refFunction
         val internalVerifyNoMoreCalls by dev_mokkery_internal.refFunction

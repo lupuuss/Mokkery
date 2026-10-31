@@ -8,7 +8,8 @@ import dev.mokkery.internal.matcher.capture.VoidCapture
 /**
  * Container for captured values. If [dev.mokkery.matcher.ArgMatcher] implements this interface,
  * [Capture.capture] is called on full match (all matchers for given call match).
- * Implementing [Capture] is not recommended. Use [CaptureMatcher].
+ * It is also accepted by [dev.mokkery.answering.MokkeryProperty.Companion.field] to capture property writes.
+ * Implementing [Capture] on matcher is not recommended. Use [CaptureMatcher].
  */
 public interface Capture<in T> {
 

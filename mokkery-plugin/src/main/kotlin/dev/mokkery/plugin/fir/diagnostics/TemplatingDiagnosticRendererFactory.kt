@@ -42,5 +42,25 @@ class TemplatingDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Invalid property accessor reference ''{0}''. Only ''get'' and ''set'' are supported.",
             rendererA = CommonRenderers.NAME,
         )
+        it.put(
+            factory = Diagnostics.PROPERTY_PARAM_MUST_BE_REFERENCE,
+            message = "Argument passed to ''{0}'' for param ''{1}'' must be a property reference expression.",
+            rendererA = CommonRenderers.NAME,
+            rendererB = FirDiagnosticRenderers.SYMBOL,
+        )
+        it.put(
+            factory = Diagnostics.PROPERTY_REFERENCE_NOT_BOUND,
+            message = "Property reference passed to ''{0}'' must be bound to a dispatch receiver.",
+            rendererA = CommonRenderers.NAME,
+        )
+        it.put(
+            factory = Diagnostics.PROPERTY_REFERENCE_CHAIN_NOT_ALLOWED,
+            message = "Property references chain is not allowed.",
+        )
+        it.put(
+            factory = Diagnostics.FIELD_REFERENCE_NOT_ALLOWED,
+            message = "Field reference passed to ''{0}'' is not supported. Only property references are allowed.",
+            rendererA = CommonRenderers.NAME,
+        )
     }
 }

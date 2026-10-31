@@ -1,0 +1,3 @@
+/PropertyReferenceChainMustNotBePassedToEvery.kt:(199,218): error: Property references chain is not allowed.
+
+/PropertyReferenceChainMustNotBePassedToEvery.kt:(241,259): error: Property references chain is not allowed.
