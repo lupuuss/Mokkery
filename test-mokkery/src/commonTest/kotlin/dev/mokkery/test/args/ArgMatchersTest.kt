@@ -117,6 +117,7 @@ class ArgMatchersTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testDirectCompositeFunctionReference() {
         every { mock.callPrimitive(matchesComposite(1, 2, builder = LogicalMatchers::Or)) } returnsArgAt 0
         assertEquals(1, mock.callPrimitive(1))
@@ -124,6 +125,7 @@ class ArgMatchersTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testDirectCompositeLambdaLiteral() {
         every {
             mock.callPrimitive(matchesComposite(1, 2) { LogicalMatchers.Or(it) })
@@ -133,6 +135,7 @@ class ArgMatchersTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testDirectLambdaVariable() {
         val lambda =  { matchers: List<ArgMatcher<Int>> -> LogicalMatchers.Or(matchers) }
         every { mock.callPrimitive(matchesComposite(1, 2, builder = lambda)) } returnsArgAt 0

@@ -42,7 +42,6 @@ object MokkeryIr {
         val MokkeryScope by dev_mokkery.refClass
         val MokkeryMatcherScope by dev_mokkery_matcher.refClass
         val ArgMatcher by dev_mokkery_matcher.refClass
-        val ArgMatcherComposite = dev_mokkery_matcher.refNestedClass("ArgMatcher", "Composite")
         val ArgMatcherEquals = dev_mokkery_matcher.refNestedClass("ArgMatcher", "Equals")
         val CompositeVarArgMatcher by dev_mokkery_internal_matcher.refClass
         val DefaultValuesMatcher by dev_mokkery_internal_matcher.refClass
@@ -107,7 +106,10 @@ object MokkeryIr {
         val typeArgumentAt by dev_mokkery_internal.refFunction
         val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
         val matches by dev_mokkery_matcher.refFunction { it.owner.parameters.size == 2 }
-        val matchesComposite by dev_mokkery_matcher.refFunction
+        val materialize by dev_mokkery_matcher.refFunction { fn -> fn.owner.parameters.none { it.varargElementType != null } }
+        val materializeVararg = IrFunctionById(CallableId(dev_mokkery_matcher, Name.identifier("materialize"))) { fn ->
+            fn.owner.parameters.any { it.varargElementType != null }
+        }
         val spread by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction

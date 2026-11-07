@@ -24,12 +24,6 @@ fun FirFunctionSymbol<*>.isTemplatingFunction(): Boolean {
             || contextParameterSymbols.any { it.resolvedReturnType.isMokkeryTemplatingScope() }
 }
 
-fun FirFunctionSymbol<*>.isCompositeMatcher(session: FirSession): Boolean {
-    return isMatcher() && contextParameterSymbols
-        .plus(valueParameterSymbols)
-        .any { it.hasAnnotation(matcherAnnotation, session) }
-}
-
 fun FirBasedSymbol<*>.acceptsMatcher(session: FirSession): Boolean = hasAnnotation(matcherAnnotation, session)
 
 fun FirBasedSymbol<*>.getMatcherAnnotation(session: FirSession): FirAnnotation? = getAnnotationByClassId(matcherAnnotation, session)

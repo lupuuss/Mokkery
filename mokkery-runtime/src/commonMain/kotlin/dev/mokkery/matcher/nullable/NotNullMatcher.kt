@@ -7,7 +7,8 @@ import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.propagateCapture
-import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.materialize
 import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
 import dev.mokkery.rendering.argMatcherRenderer
@@ -17,7 +18,7 @@ import dev.mokkery.rendering.argMatcherRenderer
  */
 public fun <T : Any> MokkeryMatcherScope.notNull(
     @Matcher matcher: T = any()
-): T? = matchesComposite(matcher) { NotNullMatcher<T?>(it[0]) }
+): T? = matches(NotNullMatcher(materialize(matcher)))
 
 /**
  * Matches an argument that is not null and matches [matcher].

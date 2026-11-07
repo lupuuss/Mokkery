@@ -9,7 +9,7 @@ import dev.mokkery.plugin.ir.MokkeryIr
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.irAttribute
-import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.getArrayElementType
 import org.jetbrains.kotlin.ir.util.hasAnnotation
@@ -28,26 +28,23 @@ fun compileIfMatcher(function: IrSimpleFunction): IrSimpleFunction {
     }
     val matchesIntrinsics = setOf(
         referenced(MokkeryIr.Function.matches),
-        referenced(MokkeryIr.Function.matchesComposite),
+        referenced(MokkeryIr.Function.materialize),
+        referenced(MokkeryIr.Function.materializeVararg),
     )
     return when {
         function in matchesIntrinsics -> function.apply { isCompiledMatcher = true }
         else -> function.apply {
             isCompiledMatcher = true
-            transformSignature()
-            transformBody()
+            val matcherParams = transformSignature()
+            transformBody(matcherParams)
         }
     }
 }
 
 context(scope: TransformerScope)
-private fun IrFunction.transformBody() {
-    val matcherAnnotationSymbol = referencedSymbol(MokkeryIr.Class.Matcher)
+private fun IrFunction.transformBody(matcherParams: List<IrValueParameter>) {
     body = body?.let { body ->
-        val inliner = MatchersInliningTransformer(
-            pluginScope = scope,
-            initialValueDeclarations = parameters.filter { it.hasAnnotation(matcherAnnotationSymbol) }
-        )
+        val inliner = MatchersInliningTransformer(pluginScope = scope, initialValueDeclarations = matcherParams)
         inliner.withScope(this) {
             body.transform(inliner, null)
         }
@@ -55,34 +52,19 @@ private fun IrFunction.transformBody() {
 }
 
 context(scope: TransformerScope)
-private fun IrFunction.transformSignature(): List<IrValueParameterSymbol> {
+private fun IrFunction.transformSignature(): List<IrValueParameter> {
     val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    val argMatcherCompositeClass = referenced(MokkeryIr.Class.ArgMatcherComposite)
-    val matcherParams = transformCompositeParamsTypes()
-    val type = when {
-        matcherParams.any() -> argMatcherCompositeClass.typeWith(returnType)
-        else -> argMatcherClass.typeWith(returnType)
-    }
-    returnType = type
-    return matcherParams
-}
-
-context(scope: TransformerScope)
-private fun IrFunction.transformCompositeParamsTypes(): List<IrValueParameterSymbol> {
-    val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    val matcherParams = mutableListOf<IrValueParameterSymbol>()
     val matcherAnnotationSymbol = referencedSymbol(MokkeryIr.Class.Matcher)
-    parameters.forEach {
-        if (it.hasAnnotation(matcherAnnotationSymbol)) {
-            matcherParams += it.symbol
-            if (it.isVararg) {
-                val matcherType = argMatcherClass.typeWith(it.type.getArrayElementType(irBuiltIns))
-                it.type = irBuiltIns.arrayClass.typeWith(matcherType)
-                it.varargElementType = matcherType
-            } else {
-                it.type = argMatcherClass.typeWith(it.type)
-            }
+    val matcherParams = parameters.filter { it.hasAnnotation(matcherAnnotationSymbol) }
+    matcherParams.forEach {
+        if (it.isVararg) {
+            val matcherType = argMatcherClass.typeWith(it.type.getArrayElementType(irBuiltIns))
+            it.type = irBuiltIns.arrayClass.typeWith(matcherType)
+            it.varargElementType = matcherType
+        } else {
+            it.type = argMatcherClass.typeWith(it.type)
         }
     }
+    returnType = argMatcherClass.typeWith(returnType)
     return matcherParams
 }

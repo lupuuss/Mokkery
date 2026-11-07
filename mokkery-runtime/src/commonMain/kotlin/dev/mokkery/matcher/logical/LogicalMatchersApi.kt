@@ -1,10 +1,9 @@
 package dev.mokkery.matcher.logical
 
 import dev.mokkery.annotations.Matcher
-import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.MokkeryMatcherScope
-import dev.mokkery.matcher.logical.LogicalMatchers.Not
-import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.materialize
 
 /**
  * Matches argument that satisfies all the matchers ([first], [second] and all from [moreMatchers]).
@@ -19,7 +18,7 @@ public fun <T> MokkeryMatcherScope.and(
     @Matcher first: T,
     @Matcher second: T,
     @Matcher vararg moreMatchers: T
-): T = matchesComposite(first, second, *moreMatchers, builder = LogicalMatchers::And)
+): T = matches(LogicalMatchers.And(materialize(first, second, *moreMatchers)))
 
 /**
  * Matches argument that satisfies any matcher ([first], [second] or any from [moreMatchers]).
@@ -33,7 +32,7 @@ public fun <T> MokkeryMatcherScope.or(
     @Matcher first: T,
     @Matcher second: T,
     @Matcher vararg moreMatchers: T
-): T = matchesComposite(first, second, *moreMatchers, builder = LogicalMatchers::Or)
+): T = matches(LogicalMatchers.Or(materialize(first, second, *moreMatchers)))
 
 /**
  * Matches argument that does not satisfy all given matchers ([matcher] and [moreMatchers]).
@@ -41,4 +40,4 @@ public fun <T> MokkeryMatcherScope.or(
 public fun <T> MokkeryMatcherScope.not(
     @Matcher matcher: T,
     @Matcher vararg moreMatchers: T,
-): T = matchesComposite(matcher, *moreMatchers, builder = LogicalMatchers::Not)
+): T = matches(LogicalMatchers.Not(materialize(matcher, *moreMatchers)))

@@ -1,0 +1,5 @@
+/VarargMatcherMustBeSpread.kt:6:89: error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).
+
+/VarargMatcherMustBeSpread.kt:9:29: error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).
+
+/VarargMatcherMustBeSpread.kt:14:16: error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).

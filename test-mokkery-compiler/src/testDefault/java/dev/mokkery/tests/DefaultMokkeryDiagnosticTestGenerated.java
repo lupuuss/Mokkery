@@ -151,6 +151,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("MatcherParamsAreMatchers.kt")
+        public void testMatcherParamsAreMatchers() {
+          run("MatcherParamsAreMatchers.kt");
+        }
+
+        @Test
         @TestMetadata("MatchersMustNotBePassedToMethods.kt")
         public void testMatchersMustNotBePassedToMethods() {
           run("MatchersMustNotBePassedToMethods.kt");
@@ -181,9 +187,9 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
-        @TestMetadata("MatchesMustNotBeUsedWithCompositeMatchers.kt")
-        public void testMatchesMustNotBeUsedWithCompositeMatchers() {
-          run("MatchesMustNotBeUsedWithCompositeMatchers.kt");
+        @TestMetadata("MaterializedMatchersAreRegularValues.kt")
+        public void testMaterializedMatchersAreRegularValues() {
+          run("MaterializedMatchersAreRegularValues.kt");
         }
 
         @Test
@@ -196,6 +202,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         @TestMetadata("TemplatingMustNotBeNested.kt")
         public void testTemplatingMustNotBeNested() {
           run("TemplatingMustNotBeNested.kt");
+        }
+
+        @Test
+        @TestMetadata("VarargMatcherMustBeSpread.kt")
+        public void testVarargMatcherMustBeSpread() {
+          run("VarargMatcherMustBeSpread.kt");
         }
       }
 
@@ -297,15 +309,9 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
-        @TestMetadata("MatchesCompositeArgIsDetectedPerCallSite.kt")
-        public void testMatchesCompositeArgIsDetectedPerCallSite() {
-          run("MatchesCompositeArgIsDetectedPerCallSite.kt");
-        }
-
-        @Test
-        @TestMetadata("MatchesMustNotBeUsedWithCompositeMatchers.kt")
-        public void testMatchesMustNotBeUsedWithCompositeMatchers() {
-          run("MatchesMustNotBeUsedWithCompositeMatchers.kt");
+        @TestMetadata("MatchesAcceptsMaterializedMatchers.kt")
+        public void testMatchesAcceptsMaterializedMatchers() {
+          run("MatchesAcceptsMaterializedMatchers.kt");
         }
 
         @Test

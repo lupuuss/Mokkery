@@ -54,7 +54,7 @@ object Mokkery {
         val ext by dev_mokkery_templating.callableId
         val ctx by dev_mokkery_templating.callableId
         val matches by dev_mokkery_matcher.callableId
-        val matchesComposite by dev_mokkery_matcher.callableId
+        val materialize by dev_mokkery_matcher.callableId
         val mockFactoryOf by dev_mokkery_factory.callableId
         val spyFactoryOf by dev_mokkery_factory.callableId
     }
@@ -67,7 +67,6 @@ object Mokkery {
         val MokkeryModuleInit by dev_mokkery_annotations.classId
         val MokkeryConfigurer by dev_mokkery_configurer.classId
         val ArgMatcher by dev_mokkery_matcher.classId
-        val ArgMatcherComposite = dev_mokkery_matcher.nestedClassId("ArgMatcher", "Composite")
         val Templating by dev_mokkery_internal_annotations.classId
     }
 }

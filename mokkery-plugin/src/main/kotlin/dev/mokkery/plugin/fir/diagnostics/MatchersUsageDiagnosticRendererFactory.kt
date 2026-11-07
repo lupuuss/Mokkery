@@ -86,8 +86,8 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
-            factory = Diagnostics.MATCHES_WITH_COMPOSITE_ARG,
-            message = "`dev.mokkery.matcher.matches` cannot be used with `ArgMatcher.Composite` matchers. To register composite matcher use `dev.mokkery.matcher.matchesComposite`."
+            factory = Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD,
+            message = "Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`)."
         )
     }
 }

@@ -11,10 +11,31 @@ import kotlin.reflect.KFunction1
 
 /**
  * Matches argument that satisfies a [matcher].
- * Cannot be used with [ArgMatcher.Composite]. Use [matchesComposite] instead.
-*/
+ */
 @Suppress("UnusedReceiverParameter")
 public fun <T> MokkeryMatcherScope.matches(matcher: ArgMatcher<T>): T = mokkeryIntrinsic
+
+/**
+ * Returns the [ArgMatcher] object behind [matcher]. A literal value is returned as [ArgMatcher.Equals].
+ *
+ * It is the inverse of [matches]: `materialize(matches(matcher))` returns `matcher`.
+ */
+@Suppress("UnusedReceiverParameter")
+public fun <T> MokkeryMatcherScope.materialize(@Matcher matcher: T): ArgMatcher<T> = mokkeryIntrinsic
+
+/**
+ * Like single-value [materialize], but for many [matchers] at once, including vararg parameters marked with [Matcher].
+ * Returns their [ArgMatcher] objects in order.
+ *
+ * Matchers and literal values can be mixed. A vararg parameter **must** be passed with the spread operator:
+ * ```kotlin
+ * fun <T> MokkeryMatcherScope.oneOf(@Matcher first: T, @Matcher vararg others: T): T {
+ *     return matches(LogicalMatchers.Or(materialize(first, *others)))
+ * }
+ * ```
+ */
+@Suppress("UnusedReceiverParameter")
+public fun <T> MokkeryMatcherScope.materialize(@Matcher vararg matchers: T): List<ArgMatcher<T>> = mokkeryIntrinsic
 
 /**
  * Matches an argument according to the [predicate]. Registered matcher [Any.toString] calls [toString].
@@ -37,31 +58,6 @@ public fun <T> MokkeryMatcherScope.matchesBy(function: KFunction1<T, Boolean>): 
     toString = { "${function.name}()" },
     predicate = function
 )
-
-/**
- * Matches an argument that satisfies a matcher composed of [matchers] with [builder].
- *
- * Matchers used to create a composite must be passed via the [matchers] vararg.
- * The [builder] receives a list of actual matcher objects, in the same order as provided in the vararg,
- * which can then be composed.
- * Any other arguments must be passed directly to the matcher constructor inside the [builder].
- *
- * It is allowed to use literal values as matchers; they are automatically wrapped with
- * [dev.mokkery.matcher.ArgMatcher.Equals].
- *
- * Samples:
- * * [dev.mokkery.matcher.capture.capture]
- * * [dev.mokkery.matcher.logical.or]
- * * [dev.mokkery.matcher.logical.not]
- * * [dev.mokkery.matcher.logical.and]
- * * [dev.mokkery.matcher.nullable.notNull]
- */
-@Suppress("UnusedReceiverParameter")
-@DelicateMokkeryApi
-public fun <T : R, R> MokkeryMatcherScope.matchesComposite(
-    @Matcher vararg matchers: T,
-    builder: (List<ArgMatcher<T>>) -> ArgMatcher.Composite<R>
-): R = mokkeryIntrinsic
 
 /**
  * Matches any argument.
@@ -105,3 +101,27 @@ public fun <T : Comparable<T>> MokkeryMatcherScope.gte(
  * Matches an argument that is an instance of type [T].
  */
 public inline fun <reified T> MokkeryMatcherScope.ofType(): T = matches(ArgMatcher.OfType(T::class))
+
+/**
+ * **DEPRECATED**
+ * Matches an argument that satisfies a composite matcher created by [builder] from [matchers].
+ *
+ * To migrate, get the matcher objects with [materialize] and pass the composite to [matches]:
+ * ```kotlin
+ * // before
+ * fun <T> MokkeryMatcherScope.or(@Matcher first: T, @Matcher second: T): T {
+ *     return matchesComposite(first, second) { LogicalMatchers.Or(it) }
+ * }
+ *
+ * // after
+ * fun <T> MokkeryMatcherScope.or(@Matcher first: T, @Matcher second: T): T {
+ *     return matches(LogicalMatchers.Or(materialize(first, second)))
+ * }
+ * ```
+ */
+@Deprecated(message = "Replaced by `matches` combined with `materialize`. See the migration guide in the `matchesComposite` KDoc.")
+@DelicateMokkeryApi
+public fun <T : R, R> MokkeryMatcherScope.matchesComposite(
+    @Matcher vararg matchers: T,
+    builder: (List<ArgMatcher<T>>) -> ArgMatcher.Composite<R>
+): R = matches(builder(materialize(matchers = matchers)))

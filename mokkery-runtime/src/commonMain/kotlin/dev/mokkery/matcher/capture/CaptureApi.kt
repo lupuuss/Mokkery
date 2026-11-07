@@ -3,7 +3,8 @@ package dev.mokkery.matcher.capture
 import dev.mokkery.annotations.Matcher
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.matches
+import dev.mokkery.matcher.materialize
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [capture].
@@ -12,7 +13,7 @@ import dev.mokkery.matcher.matchesComposite
 public fun <T> MokkeryMatcherScope.capture(
     container: Capture<T>,
     @Matcher matcher: T = any()
-): T = matchesComposite(matcher) { CaptureMatcher(container, it[0]) }
+): T = matches(CaptureMatcher(container, materialize(matcher)))
 
 /**
  * Matches an argument with [matcher] and captures matching arguments into [list].

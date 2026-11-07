@@ -1,1 +1,5 @@
-/MatcherMustNotBePassedToNonMatcherParams.kt:5:64: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+/MatcherMustNotBePassedToNonMatcherParams.kt:6:64: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+
+/MatcherMustNotBePassedToNonMatcherParams.kt:11:29: error: 'value: Any?' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+
+/MatcherMustNotBePassedToNonMatcherParams.kt:15:32: error: 'vararg values: Any?' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.

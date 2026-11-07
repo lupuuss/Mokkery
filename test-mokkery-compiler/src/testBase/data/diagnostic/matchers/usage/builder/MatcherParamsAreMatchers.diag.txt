@@ -1,0 +1,3 @@
+/MatcherParamsAreMatchers.kt:6:9: error: Operators cannot be used with matchers, but '==' operator is used.
+
+/MatcherParamsAreMatchers.kt:11:13: error: Matchers can only be passed to member functions, but were passed to 'fun println(message: Any?): Unit'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.

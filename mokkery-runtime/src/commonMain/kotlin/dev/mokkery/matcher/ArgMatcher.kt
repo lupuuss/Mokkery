@@ -11,6 +11,8 @@ import kotlin.reflect.KClass
 
 /**
  * Checks if given argument satisfies provided conditions.
+ *
+ * A matcher that combines other matchers should implement [ArgMatcher.Composite].
  */
 public fun interface ArgMatcher<in T> {
 
@@ -81,11 +83,37 @@ public fun interface ArgMatcher<in T> {
     }
 
     /**
-     * Arg matcher that must be composed with other matchers.
-     * Every composite matcher has to implement [Capture] to propagate it to its children.
-     * Use [dev.mokkery.matcher.capture.propagateCapture] for convenience.
+     * A matcher that combines other matchers (e.g. [dev.mokkery.matcher.logical.LogicalMatchers.Or]).
      *
-     * Any composite matcher must be composed using [matchesComposite].
+     * An implementation accepts its child matchers in any form it needs (e.g. `List<ArgMatcher<T>>`)
+     * and **must** propagate [Capture.capture] to its direct children:
+     * ```kotlin
+     * public class Or<T>(
+     *     public val matchers: List<ArgMatcher<T>>
+     * ) : ArgMatcher.Composite<T> {
+     *     override fun matches(arg: T): Boolean = matchers.any { it.matches(arg) }
+     *
+     *     override fun capture(value: T) {
+     *         matchers.propagateCapture(value)
+     *     }
+     * }
+     * ```
+     *
+     * To use it, write a [MokkeryMatcherScope] extension like for a regular matcher, mark the parameters that
+     * accept matchers with [dev.mokkery.annotations.Matcher] and turn them into matcher objects with
+     * [dev.mokkery.matcher.materialize]:
+     * ```kotlin
+     * fun <T> MokkeryMatcherScope.or(@Matcher first: T, @Matcher second: T, @Matcher vararg others: T): T {
+     *     return matches(Or(materialize(first, second, *others)))
+     * }
+     * ```
+     *
+     * Existing implementations:
+     * * [dev.mokkery.matcher.capture.capture]
+     * * [dev.mokkery.matcher.logical.or]
+     * * [dev.mokkery.matcher.logical.not]
+     * * [dev.mokkery.matcher.logical.and]
+     * * [dev.mokkery.matcher.nullable.notNull]
      */
     @DelicateMokkeryApi
     public interface Composite<T> : ArgMatcher<T>, Capture<T> {
