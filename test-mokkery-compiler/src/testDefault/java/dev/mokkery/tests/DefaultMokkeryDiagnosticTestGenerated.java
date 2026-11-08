@@ -98,6 +98,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
       public void testMatcherScopeMustNotBeNullable() {
         run("MatcherScopeMustNotBeNullable.kt");
       }
+
+      @Test
+      @TestMetadata("MatcherScopeMustNotBeTypeParameter.kt")
+      public void testMatcherScopeMustNotBeTypeParameter() {
+        run("MatcherScopeMustNotBeTypeParameter.kt");
+      }
     }
 
     @Nested

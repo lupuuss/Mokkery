@@ -13,3 +13,5 @@ val <!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>MokkeryMatcherScope?<!>.nullableProper
 val nullableLambda = { <!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>scope: MokkeryMatcherScope?<!> -> 1 }
 
 fun MokkeryMatcherScope.nonNullReceiver(): Int = 1
+
+data class NullableScopeHolder(<!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>val scope: MokkeryMatcherScope?<!>)

@@ -29,5 +29,9 @@ class MatchersDeclarationDiagnosticRendererFactory : BaseDiagnosticRendererFacto
             factory = Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE,
             message = "MokkeryMatcherScope must not be nullable."
         )
+        it.put(
+            factory = Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_TYPE_PARAMETER,
+            message = "MokkeryMatcherScope must not be provided through a type parameter."
+        )
     }
 }

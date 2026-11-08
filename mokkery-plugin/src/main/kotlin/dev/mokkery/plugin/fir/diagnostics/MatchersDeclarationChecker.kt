@@ -29,9 +29,12 @@ import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.classId
+import org.jetbrains.kotlin.fir.types.constructType
 import org.jetbrains.kotlin.fir.types.isMarkedNullable
 import org.jetbrains.kotlin.fir.types.isSubtypeOf
+import org.jetbrains.kotlin.fir.types.lowerBoundIfFlexible
 import org.jetbrains.kotlin.psi.KtElement
 
 class MatchersDeclarationChecker(
@@ -42,7 +45,8 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(declaration: FirFunction) {
-        checkNullableMatcherScope(declaration)
+        if (declaration.source?.kind is KtFakeSourceElementKind.DataClassGeneratedMembers) return
+        checkMatcherScopeTypes(declaration)
         if (!declaration.symbol.hasMatcherScope()) return
         if (declaration.isInlinedInPlace()) return
         checkModality(declaration)
@@ -62,12 +66,24 @@ class MatchersDeclarationChecker(
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
-    private fun checkNullableMatcherScope(declaration: FirFunction) {
-        declaration.ownParameters()
-            .filter { (_, type) -> type.isMarkedNullable && type.isMokkeryMatcherScope() }
-            .forEach { (symbol, _) ->
-                reporter.reportOn(symbol.source, Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE)
+    private fun checkMatcherScopeTypes(declaration: FirFunction) {
+        declaration.ownParameters().forEach { (symbol, type) ->
+            when {
+                type.isMarkedNullable && type.isMokkeryMatcherScope() -> {
+                    reporter.reportOn(symbol.source, Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE)
+                }
+                type.isMatcherScopeTypeParameter() -> {
+                    reporter.reportOn(symbol.source, Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_TYPE_PARAMETER)
+                }
             }
+        }
+    }
+
+    context(context: CheckerContext)
+    private fun ConeKotlinType.isMatcherScopeTypeParameter(): Boolean {
+        if (lowerBoundIfFlexible() !is ConeTypeParameterType) return false
+        val scopeClass = context.session.getRegularClassSymbolByClassId(Mokkery.ClassId.MokkeryMatcherScope) ?: return false
+        return isSubtypeOf(scopeClass.constructType(emptyArray(), isMarkedNullable = true), context.session)
     }
 
     private fun FirFunction.ownParameters(): List<Pair<FirBasedSymbol<*>, ConeKotlinType>> = when {
@@ -133,5 +149,6 @@ class MatchersDeclarationChecker(
         val PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER by error1<KtElement, ConeKotlinType>()
         val MATCHER_MUST_BE_REGULAR_FUNCTION by error0<KtElement>()
         val MATCHER_SCOPE_MUST_NOT_BE_NULLABLE by error0<KtElement>()
+        val MATCHER_SCOPE_MUST_NOT_BE_TYPE_PARAMETER by error0<KtElement>()
     }
 }

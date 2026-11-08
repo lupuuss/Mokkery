@@ -1,0 +1,13 @@
+/MatcherScopeMustNotBeTypeParameter.kt:5:31: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:7:48: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:9:9: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:12:31: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:15:32: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:17:34: error: MokkeryMatcherScope must not be provided through a type parameter.
+
+/MatcherScopeMustNotBeTypeParameter.kt:23:56: error: MokkeryMatcherScope must not be provided through a type parameter.

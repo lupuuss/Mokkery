@@ -7,3 +7,5 @@
 /MatcherScopeMustNotBeNullable.kt:(236,256): error: MokkeryMatcherScope must not be nullable.
 
 /MatcherScopeMustNotBeNullable.kt:(317,344): error: MokkeryMatcherScope must not be nullable.
+
+/MatcherScopeMustNotBeNullable.kt:(436,467): error: MokkeryMatcherScope must not be nullable.
