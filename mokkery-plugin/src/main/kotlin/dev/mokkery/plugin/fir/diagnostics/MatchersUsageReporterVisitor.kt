@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
+import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirCheckNotNullCall
@@ -43,6 +44,7 @@ import org.jetbrains.kotlin.fir.expressions.FirLoop
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirStringConcatenationCall
+import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirThrowExpression
 import org.jetbrains.kotlin.fir.expressions.FirTryExpression
 import org.jetbrains.kotlin.fir.expressions.FirTypeOperatorCall
@@ -55,6 +57,7 @@ import org.jetbrains.kotlin.fir.expressions.calleeReference
 import org.jetbrains.kotlin.fir.lastExpression
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
+import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -62,7 +65,6 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
@@ -99,7 +101,7 @@ class MatchersUsageReporterVisitor(
     private val nestedClassStack = mutableListOf<FirClassSymbol<*>>()
     private val functionsStack = mutableListOf<FirFunctionSymbol<*>>()
     private val currentCallsStack = mutableListOf<FirQualifiedAccessExpression>()
-    private val callAssociatedLambdas = mutableMapOf<FirFunctionSymbol<*>, FirQualifiedAccessExpression?>()
+    private val scopeFunctionBlocks = mutableSetOf<FirFunctionSymbol<*>>()
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
     private val matcherVarargSymbols = matcherParameters
         .filterTo(mutableSetOf()) { it.isVararg() }
@@ -120,14 +122,23 @@ class MatchersUsageReporterVisitor(
         visitAccess(propertyAccessExpression)
     }
 
+    override fun visitThisReceiverExpression(thisReceiverExpression: FirThisReceiverExpression) {
+        visitAccess(thisReceiverExpression)
+    }
+
     private fun visitAccess(access: FirQualifiedAccessExpression) = context(context) {
         val symbol = access.calleeReference.toResolvedCallableSymbol()
         when {
+            matchersProcessor.isMatcher(access) -> {
+                val canUseMatcher = ensureCanUseMatchersNow(access)
+                if (canUseMatcher && symbol != null && symbol.isMatcherBuilder()) {
+                    reportIllegalMatcherConstruction(access, symbol)
+                }
+            }
             symbol == null -> Unit
             symbol.callableId in templatingFunctions -> {
                 reporter.reportOn(access.source, Diagnostics.ILLEGAL_NESTED_TEMPLATING, symbol.name)
             }
-            symbol.isMatcherBuilder() -> reportIllegalMatcherBuilderUsage(access, symbol)
             symbol.isMaterializer() -> reportIllegalMatcherConstruction(access, symbol)
             symbol.callableId in contextFunctionIds || access in legalizedNonMemberFunctionWithMatchers -> Unit
             matchersProcessor.isMatcher(access.dispatchReceiver) -> {
@@ -268,9 +279,9 @@ class MatchersUsageReporterVisitor(
 
     override fun visitAnonymousFunction(anonymousFunction: FirAnonymousFunction) {
         functionsStack += anonymousFunction.symbol
-        callAssociatedLambdas[anonymousFunction.symbol] = currentCallsStack.lastOrNull()
+        processScopeFunctionBlock(anonymousFunction)
         anonymousFunction.acceptChildren(this)
-        callAssociatedLambdas.remove(anonymousFunction.symbol)
+        scopeFunctionBlocks -= anonymousFunction.symbol
         functionsStack -= anonymousFunction.symbol
     }
 
@@ -304,36 +315,30 @@ class MatchersUsageReporterVisitor(
         element.acceptChildren(this)
     }
 
-    private fun ensureCanUseMatchersNow(usage: FirExpression): Boolean = context(context) {
-        val currentParent = functionsStack.lastOrNull()
-        val associatedCallToLambda = callAssociatedLambdas[currentParent]
-        val associatedCalleeRef = associatedCallToLambda?.calleeReference as? FirResolvedNamedReference
-        val associatedCallSymbol = associatedCalleeRef?.resolvedSymbol as? FirNamedFunctionSymbol
-        if (nestedClassStack.isNotEmpty()) {
-            reporter.reportOn(
-                usage.source,
-                Diagnostics.ILLEGAL_NESTED_CLASS_MATCHERS,
-                nestedClassStack.last()
-            )
-            return false
-        }
-        if (
-            currentParent == null
-            || currentParent == parentFunction
-            || associatedCallSymbol?.callableId in contextFunctionIds
-        ) {
-            return true
-        }
-        reporter.reportOn(
-            usage.source,
-            Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS,
-            currentParent
-        )
-        return false
+    private fun processScopeFunctionBlock(anonymousFunction: FirAnonymousFunction) {
+        val call = currentCallsStack.lastOrNull() ?: return
+        val symbol = call.calleeReference.toResolvedNamedFunctionSymbol() ?: return
+        if (symbol.callableId !in contextFunctionIds) return
+        val arguments = call.allNonDispatchArgumentsMapping(symbol)
+        val block = arguments[symbol.valueParameterSymbols.last()]?.unwrapExpressionOrArgument()
+        if ((block as? FirAnonymousFunctionExpression)?.anonymousFunction != anonymousFunction) return
+        scopeFunctionBlocks += anonymousFunction.symbol
+        val values = listOfNotNull(call.extensionReceiver) + symbol.valueParameterSymbols.dropLast(1).mapNotNull(arguments::get)
+        val blockParameters = listOfNotNull(anonymousFunction.receiverParameter?.symbol) +
+                anonymousFunction.contextParameters.map { it.symbol }
+        blockParameters.zip(values, matchersProcessor::processValue)
     }
 
-    private fun reportIllegalMatcherBuilderUsage(access: FirQualifiedAccessExpression, symbol: FirCallableSymbol<*>) {
-        if (ensureCanUseMatchersNow(access)) reportIllegalMatcherConstruction(access, symbol)
+    private fun ensureCanUseMatchersNow(usage: FirExpression): Boolean = context(context) {
+        if (nestedClassStack.isNotEmpty()) {
+            reporter.reportOn(usage.source, Diagnostics.ILLEGAL_NESTED_CLASS_MATCHERS, nestedClassStack.last())
+            return false
+        }
+        val nestedFunction = functionsStack
+            .lastOrNull { it != parentFunction && it !in scopeFunctionBlocks }
+            ?: return true
+        reporter.reportOn(usage.source, Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS, nestedFunction)
+        return false
     }
 
     private fun reportIllegalMatcherConstruction(

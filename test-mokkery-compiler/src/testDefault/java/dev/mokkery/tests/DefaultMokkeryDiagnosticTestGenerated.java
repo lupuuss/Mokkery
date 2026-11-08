@@ -223,6 +223,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("ReceiverMatcherIsMatcher.kt")
+        public void testReceiverMatcherIsMatcher() {
+          run("ReceiverMatcherIsMatcher.kt");
+        }
+
+        @Test
         @TestMetadata("TemplatingMustNotBeNested.kt")
         public void testTemplatingMustNotBeNested() {
           run("TemplatingMustNotBeNested.kt");

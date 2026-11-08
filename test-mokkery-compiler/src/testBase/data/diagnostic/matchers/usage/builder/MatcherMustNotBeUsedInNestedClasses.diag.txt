@@ -1,3 +1,5 @@
-/MatcherMustNotBeUsedInNestedClasses.kt:6:24: error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'class Foo : Any'.
+/MatcherMustNotBeUsedInNestedClasses.kt:7:24: error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'class Foo : Any'.
 
-/MatcherMustNotBeUsedInNestedClasses.kt:13:24: error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.
+/MatcherMustNotBeUsedInNestedClasses.kt:14:24: error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.
+
+/MatcherMustNotBeUsedInNestedClasses.kt:21:24: error: Matchers cannot be used in classes declared inside templating functions or matcher declarations, but used in 'object : Any'.

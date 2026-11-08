@@ -9,3 +9,5 @@
 /MatcherPropertyUsage.kt:28:50: error: Operators cannot be used with matchers, but '::' operator is used.
 
 /MatcherPropertyUsage.kt:40:13: error: Accessing members of matchers is illegal.
+
+/MatcherPropertyUsage.kt:44:13: error: Accessing members of matchers is illegal.

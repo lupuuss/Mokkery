@@ -1,0 +1,5 @@
+/ReceiverMatcherIsMatcher.kt:(160,164): error: Accessing members of matchers is illegal.
+
+/ReceiverMatcherIsMatcher.kt:(257,261): error: Matchers can only be passed to members, but were passed to 'fun println(message: Int): Unit'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/ReceiverMatcherIsMatcher.kt:(374,378): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'map@fun <anonymous>(it: Int): Int <inline=Inline, kind=UNKNOWN>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.

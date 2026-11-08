@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirElvisExpression
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
+import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.lastExpression
@@ -22,8 +23,10 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
 
     private val matchers = matcherParameters.associateWithTo(mutableMapOf<FirBasedSymbol<*>, Boolean>()) { true }
 
-    fun processVariable(variable: FirVariable) {
-        matchers.getOrPut(variable.symbol) { isMatcher(variable.initializer) }
+    fun processVariable(variable: FirVariable) = processValue(variable.symbol, variable.initializer)
+
+    fun processValue(symbol: FirBasedSymbol<*>, value: FirExpression?) {
+        matchers.getOrPut(symbol) { isMatcher(value) }
     }
 
     fun isMatcherVariable(symbol: FirBasedSymbol<*>): Boolean? = matchers[symbol]
@@ -32,6 +35,7 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
         expression ?: return false
         return when (val unwrappedExpression = expression.unwrapExpressionOrArgument()) {
             is FirCallableReferenceAccess -> false
+            is FirThisReceiverExpression -> unwrappedExpression.calleeReference.boundSymbol?.let(matchers::get) == true
             is FirQualifiedAccessExpression -> {
                 val symbol = unwrappedExpression.calleeReference.toResolvedCallableSymbol()
                 symbol != null && (matchers[symbol] == true || symbol.isMatcherBuilder())

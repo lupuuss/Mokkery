@@ -8,4 +8,6 @@
 
 /MatcherPropertyUsage.kt:(758,769): error: Operators cannot be used with matchers, but '::' operator is used.
 
-/MatcherPropertyUsage.kt:(1079,1084): error: Accessing members of matchers is illegal.
+/MatcherPropertyUsage.kt:(1081,1085): error: Accessing members of matchers is illegal.
+
+/MatcherPropertyUsage.kt:(1184,1189): error: Accessing members of matchers is illegal.

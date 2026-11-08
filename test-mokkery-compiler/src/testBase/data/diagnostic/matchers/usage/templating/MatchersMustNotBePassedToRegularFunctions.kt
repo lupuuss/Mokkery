@@ -2,6 +2,7 @@ import dev.mokkery.mock
 import dev.mokkery.every
 import dev.mokkery.verify
 import dev.mokkery.matcher.any
+import dev.mokkery.templating.ctx
 
 interface Foo {
     fun foo(arg: Int): Int
@@ -25,4 +26,11 @@ fun main() {
         <!ILLEGAL_MATCHER_IN_NON_MEMBER!>any<Int>()<!>.toHexString()
         mock.foo(matcher)
     }
+    every {
+        ctx(any<Int>()) { mock.foo(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>withContext()<!>) }
+        ctx(block = { mock.foo(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>withContext()<!>) }, a = any<Int>())
+    }
 }
+
+context(value: Int)
+fun withContext(): Int = value

@@ -35,6 +35,10 @@ context(scope: MokkeryMatcherScope, @Matcher value: Int)
 val negatedContext: Int
     get() = scope.not(value)
 
+context(scope: MokkeryMatcherScope)
+val @receiver:Matcher Int.misusedReceiver: Int
+    get() = <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>this<!> + 1
+
 context(scope: MokkeryMatcherScope, @Matcher value: Int)
 val misusedContext: Int
     get() = <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>value<!> + 1
