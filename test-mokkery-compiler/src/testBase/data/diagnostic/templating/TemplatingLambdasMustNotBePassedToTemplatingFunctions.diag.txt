@@ -1,7 +1,13 @@
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:8:19: error: Argument passed to 'every' for param 'block: MokkeryTemplatingScope.() -> T' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:10:19: error: Argument passed to 'every' for param 'block: MokkeryTemplatingScope.() -> T' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:9:18: error: Argument passed to 'everySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> T' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:11:18: error: Argument passed to 'everySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> T' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:13:20: error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:15:20: error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:14:27: error: Argument passed to 'verifySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:16:27: error: Argument passed to 'verifySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:25:20: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:26:25: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:27:22: error: Argument passed to 'ext' for param 'block: T.() -> R' must be a lambda expression.

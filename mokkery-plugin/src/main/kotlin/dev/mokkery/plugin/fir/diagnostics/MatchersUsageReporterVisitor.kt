@@ -3,6 +3,7 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
+import dev.mokkery.plugin.fir.contextFunctionIds
 import dev.mokkery.plugin.fir.dispatchReceiverClassLikeSymbolOrNull
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
 import dev.mokkery.plugin.fir.isMokkeryMatcherScope
@@ -78,7 +79,6 @@ class MatchersUsageReporterVisitor(
         .filter { it.acceptsMatcher(session) && !it.resolvedReturnType.isMokkeryMatcherScope() }
     private val matchersProcessor = MatchersProcessor(matcherParameters.filterNot { it.isVararg })
 
-    private val contextFunctions = setOf(Callable.ext, Callable.ctx)
     private val templatingFunctions = setOf(
         Callable.every,
         Callable.everySuspend,
@@ -282,7 +282,7 @@ class MatchersUsageReporterVisitor(
             dispatchReceiver != null && symbol !is FirConstructorSymbol -> {
                 reportIllegalMatchersUsageWithMethods(functionCall, symbol)
             }
-            symbol.callableId !in contextFunctions && functionCall !in legalizedNonMemberFunctionWithMatchers -> {
+            symbol.callableId !in contextFunctionIds && functionCall !in legalizedNonMemberFunctionWithMatchers -> {
                 reportIllegalMatchersUsageWithNonMemberFunctions(functionCall, symbol)
             }
         }
@@ -307,7 +307,7 @@ class MatchersUsageReporterVisitor(
         if (
             currentParent == null
             || currentParent == parentFunction
-            || associatedCallSymbol?.callableId in contextFunctions
+            || associatedCallSymbol?.callableId in contextFunctionIds
         ) {
             return true
         }

@@ -1,6 +1,8 @@
 package dev.mokkery.plugin.fir.diagnostics
 
 import dev.mokkery.plugin.Mokkery.Callable
+import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
+import dev.mokkery.plugin.fir.contextFunctionIds
 import org.jetbrains.kotlin.AbstractKtSourceElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -21,8 +23,8 @@ import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
-import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedFunctionSymbol
+import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
@@ -44,13 +46,26 @@ class TemplatingChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(expression: FirFunctionCall) {
-        val callee = expression.calleeReference as? FirResolvedNamedReference ?: return
-        val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return
+        val symbol = expression.calleeReference.toResolvedNamedFunctionSymbol() ?: return
         context(symbol) {
             when (symbol.callableId) {
                 in templatingFunctions -> checkTemplating(expression)
+                in contextFunctionIds -> checkContextFunction(expression)
             }
         }
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkContextFunction(expression: FirFunctionCall) {
+        val blockParameter = funSymbol.valueParameterSymbols.lastOrNull() ?: return
+        val block = expression.allNonDispatchArgumentsMapping(funSymbol)[blockParameter]?.unwrapArgument() ?: return
+        if (block is FirAnonymousFunctionExpression) return
+        reporter.reportOn(
+            source = block.source,
+            factory = Diagnostics.FUNCTIONAL_PARAM_MUST_BE_LAMBDA,
+            a = funSymbol.name,
+            b = blockParameter,
+        )
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)

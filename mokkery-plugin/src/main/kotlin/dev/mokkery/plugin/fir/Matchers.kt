@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
 
+val contextFunctionIds = setOf(Mokkery.Callable.ctx, Mokkery.Callable.ext)
+
 fun FirFunctionSymbol<*>.isMatcher(): Boolean {
     return receiverParameterSymbol?.resolvedType.isMokkeryMatcherScope()
             || dispatchReceiverType.isMokkeryMatcherScope()
