@@ -11,18 +11,18 @@ fun main() {
     val mock = mock<Foo>()
     every {
         val matcher = any<Int>()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>matcher<!>.toString()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>any<Int>()<!>.toString()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>matcher<!> > 1
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>any<Int>()<!> > 1
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matcher<!>.toString()
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>any<Int>()<!>.toString()
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matcher<!> > 1
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>any<Int>()<!> > 1
         mock.foo(matcher)
     }
     verify {
         val matcher = any<Int>()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>matcher<!>.toString()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>any<Int>()<!>.toString()
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>matcher<!> > 1
-        <!ILLEGAL_METHOD_INVOCATION_ON_MATCHER!>any<Int>()<!> > 1
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matcher<!>.toString()
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>any<Int>()<!>.toString()
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matcher<!> > 1
+        <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>any<Int>()<!> > 1
         mock.foo(matcher)
     }
 }

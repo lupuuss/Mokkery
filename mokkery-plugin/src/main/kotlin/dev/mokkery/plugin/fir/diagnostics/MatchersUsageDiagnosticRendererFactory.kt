@@ -17,13 +17,13 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
-            factory = Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION,
-            message = "Matchers can only be passed to member functions, but were passed to ''{0}''. $scopeFunctionsHint",
+            factory = Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER,
+            message = "Matchers can only be passed to members, but were passed to ''{0}''. $scopeFunctionsHint",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
-            factory = Diagnostics.ILLEGAL_METHOD_INVOCATION_ON_MATCHER,
-            message = "Invoking methods on matchers is illegal."
+            factory = Diagnostics.ILLEGAL_MEMBER_ACCESS_ON_MATCHER,
+            message = "Accessing members of matchers is illegal."
         )
         it.put(
             factory = Diagnostics.ILLEGAL_OPERATOR_USAGE,
@@ -68,21 +68,21 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
-            factory = Diagnostics.MATCHER_PASSED_TO_METHOD_IN_MATCHER_BUILDER,
-            message = "Passing matchers to methods is not legal inside matcher builders."
+            factory = Diagnostics.MATCHER_PASSED_TO_MEMBER_IN_MATCHER_BUILDER,
+            message = "Passing matchers to members is not legal inside matcher builders."
         )
         it.put(
             factory = Diagnostics.SINGLE_VARARG_MATCHER_ALLOWED,
             message = "Only one vararg matcher is allowed."
         )
         it.put(
-            factory = Diagnostics.MATCHER_USED_WITH_FINAL_METHOD,
+            factory = Diagnostics.MATCHER_USED_WITH_FINAL_MEMBER,
             message = "''{0}'' must not be used with matchers, because it''s final and cannot be mocked.",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
             factory = Diagnostics.MATCHER_USED_WITH_FINAL_CLASS,
-            message = "Methods from ''{0}'' must not be used with matchers, because this class is final and cannot be mocked.",
+            message = "Members of ''{0}'' must not be used with matchers, because this class is final and cannot be mocked.",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(

@@ -135,7 +135,7 @@ class TemplatingTest {
     fun testInlinePropertyMockCallInVerifyBlock() {
         val mock = mock<AbstractClassLevel1>()
         assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "set inlineProperty") {
-            verify { mock.inlineProperty = any() }
+            verify { mock.inlineProperty = "" }
         }
     }
 

@@ -121,6 +121,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("MatcherMembersAndOperatorsAreIllegal.kt")
+        public void testMatcherMembersAndOperatorsAreIllegal() {
+          run("MatcherMembersAndOperatorsAreIllegal.kt");
+        }
+
+        @Test
         @TestMetadata("MatcherMustNotBeAssignedToOuterScopeVar.kt")
         public void testMatcherMustNotBeAssignedToOuterScopeVar() {
           run("MatcherMustNotBeAssignedToOuterScopeVar.kt");
@@ -228,6 +234,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         @Test
         public void testAllFilesPresentInTemplating() {
           KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating"), Pattern.compile("^(.+)\\.kt$"), null, true);
+        }
+
+        @Test
+        @TestMetadata("MatcherMembersAndOperatorsAreIllegal.kt")
+        public void testMatcherMembersAndOperatorsAreIllegal() {
+          run("MatcherMembersAndOperatorsAreIllegal.kt");
         }
 
         @Test

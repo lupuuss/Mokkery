@@ -1,3 +1,7 @@
-/MatchersMustNotBeUsedWithFinalMethods.kt:(218,223): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.
+/MatchersMustNotBeUsedWithFinalMethods.kt:(317,322): error: 'var prop: Int' must not be used with matchers, because it's final and cannot be mocked.
 
-/MatchersMustNotBeUsedWithFinalMethods.kt:(261,266): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.
+/MatchersMustNotBeUsedWithFinalMethods.kt:(358,363): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.
+
+/MatchersMustNotBeUsedWithFinalMethods.kt:(401,406): error: 'fun foo(arg: Int): Int' must not be used with matchers, because it's final and cannot be mocked.
+
+/MatchersMustNotBeUsedWithFinalMethods.kt:(445,455): error: 'val Int.extProp: Int' must not be used with matchers, because it's final and cannot be mocked.

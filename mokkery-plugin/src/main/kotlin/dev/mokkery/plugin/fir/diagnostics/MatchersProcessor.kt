@@ -4,17 +4,18 @@ import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.fir.hasMatcherScope
 import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
 import org.jetbrains.kotlin.fir.declarations.FirVariable
+import org.jetbrains.kotlin.fir.expressions.FirElvisExpression
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.lastExpression
-import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
+import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 
 class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
 
@@ -33,6 +34,7 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
             is FirQualifiedAccessExpression -> unwrappedExpression.calleeReference
                 .toResolvedCallableSymbol()
                 ?.let(matchers::get) == true
+            is FirElvisExpression -> isMatcher(unwrappedExpression.rhs)
             is FirWhenExpression -> unwrappedExpression.branches.any { isMatcher(it.result.lastExpression) }
             is FirVarargArgumentsExpression -> unwrappedExpression.arguments.any { isMatcher(it) }
             else -> false
@@ -40,10 +42,13 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
     }
 
     fun isMatcher(call: FirFunctionCall): Boolean {
-        val callee = call.calleeReference as? FirResolvedNamedReference ?: return false
-        val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return false
-        return symbol.hasMatcherScope() && !symbol.isMaterializer()
+        val symbol = call.calleeReference.toResolvedNamedFunctionSymbol() ?: return false
+        return symbol.isMatcherBuilder()
     }
 }
 
 fun FirFunctionSymbol<*>.isMaterializer(): Boolean = callableId == Mokkery.Callable.materialize
+
+fun FirFunctionSymbol<*>.isMatcherBuilder(): Boolean = hasMatcherScope() && !isMaterializer()
+
+fun FirCallableSymbol<*>.isMatcherDeclaration(): Boolean = (this as? FirFunctionSymbol<*>)?.hasMatcherScope() == true

@@ -1,0 +1,21 @@
+/MatcherMembersAndOperatorsAreIllegal.kt:17:22: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:18:22: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:19:22: error: Operators cannot be used with matchers, but '!!' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:20:22: error: Operators cannot be used with matchers, but '?:' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:21:32: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:23:14: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:23:21: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:26:22: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:27:22: error: Operators cannot be used with matchers, but '::' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:29:49: error: Operators cannot be used with matchers, but '::' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:30:39: error: Operators cannot be used with matchers, but '::' operator is used.

@@ -1,1 +1,5 @@
-/MatchersMustNotBePassedToMethods.kt:13:14: error: Passing matchers to methods is not legal inside matcher builders.
+/MatchersMustNotBePassedToMethods.kt:15:14: error: Passing matchers to members is not legal inside matcher builders.
+
+/MatchersMustNotBePassedToMethods.kt:16:17: error: Passing matchers to members is not legal inside matcher builders.
+
+/MatchersMustNotBePassedToMethods.kt:25:17: error: Passing matchers to members is not legal inside matcher builders.

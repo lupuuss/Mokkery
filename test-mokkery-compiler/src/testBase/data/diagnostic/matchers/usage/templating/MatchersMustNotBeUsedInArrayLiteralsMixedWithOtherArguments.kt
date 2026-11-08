@@ -11,12 +11,12 @@ fun main() {
     val mock = mock<Foo>()
     every {
         mock.foo(args = intArrayOf(1, *any(), 10))
-        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION!>*any()<!>), 10)
+        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>), 10)
     }
     verify {
         mock.foo(args = intArrayOf(*any(), 1, 10))
-        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION!>*any()<!>), 10)
-        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION!>*any()<!>), *any())
-        mock.foo(args = intArrayOf(*intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER_FUNCTION!>*any()<!>)))
+        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>), 10)
+        mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>), *any())
+        mock.foo(args = intArrayOf(*intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>)))
     }
 }
