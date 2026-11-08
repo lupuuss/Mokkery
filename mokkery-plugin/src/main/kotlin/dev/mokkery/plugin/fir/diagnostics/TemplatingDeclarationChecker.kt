@@ -2,7 +2,7 @@ package dev.mokkery.plugin.fir.diagnostics
 
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.fir.isInlinedInPlace
-import dev.mokkery.plugin.fir.isTemplatingFunction
+import dev.mokkery.plugin.fir.hasTemplatingScope
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticsContainer
@@ -29,7 +29,7 @@ class TemplatingDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(declaration: FirFunction) {
-        if (!declaration.symbol.isTemplatingFunction()) return
+        if (!declaration.symbol.hasTemplatingScope()) return
         if (declaration.isAllowedTemplatingBlock(context.session)) return
         reporter.reportOn(declaration.source, Diagnostics.TEMPLATING_CANNOT_BE_EXTRACTED_TO_FUNCTIONS)
     }

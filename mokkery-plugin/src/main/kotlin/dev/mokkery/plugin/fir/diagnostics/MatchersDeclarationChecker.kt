@@ -3,9 +3,10 @@ package dev.mokkery.plugin.fir.diagnostics
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.fir.acceptsMatcher
 import dev.mokkery.plugin.fir.getMatcherAnnotation
+import dev.mokkery.plugin.fir.hasMatcherScope
 import dev.mokkery.plugin.fir.isInlinedInPlace
-import dev.mokkery.plugin.fir.isMatcher
 import dev.mokkery.plugin.fir.isMokkeryMatcherScope
+import dev.mokkery.plugin.fir.signatureParameters
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -20,11 +21,13 @@ import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFunctionChecker
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isExternal
+import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
+import org.jetbrains.kotlin.fir.types.isMarkedNullable
 import org.jetbrains.kotlin.fir.types.isSubtypeOf
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -36,7 +39,8 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(declaration: FirFunction) {
-        if (!declaration.symbol.isMatcher()) return
+        checkNullableMatcherScope(declaration)
+        if (!declaration.symbol.hasMatcherScope()) return
         if (declaration.isInlinedInPlace()) return
         checkModality(declaration)
         checkExternal(declaration)
@@ -51,6 +55,15 @@ class MatchersDeclarationChecker(
             usageContext = MatchersUsageContext.BUILDER
         )
         declaration.accept(visitor)
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter)
+    private fun checkNullableMatcherScope(declaration: FirFunction) {
+        declaration.symbol.signatureParameters()
+            .filter { (_, type) -> type.isMarkedNullable && type.isMokkeryMatcherScope() }
+            .forEach { (symbol, _) ->
+                reporter.reportOn(symbol.source, Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE)
+            }
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
@@ -69,35 +82,23 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkOrigin(declaration: FirFunction) {
-        if (declaration !is FirNamedFunction) {
+        if (declaration !is FirNamedFunction || declaration.isSuspend) {
             reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION)
         }
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkMatcherParams(declaration: FirFunction) {
-        (declaration.contextParameters + declaration.valueParameters).forEach {
-            val symbol = it.symbol
-            val symbolType = it.symbol.resolvedReturnType
-            val session = context.session
-            if (symbol.acceptsMatcher(session) && symbolType.isArgMatcherOrArgMatcherScope(session)) {
+        val session = context.session
+        declaration.symbol.signatureParameters()
+            .filter { (symbol, type) -> symbol.acceptsMatcher(session) && type.isArgMatcherOrArgMatcherScope(session) }
+            .forEach { (symbol, type) ->
                 reporter.reportOn(
                     source = symbol.getMatcherAnnotation(session)!!.source,
                     factory = Diagnostics.PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER,
-                    a = symbolType
+                    a = type
                 )
             }
-        }
-        val receiverSymbol = declaration.receiverParameter?.symbol ?: return
-        val receiverSymbolType = receiverSymbol.resolvedType
-        val session = context.session
-        if (receiverSymbol.acceptsMatcher(session) && receiverSymbolType.isArgMatcherOrArgMatcherScope(session)) {
-            reporter.reportOn(
-                source = receiverSymbol.getMatcherAnnotation(session)!!.source,
-                factory = Diagnostics.PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER,
-                a = receiverSymbolType
-            )
-        }
     }
 
     private fun ConeKotlinType.isArgMatcherOrArgMatcherScope(
@@ -118,5 +119,6 @@ class MatchersDeclarationChecker(
         val MATCHER_MUST_NOT_BE_EXTERNAL by error0<KtElement>()
         val PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER by error1<KtElement, ConeKotlinType>()
         val MATCHER_MUST_BE_REGULAR_FUNCTION by error0<KtElement>()
+        val MATCHER_SCOPE_MUST_NOT_BE_NULLABLE by error0<KtElement>()
     }
 }

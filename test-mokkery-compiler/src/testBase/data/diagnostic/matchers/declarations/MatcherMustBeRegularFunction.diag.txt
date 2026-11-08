@@ -1,1 +1,3 @@
 /MatcherMustBeRegularFunction.kt:3:46: error: Matcher must be a regular function.
+
+/MatcherMustBeRegularFunction.kt:5:1: error: Matcher must be a regular function.

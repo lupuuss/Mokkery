@@ -1,7 +1,7 @@
 package dev.mokkery.plugin.fir.diagnostics
 
 import dev.mokkery.plugin.Mokkery
-import dev.mokkery.plugin.fir.isMatcher
+import dev.mokkery.plugin.fir.hasMatcherScope
 import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
 import org.jetbrains.kotlin.fir.declarations.FirVariable
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -42,7 +42,7 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>) {
     fun isMatcher(call: FirFunctionCall): Boolean {
         val callee = call.calleeReference as? FirResolvedNamedReference ?: return false
         val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return false
-        return symbol.isMatcher() && !symbol.isMaterializer()
+        return symbol.hasMatcherScope() && !symbol.isMaterializer()
     }
 }
 

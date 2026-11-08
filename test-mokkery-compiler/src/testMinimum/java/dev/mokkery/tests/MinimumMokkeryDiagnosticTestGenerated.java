@@ -86,6 +86,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       public void testMatcherMustNotBeFinal() {
         run("MatcherMustNotBeFinal.kt");
       }
+
+      @Test
+      @TestMetadata("MatcherScopeMustNotBeNullable.kt")
+      public void testMatcherScopeMustNotBeNullable() {
+        run("MatcherScopeMustNotBeNullable.kt");
+      }
     }
 
     @Nested

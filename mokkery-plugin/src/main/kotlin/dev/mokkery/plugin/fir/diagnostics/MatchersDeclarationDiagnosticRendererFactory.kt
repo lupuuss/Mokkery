@@ -25,5 +25,9 @@ class MatchersDeclarationDiagnosticRendererFactory : BaseDiagnosticRendererFacto
             factory = Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION,
             message = "Matcher must be a regular function."
         )
+        it.put(
+            factory = Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE,
+            message = "MokkeryMatcherScope must not be nullable."
+        )
     }
 }

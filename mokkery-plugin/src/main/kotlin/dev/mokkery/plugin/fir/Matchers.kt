@@ -9,28 +9,28 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
+import org.jetbrains.kotlin.fir.types.isMarkedNullable
 
 val contextFunctionIds = setOf(Mokkery.Callable.ctx, Mokkery.Callable.ext)
 
-fun FirFunctionSymbol<*>.isMatcher(): Boolean {
-    return receiverParameterSymbol?.resolvedType.isMokkeryMatcherScope()
-            || dispatchReceiverType.isMokkeryMatcherScope()
-            || valueParameterSymbols.any { it.resolvedReturnType.isMokkeryMatcherScope() }
-            || contextParameterSymbols.any { it.resolvedReturnType.isMokkeryMatcherScope() }
+fun FirFunctionSymbol<*>.signatureParameters(): List<Pair<FirBasedSymbol<*>, ConeKotlinType>> = buildList {
+    receiverParameterSymbol?.let { add(it to it.resolvedType) }
+    contextParameterSymbols.forEach { add(it to it.resolvedReturnType) }
+    valueParameterSymbols.forEach { add(it to it.resolvedReturnType) }
 }
 
-fun FirFunctionSymbol<*>.isTemplatingFunction(): Boolean {
-    return receiverParameterSymbol?.resolvedType.isMokkeryTemplatingScope()
-            || dispatchReceiverType.isMokkeryTemplatingScope()
-            || valueParameterSymbols.any { it.resolvedReturnType.isMokkeryTemplatingScope() }
-            || contextParameterSymbols.any { it.resolvedReturnType.isMokkeryTemplatingScope() }
+fun FirFunctionSymbol<*>.hasMatcherScope(): Boolean = hasScope { it.isMokkeryMatcherScope() && !it.isMarkedNullable }
+
+fun FirFunctionSymbol<*>.hasTemplatingScope(): Boolean = hasScope { it.isMokkeryTemplatingScope() }
+
+private inline fun FirFunctionSymbol<*>.hasScope(isScope: (ConeKotlinType) -> Boolean): Boolean {
+    return dispatchReceiverType?.let(isScope) == true || signatureParameters().any { isScope(it.second) }
 }
 
 fun FirBasedSymbol<*>.acceptsMatcher(session: FirSession): Boolean = hasAnnotation(matcherAnnotation, session)
 
 fun FirBasedSymbol<*>.getMatcherAnnotation(session: FirSession): FirAnnotation? = getAnnotationByClassId(matcherAnnotation, session)
 
-@Suppress("NOTHING_TO_INLINE")
 fun ConeKotlinType?.isMokkeryMatcherScope(): Boolean = this?.classId == mokkeryMatcherScopeClassId
 
 fun ConeKotlinType?.isMokkeryTemplatingScope(): Boolean = this?.classId == mokkeryTemplatingScopeClassId
