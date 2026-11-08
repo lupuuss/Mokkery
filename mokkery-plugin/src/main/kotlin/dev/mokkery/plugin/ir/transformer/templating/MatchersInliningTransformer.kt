@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.templating
 
+import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
@@ -13,6 +14,7 @@ import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.transformer.core.irCallEqMatcher
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
@@ -33,11 +36,9 @@ import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.getArrayElementType
-import org.jetbrains.kotlin.ir.util.isSubclassOf
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.transformInPlace
 import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
@@ -56,15 +57,33 @@ class MatchersInliningTransformer(
     private val materializeFunction = referenced(MokkeryIr.Function.materialize)
     private val materializeVarargFunction = referenced(MokkeryIr.Function.materializeVararg)
     private val inlineLiteralsAsMatchersFunc = referenced(MokkeryIr.Function.inlineLiteralsAsMatchers)
+    private val contextFunctions = setOf(Mokkery.Name.ext, Mokkery.Name.ctx)
+    private val boundValueKinds = setOf(IrParameterKind.ExtensionReceiver, IrParameterKind.Regular)
+    private val blockParameterKinds = setOf(IrParameterKind.ExtensionReceiver, IrParameterKind.Context)
+
+    fun transformDefaultValue(parameter: IrValueParameter) {
+        val defaultValue = parameter.defaultValue ?: return
+        defaultValue.expression = defaultValue.expression
+            .transform(this, null)
+            .performEqMatcherWrapping(parameter.type)
+    }
 
     override fun visitCall(expression: IrCall): IrExpression {
+        if (expression.symbol.owner.kotlinFqName in contextFunctions) return expression.transformContextFunctionCall()
         val matcher = compileIfMatcher(expression.symbol.owner)
         expression.transformChildrenVoid()
         if (matcher.isCompiledMatcher != true) return expression
         return expression.replaceDeclarationIrBuilder { replaceMatcher(expression) }
     }
 
-    override fun visitVariable(declaration: IrVariable) = declaration.transformPostfix {
+    override fun visitVariable(declaration: IrVariable): IrStatement {
+        val isPlainValue = declaration.type.isArgMatcherValueType()
+                || declaration.initializer?.type?.isArgMatcherValueType() == true
+        if (isPlainValue) return declaration.apply { transformChildrenVoid() }
+        return transformMatcherVariable(declaration)
+    }
+
+    private fun transformMatcherVariable(declaration: IrVariable) = declaration.transformPostfix {
         val initializerType = initializer?.type ?: return@transformPostfix
         if (!initializerType.isMatcher() && !initializerType.isMatchersArray()) return@transformPostfix
         type = initializer!!.type
@@ -98,14 +117,21 @@ class MatchersInliningTransformer(
 
     override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
         val lastExpression = statements.lastOrNull() as? IrExpression ?: return@transformPostfix
-        if (lastExpression.type.isMatcher()) {
+        if (lastExpression.type.isMatcher() || lastExpression.type.isMatchersArray()) {
             type = lastExpression.type
         }
     }
 
     override fun visitWhen(expression: IrWhen) = expression.transformPostfix {
-        if (branches.none { branch -> branch.result.type.isMatcher() }) return@transformPostfix
-        val targetType = argMatcherClass.typeWith(type)
+        if (type.isArgMatcherValueType()) return@transformPostfix
+        val matchersArrayType = branches.firstOrNull { it.result.type.isMatchersArray() }?.result?.type
+        val arrayBranchesOnly = branches.all { it.result.type.isAnyArray() || it.result.type.isNothing() }
+        val targetType = when {
+            matchersArrayType != null && arrayBranchesOnly -> matchersArrayType
+            matchersArrayType != null -> return@transformPostfix
+            branches.any { it.result.type.isMatcher() } -> argMatcherClass.typeWith(type)
+            else -> return@transformPostfix
+        }
         type = targetType
         branches.forEach { it.result = it.result.performEqMatcherWrapping(targetType) }
     }
@@ -127,6 +153,23 @@ class MatchersInliningTransformer(
         val func = returnTargetSymbol.owner as? IrSimpleFunction ?: return@transformPostfix
         value = value.performEqMatcherWrapping(func.returnType)
         type = func.returnType
+    }
+
+    private fun IrCall.transformContextFunctionCall(): IrExpression {
+        val block = symbol.owner.parameters.last()
+        val values = symbol.owner.parameters.filter { it.kind in boundValueKinds && it != block }
+        values.forEach { arguments[it] = arguments[it]?.transform(this@MatchersInliningTransformer, null) }
+        val lambda = (arguments[block] as? IrFunctionExpression)?.function
+        val blockParameters = lambda?.parameters?.filter { it.kind in blockParameterKinds }.orEmpty()
+        values.zip(blockParameters) { value, blockParameter ->
+            val type = arguments[value]?.type
+            if (type?.isMatcher() == true) {
+                blockParameter.type = type
+                matcherValueDeclarations += blockParameter
+            }
+        }
+        arguments[block] = arguments[block]?.transform(this@MatchersInliningTransformer, null)
+        return this
     }
 
     private fun IrBuilderWithScope.replaceMatcher(call: IrCall): IrExpression {
@@ -199,14 +242,19 @@ class MatchersInliningTransformer(
         irCallEqMatcher(expression, targetType.argMatcherTypeArgumentOrNull() ?: expression.type)
     }
 
+    private fun inlineLiteralsAsMatchers(
+        array: IrExpression,
+        targetType: IrType = inlineLiteralsAsMatchersFunc.returnType
+    ) = array.replaceDeclarationIrBuilder {
+        irCall(inlineLiteralsAsMatchersFunc, targetType) {
+            arguments[0] = array
+        }
+    }
+
     private fun spreadLiteralsAsMatchers(spread: IrSpreadElement): IrSpreadElement = IrSpreadElementImpl(
         startOffset = spread.startOffset,
         endOffset = spread.endOffset,
-        expression = spread.expression.replaceDeclarationIrBuilder {
-            irCall(inlineLiteralsAsMatchersFunc) {
-                arguments[0] = spread.expression
-            }
-        }
+        expression = inlineLiteralsAsMatchers(spread.expression)
     )
 
     private fun spreadArgMatcher(expression: IrExpression) = expression.replaceDeclarationIrBuilder {
@@ -218,21 +266,10 @@ class MatchersInliningTransformer(
 
     private fun IrType.argMatcherTypeArgumentOrNull() = argumentTypes.singleOrNull()
 
-    private fun IrType.isMatcher(): Boolean {
-        val classSymbol = classOrNull ?: return false
-        val clazz = classSymbol.owner
-        if (clazz == argMatcherClass) return true
-        return clazz.isSubclassOf(argMatcherClass)
-    }
-
-    private fun IrType.isMatchersArray(): Boolean {
-        return isArray() && this.getArrayElementType(irBuiltIns).isMatcher()
-    }
-
     private fun IrExpression.performEqMatcherWrapping(targetType: IrType): IrExpression {
         return when {
-            !targetType.isMatcher() -> this
-            !this.type.isMatcher() -> callEqMatcher(this, targetType)
+            targetType.isMatchersArray() && !type.isMatchersArray() -> inlineLiteralsAsMatchers(this, targetType)
+            targetType.isMatcher() && !type.isMatcher() -> callEqMatcher(this, targetType)
             else -> this
         }
     }

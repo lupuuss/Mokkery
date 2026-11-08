@@ -32,6 +32,7 @@ import dev.mokkery.matcher.lte
 import dev.mokkery.matcher.matches
 import dev.mokkery.matcher.matchesBy
 import dev.mokkery.matcher.matchesComposite
+import dev.mokkery.matcher.materialize
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.matcher.ofType
 import dev.mokkery.matcher.ref
@@ -167,6 +168,61 @@ class ArgMatchersTest {
         assertEquals(2, mock.callPrimitive(3))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatcherParamLiteralDefaultIsEqMatcher() {
+        every { mock.callPrimitive(orDefaultLiteral(1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+    }
+
+    @Test
+    fun testMatcherParamMatcherDefault() {
+        every { mock.callPrimitive(orDefaultMatcher(1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(101))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+    }
+
+    @Test
+    fun testMatcherParamDefaultFromOtherMatcherParam() {
+        every { mock.callPrimitive(orDefaultParam(gt(10))) } returns 2
+        assertEquals(2, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+    }
+
+    @Test
+    fun testOrdinaryParamDefaultUsingMatchers() {
+        every { mock.callPrimitive(orDefaultMaterialized(0)) } returns 2
+        assertEquals(2, mock.callPrimitive(0))
+        assertEquals(2, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(-1) }
+    }
+
+    @Test
+    fun testNullableMatcherParamDefaultStaysNull() {
+        every { mock.callPrimitive(notIfOtherGiven(gt(1))) } returns 2
+        assertEquals(2, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testPlainParamDefaultNextToMatcherParams() {
+        every { mock.callPrimitive(orGreaterThan(1)) } returns 2
+        assertEquals(2, mock.callPrimitive(1))
+        assertEquals(2, mock.callPrimitive(4))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(3) }
+    }
+
+    @Test
+    fun testVarargMatcherParamLiteralDefault() {
+        every { mock.callNullable(orDefaultVararg(1)) } returns 2
+        assertEquals(2, mock.callNullable(1))
+        assertEquals(2, mock.callNullable(5))
+        assertEquals(2, mock.callNullable(6))
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(3) }
     }
 
     @Test
@@ -482,3 +538,29 @@ private fun MokkeryMatcherScope.containsAllIntsEq(value: Int): IntArray = contai
 private fun MokkeryMatcherScope.allIntsNeq(value: Int): IntArray = not(containsAllIntsEq(value))
 
 private fun MokkeryMatcherScope.rawMatcher(arg: ArgMatcher<Int>): Int = matches(arg)
+
+private fun MokkeryMatcherScope.orDefaultLiteral(@Matcher first: Int, @Matcher other: Int = 5): Int = or(first, other)
+
+private fun MokkeryMatcherScope.orDefaultMatcher(
+    @Matcher first: Int,
+    @Matcher other: Int = gt(100)
+): Int = or(first, other)
+
+private fun MokkeryMatcherScope.orDefaultParam(@Matcher first: Int, @Matcher other: Int = first): Int = or(first, other)
+
+private fun MokkeryMatcherScope.orDefaultMaterialized(
+    @Matcher first: Int,
+    other: ArgMatcher<Int> = materialize(gt(1))
+): Int = or(first, matches(other))
+
+private fun MokkeryMatcherScope.orDefaultVararg(
+    @Matcher first: Int?,
+    @Matcher vararg others: Int? = arrayOf(5, 6)
+): Int? = or(first, first, *others)
+
+private fun MokkeryMatcherScope.notIfOtherGiven(
+    @Matcher first: Int,
+    other: ArgMatcher<Int>? = null
+): Int = if (other == null) first else not(first)
+
+private fun MokkeryMatcherScope.orGreaterThan(@Matcher first: Int, limit: Int = 3): Int = or(first, gt(limit))

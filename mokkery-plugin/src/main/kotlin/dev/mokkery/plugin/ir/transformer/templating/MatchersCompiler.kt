@@ -43,11 +43,11 @@ fun compileIfMatcher(function: IrSimpleFunction): IrSimpleFunction {
 
 context(scope: TransformerScope)
 private fun IrFunction.transformBody(matcherParams: List<IrValueParameter>) {
-    body = body?.let { body ->
-        val inliner = MatchersInliningTransformer(pluginScope = scope, initialValueDeclarations = matcherParams)
-        inliner.withScope(this) {
-            body.transform(inliner, null)
-        }
+    val body = body ?: return
+    val inliner = MatchersInliningTransformer(pluginScope = scope, initialValueDeclarations = matcherParams)
+    inliner.withScope(this) {
+        parameters.forEach(inliner::transformDefaultValue)
+        this.body = body.transform(inliner, null)
     }
 }
 

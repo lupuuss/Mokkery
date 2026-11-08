@@ -44,15 +44,12 @@ import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.isFinalClass
-import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
@@ -226,13 +223,6 @@ class TemplatingTransformer(
             type = argMatcherClass.typeWith(irBuiltIns.anyNType),
             elements = matchers
         )
-    }
-
-    private fun IrType.isMatcher(): Boolean {
-        val classSymbol = classOrNull ?: return false
-        val clazz = classSymbol.owner
-        if (clazz == argMatcherClass) return true
-        return clazz.isSubclassOf(argMatcherClass)
     }
 
     // detects (varargs = arrayOf(...))

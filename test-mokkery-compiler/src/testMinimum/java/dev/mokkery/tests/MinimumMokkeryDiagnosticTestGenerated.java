@@ -127,6 +127,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         }
 
         @Test
+        @TestMetadata("LegalMatcherUsage.kt")
+        public void testLegalMatcherUsage() {
+          run("LegalMatcherUsage.kt");
+        }
+
+        @Test
         @TestMetadata("MatcherMembersAndOperatorsAreIllegal.kt")
         public void testMatcherMembersAndOperatorsAreIllegal() {
           run("MatcherMembersAndOperatorsAreIllegal.kt");
@@ -258,6 +264,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         @Test
         public void testAllFilesPresentInTemplating() {
           KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/templating"), Pattern.compile("^(.+)\\.kt$"), null, true);
+        }
+
+        @Test
+        @TestMetadata("LegalMatcherUsage.kt")
+        public void testLegalMatcherUsage() {
+          run("LegalMatcherUsage.kt");
         }
 
         @Test

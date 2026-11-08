@@ -10,6 +10,8 @@ import dev.mokkery.matcher.gt
 import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
+import dev.mokkery.templating.ctx
+import dev.mokkery.templating.ext
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.verify
 import kotlin.test.Test
@@ -77,6 +79,20 @@ class MatcherPropertiesTest {
         assertEquals(1, mock.callPrimitive(4))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
     }
+
+    @Test
+    fun testMatcherPassedToContextMatcherProperty() {
+        every { ctx(gt(1)) { mock.callPrimitive(negatedContext) } } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testMatcherPassedToExtensionReceiverMatcherProperty() {
+        every { gt(1).ext { mock.callPrimitive(negated) } } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
 }
 
 private val MokkeryMatcherScope.greaterThanOne: Int
@@ -97,3 +113,8 @@ private fun MokkeryMatcherScope.greaterThanOneOr(@Matcher matcher: Int): Int = o
 context(scope: MokkeryMatcherScope)
 private val @receiver:Matcher Int.negated: Int
     get() = scope.not(this)
+
+context(scope: MokkeryMatcherScope, @Matcher value: Int)
+private val negatedContext: Int
+    get() = scope.not(value)
+
