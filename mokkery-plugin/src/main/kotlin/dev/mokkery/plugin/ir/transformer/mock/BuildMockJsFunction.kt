@@ -10,6 +10,7 @@ import dev.mokkery.plugin.ir.IrMokkeryKind
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.argumentTypes
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.eraseTypeParametersAndDynamic
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irCallConstructor
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.types.starProjectedType
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
@@ -49,7 +49,7 @@ fun buildMockJsFunction(
     kind: IrMokkeryKind
 ): IrExpression {
     val typeToMock = expression.type
-    val typeArguments = typeToMock.argumentTypes.memoryOptimizedMap { it?.eraseTypeParameters() }
+    val typeArguments = typeToMock.argumentTypes.memoryOptimizedMap { it?.eraseTypeParametersAndDynamic() }
     val lambdaType = typeToMock.classOrFail.let { it.typeWith(it.owner.typeArgumentsFrom(typeArguments)) }
     return expression.replaceDeclarationIrBuilder {
         irBlock {

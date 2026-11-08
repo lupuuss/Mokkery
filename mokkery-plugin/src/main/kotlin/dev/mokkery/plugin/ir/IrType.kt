@@ -3,11 +3,16 @@ package dev.mokkery.plugin.ir
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.types.IrDynamicType
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
+import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
+import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
+import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isFunction
@@ -23,6 +28,27 @@ val IrType.argumentTypes: List<IrType?>
 fun List<IrType>.flattenArgumentTypes(): List<IrType?> = memoryOptimizedFlatMap { it.argumentTypes }
 
 val IrTypeParameter.erasedUpperBound: IrType get() = defaultType.eraseTypeParameters()
+
+fun IrType.classLiteralTypeOrNull(): IrType? = eraseTypeParametersAndDynamic()
+    ?.takeUnless { it.classOrNull?.owner?.isExternal == true }
+
+fun IrType.eraseTypeParametersAndDynamic(): IrType? = when (this) {
+    is IrDynamicType -> null
+    else -> withoutDynamicArguments().eraseTypeParameters()
+}
+
+private fun IrType.withoutDynamicArguments(): IrType {
+    if (this !is IrSimpleType || arguments.isEmpty()) return this
+    return buildSimpleType {
+        arguments = this@withoutDynamicArguments.arguments.memoryOptimizedMap { argument ->
+            when (val type = argument.typeOrNull) {
+                null -> argument
+                is IrDynamicType -> IrStarProjectionImpl
+                else -> makeTypeProjection(type.withoutDynamicArguments(), (argument as IrTypeProjection).variance)
+            }
+        }
+    }
+}
 
 fun IrTypeParametersContainer.typeArgumentsFrom(typeArguments: List<IrType?>): List<IrType> = typeParameters
     .mapIndexed { index, param -> typeArguments.getOrNull(index) ?: param.erasedUpperBound }

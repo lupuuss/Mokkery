@@ -74,7 +74,7 @@ fun IrClass.getEnumEntry(name: String): IrEnumEntry {
 }
 
 fun List<IrType>.forEachIndexedTypeArgument(block: (Int, IrType?) -> Unit) {
-    flattenArgumentTypes().forEachIndexed { index, it -> block(index, it?.eraseTypeParameters()) }
+    flattenArgumentTypes().forEachIndexed { index, it -> block(index, it?.classLiteralTypeOrNull()) }
 }
 
 val IrClass.erasedTypeArguments: List<IrType> get() = typeArgumentsFrom(emptyList())
