@@ -88,6 +88,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
       }
 
       @Test
+      @TestMetadata("MatcherPropertyMustBeNonDelegatedVal.kt")
+      public void testMatcherPropertyMustBeNonDelegatedVal() {
+        run("MatcherPropertyMustBeNonDelegatedVal.kt");
+      }
+
+      @Test
       @TestMetadata("MatcherScopeMustNotBeNullable.kt")
       public void testMatcherScopeMustNotBeNullable() {
         run("MatcherScopeMustNotBeNullable.kt");
@@ -169,6 +175,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         }
 
         @Test
+        @TestMetadata("MatcherPropertyUsage.kt")
+        public void testMatcherPropertyUsage() {
+          run("MatcherPropertyUsage.kt");
+        }
+
+        @Test
         @TestMetadata("MatchersMustNotBePassedToMethods.kt")
         public void testMatchersMustNotBePassedToMethods() {
           run("MatchersMustNotBePassedToMethods.kt");
@@ -240,6 +252,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         @TestMetadata("MatcherMembersAndOperatorsAreIllegal.kt")
         public void testMatcherMembersAndOperatorsAreIllegal() {
           run("MatcherMembersAndOperatorsAreIllegal.kt");
+        }
+
+        @Test
+        @TestMetadata("MatcherPropertyUsage.kt")
+        public void testMatcherPropertyUsage() {
+          run("MatcherPropertyUsage.kt");
         }
 
         @Test

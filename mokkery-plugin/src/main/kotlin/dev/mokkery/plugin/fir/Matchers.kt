@@ -6,16 +6,22 @@ import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.declarations.hasAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.isMarkedNullable
 
 val contextFunctionIds = setOf(Mokkery.Callable.ctx, Mokkery.Callable.ext)
 
+val FirFunctionSymbol<*>.signatureOwner: FirCallableSymbol<*>
+    get() = (this as? FirPropertyAccessorSymbol)?.propertySymbol ?: this
+
 fun FirFunctionSymbol<*>.signatureParameters(): List<Pair<FirBasedSymbol<*>, ConeKotlinType>> = buildList {
-    receiverParameterSymbol?.let { add(it to it.resolvedType) }
-    contextParameterSymbols.forEach { add(it to it.resolvedReturnType) }
+    val owner = signatureOwner
+    owner.receiverParameterSymbol?.let { add(it to it.resolvedType) }
+    owner.contextParameterSymbols.forEach { add(it to it.resolvedReturnType) }
     valueParameterSymbols.forEach { add(it to it.resolvedReturnType) }
 }
 
@@ -24,7 +30,7 @@ fun FirFunctionSymbol<*>.hasMatcherScope(): Boolean = hasScope { it.isMokkeryMat
 fun FirFunctionSymbol<*>.hasTemplatingScope(): Boolean = hasScope { it.isMokkeryTemplatingScope() }
 
 private inline fun FirFunctionSymbol<*>.hasScope(isScope: (ConeKotlinType) -> Boolean): Boolean {
-    return dispatchReceiverType?.let(isScope) == true || signatureParameters().any { isScope(it.second) }
+    return signatureOwner.dispatchReceiverType?.let(isScope) == true || signatureParameters().any { isScope(it.second) }
 }
 
 fun FirBasedSymbol<*>.acceptsMatcher(session: FirSession): Boolean = hasAnnotation(matcherAnnotation, session)

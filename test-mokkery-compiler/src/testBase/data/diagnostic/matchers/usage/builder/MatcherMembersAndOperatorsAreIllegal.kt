@@ -68,3 +68,12 @@ fun MokkeryMatcherScope.matcherFunctionReference(@Matcher matcher: Int): Int =
 
 fun MokkeryMatcherScope.materializerReference(): List<ArgMatcher<Int>> =
     listOf(1, 2).map(<!ILLEGAL_OPERATOR_USAGE!>this::materialize<!>)
+
+class MutableHolder {
+    var value: Int = 0
+}
+
+fun MokkeryMatcherScope.memberAssignment(@Matcher matcher: MutableHolder): MutableHolder {
+    <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matcher<!>.value = 1
+    return matcher
+}

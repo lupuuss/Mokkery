@@ -7,6 +7,9 @@ fun nullableParameter(<!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>scope: MokkeryMatche
 context(<!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>scope: MokkeryMatcherScope?<!>)
 fun nullableContext(): Int = 1
 
+val <!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>MokkeryMatcherScope?<!>.nullableProperty: Int
+    get() = 1
+
 val nullableLambda = { <!MATCHER_SCOPE_MUST_NOT_BE_NULLABLE!>scope: MokkeryMatcherScope?<!> -> 1 }
 
 fun MokkeryMatcherScope.nonNullReceiver(): Int = 1

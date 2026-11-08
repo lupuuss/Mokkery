@@ -15,3 +15,11 @@ val foo: MokkeryTemplatingScope.() -> Unit = <!TEMPLATING_CANNOT_BE_EXTRACTED_TO
 val bar: (MokkeryTemplatingScope) -> Unit = <!TEMPLATING_CANNOT_BE_EXTRACTED_TO_FUNCTIONS!>{ }<!>
 
 val buzz: context(MokkeryTemplatingScope) () -> Unit = <!TEMPLATING_CANNOT_BE_EXTRACTED_TO_FUNCTIONS!>{ }<!>
+
+
+val MokkeryTemplatingScope.fooProperty: Int
+    <!TEMPLATING_CANNOT_BE_EXTRACTED_TO_FUNCTIONS!>get() = 1<!>
+
+context(ctx: MokkeryTemplatingScope)
+val buzzProperty: Int
+    <!TEMPLATING_CANNOT_BE_EXTRACTED_TO_FUNCTIONS!>get() = 1<!>

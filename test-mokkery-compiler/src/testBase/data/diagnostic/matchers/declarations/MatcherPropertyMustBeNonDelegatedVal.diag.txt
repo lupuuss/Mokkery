@@ -1,0 +1,7 @@
+/MatcherPropertyMustBeNonDelegatedVal.kt:12:5: error: Matcher must be a regular function or a getter of a non-delegated 'val'.
+
+/MatcherPropertyMustBeNonDelegatedVal.kt:13:5: error: Matcher must be a regular function or a getter of a non-delegated 'val'.
+
+/MatcherPropertyMustBeNonDelegatedVal.kt:15:1: error: Matcher must be a regular function or a getter of a non-delegated 'val'.
+
+/MatcherPropertyMustBeNonDelegatedVal.kt:19:9: error: Matcher must be final.

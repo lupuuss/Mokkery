@@ -3,3 +3,7 @@
 /MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:11:9: error: Parameter of type 'ArgMatcher<T (of fun <T> ArgMatcher<T>.matcherExt)>' cannot be marked with @dev.mokkery.annotations.Matcher
 
 /MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:13:42: error: Parameter of type 'ArgMatcher<T (of fun <T> MokkeryMatcherScope.matcherValue)>' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:16:9: error: Parameter of type 'ArgMatcher<T (of context() val <T> ArgMatcher<T>.matcherProperty)>' cannot be marked with @dev.mokkery.annotations.Matcher
+
+/MatcherArgMatcherParamMustNotBeAnnotatedWithMatcher.kt:19:37: error: Parameter of type 'ArgMatcher<Int>' cannot be marked with @dev.mokkery.annotations.Matcher

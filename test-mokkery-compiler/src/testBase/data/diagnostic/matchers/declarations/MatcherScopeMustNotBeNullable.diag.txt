@@ -4,4 +4,6 @@
 
 /MatcherScopeMustNotBeNullable.kt:7:9: error: MokkeryMatcherScope must not be nullable.
 
-/MatcherScopeMustNotBeNullable.kt:10:24: error: MokkeryMatcherScope must not be nullable.
+/MatcherScopeMustNotBeNullable.kt:10:5: error: MokkeryMatcherScope must not be nullable.
+
+/MatcherScopeMustNotBeNullable.kt:13:24: error: MokkeryMatcherScope must not be nullable.

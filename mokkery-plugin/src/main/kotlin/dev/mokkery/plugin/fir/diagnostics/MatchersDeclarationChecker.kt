@@ -7,6 +7,7 @@ import dev.mokkery.plugin.fir.hasMatcherScope
 import dev.mokkery.plugin.fir.isInlinedInPlace
 import dev.mokkery.plugin.fir.isMokkeryMatcherScope
 import dev.mokkery.plugin.fir.signatureParameters
+import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
@@ -20,11 +21,13 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFunctionChecker
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
+import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.isExternal
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.isMarkedNullable
@@ -46,6 +49,7 @@ class MatchersDeclarationChecker(
         checkExternal(declaration)
         checkOrigin(declaration)
         checkMatcherParams(declaration)
+        if (declaration.source?.kind is KtFakeSourceElementKind) return
         val visitor = MatchersUsageReporterVisitor(
             session = context.session,
             context = context,
@@ -59,38 +63,47 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkNullableMatcherScope(declaration: FirFunction) {
-        declaration.symbol.signatureParameters()
+        declaration.ownParameters()
             .filter { (_, type) -> type.isMarkedNullable && type.isMokkeryMatcherScope() }
             .forEach { (symbol, _) ->
                 reporter.reportOn(symbol.source, Diagnostics.MATCHER_SCOPE_MUST_NOT_BE_NULLABLE)
             }
     }
 
+    private fun FirFunction.ownParameters(): List<Pair<FirBasedSymbol<*>, ConeKotlinType>> = when {
+        this is FirPropertyAccessor && isSetter -> symbol.valueParameterSymbols.map { it to it.resolvedReturnType }
+        else -> symbol.signatureParameters()
+    }
+
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkModality(declaration: FirFunction) {
-        if (declaration.modality != Modality.FINAL) {
+        val modality = (declaration as? FirPropertyAccessor)?.propertySymbol?.modality ?: declaration.modality
+        if (modality != Modality.FINAL) {
             reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_FINAL)
         }
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkExternal(declaration: FirFunction) {
-        if (declaration.isExternal) {
+        if (declaration.isExternal || (declaration as? FirPropertyAccessor)?.propertySymbol?.isExternal == true) {
             reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_NOT_BE_EXTERNAL)
         }
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkOrigin(declaration: FirFunction) {
-        if (declaration !is FirNamedFunction || declaration.isSuspend) {
-            reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION)
+        val isLegal = when (declaration) {
+            is FirNamedFunction -> !declaration.isSuspend
+            is FirPropertyAccessor -> declaration.isGetter && declaration.propertySymbol.let { it.isVal && !it.hasDelegate }
+            else -> false
         }
+        if (!isLegal) reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_REGULAR_FUNCTION)
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkMatcherParams(declaration: FirFunction) {
         val session = context.session
-        declaration.symbol.signatureParameters()
+        declaration.ownParameters()
             .filter { (symbol, type) -> symbol.acceptsMatcher(session) && type.isArgMatcherOrArgMatcherScope(session) }
             .forEach { (symbol, type) ->
                 reporter.reportOn(

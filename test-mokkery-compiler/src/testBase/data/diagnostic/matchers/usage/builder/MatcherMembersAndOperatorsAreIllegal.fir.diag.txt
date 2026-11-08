@@ -25,3 +25,5 @@
 /MatcherMembersAndOperatorsAreIllegal.kt:(1890,1894): error: Operators cannot be used with matchers, but '::' operator is used.
 
 /MatcherMembersAndOperatorsAreIllegal.kt:(2007,2024): error: Operators cannot be used with matchers, but '::' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:(2170,2177): error: Accessing members of matchers is illegal.
