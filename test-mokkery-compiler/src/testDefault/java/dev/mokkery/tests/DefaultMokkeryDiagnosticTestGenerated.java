@@ -239,6 +239,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         public void testVarargMatcherMustBeSpread() {
           run("VarargMatcherMustBeSpread.kt");
         }
+
+        @Test
+        @TestMetadata("VarargMatcherParamsAreMatchers.kt")
+        public void testVarargMatcherParamsAreMatchers() {
+          run("VarargMatcherParamsAreMatchers.kt");
+        }
       }
 
       @Nested

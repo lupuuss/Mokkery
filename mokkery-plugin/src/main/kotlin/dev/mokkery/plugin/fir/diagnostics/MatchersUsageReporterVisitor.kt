@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
@@ -43,6 +44,7 @@ import org.jetbrains.kotlin.fir.expressions.FirImplicitInvokeCall
 import org.jetbrains.kotlin.fir.expressions.FirLoop
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
+import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirStringConcatenationCall
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirThrowExpression
@@ -55,7 +57,6 @@ import org.jetbrains.kotlin.fir.expressions.FirWhileLoop
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.calleeReference
 import org.jetbrains.kotlin.fir.lastExpression
-import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
@@ -86,10 +87,11 @@ class MatchersUsageReporterVisitor(
     private val usageContext: MatchersUsageContext,
 ) : FirVisitorVoid() {
 
-    private val matcherParameters = parentFunction.signatureParameters()
-        .filter { (symbol, type) -> symbol.acceptsMatcher(session) && !type.isMokkeryMatcherScope() }
-        .map { it.first }
-    private val matchersProcessor = MatchersProcessor(matcherParameters.filterNot { it.isVararg() })
+    private val matchersProcessor = MatchersProcessor(
+        parentFunction.signatureParameters()
+            .filter { (symbol, type) -> symbol.acceptsMatcher(session) && !type.isMokkeryMatcherScope() }
+            .map { it.first }
+    )
 
     private val templatingFunctions = setOf(
         Callable.every,
@@ -103,8 +105,6 @@ class MatchersUsageReporterVisitor(
     private val currentCallsStack = mutableListOf<FirQualifiedAccessExpression>()
     private val scopeFunctionBlocks = mutableSetOf<FirFunctionSymbol<*>>()
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
-    private val matcherVarargSymbols = matcherParameters
-        .filterTo(mutableSetOf()) { it.isVararg() }
 
     override fun visitComponentCall(componentCall: FirComponentCall) {
         visitFunctionCall(componentCall)
@@ -175,9 +175,24 @@ class MatchersUsageReporterVisitor(
 
     override fun visitProperty(property: FirProperty) {
         matchersProcessor.processVariable(property)
-        if (property.initializer?.isMatcherVarargReference() == true) matcherVarargSymbols += property.symbol
         reportMatchersInOperator("by", property.delegate?.unwrapExpressionOrArgument())
         property.acceptChildren(this)
+    }
+
+    override fun visitReturnExpression(returnExpression: FirReturnExpression) = context(context) {
+        val result = returnExpression.result
+        if (returnExpression.target.labeledElement.symbol == parentFunction && matchersProcessor.isMatchersVararg(result)) {
+            reporter.reportOn(result.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD)
+        }
+        returnExpression.acceptChildren(this)
+    }
+
+    override fun visitValueParameter(valueParameter: FirValueParameter) {
+        val defaultValue = valueParameter.defaultValue
+        if (defaultValue != null && valueParameter.containingDeclarationSymbol == parentFunction) {
+            reportIllegalMatcherArgument(valueParameter.symbol, defaultValue)
+        }
+        valueParameter.acceptChildren(this)
     }
 
     override fun visitCallableReferenceAccess(
@@ -341,28 +356,21 @@ class MatchersUsageReporterVisitor(
         return false
     }
 
-    private fun reportIllegalMatcherConstruction(
-        access: FirQualifiedAccessExpression,
-        symbol: FirCallableSymbol<*>
-    ) = context(context) {
-        val argumentsMapping = access.allNonDispatchArgumentsMapping(symbol)
-        for ((param, arg) in argumentsMapping) {
-            if (!param.acceptsMatcher(session)) {
-                if (matchersProcessor.isMatcher(arg) || arg.containsMatcherVararg()) {
-                    reporter.reportOn(
-                        source = arg.source,
-                        factory = Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM,
-                        a = param
-                    )
-                }
-                continue
+    private fun reportIllegalMatcherConstruction(access: FirQualifiedAccessExpression, symbol: FirCallableSymbol<*>) {
+        access
+            .allNonDispatchArgumentsMapping(symbol)
+            .forEach { (param, arg) -> reportIllegalMatcherArgument(param, arg) }
+    }
+
+    private fun reportIllegalMatcherArgument(param: FirBasedSymbol<*>, arg: FirExpression) = context(context) {
+        when {
+            !param.acceptsMatcher(session) -> if (matchersProcessor.isMatcher(arg)) {
+                reporter.reportOn(arg.source, Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM, param)
             }
-            when {
-                arg is FirVarargArgumentsExpression -> arg.arguments
-                    .filter { it.isMatcherVarargReference() }
-                    .forEach { reporter.reportOn(it.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD) }
-                arg.isMatcherVarargReference() -> reporter.reportOn(arg.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD)
-            }
+            arg is FirVarargArgumentsExpression -> arg.arguments
+                .filter(matchersProcessor::isMatchersVararg)
+                .forEach { reporter.reportOn(it.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD) }
+            matchersProcessor.isMatchersVararg(arg) -> reporter.reportOn(arg.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD)
         }
     }
 
@@ -453,23 +461,6 @@ class MatchersUsageReporterVisitor(
 
     private fun FirCallableSymbol<*>.isMockable(): Boolean = context(context) {
         !isFinal && dispatchReceiverClassLikeSymbolOrNull()?.isFinal != true
-    }
-
-    private fun FirBasedSymbol<*>.isVararg(): Boolean = this is FirValueParameterSymbol && isVararg
-
-    private fun FirExpression.isMatcherVarargReference(): Boolean {
-        if (isSpread()) return false
-        return referencedSymbol() in matcherVarargSymbols
-    }
-
-    private fun FirExpression.containsMatcherVararg(): Boolean = when (this) {
-        is FirVarargArgumentsExpression -> arguments.any { it.referencedSymbol() in matcherVarargSymbols }
-        else -> referencedSymbol() in matcherVarargSymbols
-    }
-
-    private fun FirExpression.referencedSymbol(): FirBasedSymbol<*>? {
-        val access = unwrapExpressionOrArgument() as? FirQualifiedAccessExpression ?: return null
-        return (access.calleeReference as? FirResolvedNamedReference)?.resolvedSymbol
     }
 
     private inline fun <T : FirExpression?> List<T>.forEachMatcher(block: (T & Any) -> Unit) {

@@ -14,3 +14,7 @@ fun MokkeryMatcherScope.varargPassedToRegularParam(@Matcher vararg matchers: Any
 fun MokkeryMatcherScope.varargSpreadToRegularVararg(@Matcher vararg matchers: Any?): Any? {
     return regularParams(1, 2, <!MATCHER_PASSED_TO_NON_MATCHER_PARAM!>*matchers<!>)
 }
+
+fun MokkeryMatcherScope.defaultFromMatcher(@Matcher matcher: Any?, value: Any? = <!MATCHER_PASSED_TO_NON_MATCHER_PARAM!>matcher<!>): Any? = matcher
+
+fun MokkeryMatcherScope.matcherDefaultFromMatcher(@Matcher matcher: Any?, @Matcher other: Any? = matcher): Any? = other

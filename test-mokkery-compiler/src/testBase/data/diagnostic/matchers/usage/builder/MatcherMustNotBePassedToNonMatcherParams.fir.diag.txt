@@ -3,3 +3,5 @@
 /MatcherMustNotBePassedToNonMatcherParams.kt:(452,460): error: 'value: Any?' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
 
 /MatcherMustNotBePassedToNonMatcherParams.kt:(588,597): error: 'vararg values: Any?' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+
+/MatcherMustNotBePassedToNonMatcherParams.kt:(683,690): error: 'value: Any? = ...' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.

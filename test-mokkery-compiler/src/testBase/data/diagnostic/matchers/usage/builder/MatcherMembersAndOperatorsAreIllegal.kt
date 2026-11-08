@@ -13,6 +13,11 @@ fun MokkeryMatcherScope.propertyRead(@Matcher matcher: String): String {
     return matcher
 }
 
+fun MokkeryMatcherScope.varargPropertyRead(@Matcher first: String, @Matcher vararg matchers: String): String {
+    println(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>matchers<!>.size)
+    return first
+}
+
 fun MokkeryMatcherScope.extensionPropertyRead(@Matcher matcher: String): String {
     println(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>matcher<!>.extLength)
     return matcher

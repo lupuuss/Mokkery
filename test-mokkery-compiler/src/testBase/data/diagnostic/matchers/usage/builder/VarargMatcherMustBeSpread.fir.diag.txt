@@ -1,5 +1,19 @@
-/VarargMatcherMustBeSpread.kt:(252,260): error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).
+/VarargMatcherMustBeSpread.kt:(252,260): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
 
-/VarargMatcherMustBeSpread.kt:(399,407): error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).
+/VarargMatcherMustBeSpread.kt:(399,407): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
 
-/VarargMatcherMustBeSpread.kt:(533,537): error: Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`).
+/VarargMatcherMustBeSpread.kt:(533,537): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(806,814): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(946,950): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(1076,1105): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(1118,1147): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(1512,1520): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(1653,1670): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:(1683,1700): error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.

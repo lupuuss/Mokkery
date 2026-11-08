@@ -1,0 +1,11 @@
+/VarargMatcherParamsAreMatchers.kt:5:9: error: Operators cannot be used with matchers, but '===' operator is used.
+
+/VarargMatcherParamsAreMatchers.kt:10:13: error: Matchers can only be passed to members, but were passed to 'fun println(message: Any?): Unit'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/VarargMatcherParamsAreMatchers.kt:15:12: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(vararg elements: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/VarargMatcherParamsAreMatchers.kt:20:5: error: Matchers can only be passed to members, but were passed to 'fun <T> T.also(block: (T) -> Unit): T'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/VarargMatcherParamsAreMatchers.kt:25:12: error: Accessing members of matchers is illegal.
+
+/VarargMatcherParamsAreMatchers.kt:29:5: error: Accessing members of matchers is illegal.

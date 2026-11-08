@@ -87,7 +87,7 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         )
         it.put(
             factory = Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD,
-            message = "Vararg parameter marked with @Matcher must be passed to other @Matcher parameters with the spread operator (`*`)."
+            message = "Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters."
         )
     }
 }
