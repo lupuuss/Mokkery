@@ -91,7 +91,7 @@ class MatchersInliningTransformer(
     }
 
     override fun visitVararg(expression: IrVararg) = expression.transformPostfix {
-        if (!this.usesMatchers()) return@transformPostfix
+        if (varargElementType.isArgMatcherValueType() || !usesMatchers()) return@transformPostfix
         val elementType = argMatcherClass.typeWith(varargElementType)
         varargElementType = elementType
         type = irBuiltIns.arrayClass.owner.typeWith(elementType)

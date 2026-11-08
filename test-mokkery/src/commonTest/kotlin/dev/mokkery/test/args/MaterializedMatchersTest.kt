@@ -219,6 +219,27 @@ class MaterializedMatchersTest {
         assertEquals(1, mock.callPrimitive(2))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
     }
+
+    @Test
+    fun testNullableMaterializedValueAbsentInVararg() {
+        every { mock.callPrimitive(allOfOptional(gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testNullableMaterializedValuePresentInVararg() {
+        every { mock.callPrimitive(allOfOptional(gt(1), materialize(gt(3)))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testNullableMaterializedVariableInVararg() {
+        every { mock.callPrimitive(allOfNullVariable(gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
 }
 
 @OptIn(DelicateMokkeryApi::class)
@@ -352,4 +373,14 @@ private fun MokkeryMatcherScope.gtAfterReassignment(): Int {
     var value: Any = materialize(gt(1))
     value = 5
     return gt(value as Int - 4)
+}
+
+@OptIn(DelicateMokkeryApi::class)
+private fun MokkeryMatcherScope.allOfOptional(@Matcher first: Int, other: ArgMatcher<Int>? = null): Int =
+    matches(LogicalMatchers.And(listOfNotNull(materialize(first), other)))
+
+@OptIn(DelicateMokkeryApi::class)
+private fun MokkeryMatcherScope.allOfNullVariable(@Matcher first: Int): Int {
+    val other: ArgMatcher<Int>? = null
+    return matches(LogicalMatchers.And(listOfNotNull(materialize(first), other)))
 }
