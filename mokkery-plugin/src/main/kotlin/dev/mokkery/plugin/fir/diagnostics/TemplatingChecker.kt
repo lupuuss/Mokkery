@@ -151,7 +151,7 @@ class TemplatingChecker(
             context = context,
             reporter = reporter,
             configuration = configuration,
-            parentFunction = blockArgument.anonymousFunction.symbol,
+            parentFunction = blockArgument.anonymousFunction,
             usageContext = MatchersUsageContext.TEMPLATING
         )
         blockArgument.accept(visitor)

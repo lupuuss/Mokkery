@@ -128,6 +128,14 @@ class MocksRegularMethodsTest {
     }
 
     @Test
+    fun testExtensionThroughSafeCall() {
+        val nullable: RegularMethodsInterface? = mock
+        every { nullable?.ext { 1.callPrimitiveExtension() } } returns 1
+        assertEquals(1, mock.run { 1.callPrimitiveExtension() })
+        verify { nullable?.ext { 1.callPrimitiveExtension() } }
+    }
+
+    @Test
     fun testComplexExtension() {
         every { mock.ext { ComplexType.callComplexExtension() } } returns ComplexType.Companion
         assertEquals(ComplexType.Companion, mock.run { ComplexType.callComplexExtension() })

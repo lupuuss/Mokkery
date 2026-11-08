@@ -29,9 +29,9 @@ import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
-import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
 import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
+import org.jetbrains.kotlin.fir.expressions.FirCheckedSafeCallSubject
 import org.jetbrains.kotlin.fir.expressions.FirCheckNotNullCall
 import org.jetbrains.kotlin.fir.expressions.FirComponentCall
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
@@ -58,7 +58,6 @@ import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.calleeReference
 import org.jetbrains.kotlin.fir.lastExpression
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
-import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -83,14 +82,15 @@ class MatchersUsageReporterVisitor(
     private val context: CheckerContext,
     private val reporter: DiagnosticReporter,
     private val configuration: CompilerConfiguration,
-    private val parentFunction: FirFunctionSymbol<*>,
+    private val parentFunction: FirFunction,
     private val usageContext: MatchersUsageContext,
 ) : FirVisitorVoid() {
 
     private val matchersProcessor = MatchersProcessor(
-        parentFunction.signatureParameters()
+        parentFunction.symbol.signatureParameters()
             .filter { (symbol, type) -> symbol.acceptsMatcher(session) && !type.isMokkeryMatcherScope() }
-            .map { it.first }
+            .map { it.first },
+        parentFunction
     )
 
     private val templatingFunctions = setOf(
@@ -129,6 +129,7 @@ class MatchersUsageReporterVisitor(
     private fun visitAccess(access: FirQualifiedAccessExpression) = context(context) {
         val symbol = access.calleeReference.toResolvedCallableSymbol()
         when {
+            symbol?.callableId in contextFunctionIds -> reportSafeCallOnMatcher(access)
             matchersProcessor.isMatcher(access) -> {
                 val canUseMatcher = ensureCanUseMatchersNow(access)
                 if (canUseMatcher && symbol != null && symbol.isMatcherBuilder()) {
@@ -140,7 +141,7 @@ class MatchersUsageReporterVisitor(
                 reporter.reportOn(access.source, Diagnostics.ILLEGAL_NESTED_TEMPLATING, symbol.name)
             }
             symbol.isMaterializer() -> reportIllegalMatcherConstruction(access, symbol)
-            symbol.callableId in contextFunctionIds || access in legalizedNonMemberFunctionWithMatchers -> Unit
+            access in legalizedNonMemberFunctionWithMatchers -> Unit
             matchersProcessor.isMatcher(access.dispatchReceiver) -> {
                 reporter.reportOn(access.dispatchReceiver?.source, Diagnostics.ILLEGAL_MEMBER_ACCESS_ON_MATCHER)
             }
@@ -181,7 +182,7 @@ class MatchersUsageReporterVisitor(
 
     override fun visitReturnExpression(returnExpression: FirReturnExpression) = context(context) {
         val result = returnExpression.result
-        if (returnExpression.target.labeledElement.symbol == parentFunction && matchersProcessor.isMatchersVararg(result)) {
+        if (returnExpression.target.labeledElement == parentFunction && matchersProcessor.isMatchersVararg(result)) {
             reporter.reportOn(result.source, Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD)
         }
         returnExpression.acceptChildren(this)
@@ -189,7 +190,7 @@ class MatchersUsageReporterVisitor(
 
     override fun visitValueParameter(valueParameter: FirValueParameter) {
         val defaultValue = valueParameter.defaultValue
-        if (defaultValue != null && valueParameter.containingDeclarationSymbol == parentFunction) {
+        if (defaultValue != null && valueParameter.containingDeclarationSymbol == parentFunction.symbol) {
             reportIllegalMatcherArgument(valueParameter.symbol, defaultValue)
         }
         valueParameter.acceptChildren(this)
@@ -332,16 +333,9 @@ class MatchersUsageReporterVisitor(
 
     private fun processScopeFunctionBlock(anonymousFunction: FirAnonymousFunction) {
         val call = currentCallsStack.lastOrNull() ?: return
-        val symbol = call.calleeReference.toResolvedNamedFunctionSymbol() ?: return
-        if (symbol.callableId !in contextFunctionIds) return
-        val arguments = call.allNonDispatchArgumentsMapping(symbol)
-        val block = arguments[symbol.valueParameterSymbols.last()]?.unwrapExpressionOrArgument()
-        if ((block as? FirAnonymousFunctionExpression)?.anonymousFunction != anonymousFunction) return
-        scopeFunctionBlocks += anonymousFunction.symbol
-        val values = listOfNotNull(call.extensionReceiver) + symbol.valueParameterSymbols.dropLast(1).mapNotNull(arguments::get)
-        val blockParameters = listOfNotNull(anonymousFunction.receiverParameter?.symbol) +
-                anonymousFunction.contextParameters.map { it.symbol }
-        blockParameters.zip(values, matchersProcessor::processValue)
+        if (matchersProcessor.processContextFunction(call) == anonymousFunction) {
+            scopeFunctionBlocks += anonymousFunction.symbol
+        }
     }
 
     private fun ensureCanUseMatchersNow(usage: FirExpression): Boolean = context(context) {
@@ -350,16 +344,30 @@ class MatchersUsageReporterVisitor(
             return false
         }
         val nestedFunction = functionsStack
-            .lastOrNull { it != parentFunction && it !in scopeFunctionBlocks }
+            .lastOrNull { it != parentFunction.symbol && it !in scopeFunctionBlocks }
             ?: return true
         reporter.reportOn(usage.source, Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS, nestedFunction)
         return false
     }
 
-    private fun reportIllegalMatcherConstruction(access: FirQualifiedAccessExpression, symbol: FirCallableSymbol<*>) {
+    private fun reportIllegalMatcherConstruction(
+        access: FirQualifiedAccessExpression,
+        symbol: FirCallableSymbol<*>
+    ) = context(context) {
+        if (matchersProcessor.isMatcher(access.dispatchReceiver)) {
+            reporter.reportOn(access.dispatchReceiver?.source, Diagnostics.ILLEGAL_MEMBER_ACCESS_ON_MATCHER)
+        }
+        reportSafeCallOnMatcher(access)
         access
             .allNonDispatchArgumentsMapping(symbol)
             .forEach { (param, arg) -> reportIllegalMatcherArgument(param, arg) }
+    }
+
+    private fun reportSafeCallOnMatcher(access: FirQualifiedAccessExpression) = context(context) {
+        val receiver = access.extensionReceiver
+        if (receiver is FirCheckedSafeCallSubject && matchersProcessor.isMatcher(receiver)) {
+            reporter.reportOn(receiver.source, Diagnostics.ILLEGAL_OPERATOR_USAGE, "?.")
+        }
     }
 
     private fun reportIllegalMatcherArgument(param: FirBasedSymbol<*>, arg: FirExpression) = context(context) {

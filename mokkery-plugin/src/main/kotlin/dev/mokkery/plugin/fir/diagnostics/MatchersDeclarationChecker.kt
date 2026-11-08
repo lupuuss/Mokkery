@@ -59,7 +59,7 @@ class MatchersDeclarationChecker(
             context = context,
             reporter = reporter,
             configuration = configuration,
-            parentFunction = declaration.symbol,
+            parentFunction = declaration,
             usageContext = MatchersUsageContext.BUILDER
         )
         declaration.accept(visitor)

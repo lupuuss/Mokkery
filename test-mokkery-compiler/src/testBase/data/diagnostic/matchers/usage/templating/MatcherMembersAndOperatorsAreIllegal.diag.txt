@@ -1,23 +1,37 @@
-/MatcherMembersAndOperatorsAreIllegal.kt:18:22: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:31:22: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:19:22: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:32:22: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:20:22: error: Operators cannot be used with matchers, but '!!' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:33:22: error: Operators cannot be used with matchers, but '!!' operator is used.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:21:22: error: Operators cannot be used with matchers, but '?:' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:34:22: error: Operators cannot be used with matchers, but '?:' operator is used.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:22:32: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:35:32: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:24:14: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:37:14: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:24:21: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:37:21: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:27:22: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:40:22: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:28:22: error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:41:22: error: Operators cannot be used with matchers, but '::' operator is used.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:30:30: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:43:30: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:31:49: error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:44:42: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:32:39: error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:45:49: error: Operators cannot be used with matchers, but '::' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:46:39: error: Operators cannot be used with matchers, but '::' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:48:22: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:49:22: error: Operators cannot be used with matchers, but '!!' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:50:29: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:51:25: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:52:22: error: Operators cannot be used with matchers, but '?.' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:53:22: error: Operators cannot be used with matchers, but '?.' operator is used.

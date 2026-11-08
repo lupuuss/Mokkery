@@ -25,6 +25,15 @@ fun mainDenied() {
         }<!>
         mock.foo(matcher)
     }
+    every {
+        val matcher = <!ILLEGAL_TRY_CATCH!>try {
+            val local = any<Int>()
+            local
+        } catch (e: Exception) {
+            0
+        }<!>
+        mock.foo(matcher)
+    }
 }
 
 fun mainAllowed() {

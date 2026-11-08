@@ -1,0 +1,27 @@
+/ContextFunctionsAsValues.kt:53:22: error: Returning matchers from try/catch is not supported.
+
+/ContextFunctionsAsValues.kt:54:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:55:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:56:26: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:57:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:58:25: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:60:15: error: Matcher cannot be used as a when subject.
+
+/ContextFunctionsAsValues.kt:64:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:65:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:66:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:67:23: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:68:22: error: Accessing members of matchers is illegal.
+
+/ContextFunctionsAsValues.kt:69:13: error: Operators cannot be used with matchers, but '?.' operator is used.
+
+/ContextFunctionsAsValues.kt:70:23: error: Operators cannot be used with matchers, but '?.' operator is used.

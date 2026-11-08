@@ -273,6 +273,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
+        @TestMetadata("ContextFunctionsAsValues.kt")
+        public void testContextFunctionsAsValues() {
+          run("ContextFunctionsAsValues.kt");
+        }
+
+        @Test
         @TestMetadata("LegalMatcherUsage.kt")
         public void testLegalMatcherUsage() {
           run("LegalMatcherUsage.kt");
