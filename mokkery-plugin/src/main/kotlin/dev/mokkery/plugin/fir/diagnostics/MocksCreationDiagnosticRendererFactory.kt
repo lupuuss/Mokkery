@@ -45,6 +45,13 @@ class MocksCreationDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererC = CommonRenderers.commaSeparated(FirDiagnosticRenderers.SYMBOL)
         )
         it.put(
+            factory = Diagnostics.SPECIAL_TYPE_CANNOT_BE_INTERCEPTED,
+            message = "Type ''{1}'' is or extends ''{2}'' and cannot be used with ''{0}''.",
+            rendererA = CommonRenderers.NAME,
+            rendererB = typeRenderer,
+            rendererC = CommonRenderers.NAME,
+        )
+        it.put(
             factory = Diagnostics.NO_PUBLIC_CONSTRUCTOR_TYPE_CANNOT_BE_INTERCEPTED,
             message = "Type ''{1}'' has no public or internal constructor and cannot be used with ''{0}''.",
             rendererA = CommonRenderers.NAME,

@@ -2,6 +2,7 @@ package dev.mokkery.plugin.fir.diagnostics
 
 import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.MembersValidationMode
+import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.Mokkery.Callable
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.unwrapExpressionOrArgument
@@ -39,15 +40,17 @@ import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.isPrimitiveType
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.packageFqName
-import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.toResolvedNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.resolve.defaultType
-import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.resolve.toClassSymbol
+import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.scopes.FirTypeScope
 import org.jetbrains.kotlin.fir.scopes.collectAllFunctions
 import org.jetbrains.kotlin.fir.scopes.collectAllProperties
 import org.jetbrains.kotlin.fir.scopes.getDeclaredConstructors
-import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
@@ -57,6 +60,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.constructType
+import org.jetbrains.kotlin.fir.types.isSubtypeOf
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.isSomeFunctionType
@@ -93,8 +98,7 @@ class MocksCreationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     override fun check(expression: FirFunctionCall) {
-        val callee = expression.calleeReference as? FirResolvedNamedReference ?: return
-        val symbol = callee.resolvedSymbol as? FirNamedFunctionSymbol ?: return
+        val symbol = expression.calleeReference.toResolvedNamedFunctionSymbol() ?: return
         context(symbol) {
             when (symbol.callableId) {
                 mock, spy -> checkInterception(expression)
@@ -212,9 +216,25 @@ class MocksCreationChecker(
         if (!checkInterceptionAnonymousType(source, type)) return false
         val classSymbol = type.toRegularClassSymbol() ?: return false
         if (!checkInterceptionModality(source, classSymbol)) return false
-        if (classSymbol.isInterface) return true
-        if (!checkClassInterceptionRequirements(source, classSymbol)) return false
-        return true
+        if (!classSymbol.isInterface && !checkClassInterceptionRequirements(source, classSymbol)) return false
+        return checkInterceptionSpecialType(source, type)
+    }
+
+    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
+    private fun checkInterceptionSpecialType(source: AbstractKtSourceElement?, type: ConeKotlinType): Boolean {
+        val scopeType = context.session
+            .getRegularClassSymbolByClassId(Mokkery.ClassId.MokkeryScope)
+            ?.constructType(emptyArray(), isMarkedNullable = true)
+            ?: return true
+        if (!type.isSubtypeOf(scopeType, context.session)) return true
+        reporter.reportOn(
+            source = source,
+            factory = Diagnostics.SPECIAL_TYPE_CANNOT_BE_INTERCEPTED,
+            a = funSymbol.name,
+            b = type,
+            c = Mokkery.ClassId.MokkeryScope.shortClassName,
+        )
+        return false
     }
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
@@ -448,9 +468,10 @@ class MocksCreationChecker(
     private fun FirClassSymbol<*>.enhancedConstructors() = unsubstitutedScope(context).getDeclaredConstructors()
 
     context(context: CheckerContext)
-    private fun FirClassSymbol<*>.enhancedMembers(): Sequence<FirCallableSymbol<*>> {
-        val scope = unsubstitutedScope(context)
-        return scope.collectAllFunctions().asSequence() + scope.collectAllProperties().filterIsInstance<FirPropertySymbol>()
+    private fun FirClassSymbol<*>.enhancedMembers(): Sequence<FirCallableSymbol<*>> = unsubstitutedScope(context).members()
+
+    private fun FirTypeScope.members(): Sequence<FirCallableSymbol<*>> {
+        return collectAllFunctions().asSequence() + collectAllProperties().filterIsInstance<FirPropertySymbol>()
     }
 
     object Diagnostics : KtDiagnosticsContainer() {
@@ -469,6 +490,7 @@ class MocksCreationChecker(
         val FUNCTIONAL_TYPE_ON_JS by error2<KtElement, ConeKotlinType, Name>()
         val NOT_A_CLASS_LITERAL by error1<KtElement, Name>()
         val ANONYMOUS_TYPE_CANNOT_BE_INTERCEPTED by error1<KtElement, Name>()
+        val SPECIAL_TYPE_CANNOT_BE_INTERCEPTED by error3<KtElement, Name, ConeKotlinType, Name>()
     }
 
     companion object {
@@ -477,15 +499,17 @@ class MocksCreationChecker(
         private val overridableModalities = setOf(Modality.ABSTRACT, Modality.OPEN)
         private val instantiableModalities = setOf(Modality.OPEN, Modality.FINAL)
 
-        private val defaultTypesToStub = StandardClassIds.primitiveTypes +
-                StandardClassIds.unsignedTypes +
-                StandardClassIds.Number +
-                StandardClassIds.KClass +
-                StandardClassIds.Unit +
-                StandardClassIds.String +
-                StandardClassIds.primitiveArrayTypeByElementType.values.toSet() +
-                StandardClassIds.unsignedArrayTypeByElementType.values.toSet() +
-                StandardClassIds.Array
+        private val defaultTypesToStub = buildSet {
+            addAll(StandardClassIds.primitiveTypes)
+            addAll(StandardClassIds.unsignedTypes)
+            add(StandardClassIds.Number)
+            add(StandardClassIds.KClass)
+            add(StandardClassIds.Unit)
+            add(StandardClassIds.String)
+            addAll(StandardClassIds.primitiveArrayTypeByElementType.values.toSet())
+            addAll(StandardClassIds.unsignedArrayTypeByElementType.values.toSet())
+            add(StandardClassIds.Array)
+        }
     }
 }
 

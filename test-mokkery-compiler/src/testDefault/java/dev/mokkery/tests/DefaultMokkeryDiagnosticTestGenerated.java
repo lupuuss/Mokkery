@@ -367,6 +367,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
     }
 
     @Test
+    @TestMetadata("MokkerySpecialTypesMustNotBeMocked.kt")
+    public void testMokkerySpecialTypesMustNotBeMocked() {
+      run("MokkerySpecialTypesMustNotBeMocked.kt");
+    }
+
+    @Test
     @TestMetadata("OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt")
     public void testOverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised() {
       run("OverridableTypesWithFinalMembersCannotBeMockeWhenFlagIgnoreInlineMembersRaised.kt");

@@ -1,0 +1,13 @@
+/MokkerySpecialTypesMustNotBeMocked.kt:(835,847): error: Type 'MokkeryScope' is or extends 'MokkeryScope' and cannot be used with 'mock'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(860,876): error: Type 'MokkeryCallScope' is or extends 'MokkeryScope' and cannot be used with 'mock'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(889,908): error: Type 'MokkeryMatcherScope' is or extends 'MokkeryScope' and cannot be used with 'mock'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(921,943): error: Type 'MokkeryTemplatingScope' is or extends 'MokkeryScope' and cannot be used with 'mock'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(956,967): error: Type 'CustomScope' is or extends 'MokkeryScope' and cannot be used with 'mock'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(998,1009): error: Type 'CustomScope' is or extends 'MokkeryScope' and cannot be used with 'mockMany'.
+
+/MokkerySpecialTypesMustNotBeMocked.kt:(1017,1020): error: Type 'MokkerySuiteScope' is or extends 'MokkeryScope' and cannot be used with 'spy'.
