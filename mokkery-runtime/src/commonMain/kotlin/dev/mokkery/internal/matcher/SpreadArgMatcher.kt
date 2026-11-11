@@ -7,16 +7,8 @@ import dev.mokkery.rendering.MokkeryRenderingScope
 import dev.mokkery.rendering.Renderable
 import dev.mokkery.rendering.argMatcherRenderer
 
-@PublishedApi
-internal interface SpreadArgMatcher<T> : ArgMatcher.Composite<T>
-
-@PublishedApi
-internal fun <T> ArgMatcher<T>.spread(): SpreadArgMatcher<T> = SpreadArgMatcherImpl(this)
-
 @Poko
-private class SpreadArgMatcherImpl<T>(
-    private val matcher: ArgMatcher<T>
-) : SpreadArgMatcher<T>, Renderable {
+internal class SpreadArgMatcher<T>(val matcher: ArgMatcher<Any?>) : ArgMatcher.Composite<T>, Renderable {
 
     override fun matches(arg: T): Boolean = matcher.matches(arg)
 
@@ -26,5 +18,4 @@ private class SpreadArgMatcherImpl<T>(
 
     context(scope: MokkeryRenderingScope)
     override fun render(): String = "*${scope.argMatcherRenderer.render(matcher)}"
-
 }

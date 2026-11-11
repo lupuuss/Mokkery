@@ -42,7 +42,6 @@ object MokkeryIr {
         val MokkeryScope by dev_mokkery.refClass
         val MokkeryMatcherScope by dev_mokkery_matcher.refClass
         val ArgMatcher by dev_mokkery_matcher.refClass
-        val ArgMatcherEquals = dev_mokkery_matcher.refNestedClass("ArgMatcher", "Equals")
         val CompositeVarArgMatcher by dev_mokkery_internal_matcher.refClass
         val DefaultValuesMatcher by dev_mokkery_internal_matcher.refClass
         val MockMany2 by dev_mokkery.refClass
@@ -104,13 +103,16 @@ object MokkeryIr {
         val suiteScope by dev_mokkery_internal.refFunction
         val suiteContext by dev_mokkery_internal.refFunction
         val typeArgumentAt by dev_mokkery_internal.refFunction
-        val inlineLiteralsAsMatchers by dev_mokkery_internal_matcher.refFunction
         val matches by dev_mokkery_matcher.refFunction { it.owner.parameters.size == 2 }
         val materialize by dev_mokkery_matcher.refFunction { fn -> fn.owner.parameters.none { it.varargElementType != null } }
         val materializeVararg = IrFunctionById(CallableId(dev_mokkery_matcher, Name.identifier("materialize"))) { fn ->
             fn.owner.parameters.any { it.varargElementType != null }
         }
+        val internalMaterialize by dev_mokkery_internal_matcher.refFunction
+        val eq by dev_mokkery_internal_matcher.refFunction
         val spread by dev_mokkery_internal_matcher.refFunction
+        val spreadArray by dev_mokkery_internal_matcher.refFunction
+        val internalSpreadArray by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForDefaults by dev_mokkery_internal.refFunction

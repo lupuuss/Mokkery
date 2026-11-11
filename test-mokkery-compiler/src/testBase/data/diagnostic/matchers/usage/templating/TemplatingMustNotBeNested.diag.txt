@@ -1,7 +1,11 @@
-/TemplatingMustNotBeNested.kt:13:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
+/TemplatingMustNotBeNested.kt:17:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
 
-/TemplatingMustNotBeNested.kt:14:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.
+/TemplatingMustNotBeNested.kt:18:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.
 
-/TemplatingMustNotBeNested.kt:18:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
+/TemplatingMustNotBeNested.kt:22:9: error: 'every' calls cannot be nested in templating functions or matcher declarations.
 
-/TemplatingMustNotBeNested.kt:19:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.
+/TemplatingMustNotBeNested.kt:23:9: error: 'verify' calls cannot be nested in templating functions or matcher declarations.
+
+/TemplatingMustNotBeNested.kt:32:13: error: 'ctx' cannot be used in matcher builders.
+
+/TemplatingMustNotBeNested.kt:33:13: error: 'ext' cannot be used in matcher builders.

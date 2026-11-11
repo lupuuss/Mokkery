@@ -40,6 +40,11 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = CommonRenderers.NAME
         )
         it.put(
+            factory = Diagnostics.ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER,
+            message = "''{0}'' cannot be used in matcher builders.",
+            rendererA = CommonRenderers.NAME
+        )
+        it.put(
             factory = Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS,
             message = "Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in ''{0}''. $scopeFunctionsHint",
             rendererA = FirDiagnosticRenderers.SYMBOL

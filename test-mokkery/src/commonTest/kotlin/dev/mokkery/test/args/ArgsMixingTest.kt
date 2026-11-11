@@ -16,6 +16,7 @@ import dev.mokkery.matcher.logical.or
 import dev.mokkery.matcher.lt
 import dev.mokkery.matcher.matches
 import dev.mokkery.mock
+import dev.mokkery.test.CollectionsInterface
 import dev.mokkery.test.ComplexArgsInterface
 import dev.mokkery.test.ComplexType
 import dev.mokkery.verify
@@ -27,6 +28,7 @@ import kotlin.test.assertFailsWith
 class ArgsMixingTest {
 
     private val mock = mock<ComplexArgsInterface>()
+    private val collections = mock<CollectionsInterface>()
 
     @Test
     fun testSupportsNamedParametersWithMixedLiteralsAndMatchers() {
@@ -182,6 +184,61 @@ class ArgsMixingTest {
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1, 5, 3) }
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1, 2, 5) }
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 1, 2) }
+    }
+
+    @Test
+    fun testSpreadWhenMixingMatcherAndLiteralArray() {
+        for (useMatcher in listOf(true, false)) {
+            every {
+                mock.callPrimitiveVarargs(1, *(if (useMatcher) containsAnyInt { it == 1 } else intArrayOf(7, 8)), 3)
+            } returns 1
+        }
+        assertEquals(1, mock.callPrimitiveVarargs(1, 7, 8, 3))
+        assertEquals(1, mock.callPrimitiveVarargs(1, 1, 2, 3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 8, 7, 3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 7, 3) }
+    }
+
+    @Test
+    fun testSpreadVariableInitializedWithWhenMixingMatcherAndLiteralArray() {
+        for (useMatcher in listOf(true, false)) {
+            every {
+                val inputs = if (useMatcher) containsAnyInt { it == 1 } else intArrayOf(7, 8)
+                mock.callPrimitiveVarargs(1, *inputs, 3)
+            } returns 1
+        }
+        assertEquals(1, mock.callPrimitiveVarargs(1, 7, 8, 3))
+        assertEquals(1, mock.callPrimitiveVarargs(1, 1, 2, 3))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 8, 7, 3) }
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 7, 3) }
+    }
+
+    @Test
+    fun testSpreadGenericArrayLiteralsWithMatchers() {
+        val values = arrayOf("b", "c")
+        every { collections.callWithElements("a", *values, any()) } returns "1"
+        assertEquals("1", collections.callWithElements("a", "b", "c", "d"))
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithElements("a", "x", "c", "d") }
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithElements("a", "b", "c") }
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun testSpreadUnsignedArrayLiteralsWithMatchers() {
+        val values = uintArrayOf(2u, 3u)
+        every { collections.callWithUInts(1u, *values, any()) } returns 1u
+        assertEquals(1u, collections.callWithUInts(1u, 2u, 3u, 4u))
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithUInts(1u, 5u, 3u, 4u) }
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithUInts(1u, 2u, 3u) }
+    }
+
+    @Test
+    fun testSpreadCharArrayLiterals() {
+        val values = charArrayOf('b', 'c')
+        every { collections.callWithChars('a', *values) } returns 'x'
+        assertEquals('x', collections.callWithChars('a', 'b', 'c'))
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithChars('a', 'b', 'd') }
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithChars('a', 'b') }
     }
 
     @Test

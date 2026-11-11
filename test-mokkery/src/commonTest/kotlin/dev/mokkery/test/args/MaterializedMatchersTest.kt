@@ -10,6 +10,7 @@ import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.collections.containsAllElements
 import dev.mokkery.matcher.gt
 import dev.mokkery.matcher.logical.LogicalMatchers
 import dev.mokkery.matcher.logical.and
@@ -129,6 +130,15 @@ class MaterializedMatchersTest {
     }
 
     @Test
+    fun testLiteralArraySpreadIntoWiderMatcherVararg() {
+        val consumer = mock<NumberConsumer>()
+        val ints = arrayOf(3, 4)
+        every { consumer.consume(anyOfNumbers(1, *ints)) } returns 1
+        assertEquals(1, consumer.consume(4))
+        assertFailsWith<MokkeryRuntimeException> { consumer.consume(5) }
+    }
+
+    @Test
     fun testVarargMatchersVariableReassignedWithLiterals() {
         every { mock.callPrimitive(anyOfReplaced(true, arrayOf(5), 1, gt(10))) } returns 1
         assertEquals(1, mock.callPrimitive(5))
@@ -237,6 +247,50 @@ class MaterializedMatchersTest {
     @Test
     fun testNullableMaterializedVariableInVararg() {
         every { mock.callPrimitive(allOfNullVariable(gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testPlainValuesNextToMaterializedInVararg() {
+        every { mock.callPrimitive(listMixed(gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testPlainValueInWhenWithMaterializedBranch() {
+        every { mock.callPrimitive(plainWhen(false, gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testMaterializedValuePassedToPlainParameter() {
+        every { mock.callPrimitive(allOfWith(gt(1), materialize(gt(3)))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testArgMatcherDefaultOfPlainParameter() {
+        every { mock.callPrimitive(allOfDefault(gt(1))) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    @OptIn(DelicateMokkeryApi::class)
+    fun testSpreadMatcherPassedToNestedVararg() {
+        val materialized = mutableListOf<ArgMatcher<Int>>()
+        every { mock.callPrimitive(materializedInto(materialized, gt(0), *containsAllElements<Int> { it > 0 })) } returns 1
+        assertEquals(2, materialized.size)
+        assertIs<ArgMatcher.Composite<*>>(materialized[1])
+    }
+
+    @Test
+    fun testArgMatcherReturnedFromLocalFunction() {
+        every { mock.callPrimitive(fromLocalFunction(gt(1))) } returns 1
         assertEquals(1, mock.callPrimitive(5))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
     }
@@ -369,6 +423,13 @@ private interface UIntConsumer {
     fun consume(value: UInt): Int
 }
 
+private fun MokkeryMatcherScope.anyOfNumbers(@Matcher first: Number, @Matcher vararg rest: Number): Number =
+    or(first, first, *rest)
+
+private interface NumberConsumer {
+    fun consume(value: Number): Int
+}
+
 private fun MokkeryMatcherScope.gtAfterReassignment(): Int {
     var value: Any = materialize(gt(1))
     value = 5
@@ -383,4 +444,33 @@ private fun MokkeryMatcherScope.allOfOptional(@Matcher first: Int, other: ArgMat
 private fun MokkeryMatcherScope.allOfNullVariable(@Matcher first: Int): Int {
     val other: ArgMatcher<Int>? = null
     return matches(LogicalMatchers.And(listOfNotNull(materialize(first), other)))
+}
+
+private fun MokkeryMatcherScope.listMixed(@Matcher first: Int): Int {
+    val argMatcher = materialize(first)
+    val list = listOf<Any>(argMatcher, 5, ArgMatcher.Any)
+    return matches { list[1] == 5 && list[2] == ArgMatcher.Any && argMatcher.matches(it) }
+}
+
+private fun MokkeryMatcherScope.plainWhen(flag: Boolean, @Matcher first: Int): Int {
+    val value: Any = if (flag) materialize(first) else 5
+    return if (value == 5) first else not(first)
+}
+
+@OptIn(DelicateMokkeryApi::class)
+private fun MokkeryMatcherScope.allOfWith(@Matcher first: Int, other: ArgMatcher<Int>): Int =
+    matches(LogicalMatchers.And(listOf(materialize(first), other)))
+
+@OptIn(DelicateMokkeryApi::class)
+private fun MokkeryMatcherScope.allOfDefault(@Matcher first: Int, other: ArgMatcher<Int> = ArgMatcher.Any): Int =
+    matches(LogicalMatchers.And(listOf(materialize(first), other)))
+
+private fun MokkeryMatcherScope.fromLocalFunction(@Matcher first: Int): Int {
+    fun local(): ArgMatcher<Int> = ArgMatcher.Any
+    return if (local() == ArgMatcher.Any) first else not(first)
+}
+
+private fun <T> MokkeryMatcherScope.materializedInto(target: MutableList<ArgMatcher<T>>, @Matcher vararg matchers: T): T {
+    target += materialize(*matchers)
+    return any()
 }

@@ -13,14 +13,19 @@ import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
+import org.jetbrains.kotlin.ir.types.isArray
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.eraseTypeParameters
 import org.jetbrains.kotlin.ir.util.isFunction
+import org.jetbrains.kotlin.ir.util.isPrimitiveArray
 import org.jetbrains.kotlin.ir.util.isSuspendFunction
+import org.jetbrains.kotlin.ir.util.isUnsignedArray
 import org.jetbrains.kotlin.utils.memoryOptimizedFlatMap
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 fun IrType.isAnyFunction() = isFunction() || isSuspendFunction()
+
+fun IrType.isAnyArray(): Boolean = isArray() || isPrimitiveArray() || isUnsignedArray()
 
 val IrType.argumentTypes: List<IrType?>
     get() = (this as? IrSimpleType)?.arguments?.memoryOptimizedMap { it.typeOrNull }.orEmpty()

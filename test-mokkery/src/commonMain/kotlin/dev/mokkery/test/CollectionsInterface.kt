@@ -6,6 +6,7 @@ interface CollectionsInterface {
 
     fun <T> callWithList(elements: List<T>): T
     fun <T> callWithElementsArray(elements: Array<T>): T  // array variant
+    fun <T> callWithElements(vararg elements: T): T
 
     fun callWithBooleans(vararg values: Boolean): Boolean
     fun callWithBooleansArray(values: BooleanArray): Boolean

@@ -129,7 +129,12 @@ class MatchersUsageReporterVisitor(
     private fun visitAccess(access: FirQualifiedAccessExpression) = context(context) {
         val symbol = access.calleeReference.toResolvedCallableSymbol()
         when {
-            symbol?.callableId in contextFunctionIds -> reportSafeCallOnMatcher(access)
+            symbol?.callableId in contextFunctionIds -> {
+                if (usageContext == MatchersUsageContext.BUILDER) {
+                    reporter.reportOn(access.source, Diagnostics.ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER, symbol!!.name)
+                }
+                reportSafeCallOnMatcher(access)
+            }
             matchersProcessor.isMatcher(access) -> {
                 val canUseMatcher = ensureCanUseMatchersNow(access)
                 if (canUseMatcher && symbol != null && symbol.isMatcherBuilder()) {
@@ -487,6 +492,7 @@ class MatchersUsageReporterVisitor(
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
         val ILLEGAL_TRY_CATCH by error0<KtElement>()
         val ILLEGAL_NESTED_TEMPLATING by error1<KtElement, Name>()
+        val ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER by error1<KtElement, Name>()
         val ILLEGAL_NESTED_FUNCTIONS_MATCHERS by error1<KtElement, FirFunctionSymbol<*>>()
         val ILLEGAL_NESTED_CLASS_MATCHERS by error1<KtElement, FirClassSymbol<*>>()
         val ILLEGAL_MATCHER_IN_CONDITION by error0<KtElement>()

@@ -1,4 +1,4 @@
-package dev.mokkery.plugin.ir.transformer.templating
+package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
@@ -35,6 +35,12 @@ import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.types.typeWith
 
+/**
+ * Unwraps `RunTemplateResult` values where the result is consumed and leaves them as they are where it is discarded,
+ * and turns returns from the templating block into `Unit` returns.
+ *
+ * Assumes [TemplatingTransformer] ran.
+ */
 class TemplatingCleanupTransformer(
     pluginScope: IrMokkeryPluginScope,
     private val templatingFunctionSymbol: IrSimpleFunctionSymbol,

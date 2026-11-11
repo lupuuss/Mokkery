@@ -34,7 +34,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
             )
         )
         assertTrue(matcher.matches(intArrayOf(1, 2)))
@@ -46,7 +46,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
             )
         )
         assertTrue(matcher.matches(intArrayOf(1, 2, 3, 4, 5)))
@@ -58,7 +58,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
+                SpreadArgMatcher(CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }),
             )
         )
         assertFalse(matcher.matches(intArrayOf(1, 2, 3, 4, 5)))
@@ -70,7 +70,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
             )
         )
         assertFalse(matcher.matches(intArrayOf(2, 2, 3, 4, 5)))
@@ -82,7 +82,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -96,7 +96,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -110,7 +110,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
+                SpreadArgMatcher(CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -124,7 +124,7 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }.spread(),
+                SpreadArgMatcher(CollectionArgMatchers.ContainsAllArray<Int>(Int::class) { it == 1 }),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
@@ -151,11 +151,11 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
             )
         )
         assertEquals(
-            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcherImpl(matcher=Any))]",
+            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcher(matcher=Any))]",
             actual = testRendering(argMatcherRenderer) { matcher.render() }
         )
     }
@@ -166,13 +166,13 @@ class CompositeVarargMatcherTest {
             listOf(
                 ArgMatcher.Equals(1),
                 ArgMatcher.Equals(2),
-                ArgMatcher.Any.spread(),
+                SpreadArgMatcher(ArgMatcher.Any),
                 ArgMatcher.Equals(3),
                 ArgMatcher.Equals(4),
             )
         )
         assertEquals(
-            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcherImpl(matcher=Any)), M(Equals(value=3)), M(Equals(value=4))]",
+            expected = "[M(Equals(value=1)), M(Equals(value=2)), M(SpreadArgMatcher(matcher=Any)), M(Equals(value=3)), M(Equals(value=4))]",
             actual = testRendering(argMatcherRenderer) { matcher.render() }
         )
     }
@@ -197,7 +197,7 @@ class CompositeVarargMatcherTest {
     fun testPropagatesCaptureToWildcard() {
         val captured = mutableListOf<Any?>()
         val matcher = CaptureMatcher(captured.asCapture(), ArgMatcher.Any)
-        CompositeVarArgMatcher(listOf(matcher.spread() as ArgMatcher<Any?>)).apply {
+        CompositeVarArgMatcher(listOf(SpreadArgMatcher<Any?>(matcher))).apply {
             capture(intArrayOf(1, 2))
             capture(intArrayOf(3))
         }
@@ -215,7 +215,7 @@ class CompositeVarargMatcherTest {
         CompositeVarArgMatcher(
             listOf(
                 CaptureMatcher(before.asCapture(), ArgMatcher.Any) as ArgMatcher<Any?>,
-                CaptureMatcher(wildcard.asCapture(), ArgMatcher.Any).spread() as ArgMatcher<Any?>,
+                SpreadArgMatcher<Any?>(CaptureMatcher(wildcard.asCapture(), ArgMatcher.Any)),
                 CaptureMatcher(after.asCapture(), ArgMatcher.Any) as ArgMatcher<Any?>,
             )
         ).capture(intArrayOf(1, 2, 3, 4))

@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -37,6 +36,7 @@ import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -69,6 +69,16 @@ fun IrCall.replaceVerifySuspend() = replaceWithInternalVerify(
     originalCall = this,
     toBeReplacedWith = referenced(MokkeryIr.Function.internalVerifySuspend).symbol,
 )
+
+context(scope: TransformerScope)
+fun IrCall.replaceVerifyNoMoreCalls(): IrExpression = this.replaceDeclarationIrBuilder {
+    val originalCall = this@replaceVerifyNoMoreCalls
+    val varargParam = symbol.owner.parameters.find { it.isVararg }
+    irCall(referenced(MokkeryIr.Function.internalVerifyNoMoreCalls)) {
+        arguments[0] = irGetMokkeryScopeFor(originalCall)
+        arguments[1] = varargParam?.let(originalCall.arguments::get)
+    }
+}
 
 
 context(scope: TransformerScope)
@@ -117,20 +127,7 @@ private fun IrBlockBuilder.irTemplatingLambdaFor(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(listOf(referencedDefaultType(MokkeryIr.Class.MokkeryTemplatingScope), irBuiltIns.unitType))
     return irLambdaOf(lambdaType) { func ->
-        val matchersInliningTransformer = MatchersInliningTransformer(
-            pluginScope = scope,
-            initialValueDeclarations = emptyList()
-        )
-        val templatingTransformer = TemplatingTransformer(
-            pluginScope = scope,
-            templatingScopeParam = func.parameters[0],
-        )
-        val templatingCleanupTransformer = TemplatingCleanupTransformer(scope, function.symbol)
-        val newBody = function
-            .transform(matchersInliningTransformer, null)
-            .transform(templatingTransformer, null)
-            .transform(templatingCleanupTransformer, null)
-            .let { it as IrFunction }
+        val newBody = runTemplatingPhases(function, templatingScopeParam = func.parameters[0])
             .moveBodyTo(func, mapOf(function.parameters[0] to func.parameters[0]))
         newBody?.statements?.unaryPlus()
     }

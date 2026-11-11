@@ -14,12 +14,12 @@ import dev.mokkery.plugin.ir.transformer.mock.replaceMockManyCall
 import dev.mokkery.plugin.ir.transformer.mock.replaceSpyCall
 import dev.mokkery.plugin.ir.transformer.scope.overrideMokkerySuiteScopeIfNotOverridden
 import dev.mokkery.plugin.ir.transformer.scope.replaceMokkerySuiteScope
-import dev.mokkery.plugin.ir.transformer.templating.compileIfMatcher
 import dev.mokkery.plugin.ir.transformer.templating.replaceEvery
 import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifyNoMoreCalls
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifySuspend
+import dev.mokkery.plugin.ir.transformer.templating.runMatcherPhases
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -41,7 +41,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
 
     override fun visitFunctionNew(declaration: IrFunction): IrStatement {
         if (declaration is IrSimpleFunction) {
-            compileIfMatcher(declaration)
+            runMatcherPhases(declaration)
             declaration.generateBodyIfModuleScopeGetter()
         }
         return declaration.applyTransformChildrenVoid()
