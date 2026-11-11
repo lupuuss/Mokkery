@@ -5,6 +5,7 @@ import dev.mokkery.plugin.core.context.asMokkeryContext
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.asMokkeryContext
 import dev.mokkery.plugin.ir.transformer.MokkeryRootTransformer
+import dev.mokkery.plugin.ir.transformer.templating.signature.MatcherBuilderSignatures
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -15,7 +16,10 @@ class MokkeryIrGenerationExtension(
 ) : IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        val context = configuration.asMokkeryContext() + pluginContext.asMokkeryContext() + CacheStore()
+        val context = configuration.asMokkeryContext() +
+            pluginContext.asMokkeryContext() +
+            CacheStore() +
+            MatcherBuilderSignatures()
         MokkeryRootTransformer(IrMokkeryPluginScope(context))
             .visitModuleFragment(moduleFragment)
     }

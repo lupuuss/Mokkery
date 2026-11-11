@@ -19,6 +19,7 @@ import dev.mokkery.plugin.ir.transformer.templating.replaceEverySuspend
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerify
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifyNoMoreCalls
 import dev.mokkery.plugin.ir.transformer.templating.replaceVerifySuspend
+import dev.mokkery.plugin.ir.transformer.templating.signature.matcherBuilderSignatures
 import dev.mokkery.plugin.ir.transformer.templating.runMatcherPhases
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -71,6 +72,7 @@ class MokkeryRootTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransforme
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {
         val time = TimeSource.Monotonic.markNow()
         declaration.transformChildrenVoid()
+        matcherBuilderSignatures.retype()
         log { "Plugin time: ${time.elapsedNow()}" }
         return declaration
     }

@@ -569,6 +569,17 @@ class TemplatingTest {
     }
 
     @Test
+    fun testStarProjectedMockWithVarargAndOmittedDefault() {
+        val typed = mock<GenericFunctionsInterface<String>>()
+        val mock: GenericFunctionsInterface<*> = typed
+        every { mock.callVararg(any(), any()) } returns 1
+        every { mock.callWithDefault(any()) } returns 2
+        assertEquals(1, typed.callVararg("a", "b"))
+        assertEquals(2, typed.callWithDefault(0))
+        assertFailsWith<MokkeryRuntimeException> { typed.callWithDefault(0, listOf("a")) }
+    }
+
+    @Test
     fun testArgMatchersScopeAccess() {
         val mock = mock<RegularMethodsInterface>()
         verify(not) {

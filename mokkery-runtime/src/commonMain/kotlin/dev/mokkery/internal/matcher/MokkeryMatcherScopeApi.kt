@@ -32,3 +32,15 @@ internal fun <A> MokkeryMatcherScope.spreadArray(@Matcher value: A): A = mokkery
 internal fun <T> internalSpreadArray(
     matcher: ArgMatcher<*>
 ): Array<ArgMatcher<T>> = arrayOf(SpreadArgMatcher(matcher.unsafeCast()))
+
+@PublishedApi
+internal fun <T> MokkeryMatcherScope.varArgs(
+    @Matcher vararg elements: Any?
+): T = matches(CompositeVarArgMatcher(materialize(*elements)))
+
+@PublishedApi
+internal fun <T> MokkeryMatcherScope.defaultValue(
+    mask: Long,
+    extractingFunction: Function<Nothing>,
+    isExtractingFunctionSuspend: Boolean,
+): T = matches(DefaultValuesMatcher(mask, extractingFunction, isExtractingFunctionSuspend))

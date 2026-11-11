@@ -42,8 +42,6 @@ object MokkeryIr {
         val MokkeryScope by dev_mokkery.refClass
         val MokkeryMatcherScope by dev_mokkery_matcher.refClass
         val ArgMatcher by dev_mokkery_matcher.refClass
-        val CompositeVarArgMatcher by dev_mokkery_internal_matcher.refClass
-        val DefaultValuesMatcher by dev_mokkery_internal_matcher.refClass
         val MockMany2 by dev_mokkery.refClass
         val MockMany3 by dev_mokkery.refClass
         val MockMany4 by dev_mokkery.refClass
@@ -113,6 +111,8 @@ object MokkeryIr {
         val spread by dev_mokkery_internal_matcher.refFunction
         val spreadArray by dev_mokkery_internal_matcher.refFunction
         val internalSpreadArray by dev_mokkery_internal_matcher.refFunction
+        val varArgs by dev_mokkery_internal_matcher.refFunction
+        val defaultValue by dev_mokkery_internal_matcher.refFunction
         val mokkeryRuntimeError by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForCommon by dev_mokkery_internal.refFunction
         val setupMokkeryInstanceForDefaults by dev_mokkery_internal.refFunction

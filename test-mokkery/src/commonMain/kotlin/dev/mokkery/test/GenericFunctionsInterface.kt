@@ -22,5 +22,9 @@ interface GenericFunctionsInterface<Type> {
 
     fun callGenericWithStarProjection(input: List<*>): List<*>
 
+    fun callVararg(vararg inputs: Type): Int
+
+    fun callWithDefault(first: Int, inputs: List<Type> = emptyList()): Int
+
     fun <T : GenericFunctionsInterface<T>> callSelf(input: T): GenericFunctionsInterface<Type>
 }

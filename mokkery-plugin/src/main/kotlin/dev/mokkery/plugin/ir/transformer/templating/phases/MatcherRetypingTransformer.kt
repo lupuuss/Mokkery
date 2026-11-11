@@ -3,18 +3,17 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
-import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.collectReturns
+import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherFunctionKind
-import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherKind
-import dev.mokkery.plugin.ir.transformer.templating.matcher.isMatcherParameter
+import dev.mokkery.plugin.ir.transformer.templating.matcher.asMatcherType
+import dev.mokkery.plugin.ir.transformer.templating.matcher.asMatchersArrayType
+import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
-import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherKind
-import dev.mokkery.plugin.ir.transformer.templating.runMatcherPhases
-import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import dev.mokkery.plugin.ir.transformer.templating.signature.matcherCompiledSignature
+import dev.mokkery.plugin.ir.transformer.templating.signature.matcherCompiledType
+import dev.mokkery.plugin.ir.transformer.templating.signature.retypeTo
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -25,80 +24,60 @@ import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.getArrayElementType
-import org.jetbrains.kotlin.ir.util.isVararg
-import org.jetbrains.kotlin.ir.util.substitute
-import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 
 /**
- * Retypes matchers from their source types to `ArgMatcher`: the signature of [matcherFunction] first, then its body.
- * Called matcher builders are compiled to get their signatures.
+ * Retypes matchers from their source types to `ArgMatcher`.
+ * Types of called matcher builders are computed from their source signatures, which are retyped
+ * only after the whole module is compiled.
  *
  * Assumes [MatcherNormalizingTransformer] ran, so every matcher position already holds a matcher.
  */
-class MatcherRetypingTransformer(
-    pluginScope: IrMokkeryPluginScope,
-    private val matcherFunction: IrFunction?,
-) : CoreTransformer(pluginScope) {
-
-    private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-
-    override fun visitFunctionNew(declaration: IrFunction): IrStatement {
-        if (declaration == matcherFunction) declaration.retypeSignature()
-        return super.visitFunctionNew(declaration)
-    }
+class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
 
     override fun visitCall(expression: IrCall): IrExpression {
-        val function = runMatcherPhases(expression.symbol.owner)
+        val function = expression.symbol.owner
         expression.transformChildrenVoid()
         when (function.matcherFunctionKind()) {
-            MatcherFunctionKind.Matches -> expression.type = argMatcherClass.typeWith(expression.type)
+            MatcherFunctionKind.Matches -> expression.type = expression.type.asMatcherType()
             MatcherFunctionKind.SpreadArray -> expression.type = expression.type.asMatchersArrayType()
-            MatcherFunctionKind.Builder -> expression.retypeAsCompiledMatcherCall(function)
+            MatcherFunctionKind.Builder -> expression.retypeTo(function.matcherCompiledSignature)
             MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg, null -> Unit
         }
         return expression
     }
 
     override fun visitVariable(declaration: IrVariable) = declaration.transformPostfix {
-        if (matcherKind() != null) type = initializer!!.type
+        if (matcherArity() != null) type = initializer!!.type
     }
 
     override fun visitVararg(expression: IrVararg) = expression.transformPostfix {
-        if (elements.none { it.matcherKind() != null }) return@transformPostfix
-        retype(argMatcherClass.typeWith(varargElementType))
+        if (elements.none { it.matcherArity() != null }) return@transformPostfix
+        retype(varargElementType.asMatcherType())
     }
 
     override fun visitReturnableBlock(expression: IrReturnableBlock) = expression.transformPostfix {
-        if (matcherKind() != MatcherKind.Single) return@transformPostfix
-        val targetType = argMatcherClass.typeWith(type)
+        if (matcherArity() != MatcherArity.Single) return@transformPostfix
+        val targetType = type.asMatcherType()
         type = targetType
         collectReturns().forEach { it.type = targetType }
     }
 
     override fun visitBlock(expression: IrBlock) = expression.transformPostfix {
-        if (matcherKind() == null) return@transformPostfix
+        if (matcherArity() == null) return@transformPostfix
         type = (statements.last() as IrExpression).type
     }
 
     override fun visitWhen(expression: IrWhen) = expression.transformPostfix {
-        type = when (matcherKind()) {
-            MatcherKind.Array -> branches.first { it.result.matcherKind() == MatcherKind.Array }.result.type
-            MatcherKind.Single -> argMatcherClass.typeWith(type)
-            null -> return@transformPostfix
-        }
+        val arity = matcherArity() ?: return@transformPostfix
+        type = branches.first { it.result.matcherArity() == arity }.result.type
     }
 
     override fun visitGetValue(expression: IrGetValue) = expression.transformPostfix {
-        if (symbol.owner.matcherKind() != null) type = symbol.owner.type
-    }
-
-    private fun IrCall.retypeAsCompiledMatcherCall(function: IrSimpleFunction) {
-        val substitution = typeSubstitutionMap
-        type = function.returnType.substitute(substitution)
-        function.parameters.forEach { param ->
-            val arg = arguments[param] as? IrVararg ?: return@forEach
-            if (param.isMatcherParameter()) arg.retype(param.varargElementType!!.substitute(substitution))
+        val owner = symbol.owner
+        type = when {
+            owner.matcherArity() == null -> return@transformPostfix
+            owner is IrValueParameter -> owner.matcherCompiledType
+            else -> owner.type
         }
     }
 
@@ -106,22 +85,4 @@ class MatcherRetypingTransformer(
         varargElementType = elementType
         type = irBuiltIns.arrayClass.typeWith(elementType)
     }
-
-    private fun IrFunction.retypeSignature() {
-        parameters.forEach {
-            if (!it.isMatcherParameter()) return@forEach
-            if (it.isVararg) {
-                val matcherType = argMatcherClass.typeWith(it.type.getArrayElementType(irBuiltIns))
-                it.type = irBuiltIns.arrayClass.typeWith(matcherType)
-                it.varargElementType = matcherType
-            } else {
-                it.type = argMatcherClass.typeWith(it.type)
-            }
-        }
-        returnType = argMatcherClass.typeWith(returnType)
-    }
-
-    private fun IrType.asMatchersArrayType(): IrType = irBuiltIns
-        .arrayClass
-        .typeWith(argMatcherClass.typeWith(getArrayElementType(irBuiltIns)))
 }

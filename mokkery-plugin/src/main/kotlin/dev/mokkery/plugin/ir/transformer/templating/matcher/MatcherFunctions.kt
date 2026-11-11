@@ -20,7 +20,7 @@ enum class MatcherFunctionKind(val isIntrinsic: Boolean) {
 
 context(scope: TransformerScope)
 fun IrFunction.matcherFunctionKind(): MatcherFunctionKind? = when {
-    name == SpecialNames.ANONYMOUS || matcherScopeParameter() == null -> null
+    name == SpecialNames.ANONYMOUS || matcherScopeParameterOrNull() == null -> null
     this == referenced(MokkeryIr.Function.matches) -> MatcherFunctionKind.Matches
     this == referenced(MokkeryIr.Function.materialize) -> MatcherFunctionKind.Materializer
     this == referenced(MokkeryIr.Function.materializeVararg) -> MatcherFunctionKind.MaterializerVararg
@@ -29,7 +29,11 @@ fun IrFunction.matcherFunctionKind(): MatcherFunctionKind? = when {
 }
 
 context(scope: TransformerScope)
-fun IrFunction.matcherScopeParameter(): IrValueParameter? {
+fun IrFunction.matcherScopeParameter(): IrValueParameter = matcherScopeParameterOrNull()
+    ?: error("MokkeryMatcherScope parameter not found!")
+
+context(scope: TransformerScope)
+fun IrFunction.matcherScopeParameterOrNull(): IrValueParameter? {
     val matcherScopeType = referencedDefaultType(MokkeryIr.Class.MokkeryMatcherScope)
     return parameters.firstOrNull { it.type == matcherScopeType }
 }

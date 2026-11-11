@@ -4,22 +4,19 @@ import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
-import dev.mokkery.plugin.core.ir.transformer.referencedPrimaryConstructor
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.defaultTypeErased
+import dev.mokkery.plugin.ir.erasedUpperBound
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
-import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.irLambdaOf
-import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
-import dev.mokkery.plugin.ir.transformer.core.irCallListOf
-import dev.mokkery.plugin.ir.transformer.templating.matcher.isMatcher
-import dev.mokkery.plugin.ir.transformer.templating.runMatcherPhases
+import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
+import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
 import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -42,9 +39,9 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
-import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
@@ -61,26 +58,27 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 /**
- * Replaces calls on mocks with `runTemplate` calls that record the called function and its argument matchers;
- * plain arguments are wrapped with `eq`.
+ * Replaces calls on mocks with `runTemplate` calls that record the called function and its argument matchers.
+ * The arguments are passed to vararg `materialize`, so the matcher phases that run next make them matchers
+ * like in any other matcher position. A vararg parameter is passed with `varArgs` and a missing
+ * argument with `defaultValue`.
  *
- * Assumes the matcher phases ran. Matchers are recognised by their `ArgMatcher` type, because after
- * [MatcherIntrinsicsLoweringTransformer] the called function no longer identifies a matcher.
- * Mocked types can't use `ArgMatcher` in their members, so the type is unambiguous.
+ * Runs on source IR, right after `ctx` and `ext` are inlined.
  */
 class TemplatingTransformer(
     pluginScope: IrMokkeryPluginScope,
-    private val templatingScopeParam: IrValueParameter,
+    private val matcherScope: IrValueParameter,
 ) : CoreTransformer(pluginScope) {
 
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    private val defaultValuesMatcherConstructor = referencedPrimaryConstructor(MokkeryIr.Class.DefaultValuesMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
     private val runTemplateSuspendFun = referenced(MokkeryIr.Function.runTemplateSuspend)
-    private val eqFunction = runMatcherPhases(referenced(MokkeryIr.Function.eq))
+    private val varArgsFunction = referenced(MokkeryIr.Function.varArgs)
+    private val defaultValueFunction = referenced(MokkeryIr.Function.defaultValue)
+    private val materializeVarargFunction = referenced(MokkeryIr.Function.materializeVararg)
 
     override fun visitCall(expression: IrCall): IrExpression {
-        if (expression.type.isMatcher()) return expression
+        if (expression.symbol.owner.matcherFunctionKind() != null) return expression
         val receiver = expression.dispatchReceiver
         val cls = receiver?.type?.getClass()
         if (receiver == null || cls?.isFinalClass == true) return expression.applyTransformChildrenVoid()
@@ -91,12 +89,13 @@ class TemplatingTransformer(
         val functionToReplace = expression.symbol.owner
         val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
         val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to expression.type)
+        val usesMatchers = expression.usesMatchers
         return expression.replaceDeclarationIrBuilder {
             irBlock(resultType = runTemplateFun.returnType.substitute(substitution)) {
                 val receiverVar = createTmpVariable(receiver)
                 +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
                     typeArguments[0] = expression.type
-                    arguments[0] = irGet(templatingScopeParam)
+                    arguments[0] = irGet(matcherScope)
                     arguments[1] = irGet(receiverVar)
                     arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
                     arguments[3] = irLong(functionToReplace.mokkeryFunctionId)
@@ -108,7 +107,7 @@ class TemplatingTransformer(
                         }
                     }
                     arguments[6] = when {
-                        expression.usesMatchers -> irNull()
+                        usesMatchers -> irNull()
                         else -> irLambdaOf(runTemplateFun.parameters[6].type.makeNotNull().substitute(substitution)) {
                             val original = expression.deepCopyWithSymbols(initialParent = it)
                             original.arguments[0] = irGet(receiverVar)
@@ -123,37 +122,86 @@ class TemplatingTransformer(
     private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(lambda: IrSimpleFunction, expression: IrCall) {
         val calledFunc = expression.symbol.owner
         val hasDefaults = expression.arguments.any { it == null }
-        val defaultsMatcherVar = when {
-            hasDefaults -> createTmpVariable(irCallDefaultValuesMatcherContractorFor(expression))
+        val defaultsExtractingVar = when {
+            hasDefaults -> createTmpVariable(createDefaultsExtractingLambdaFor(expression))
             else -> null
         }
-        +irReturn(
-            irCallListOf(
-                type = argMatcherClass.typeWith(irBuiltIns.anyNType),
-                elements = calledFunc.nonDispatchParameters.memoryOptimizedMap {
-                    val argument = expression
-                        .arguments[it]
-                        ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
-                        ?.patchDeclarationParents(lambda)
-                    replaceTopTemplatingArg(argument, it, defaultsMatcherVar)
-                }
-            )
-        )
+        val matchers = calledFunc.nonDispatchParameters.memoryOptimizedMap {
+            val argument = expression
+                .arguments[it]
+                ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
+                ?.patchDeclarationParents(lambda)
+            templatingArg(expression, argument, it, defaultsExtractingVar)
+        }
+        +irReturn(irMaterialize(matchers))
     }
 
     private val IrCall.usesMatchers: Boolean
-        get() = arguments.any { it?.type?.isMatcher() == true || (it is IrVararg && it.varargElementType.isMatcher()) }
+        get() = arguments.any { arg ->
+            when (arg) {
+                null -> false
+                is IrVararg -> arg.templatedElements().any { it.matcherArity() != null }
+                else -> arg.matcherArity() != null
+            }
+        }
 
-    private fun IrBuilderWithScope.replaceTopTemplatingArg(
+    private fun IrBuilderWithScope.templatingArg(
+        call: IrCall,
         arg: IrExpression?,
         param: IrValueParameter,
-        defaultValueMatcherVar: IrVariable?,
-    ): IrExpression = when {
-        param.isVararg -> replaceVararg(arg)
-        arg == null -> irGet(defaultValueMatcherVar!!)
-        arg.type.isMatcher() -> arg
-        else -> eq(arg)
+        defaultsExtractingVar: IrVariable?,
+    ): IrExpression {
+        val type = param.type.substitute(call.templatingSubstitutionMap)
+        return when {
+            param.isVararg -> irVarArgs(type, arg.varargElements())
+            arg == null -> irDefaultValue(type, call, defaultsExtractingVar!!)
+            else -> arg
+        }
     }
+
+    private fun IrExpression?.varargElements(): List<IrVarargElement> = when (this) {
+        null -> emptyList()
+        is IrVararg -> templatedElements()
+        else -> error("Expected vararg expression but received ${dumpKotlinLike()}!")
+    }
+
+    private fun IrBuilderWithScope.irVarArgs(
+        type: IrType,
+        elements: List<IrVarargElement>,
+    ) = irCall(varArgsFunction, type) {
+        typeArguments[0] = type
+        arguments[0] = irGet(matcherScope)
+        arguments[1] = irAnyVararg(elements)
+    }
+
+    private fun IrBuilderWithScope.irDefaultValue(
+        type: IrType,
+        call: IrCall,
+        extractingVar: IrVariable,
+    ) = irCall(defaultValueFunction, type) {
+        typeArguments[0] = type
+        arguments[0] = irGet(matcherScope)
+        arguments[1] = irLong(call.calculateDefaultsMask())
+        arguments[2] = irGet(extractingVar)
+        arguments[3] = irBoolean(call.symbol.owner.isSuspend)
+    }
+
+    private fun IrBuilderWithScope.irMaterialize(elements: List<IrVarargElement>): IrCall {
+        val listType = irBuiltIns.listClass.typeWith(argMatcherClass.typeWith(irBuiltIns.anyNType))
+        return irCall(materializeVarargFunction, listType) {
+            typeArguments[0] = irBuiltIns.anyNType
+            arguments[0] = irGet(matcherScope)
+            arguments[1] = irAnyVararg(elements)
+        }
+    }
+
+    private fun IrBuilderWithScope.irAnyVararg(elements: List<IrVarargElement>) = IrVarargImpl(
+        startOffset = startOffset,
+        endOffset = endOffset,
+        type = irBuiltIns.arrayClass.typeWith(irBuiltIns.anyNType),
+        varargElementType = irBuiltIns.anyNType,
+        elements = elements,
+    )
 
     // the receiver is not necessarily a call - nested calls have to be found in any expression,
     // for instance in a string concatenation or in vararg elements
@@ -176,81 +224,17 @@ class TemplatingTransformer(
         data = null
     )
 
-    private fun IrBuilderWithScope.replaceVararg(expression: IrExpression?): IrExpression {
-        if (expression == null) return compositeVarargMatcher(emptyList())
-        if (expression !is IrVararg) {
-            error("Expected vararg expression but received ${expression.dumpKotlinLike()}!")
-        }
-        if (expression.varargElementType.type.isMatcher()) {
-            return compositeVarargMatcher(expression.elements.map { it })
-        }
-        val singleArraySpread = expression.extractSingleArraySpreadOfMatchers()
-        if (singleArraySpread != null) {
-            return compositeVarargMatcher(singleArraySpread.elements.map { it })
-        }
-        return compositeVarargMatcher(
-            expression.elements.map {
-                when (it) {
-                    is IrSpreadElement -> spreadLiteralsAsMatchers(it)
-                    is IrExpression -> eq(it)
-                    else -> error("Unexpected spread expression: $it")
-                }
-            }
-        )
-    }
-
-    private fun IrBuilderWithScope.eq(value: IrExpression) = irCall(eqFunction, argMatcherClass.typeWith(irBuiltIns.anyNType)) {
-        typeArguments[0] = irBuiltIns.anyNType
-        arguments[0] = irGet(templatingScopeParam)
-        arguments[1] = value
-    }
-
-    private fun IrBuilderWithScope.spreadLiteralsAsMatchers(spread: IrSpreadElement): IrSpreadElement {
-        val array = spread.expression
-        if (array.type.isNothing()) return spread
-        val matchersArrayType = irBuiltIns.arrayClass.typeWith(argMatcherClass.typeWith(irBuiltIns.anyNType))
-        return IrSpreadElementImpl(
-            startOffset = startOffset,
-            endOffset = endOffset,
-            expression = irCall(referenced(MokkeryIr.Function.internalSpreadArray), matchersArrayType) {
-                typeArguments[0] = irBuiltIns.anyNType
-                arguments[0] = eq(array)
-            }
-        )
-    }
-
-    private fun IrBuilderWithScope.compositeVarargMatcher(
-        matchers: List<IrVarargElement>
-    ) = irCallConstructor(referencedPrimaryConstructor(MokkeryIr.Class.CompositeVarArgMatcher)) {
-        val matcherType = argMatcherClass.typeWith(irBuiltIns.anyNType)
-        arguments[0] = irCall(referenced(MokkeryIr.Function.internalMaterialize), irBuiltIns.listClass.typeWith(matcherType)) {
-            typeArguments[0] = irBuiltIns.anyNType
-            arguments[0] = irVararg(matcherType, matchers)
-        }
-    }
-
-    // detects (varargs = arrayOf(...))
-    private fun IrVararg.extractSingleArraySpreadOfMatchers(): IrVararg? {
-        if (elements.size != 1) return null
-        val element = elements[0]
-        if (element !is IrSpreadElement) return null
-        val call = element.expression
-        if (call !is IrCall) return null
-        val vararg = call.arguments.singleOrNull { it is IrVararg && it.varargElementType.isMatcher() }
-        if (vararg == null) return null
+    // flattens (varargs = arrayOf(...)) when the array holds matchers
+    private fun IrVararg.templatedElements(): List<IrVarargElement> {
+        val element = elements.singleOrNull() as? IrSpreadElement ?: return elements
+        val call = element.expression as? IrCall ?: return elements
         val func = call.symbol.owner
         val funcName = func.name.asString()
-        if (func.kotlinFqName.parent() != BUILT_INS_PACKAGE_FQ_NAME) return null
-        if (funcName != "arrayOf" && !funcName.endsWith("ArrayOf")) return null
-        return vararg as IrVararg
-    }
-
-    private fun IrBlockBodyBuilder.irCallDefaultValuesMatcherContractorFor(
-        call: IrCall
-    ) = irCallConstructor(defaultValuesMatcherConstructor) {
-        arguments[0] = irLong(call.calculateDefaultsMask())
-        arguments[1] = createDefaultsExtractingLambdaFor(call)
-        arguments[2] = irBoolean(call.symbol.owner.isSuspend)
+        if (func.kotlinFqName.parent() != BUILT_INS_PACKAGE_FQ_NAME) return elements
+        if (funcName != "arrayOf" && !funcName.endsWith("ArrayOf")) return elements
+        val vararg = call.arguments.singleOrNull { it is IrVararg } as? IrVararg ?: return elements
+        if (vararg.elements.none { it.matcherArity() != null }) return elements
+        return vararg.elements
     }
 
     private fun IrCall.calculateDefaultsMask(): Long {
@@ -260,6 +244,9 @@ class TemplatingTransformer(
         }
         return mask
     }
+
+    private val IrCall.templatingSubstitutionMap
+        get() = symbol.owner.parentAsClass.typeParameters.associate { it.symbol to it.erasedUpperBound } + typeSubstitutionMap
 
     private fun IrBuilderWithScope.createDefaultsExtractingLambdaFor(call: IrCall): IrFunctionExpression {
         val calledFunc = call.symbol.owner
@@ -274,7 +261,7 @@ class TemplatingTransformer(
             irBuiltIns.nothingType
         )
         return irLambdaOf(lambdaType) { func ->
-            val substitutionMap = call.typeSubstitutionMap
+            val substitutionMap = call.templatingSubstitutionMap
             +irCall(calledFunc, calledFunc.returnType.substitute(substitutionMap)) {
                 call.typeArguments.forEachIndexed { i, it -> typeArguments[i] = it }
                 arguments[0] = irGet(func.parameters[0])

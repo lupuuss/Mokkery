@@ -127,7 +127,7 @@ private fun IrBlockBuilder.irTemplatingLambdaFor(
         .let { if (function.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(listOf(referencedDefaultType(MokkeryIr.Class.MokkeryTemplatingScope), irBuiltIns.unitType))
     return irLambdaOf(lambdaType) { func ->
-        val newBody = runTemplatingPhases(function, templatingScopeParam = func.parameters[0])
+        val newBody = runTemplatingPhases(function)
             .moveBodyTo(func, mapOf(function.parameters[0] to func.parameters[0]))
         newBody?.statements?.unaryPlus()
     }
