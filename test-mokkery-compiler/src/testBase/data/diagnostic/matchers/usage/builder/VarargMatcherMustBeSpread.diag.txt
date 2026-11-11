@@ -17,3 +17,5 @@
 /VarargMatcherMustBeSpread.kt:51:9: error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
 
 /VarargMatcherMustBeSpread.kt:52:12: error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.
+
+/VarargMatcherMustBeSpread.kt:57:15: error: Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters.

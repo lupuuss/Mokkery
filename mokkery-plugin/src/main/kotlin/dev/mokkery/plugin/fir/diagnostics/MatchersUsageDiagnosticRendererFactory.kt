@@ -98,5 +98,9 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             factory = Diagnostics.VARARG_MATCHER_WITHOUT_SPREAD,
             message = "Vararg parameter marked with @Matcher can only be spread (`*`) into other @Matcher parameters."
         )
+        it.put(
+            factory = Diagnostics.SINGLE_MATCHER_IN_MATCHERS_ARRAY,
+            message = "A single matcher cannot be used where @Matcher vararg elements are expected."
+        )
     }
 }

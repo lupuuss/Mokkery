@@ -247,6 +247,12 @@ public class MinimumMokkeryDiagnosticTestGenerated extends AbstractMinimumMokker
         }
 
         @Test
+        @TestMetadata("SingleMatcherMustNotBeUsedAsVarargMatchers.kt")
+        public void testSingleMatcherMustNotBeUsedAsVarargMatchers() {
+          run("SingleMatcherMustNotBeUsedAsVarargMatchers.kt");
+        }
+
+        @Test
         @TestMetadata("TemplatingMustNotBeNested.kt")
         public void testTemplatingMustNotBeNested() {
           run("TemplatingMustNotBeNested.kt");

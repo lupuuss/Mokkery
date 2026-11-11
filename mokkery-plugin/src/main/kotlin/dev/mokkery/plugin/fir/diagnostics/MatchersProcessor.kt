@@ -88,7 +88,22 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>, function: Fi
     }
 
     fun isMatchersVararg(expression: FirExpression?): Boolean = expression?.isSpread() != true && expression.anyValue {
-        it is FirQualifiedAccessExpression && it.calleeReference.toResolvedBaseSymbol()?.also(::isMatcherVariable) in matchersVarargs
+        it.isMatchersVarargAccess()
+    }
+
+    fun isMatchersVarargVariable(symbol: FirBasedSymbol<*>): Boolean = symbol in matchersVarargs
+
+    fun hasSingleMatcher(expression: FirExpression?): Boolean = expression.anyValue {
+        isMatcher(it) && !it.isMatchersVarargAccess()
+    }
+
+    private fun FirExpression.isMatchersVarargAccess(): Boolean {
+        val symbol = (this as? FirQualifiedAccessExpression)
+            ?.calleeReference
+            ?.toResolvedBaseSymbol()
+            ?: return false
+        isMatcherVariable(symbol)
+        return symbol in matchersVarargs
     }
 
     private fun FirExpression?.anyValue(predicate: (FirExpression) -> Boolean): Boolean {

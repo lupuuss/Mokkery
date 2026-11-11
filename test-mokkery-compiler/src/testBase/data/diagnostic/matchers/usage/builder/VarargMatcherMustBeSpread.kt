@@ -51,3 +51,9 @@ fun MokkeryMatcherScope.selectedByElvis(maybe: Array<out Any?>?, @Matcher vararg
     not(<!VARARG_MATCHER_WITHOUT_SPREAD!>maybe ?: matchers<!>)
     return <!VARARG_MATCHER_WITHOUT_SPREAD!>maybe ?: matchers<!>
 }
+
+fun MokkeryMatcherScope.assignedToSingleMatcherVariable(@Matcher first: Any?, @Matcher vararg matchers: Any?): Any? {
+    var current = first
+    current = <!VARARG_MATCHER_WITHOUT_SPREAD!>matchers<!>
+    return not(current)
+}

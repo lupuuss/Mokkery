@@ -1,0 +1,15 @@
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(273,292): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(418,424): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(562,569): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(722,765): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(916,958): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(1178,1183): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(1318,1323): error: A single matcher cannot be used where @Matcher vararg elements are expected.
+
+/SingleMatcherMustNotBeUsedAsVarargMatchers.kt:(1438,1457): error: A single matcher cannot be used where @Matcher vararg elements are expected.

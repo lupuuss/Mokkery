@@ -10,7 +10,6 @@ import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
-import dev.mokkery.matcher.collections.containsAllElements
 import dev.mokkery.matcher.gt
 import dev.mokkery.matcher.logical.LogicalMatchers
 import dev.mokkery.matcher.logical.and
@@ -280,15 +279,6 @@ class MaterializedMatchersTest {
     }
 
     @Test
-    @OptIn(DelicateMokkeryApi::class)
-    fun testSpreadMatcherPassedToNestedVararg() {
-        val materialized = mutableListOf<ArgMatcher<Int>>()
-        every { mock.callPrimitive(materializedInto(materialized, gt(0), *containsAllElements<Int> { it > 0 })) } returns 1
-        assertEquals(2, materialized.size)
-        assertIs<ArgMatcher.Composite<*>>(materialized[1])
-    }
-
-    @Test
     fun testArgMatcherReturnedFromLocalFunction() {
         every { mock.callPrimitive(fromLocalFunction(gt(1))) } returns 1
         assertEquals(1, mock.callPrimitive(5))
@@ -468,9 +458,4 @@ private fun MokkeryMatcherScope.allOfDefault(@Matcher first: Int, other: ArgMatc
 private fun MokkeryMatcherScope.fromLocalFunction(@Matcher first: Int): Int {
     fun local(): ArgMatcher<Int> = ArgMatcher.Any
     return if (local() == ArgMatcher.Any) first else not(first)
-}
-
-private fun <T> MokkeryMatcherScope.materializedInto(target: MutableList<ArgMatcher<T>>, @Matcher vararg matchers: T): T {
-    target += materialize(*matchers)
-    return any()
 }
