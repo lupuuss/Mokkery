@@ -1,7 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -43,7 +42,7 @@ class MatcherNormalizingTransformer(
     pluginScope: IrMokkeryPluginScope,
     private val matcherScope: IrValueParameter,
     private val matcherFunction: IrFunction?,
-) : CoreTransformer(pluginScope) {
+) : PhaseTransformer(pluginScope) {
 
     private val eqFunction = referenced(MokkeryIr.Function.eq)
     private val spreadFunction = referenced(MokkeryIr.Function.spread)

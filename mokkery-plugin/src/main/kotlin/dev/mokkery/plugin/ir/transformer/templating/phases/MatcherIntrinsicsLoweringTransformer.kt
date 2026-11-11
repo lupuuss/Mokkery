@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -21,7 +20,7 @@ import org.jetbrains.kotlin.ir.expressions.IrVararg
  *
  * Assumes [MatcherRetypingTransformer] ran, so the intrinsic calls already have matcher types.
  */
-class MatcherIntrinsicsLoweringTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
+class MatcherIntrinsicsLoweringTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTransformer(pluginScope) {
 
     override fun visitCall(expression: IrCall): IrExpression {
         expression.transformChildrenVoid()

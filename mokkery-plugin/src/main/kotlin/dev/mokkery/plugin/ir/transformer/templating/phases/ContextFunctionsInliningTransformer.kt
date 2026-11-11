@@ -3,7 +3,6 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import org.jetbrains.kotlin.backend.common.ir.inline
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
@@ -26,7 +25,7 @@ import org.jetbrains.kotlin.utils.memoryOptimizedMap
  * Runs first, so the later phases see block parameters as ordinary variables.
  * Assumes the block is a lambda (enforced by FIR).
  */
-class ContextFunctionsInliningTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
+class ContextFunctionsInliningTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTransformer(pluginScope) {
 
     override fun visitCall(expression: IrCall): IrExpression {
         expression.transformChildrenVoid()

@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherFunctionKind
@@ -32,7 +31,7 @@ import org.jetbrains.kotlin.ir.types.typeWith
  *
  * Assumes [MatcherNormalizingTransformer] ran, so every matcher position already holds a matcher.
  */
-class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransformer(pluginScope) {
+class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTransformer(pluginScope) {
 
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
@@ -57,9 +56,7 @@ class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : CoreTransf
 
     override fun visitReturnableBlock(expression: IrReturnableBlock) = expression.transformPostfix {
         if (matcherArity() != MatcherArity.Single) return@transformPostfix
-        val targetType = type.asMatcherType()
-        type = targetType
-        collectReturns().forEach { it.type = targetType }
+        type = collectReturns().first { it.value.matcherArity() == MatcherArity.Single }.value.type
     }
 
     override fun visitBlock(expression: IrBlock) = expression.transformPostfix {

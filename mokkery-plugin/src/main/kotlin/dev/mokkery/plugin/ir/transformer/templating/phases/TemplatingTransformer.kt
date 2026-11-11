@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -68,7 +67,7 @@ import org.jetbrains.kotlin.utils.memoryOptimizedMap
 class TemplatingTransformer(
     pluginScope: IrMokkeryPluginScope,
     private val matcherScope: IrValueParameter,
-) : CoreTransformer(pluginScope) {
+) : PhaseTransformer(pluginScope) {
 
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
     private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)

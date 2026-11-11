@@ -22,7 +22,7 @@ context(scope: TransformerScope)
 fun runMatcherPhases(function: IrSimpleFunction) {
     val kind = function.matcherFunctionKind() ?: return
     if (kind.isIntrinsic) return
-    matcherBuilderSignatures.   register(function)
+    matcherBuilderSignatures.register(function)
     function.transform(MatcherNormalizingTransformer(scope, function.matcherScopeParameter(), function), null)
     function.transform(MatcherRetypingTransformer(scope), null)
     function.transform(MatcherIntrinsicsLoweringTransformer(scope), null)

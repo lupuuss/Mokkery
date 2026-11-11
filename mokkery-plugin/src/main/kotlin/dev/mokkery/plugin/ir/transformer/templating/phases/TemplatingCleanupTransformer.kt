@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.irBuiltIns
-import dev.mokkery.plugin.core.ir.transformer.CoreTransformer
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -44,7 +43,7 @@ import org.jetbrains.kotlin.ir.types.typeWith
 class TemplatingCleanupTransformer(
     pluginScope: IrMokkeryPluginScope,
     private val templatingFunctionSymbol: IrSimpleFunctionSymbol,
-) : CoreTransformer(pluginScope) {
+) : PhaseTransformer(pluginScope) {
 
     private val runTemplateResultClass = referenced(MokkeryIr.Class.RunTemplateResult)
     private val valueGetter = runTemplateResultClass.requirePropertyOwner("value").getter!!
