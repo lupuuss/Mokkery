@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
+import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -120,7 +121,7 @@ class TemplatingTransformer(
 
     private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(lambda: IrSimpleFunction, expression: IrCall) {
         val calledFunc = expression.symbol.owner
-        val hasDefaults = expression.arguments.any { it == null }
+        val hasDefaults = calledFunc.parameters.any { expression.isOmittedDefault(it) }
         val defaultsExtractingVar = when {
             hasDefaults -> createTmpVariable(createDefaultsExtractingLambdaFor(expression))
             else -> null
@@ -152,7 +153,7 @@ class TemplatingTransformer(
     ): IrExpression {
         val type = param.type.substitute(call.templatingSubstitutionMap)
         return when {
-            param.isVararg -> irVarArgs(type, arg.varargElements())
+            param.isVararg && !call.isOmittedDefault(param) -> irVarArgs(type, arg.varargElements())
             arg == null -> irDefaultValue(type, call, defaultsExtractingVar!!)
             else -> arg
         }
@@ -239,13 +240,16 @@ class TemplatingTransformer(
     private fun IrCall.calculateDefaultsMask(): Long {
         var mask = 0L
         for (index in 1..<arguments.size) {
-            if (arguments[index] == null) mask = mask or (1L shl (index - 1))
+            if (isOmittedDefault(symbol.owner.parameters[index])) mask = mask or (1L shl (index - 1))
         }
         return mask
     }
 
     private val IrCall.templatingSubstitutionMap
         get() = symbol.owner.parentAsClass.typeParameters.associate { it.symbol to it.erasedUpperBound } + typeSubstitutionMap
+
+    private fun IrCall.isOmittedDefault(param: IrValueParameter): Boolean =
+        arguments[param] == null && (!param.isVararg || param.hasDefaultValue())
 
     private fun IrBuilderWithScope.createDefaultsExtractingLambdaFor(call: IrCall): IrFunctionExpression {
         val calledFunc = call.symbol.owner

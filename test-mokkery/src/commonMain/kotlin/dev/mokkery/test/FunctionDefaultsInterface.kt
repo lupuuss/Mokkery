@@ -17,6 +17,12 @@ interface FunctionDefaultsInterface {
 
     fun Int.callExtension(name: String = "name($this)", mail: String = "name$this@mail.com"): String
 
+    fun callVarargsBeforeDefault(vararg inputs: Int, name: String = "name(${inputs.size})"): String
+
+    fun callVarargsWithDefault(vararg inputs: Int = intArrayOf(1, 2)): IntArray
+
+    fun callArrayWithDefault(inputs: IntArray = intArrayOf(1, 2)): IntArray
+
     companion object {
         private var tokenCounter = 0
 

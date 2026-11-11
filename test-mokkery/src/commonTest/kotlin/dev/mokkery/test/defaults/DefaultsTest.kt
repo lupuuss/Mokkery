@@ -21,6 +21,7 @@ import dev.mokkery.verifySuspend
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -53,6 +54,32 @@ class DefaultsTest {
         assertEquals("name", mock.call(5, "name", "mail"))
         assertFailsWith<MokkeryRuntimeException> { mock.call(4, "name", "mail") }
         verify { mock.call(5, "name", "mail") }
+    }
+
+    @Test
+    fun testWithOmittedVarargBeforeDefault() {
+        every { mock.callVarargsBeforeDefault() } returnsArgAt 1
+        assertEquals("name(0)", mock.callVarargsBeforeDefault())
+        assertFailsWith<MokkeryRuntimeException> { mock.callVarargsBeforeDefault(name = "other") }
+        verify { mock.callVarargsBeforeDefault() }
+    }
+
+    @Test
+    fun testWithOmittedVarargWithDefault() {
+        every { mock.callVarargsWithDefault() } returnsArgAt 0
+        assertContentEquals(intArrayOf(1, 2), mock.callVarargsWithDefault())
+        assertContentEquals(intArrayOf(1, 2), mock.callVarargsWithDefault(1, 2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callVarargsWithDefault(1) }
+        verify { mock.callVarargsWithDefault() }
+    }
+
+    @Test
+    fun testWithOmittedArrayDefault() {
+        every { mock.callArrayWithDefault() } returnsArgAt 0
+        assertContentEquals(intArrayOf(1, 2), mock.callArrayWithDefault())
+        assertContentEquals(intArrayOf(1, 2), mock.callArrayWithDefault(intArrayOf(1, 2)))
+        assertFailsWith<MokkeryRuntimeException> { mock.callArrayWithDefault(intArrayOf(1)) }
+        verify { mock.callArrayWithDefault() }
     }
 
     @Test

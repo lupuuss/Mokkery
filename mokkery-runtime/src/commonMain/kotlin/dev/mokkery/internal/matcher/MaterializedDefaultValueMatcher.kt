@@ -7,7 +7,7 @@ import dev.mokkery.rendering.descriptionRenderer
 
 internal data class MaterializedDefaultValueMatcher(val defaultValue: Any?) : ArgMatcher<Any?>, Renderable {
 
-    override fun matches(arg: Any?): Boolean = arg == defaultValue
+    override fun matches(arg: Any?): Boolean = arrayOf(arg) contentDeepEquals arrayOf(defaultValue)
 
     context(scope: MokkeryRenderingScope)
     override fun render(): String = "default() => ${scope.descriptionRenderer.render(defaultValue)}"

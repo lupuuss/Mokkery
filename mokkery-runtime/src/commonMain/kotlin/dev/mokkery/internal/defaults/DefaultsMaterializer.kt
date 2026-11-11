@@ -67,7 +67,7 @@ private class DefaultsMaterializerImpl(
             if (matcher !is MaterializedDefaultValueMatcher) return@forEachIndexed
             val other = repeated.matchers[parameterIndex]
             if (other !is MaterializedDefaultValueMatcher) return@forEachIndexed
-            if (matcher.defaultValue == other.defaultValue) return@forEachIndexed
+            if (matcher.matches(other.defaultValue)) return@forEachIndexed
             collection
                 .getScope(template.instanceId)
                 .unmatchableDefaultValueError(template, parameterIndex, matcher.defaultValue, other.defaultValue)
