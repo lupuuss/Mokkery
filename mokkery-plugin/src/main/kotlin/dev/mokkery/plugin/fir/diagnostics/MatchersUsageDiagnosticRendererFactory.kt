@@ -31,6 +31,10 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = CommonRenderers.STRING
         )
         it.put(
+            factory = Diagnostics.ILLEGAL_MATCHER_REFERENCE,
+            message = "Matchers cannot be used as function references."
+        )
+        it.put(
             factory = Diagnostics.ILLEGAL_TRY_CATCH,
             message = "Returning matchers from try/catch is not supported."
         )

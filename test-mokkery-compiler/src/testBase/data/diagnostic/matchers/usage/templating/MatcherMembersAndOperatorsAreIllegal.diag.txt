@@ -20,9 +20,9 @@
 
 /MatcherMembersAndOperatorsAreIllegal.kt:44:42: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:45:49: error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:45:49: error: Matchers cannot be used as function references.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:46:39: error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:46:39: error: Matchers cannot be used as function references.
 
 /MatcherMembersAndOperatorsAreIllegal.kt:48:22: error: Accessing members of matchers is illegal.
 

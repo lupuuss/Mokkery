@@ -119,6 +119,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage"), Pattern.compile("^(.+)\\.kt$"), null, true);
       }
 
+      @Test
+      @TestMetadata("MatchersMustNotBeReferencedOutsideMatchers.kt")
+      public void testMatchersMustNotBeReferencedOutsideMatchers() {
+        run("MatchersMustNotBeReferencedOutsideMatchers.kt");
+      }
+
       @Nested
       @TestMetadata("test-mokkery-compiler/src/testBase/data/diagnostic/matchers/usage/builder")
       @TestDataPath("$PROJECT_ROOT")

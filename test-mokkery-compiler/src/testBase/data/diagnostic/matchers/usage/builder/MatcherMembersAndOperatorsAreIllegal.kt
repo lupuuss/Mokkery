@@ -69,10 +69,10 @@ fun MokkeryMatcherScope.thrown(condition: Boolean, @Matcher matcher: Exception):
 }
 
 fun MokkeryMatcherScope.matcherFunctionReference(@Matcher matcher: Int): Int =
-    or(matcher, matcher, *listOf(1, 2).map(<!ILLEGAL_OPERATOR_USAGE!>::gt<!>).toTypedArray())
+    or(matcher, matcher, *listOf(1, 2).map(<!ILLEGAL_MATCHER_REFERENCE!>::gt<!>).toTypedArray())
 
 fun MokkeryMatcherScope.materializerReference(): List<ArgMatcher<Int>> =
-    listOf(1, 2).map(<!ILLEGAL_OPERATOR_USAGE!>this::materialize<!>)
+    listOf(1, 2).map(<!ILLEGAL_MATCHER_REFERENCE!>this::materialize<!>)
 
 class MutableHolder {
     var value: Int = 0

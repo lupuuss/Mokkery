@@ -1,0 +1,9 @@
+/MatchersMustNotBeReferencedOutsideMatchers.kt:(388,421): error: Matchers cannot be used as function references.
+
+/MatchersMustNotBeReferencedOutsideMatchers.kt:(497,530): error: Matchers cannot be used as function references.
+
+/MatchersMustNotBeReferencedOutsideMatchers.kt:(584,607): error: Matchers cannot be used as function references.
+
+/MatchersMustNotBeReferencedOutsideMatchers.kt:(677,709): error: Matchers cannot be used as function references.
+
+/MatchersMustNotBeReferencedOutsideMatchers.kt:(729,765): error: Matchers cannot be used as function references.

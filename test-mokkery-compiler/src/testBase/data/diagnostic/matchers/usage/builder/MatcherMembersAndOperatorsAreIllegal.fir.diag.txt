@@ -24,8 +24,8 @@
 
 /MatcherMembersAndOperatorsAreIllegal.kt:(1896,1903): error: Operators cannot be used with matchers, but 'throw' operator is used.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(2048,2052): error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:(2048,2052): error: Matchers cannot be used as function references.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(2165,2182): error: Operators cannot be used with matchers, but '::' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:(2165,2182): error: Matchers cannot be used as function references.
 
 /MatcherMembersAndOperatorsAreIllegal.kt:(2328,2335): error: Accessing members of matchers is illegal.

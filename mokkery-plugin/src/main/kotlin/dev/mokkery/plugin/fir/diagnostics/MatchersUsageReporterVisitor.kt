@@ -205,10 +205,6 @@ class MatchersUsageReporterVisitor(
         callableReferenceAccess: FirCallableReferenceAccess
     ) = context(context) {
         reportMatchersInOperator("::", callableReferenceAccess.explicitReceiver)
-        val symbol = callableReferenceAccess.calleeReference.toResolvedCallableSymbol()
-        if (symbol?.isMatcherLikeDeclaration() == true) {
-            reporter.reportOn(callableReferenceAccess.source, Diagnostics.ILLEGAL_OPERATOR_USAGE, "::")
-        }
         callableReferenceAccess.acceptChildren(this)
     }
 
@@ -490,6 +486,7 @@ class MatchersUsageReporterVisitor(
         val ILLEGAL_MATCHER_IN_NON_MEMBER by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_MEMBER_ACCESS_ON_MATCHER by error0<KtElement>()
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
+        val ILLEGAL_MATCHER_REFERENCE by error0<KtElement>()
         val ILLEGAL_TRY_CATCH by error0<KtElement>()
         val ILLEGAL_NESTED_TEMPLATING by error1<KtElement, Name>()
         val ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER by error1<KtElement, Name>()

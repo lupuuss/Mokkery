@@ -25,7 +25,7 @@ fun MokkeryMatcherScope.passedToRegularFunction(): Int = maxOf(<!ILLEGAL_MATCHER
 
 fun MokkeryMatcherScope.nested(): Int = run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>gtOne<!> }
 
-fun MokkeryMatcherScope.reference(): () -> Int = <!ILLEGAL_OPERATOR_USAGE!>this::gtOne<!>
+fun MokkeryMatcherScope.reference(): () -> Int = <!ILLEGAL_MATCHER_REFERENCE!>this::gtOne<!>
 
 context(scope: MokkeryMatcherScope)
 val @receiver:Matcher Int.negated: Int
