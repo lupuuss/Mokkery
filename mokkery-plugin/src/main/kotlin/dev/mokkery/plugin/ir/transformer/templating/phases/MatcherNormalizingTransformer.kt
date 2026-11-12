@@ -65,9 +65,11 @@ class MatcherNormalizingTransformer(
         function.parameters.forEach { param ->
             if (!param.isMatcherParameter()) return@forEach
             val arg = expression.arguments[param] ?: return@forEach
-            expression.arguments[param] = when (arg) {
-                is IrVararg -> arg.apply { normalizeElements() }
-                else -> arg.asMatcher(param.type.substitute(substitution))
+            val type = param.type.substitute(substitution)
+            expression.arguments[param] = when {
+                arg is IrVararg -> arg.apply { normalizeElements() }
+                param.isVararg -> arg.asMatchersArray(type)
+                else -> arg.asMatcher(type)
             }
         }
         return expression

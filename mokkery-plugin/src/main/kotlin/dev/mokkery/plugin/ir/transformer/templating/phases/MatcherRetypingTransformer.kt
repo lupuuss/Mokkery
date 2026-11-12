@@ -7,6 +7,7 @@ import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherFunctionKind
 import dev.mokkery.plugin.ir.transformer.templating.matcher.asMatcherType
 import dev.mokkery.plugin.ir.transformer.templating.matcher.asMatchersArrayType
+import dev.mokkery.plugin.ir.transformer.templating.matcher.isMatchersArrayLiteral
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
 import dev.mokkery.plugin.ir.transformer.templating.signature.matcherCompiledSignature
@@ -40,7 +41,8 @@ class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTrans
             MatcherFunctionKind.Matches -> expression.type = expression.type.asMatcherType()
             MatcherFunctionKind.SpreadArray -> expression.type = expression.type.asMatchersArrayType()
             MatcherFunctionKind.Builder -> expression.retypeTo(function.matcherCompiledSignature)
-            MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg, null -> Unit
+            MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg -> Unit
+            null -> if (expression.isMatchersArrayLiteral()) expression.type = expression.type.asMatchersArrayType()
         }
         return expression
     }

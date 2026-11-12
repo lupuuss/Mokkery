@@ -226,6 +226,24 @@ class ArgMatchersTest {
     }
 
     @Test
+    fun testVarargMatchersForwardedByNameBeforeOtherParam() {
+        every { mock.callNullable(orForwardedByName(1, gt(10), 2)) } returns 2
+        assertEquals(2, mock.callNullable(1))
+        assertEquals(2, mock.callNullable(11))
+        assertEquals(2, mock.callNullable(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(3) }
+    }
+
+    @Test
+    fun testLiteralArrayPassedByNameBeforeOtherParam() {
+        every { mock.callNullable(orLiteralsByName(1)) } returns 2
+        assertEquals(2, mock.callNullable(1))
+        assertEquals(2, mock.callNullable(7))
+        assertEquals(2, mock.callNullable(8))
+        assertFailsWith<MokkeryRuntimeException> { mock.callNullable(5) }
+    }
+
+    @Test
     fun testNotMatcher() {
         val c1 = ComplexType("1")
         val c2 = ComplexType("2")
@@ -564,3 +582,10 @@ private fun MokkeryMatcherScope.notIfOtherGiven(
 ): Int = if (other == null) first else not(first)
 
 private fun MokkeryMatcherScope.orGreaterThan(@Matcher first: Int, limit: Int = 3): Int = or(first, gt(limit))
+
+private fun MokkeryMatcherScope.orForwardedByName(
+    @Matcher first: Int?,
+    @Matcher vararg others: Int?
+): Int? = orDefaultVararg(others = others, first = first)
+
+private fun MokkeryMatcherScope.orLiteralsByName(@Matcher first: Int?): Int? = orDefaultVararg(others = arrayOf(7, 8), first = first)

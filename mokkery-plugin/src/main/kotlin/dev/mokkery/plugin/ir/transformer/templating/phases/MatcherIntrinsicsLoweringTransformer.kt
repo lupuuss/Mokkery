@@ -9,18 +9,23 @@ import dev.mokkery.plugin.ir.argumentTypes
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irVararg
 import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherFunctionKind
+import dev.mokkery.plugin.ir.transformer.templating.matcher.arrayLiteralElements
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.types.classOrNull
 
 /**
  * Replaces matcher intrinsics with real code: `matches` and `materialize` with their argument,
- * vararg `materialize` with `internalMaterialize`, and `spreadArray` with `internalSpreadArray`.
+ * vararg `materialize` with `internalMaterialize`, `spreadArray` with `internalSpreadArray`,
+ * and array literals of matchers with `arrayOf`.
  *
  * Assumes [MatcherRetypingTransformer] ran, so the intrinsic calls already have matcher types.
  */
 class MatcherIntrinsicsLoweringTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTransformer(pluginScope) {
+
+    private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
 
     override fun visitCall(expression: IrCall): IrExpression {
         expression.transformChildrenVoid()
@@ -42,7 +47,19 @@ class MatcherIntrinsicsLoweringTransformer(pluginScope: IrMokkeryPluginScope) : 
                     )
                 }
             }
-            MatcherFunctionKind.Builder, null -> expression
+            MatcherFunctionKind.Builder -> expression
+            null -> when {
+                expression.arrayLiteralElements()?.varargElementType?.classOrNull == argMatcherClass.symbol -> expression.toArrayOf()
+                else -> expression
+            }
+        }
+    }
+
+    private fun IrCall.toArrayOf() = replaceDeclarationIrBuilder {
+        val elements = arguments.single() as IrVararg
+        irCall(irBuiltIns.arrayOf, type) {
+            typeArguments[0] = elements.varargElementType
+            arguments[0] = elements
         }
     }
 }

@@ -5,6 +5,7 @@ import dev.mokkery.matcher.any
 
 interface Foo {
     fun foo(vararg args: Int): Int
+    fun bar(x: Int, vararg args: Int): Int
 }
 
 fun main() {
@@ -18,5 +19,9 @@ fun main() {
         mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>), 10)
         mock.foo(1, *intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>), *any())
         mock.foo(args = intArrayOf(*intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>)))
+    }
+    every {
+        mock.bar(args = intArrayOf(1, *any(), 10), x = any())
+        mock.bar(args = intArrayOf(*intArrayOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*any()<!>)), x = 1)
     }
 }

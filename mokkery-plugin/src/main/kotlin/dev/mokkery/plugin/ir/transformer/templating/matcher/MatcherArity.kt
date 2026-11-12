@@ -3,6 +3,7 @@ package dev.mokkery.plugin.ir.transformer.templating.matcher
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.isAnyArray
+import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -13,10 +14,12 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
+import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 enum class MatcherArity { Single, Array }
 
@@ -37,9 +40,11 @@ fun IrVarargElement.matcherArity(): MatcherArity? = when (this) {
     is IrCall -> when (symbol.owner.matcherFunctionKind()) {
         MatcherFunctionKind.Builder, MatcherFunctionKind.Matches -> MatcherArity.Single
         MatcherFunctionKind.SpreadArray -> MatcherArity.Array
-        MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg, null -> null
+        MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg -> null
+        null -> MatcherArity.Array.takeIf { isMatchersArrayLiteral() }
     }
     is IrGetValue -> symbol.owner.matcherArity()
+    is IrVararg -> MatcherArity.Array.takeIf { elements.any { it.matcherArity() != null } }
     is IrReturnableBlock -> MatcherArity.Single.takeIf {
         collectReturns().any { it.value.matcherArity() == MatcherArity.Single }
     }
@@ -55,4 +60,15 @@ fun IrVarargElement.matcherArity(): MatcherArity? = when (this) {
         }
     }
     else -> null
+}
+
+context(scope: TransformerScope)
+fun IrCall.isMatchersArrayLiteral(): Boolean = arrayLiteralElements()?.matcherArity() != null
+
+fun IrCall.arrayLiteralElements(): IrVararg? {
+    val function = symbol.owner
+    val name = function.name.asString()
+    if (function.kotlinFqName.parent() != BUILT_INS_PACKAGE_FQ_NAME) return null
+    if (name != "arrayOf" && !name.endsWith("ArrayOf")) return null
+    return arguments.singleOrNull() as? IrVararg
 }

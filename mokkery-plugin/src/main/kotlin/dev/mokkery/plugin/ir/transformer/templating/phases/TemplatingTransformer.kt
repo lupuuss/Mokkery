@@ -16,7 +16,6 @@ import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
-import org.jetbrains.kotlin.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
@@ -35,20 +34,18 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
-import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
+import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isVararg
-import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
@@ -137,13 +134,7 @@ class TemplatingTransformer(
     }
 
     private val IrCall.usesMatchers: Boolean
-        get() = arguments.any { arg ->
-            when (arg) {
-                null -> false
-                is IrVararg -> arg.templatedElements().any { it.matcherArity() != null }
-                else -> arg.matcherArity() != null
-            }
-        }
+        get() = arguments.any { it != null && it.matcherArity() != null }
 
     private fun IrBuilderWithScope.templatingArg(
         call: IrCall,
@@ -161,8 +152,8 @@ class TemplatingTransformer(
 
     private fun IrExpression?.varargElements(): List<IrVarargElement> = when (this) {
         null -> emptyList()
-        is IrVararg -> templatedElements()
-        else -> error("Expected vararg expression but received ${dumpKotlinLike()}!")
+        is IrVararg -> elements
+        else -> listOf(IrSpreadElementImpl(startOffset, endOffset, this))
     }
 
     private fun IrBuilderWithScope.irVarArgs(
@@ -223,19 +214,6 @@ class TemplatingTransformer(
         },
         data = null
     )
-
-    // flattens (varargs = arrayOf(...)) when the array holds matchers
-    private fun IrVararg.templatedElements(): List<IrVarargElement> {
-        val element = elements.singleOrNull() as? IrSpreadElement ?: return elements
-        val call = element.expression as? IrCall ?: return elements
-        val func = call.symbol.owner
-        val funcName = func.name.asString()
-        if (func.kotlinFqName.parent() != BUILT_INS_PACKAGE_FQ_NAME) return elements
-        if (funcName != "arrayOf" && !funcName.endsWith("ArrayOf")) return elements
-        val vararg = call.arguments.singleOrNull { it is IrVararg } as? IrVararg ?: return elements
-        if (vararg.elements.none { it.matcherArity() != null }) return elements
-        return vararg.elements
-    }
 
     private fun IrCall.calculateDefaultsMask(): Long {
         var mask = 0L

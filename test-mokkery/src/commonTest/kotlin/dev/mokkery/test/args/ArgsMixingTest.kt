@@ -3,6 +3,7 @@ package dev.mokkery.test.args
 import dev.mokkery.MokkeryRuntimeException
 import dev.mokkery.answering.returns
 import dev.mokkery.every
+import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
@@ -157,6 +158,38 @@ class ArgsMixingTest {
         assertEquals(1, mock.callPrimitiveVarargs(1, 1, 5, 3))
         assertEquals(2, mock.callPrimitiveVarargs(1, 1, 2, 2))
         assertEquals(3, mock.callPrimitiveVarargs(1, 1, 1, 2))
+    }
+
+    @Test
+    fun testNamedVarargArrayBeforeOtherArguments() {
+        every { mock.callPrimitiveVarargs(inputs = intArrayOf(1, 2), input = any()) } returns 1
+        every { mock.callPrimitiveVarargs(inputs = intArrayOf(gte(5), 2), input = 0) } returns 2
+        every { mock.callPrimitiveVarargs(inputs = any(), input = 9) } returns 3
+        assertEquals(1, mock.callPrimitiveVarargs(7, 1, 2))
+        assertEquals(2, mock.callPrimitiveVarargs(0, 6, 2))
+        assertEquals(3, mock.callPrimitiveVarargs(9, 4))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(7, 1, 3) }
+    }
+
+    @Test
+    fun testUnsignedLiteralOfMatcherVariables() {
+        every {
+            val first = matches(ArgMatcher.Equals(5u))
+            val second = matches(ArgMatcher.Equals(6u))
+            collections.callWithUInts(*uintArrayOf(first, second))
+        } returns 1u
+        assertEquals(1u, collections.callWithUInts(5u, 6u))
+        assertFailsWith<MokkeryRuntimeException> { collections.callWithUInts(5u, 7u) }
+    }
+
+    @Test
+    fun testNamedLiteralOfMatcherVariablesBeforeOtherArguments() {
+        every {
+            val first = matches(ArgMatcher.Equals(5))
+            mock.callPrimitiveVarargs(inputs = intArrayOf(first), input = 0)
+        } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(0, 5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(0, 6) }
     }
 
     @Test
