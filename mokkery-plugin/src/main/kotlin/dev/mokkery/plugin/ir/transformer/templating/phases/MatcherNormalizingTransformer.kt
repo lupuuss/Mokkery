@@ -11,6 +11,7 @@ import dev.mokkery.plugin.ir.transformer.templating.matcher.MatcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.isMatcherParameter
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
+import dev.mokkery.plugin.ir.transformer.templating.matcher.templatingSubstitutionMap
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -28,7 +29,6 @@ import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.transformInPlace
-import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 
 /**
  * Makes every value in a matcher position a matcher: plain values are wrapped with `eq`,
@@ -61,7 +61,7 @@ class MatcherNormalizingTransformer(
         val function = expression.symbol.owner
         expression.transformChildrenVoid()
         if (function.matcherFunctionKind() == null) return expression
-        val substitution = expression.typeSubstitutionMap
+        val substitution = expression.templatingSubstitutionMap
         function.parameters.forEach { param ->
             if (!param.isMatcherParameter()) return@forEach
             val arg = expression.arguments[param] ?: return@forEach

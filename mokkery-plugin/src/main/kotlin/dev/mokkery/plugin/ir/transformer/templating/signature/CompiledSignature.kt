@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.substitute
-import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
+import dev.mokkery.plugin.ir.transformer.templating.matcher.templatingSubstitutionMap
 
 class CompiledSignature(
     val returnType: IrType,
@@ -24,7 +24,7 @@ fun IrFunction.retypeTo(signature: CompiledSignature) {
 }
 
 fun IrCall.retypeTo(signature: CompiledSignature) {
-    val substitution = typeSubstitutionMap
+    val substitution = templatingSubstitutionMap
     type = signature.returnType.substitute(substitution)
     signature.parameters.forEach { (param, compiled) ->
         val arg = arguments[param] as? IrVararg ?: return@forEach

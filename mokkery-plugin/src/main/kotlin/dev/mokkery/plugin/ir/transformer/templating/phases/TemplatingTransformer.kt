@@ -7,7 +7,6 @@ import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
 import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.erasedUpperBound
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
@@ -15,6 +14,7 @@ import dev.mokkery.plugin.ir.kClassReference
 import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
+import dev.mokkery.plugin.ir.transformer.templating.matcher.templatingSubstitutionMap
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
@@ -50,7 +50,6 @@ import org.jetbrains.kotlin.ir.util.nonDispatchParameters
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.substitute
-import org.jetbrains.kotlin.ir.util.typeSubstitutionMap
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
@@ -222,9 +221,6 @@ class TemplatingTransformer(
         }
         return mask
     }
-
-    private val IrCall.templatingSubstitutionMap
-        get() = symbol.owner.parentAsClass.typeParameters.associate { it.symbol to it.erasedUpperBound } + typeSubstitutionMap
 
     private fun IrCall.isOmittedDefault(param: IrValueParameter): Boolean =
         arguments[param] == null && (!param.isVararg || param.hasDefaultValue())
