@@ -6,6 +6,7 @@ import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.contextFunctionIds
 import dev.mokkery.plugin.fir.dispatchReceiverClassLikeSymbolOrNull
 import dev.mokkery.plugin.fir.extractArrayLiteralCall
+import dev.mokkery.plugin.fir.hasMatcherScope
 import dev.mokkery.plugin.fir.isMokkeryMatcherScope
 import dev.mokkery.plugin.fir.isSpread
 import dev.mokkery.plugin.fir.nonDispatchArguments
@@ -29,6 +30,7 @@ import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
+import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.utils.isFinal
@@ -63,6 +65,7 @@ import org.jetbrains.kotlin.fir.lastExpression
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
@@ -133,18 +136,18 @@ class MatchersUsageReporterVisitor(
         val symbol = access.calleeReference.toResolvedCallableSymbol()
         when {
             symbol?.callableId in contextFunctionIds -> {
-                if (usageContext == MatchersUsageContext.BUILDER) {
+                if (!isInLocalMatcherBuilder && usageContext == MatchersUsageContext.BUILDER) {
                     report(access.source, Diagnostics.ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER, symbol!!.name)
                 }
                 reportSafeCallOnMatcher(access)
             }
             matchersProcessor.isMatcher(access) -> {
-                val canUseMatcher = ensureCanUseMatchersNow(access)
+                val canUseMatcher = ensureCanUseMatchersNow(access, symbol)
                 if (canUseMatcher && symbol != null && symbol.isMatcherBuilder()) {
                     reportIllegalMatcherConstruction(access, symbol)
                 }
             }
-            symbol == null -> Unit
+            isInLocalMatcherBuilder || symbol == null -> Unit
             symbol.callableId in templatingFunctions -> {
                 report(access.source, Diagnostics.ILLEGAL_NESTED_TEMPLATING, symbol.name)
             }
@@ -161,6 +164,7 @@ class MatchersUsageReporterVisitor(
     }
 
     override fun visitVariableAssignment(variableAssignment: FirVariableAssignment) {
+        if (isInLocalMatcherBuilder) return variableAssignment.acceptChildren(this)
         val variableSymbol = variableAssignment
             .calleeReference
             ?.toResolvedVariableSymbol()
@@ -183,6 +187,7 @@ class MatchersUsageReporterVisitor(
     }
 
     override fun visitProperty(property: FirProperty) {
+        if (isInLocalMatcherBuilder) return property.acceptChildren(this)
         matchersProcessor.processVariable(property)
         reportIllegalValue(property.symbol, property.initializer)
         reportMatchersInOperator("by", property.delegate?.unwrapExpressionOrArgument())
@@ -309,6 +314,10 @@ class MatchersUsageReporterVisitor(
         visitFunction(namedFunction)
     }
 
+    override fun visitPropertyAccessor(propertyAccessor: FirPropertyAccessor) {
+        visitFunction(propertyAccessor)
+    }
+
     override fun visitFunction(function: FirFunction) {
         functionsStack += function.symbol
         function.acceptChildren(this)
@@ -342,7 +351,8 @@ class MatchersUsageReporterVisitor(
         }
     }
 
-    private fun ensureCanUseMatchersNow(usage: FirExpression): Boolean {
+    private fun ensureCanUseMatchersNow(usage: FirExpression, symbol: FirCallableSymbol<*>?): Boolean {
+        if (isInLocalMatcherBuilder && symbol?.isMatcherBuilder() == true) return false
         if (nestedClassStack.isNotEmpty()) {
             report(usage.source, Diagnostics.ILLEGAL_NESTED_CLASS_MATCHERS, nestedClassStack.last())
             return false
@@ -353,6 +363,9 @@ class MatchersUsageReporterVisitor(
         report(usage.source, Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS, nestedFunction)
         return false
     }
+
+    private val isInLocalMatcherBuilder: Boolean
+        get() = functionsStack.any { it != parentFunction.symbol && it !is FirAnonymousFunctionSymbol && it.hasMatcherScope() }
 
     private fun reportIllegalMatcherConstruction(
         access: FirQualifiedAccessExpression,

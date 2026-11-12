@@ -35,3 +35,18 @@ fun MokkeryMatcherScope.otherErrorsReportedInLambda(@Matcher matcher: Int): Int 
     run { println(<!ILLEGAL_MATCHER_IN_NON_MEMBER, ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>matcher<!>) }
     return matcher
 }
+
+fun MokkeryMatcherScope.localBuilderComposingItsParam(): Int {
+    fun MokkeryMatcherScope.local(@Matcher x: Int): Int = not(x)
+    return local(any())
+}
+
+fun MokkeryMatcherScope.localBuilderCapturingMatcherParam(@Matcher matcher: Int): Int {
+    fun MokkeryMatcherScope.local(): Int = <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>matcher<!>
+    fun MokkeryMatcherScope.composing(): Int = not(<!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>matcher<!>)
+    fun MokkeryMatcherScope.viaVariable(): Int {
+        val copy = <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>matcher<!>
+        return copy
+    }
+    return or(local(), composing(), viaVariable())
+}

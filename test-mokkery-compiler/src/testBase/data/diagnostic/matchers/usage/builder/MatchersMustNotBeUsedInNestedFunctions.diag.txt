@@ -17,3 +17,9 @@
 /MatchersMustNotBeUsedInNestedFunctions.kt:35:19: error: Matchers can only be passed to members, but were passed to 'fun println(message: Int): Unit'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
 /MatchersMustNotBeUsedInNestedFunctions.kt:35:19: error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'run@fun MokkeryMatcherScope.<anonymous>(): Unit <inline=Inline, kind=EXACTLY_ONCE>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:45:44: error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'fun MokkeryMatcherScope.local(): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:46:52: error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'fun MokkeryMatcherScope.composing(): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:48:20: error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'fun MokkeryMatcherScope.viaVariable(): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
