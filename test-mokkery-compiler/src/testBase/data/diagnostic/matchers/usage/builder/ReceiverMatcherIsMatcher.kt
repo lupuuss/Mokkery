@@ -6,9 +6,9 @@ fun @receiver:Matcher Int.added(): Int = <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>thi
 
 context(_: MokkeryMatcherScope)
 fun @receiver:Matcher Int.printed(): Int {
-    println(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>this<!>)
+    println(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>this<!>)
     return this
 }
 
 context(_: MokkeryMatcherScope)
-fun @receiver:Matcher Int.inLambda(): Int = listOf(1).map { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>this<!> }.first()
+fun @receiver:Matcher Int.inLambda(): Int = listOf(1).map { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER!>this<!> }.first()

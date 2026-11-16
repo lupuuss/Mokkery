@@ -1,11 +1,11 @@
-/MatchersMustNotBePassedToRegularFunctions.kt:7:12: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:7:12: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun <T> listOf(element: T): List<T>'.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:8:12: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:8:12: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun <T> listOf(element: T): List<T>'.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:9:5: error: Matchers can only be passed to members, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:9:5: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:10:5: error: Matchers can only be passed to members, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:10:5: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun Int.toHexString(format: HexFormat = ...): String'.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:19:13: error: Matchers can only be passed to members, but were passed to 'context(value: Int) val contextProp: Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:19:13: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'context(value: Int) val contextProp: Int'.
 
-/MatchersMustNotBePassedToRegularFunctions.kt:24:12: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatchersMustNotBePassedToRegularFunctions.kt:24:12: error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun <T> listOf(element: T): List<T>'.

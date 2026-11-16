@@ -22,5 +22,5 @@ fun <T> MokkeryMatcherScope.logged(@Matcher first: T, @Matcher vararg rest: T): 
 }
 
 fun <T> MokkeryMatcherScope.matchesInsideLambda(@Matcher matcher: T): T {
-    return matches { materialize(<!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>matcher<!>).matches(it) }
+    return matches { materialize(<!ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER!>matcher<!>).matches(it) }
 }

@@ -2,9 +2,9 @@
 
 /MatcherPropertyUsage.kt:(569,574): error: Accessing members of matchers is illegal.
 
-/MatcherPropertyUsage.kt:(643,648): error: Matchers can only be passed to members, but were passed to 'fun maxOf(a: Int, b: Int): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatcherPropertyUsage.kt:(643,648): error: Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to 'fun maxOf(a: Int, b: Int): Int'.
 
-/MatcherPropertyUsage.kt:(700,705): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'run@fun MokkeryMatcherScope.<anonymous>(): Int <inline=Inline, kind=EXACTLY_ONCE>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatcherPropertyUsage.kt:(700,705): error: Matchers cannot be used in functions declared inside matcher builders, but used in 'run@fun MokkeryMatcherScope.<anonymous>(): Int <inline=Inline, kind=EXACTLY_ONCE>'.
 
 /MatcherPropertyUsage.kt:(758,769): error: Matchers cannot be used as function references.
 

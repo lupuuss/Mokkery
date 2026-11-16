@@ -21,9 +21,9 @@ fun MokkeryMatcherScope.storedInVariable(): Int {
 
 fun MokkeryMatcherScope.arithmetic(): Int = <!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>gtOne<!> + 1
 
-fun MokkeryMatcherScope.passedToRegularFunction(): Int = maxOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>gtOne<!>, 1)
+fun MokkeryMatcherScope.passedToRegularFunction(): Int = maxOf(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>gtOne<!>, 1)
 
-fun MokkeryMatcherScope.nested(): Int = run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>gtOne<!> }
+fun MokkeryMatcherScope.nested(): Int = run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER!>gtOne<!> }
 
 fun MokkeryMatcherScope.reference(): () -> Int = <!ILLEGAL_MATCHER_REFERENCE!>this::gtOne<!>
 

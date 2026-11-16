@@ -19,7 +19,7 @@ fun MokkeryMatcherScope.varargPropertyRead(@Matcher first: String, @Matcher vara
 }
 
 fun MokkeryMatcherScope.extensionPropertyRead(@Matcher matcher: String): String {
-    println(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>matcher<!>.extLength)
+    println(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>matcher<!>.extLength)
     return matcher
 }
 

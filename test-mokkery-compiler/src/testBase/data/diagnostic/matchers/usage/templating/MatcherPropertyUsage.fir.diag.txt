@@ -1,5 +1,5 @@
 /MatcherPropertyUsage.kt:(378,383): error: Accessing members of matchers is illegal.
 
-/MatcherPropertyUsage.kt:(428,433): error: Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in 'map@fun <anonymous>(it: Int): Int <inline=Inline, kind=UNKNOWN>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatcherPropertyUsage.kt:(428,433): error: Matchers cannot be used in functions declared inside templating functions, but used in 'map@fun <anonymous>(it: Int): Int <inline=Inline, kind=UNKNOWN>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
 /MatcherPropertyUsage.kt:(471,476): error: Matchers can only be passed to members, but were passed to 'fun maxOf(a: Int, b: Int): Int'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.

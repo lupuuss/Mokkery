@@ -8,6 +8,6 @@ fun <T> MokkeryMatcherScope.compared(@Matcher matcher: T): T {
 }
 
 fun <T> MokkeryMatcherScope.printed(@Matcher matcher: T): T {
-    println(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>matcher<!>)
+    println(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>matcher<!>)
     return matcher
 }

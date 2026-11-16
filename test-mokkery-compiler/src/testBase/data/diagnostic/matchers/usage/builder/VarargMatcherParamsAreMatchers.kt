@@ -7,17 +7,17 @@ fun MokkeryMatcherScope.compared(other: Any?, @Matcher first: Any?, @Matcher var
 }
 
 fun MokkeryMatcherScope.printed(@Matcher first: Any?, @Matcher vararg matchers: Any?): Any? {
-    println(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>matchers<!>)
+    println(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>matchers<!>)
     return first
 }
 
 fun MokkeryMatcherScope.spreadToNonMemberFunction(@Matcher first: Any?, @Matcher vararg matchers: Any?): Any? {
-    listOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>*matchers<!>)
+    listOf(<!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>*matchers<!>)
     return first
 }
 
 fun MokkeryMatcherScope.extensionInvoked(@Matcher first: Any?, @Matcher vararg matchers: Any?): Any? {
-    <!ILLEGAL_MATCHER_IN_NON_MEMBER!>matchers<!>.also { }
+    <!MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER!>matchers<!>.also { }
     return first
 }
 

@@ -27,6 +27,11 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
+            factory = Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER,
+            message = "Matchers can only be passed to @Matcher parameters inside matcher builders, but were passed to ''{0}''.",
+            rendererA = FirDiagnosticRenderers.SYMBOL
+        )
+        it.put(
             factory = Diagnostics.ILLEGAL_MEMBER_ACCESS_ON_MATCHER,
             message = "Accessing members of matchers is illegal."
         )
@@ -55,7 +60,12 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         )
         it.put(
             factory = Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS,
-            message = "Matchers cannot be used in functions declared inside templating functions or matcher declarations, but used in ''{0}''. $scopeFunctionsHint",
+            message = "Matchers cannot be used in functions declared inside templating functions, but used in ''{0}''. $scopeFunctionsHint",
+            rendererA = FirDiagnosticRenderers.SYMBOL
+        )
+        it.put(
+            factory = Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER,
+            message = "Matchers cannot be used in functions declared inside matcher builders, but used in ''{0}''.",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
@@ -74,6 +84,11 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
         it.put(
             factory = Diagnostics.VARIABLE_OUT_OF_SCOPE,
             message = "''{0}'' is defined outside the templating scope and cannot be assigned using matchers.",
+            rendererA = FirDiagnosticRenderers.SYMBOL
+        )
+        it.put(
+            factory = Diagnostics.VARIABLE_OUT_OF_SCOPE_IN_MATCHER_BUILDER,
+            message = "''{0}'' is defined outside the matcher builder and cannot be assigned using matchers.",
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(

@@ -179,7 +179,13 @@ class MatchersUsageReporterVisitor(
             }
             !matchersProcessor.isMatcher(rValue) -> Unit
             else -> when (matchersProcessor.isMatcherVariable(variableSymbol)) {
-                null -> report(source, Diagnostics.VARIABLE_OUT_OF_SCOPE, variableSymbol)
+                null -> {
+                    val factory = when (usageContext) {
+                        MatchersUsageContext.TEMPLATING -> Diagnostics.VARIABLE_OUT_OF_SCOPE
+                        MatchersUsageContext.BUILDER -> Diagnostics.VARIABLE_OUT_OF_SCOPE_IN_MATCHER_BUILDER
+                    }
+                    report(source, factory, variableSymbol)
+                }
                 false -> report(source, Diagnostics.VARIABLE_NOT_A_MATCHER, variableSymbol)
                 true -> reportIllegalValue(variableSymbol, rValue)
             }
@@ -361,7 +367,11 @@ class MatchersUsageReporterVisitor(
         val nestedFunction = functionsStack
             .lastOrNull { it != parentFunction.symbol && it !in scopeFunctionBlocks }
             ?: return true
-        report(usage.source, Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS, nestedFunction)
+        val factory = when (usageContext) {
+            MatchersUsageContext.TEMPLATING -> Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS
+            MatchersUsageContext.BUILDER -> Diagnostics.ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER
+        }
+        report(usage.source, factory, nestedFunction)
         return false
     }
 
@@ -462,7 +472,11 @@ class MatchersUsageReporterVisitor(
         value: FirExpression,
         symbol: FirCallableSymbol<*>
     ) {
-        report(value.source, Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER, symbol)
+        val factory = when (usageContext) {
+            MatchersUsageContext.TEMPLATING -> Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER
+            MatchersUsageContext.BUILDER -> Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER
+        }
+        report(value.source, factory, symbol)
     }
 
     private fun reportIllegalMatchersInMockableMember(
@@ -542,6 +556,7 @@ class MatchersUsageReporterVisitor(
         val MATCHER_PASSED_TO_NON_MATCHER_PARAM by error1<KtElement, FirBasedSymbol<*>>()
         val MATCHER_PASSED_TO_NON_MATCHER_RECEIVER by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_MATCHER_IN_NON_MEMBER by error1<KtElement, FirCallableSymbol<*>>()
+        val MATCHER_PASSED_TO_NON_MATCHER_IN_MATCHER_BUILDER by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_MEMBER_ACCESS_ON_MATCHER by error0<KtElement>()
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
         val ILLEGAL_MATCHER_REFERENCE by error0<KtElement>()
@@ -549,10 +564,12 @@ class MatchersUsageReporterVisitor(
         val ILLEGAL_NESTED_TEMPLATING by error1<KtElement, Name>()
         val ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER by error1<KtElement, Name>()
         val ILLEGAL_NESTED_FUNCTIONS_MATCHERS by error1<KtElement, FirFunctionSymbol<*>>()
+        val ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER by error1<KtElement, FirFunctionSymbol<*>>()
         val ILLEGAL_NESTED_CLASS_MATCHERS by error1<KtElement, FirClassSymbol<*>>()
         val ILLEGAL_MATCHER_IN_CONDITION by error0<KtElement>()
         val ILLEGAL_MATCHER_IN_WHEN_SUBJECT by error0<KtElement>()
         val VARIABLE_OUT_OF_SCOPE by error1<KtElement, FirVariableSymbol<*>>()
+        val VARIABLE_OUT_OF_SCOPE_IN_MATCHER_BUILDER by error1<KtElement, FirVariableSymbol<*>>()
         val VARIABLE_NOT_A_MATCHER by error1<KtElement, FirVariableSymbol<*>>()
         val MATCHER_PASSED_TO_MEMBER_IN_MATCHER_BUILDER by error0<KtElement>()
         val SINGLE_VARARG_MATCHER_ALLOWED by error0<KtElement>()
