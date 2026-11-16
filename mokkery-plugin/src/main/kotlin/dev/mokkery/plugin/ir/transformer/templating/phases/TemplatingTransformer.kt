@@ -72,14 +72,16 @@ class TemplatingTransformer(
     private val varArgsFunction = referenced(MokkeryIr.Function.varArgs)
     private val defaultValueFunction = referenced(MokkeryIr.Function.defaultValue)
     private val materializeVarargFunction = referenced(MokkeryIr.Function.materializeVararg)
+    private val checkMockMemberCallResultAccessFunction = referenced(MokkeryIr.Function.checkMockMemberCallResultAccess)
+    private val checkMockFinalMemberCallFunction = referenced(MokkeryIr.Function.checkMockFinalMemberCall)
 
     override fun visitCall(expression: IrCall): IrExpression {
-        if (expression.symbol.owner.matcherFunctionKind() != null) return expression
+        if (expression.symbol.owner.matcherFunctionKind() != null) return expression.wrapArgumentsWithMockCheck()
         val receiver = expression.dispatchReceiver
         val cls = receiver?.type?.getClass()
         if (receiver == null || cls?.isFinalClass == true) return expression.applyTransformChildrenVoid()
         if (expression.symbol.owner.modality == Modality.FINAL) {
-            return expression.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockFinalMemberCall))
+            return expression.wrapDispatchersWithMockCheck()
         }
         if (receiver is IrCall) receiver.transformChildrenVoid()
         val functionToReplace = expression.symbol.owner
@@ -125,11 +127,17 @@ class TemplatingTransformer(
         val matchers = calledFunc.nonDispatchParameters.memoryOptimizedMap {
             val argument = expression
                 .arguments[it]
-                ?.wrapDispatchersWithMockCheck(referenced(MokkeryIr.Function.checkMockMemberCallResultAccess))
+                ?.wrapDispatchersWithMockCheck()
                 ?.patchDeclarationParents(lambda)
             templatingArg(expression, argument, it, defaultsExtractingVar)
         }
         +irReturn(irMaterialize(matchers))
+    }
+
+    private fun IrCall.wrapArgumentsWithMockCheck(): IrCall = apply {
+        symbol.owner.nonDispatchParameters.forEach {
+            arguments[it] = arguments[it]?.wrapDispatchersWithMockCheck()
+        }
     }
 
     private val IrCall.usesMatchers: Boolean
@@ -195,17 +203,20 @@ class TemplatingTransformer(
 
     // the receiver is not necessarily a call - nested calls have to be found in any expression,
     // for instance in a string concatenation or in vararg elements
-    private fun IrExpression.wrapDispatchersWithMockCheck(func: IrSimpleFunction): IrExpression = transform(
+    private fun IrExpression.wrapDispatchersWithMockCheck(): IrExpression = transform(
         transformer = object : IrElementTransformerVoid() {
             override fun visitCall(expression: IrCall) = expression.transformPostfix {
                 val dispatcher = dispatchReceiver ?: return@transformPostfix
+                if (dispatcher.type.getClass()?.isFinalClass == true) return@transformPostfix
+                val check = when (symbol.owner.modality) {
+                    Modality.FINAL -> checkMockFinalMemberCallFunction
+                    else -> checkMockMemberCallResultAccessFunction
+                }
                 dispatchReceiver = dispatcher.replaceDeclarationIrBuilder {
-                    irCall(
-                        func = func,
-                        type = dispatcher.type
-                    ) {
-                        arguments[0] = dispatcher
-                        arguments[1] = irString(expression.symbol.owner.name.asString())
+                    irCall(func = check, type = dispatcher.type) {
+                        arguments[0] = irGet(matcherScope)
+                        arguments[1] = dispatcher
+                        arguments[2] = irString(expression.symbol.owner.name.asString())
                         typeArguments[0] = dispatcher.type
                     }
                 }

@@ -39,8 +39,8 @@ internal sealed interface RunTemplateResult<out T> {
 }
 
 @PublishedApi
-internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, rawFunctionName: String): T {
-    if (obj.isMock) {
+internal fun <T : Any> MokkeryTemplatingScope.checkMockMemberCallResultAccess(obj: T, rawFunctionName: String): T {
+    if (!isClosed && obj.isMock) {
         val scope = obj.requireInstanceScope()
         throw MockMemberCallResultAccessException(
             receiver = scope.shortInstanceIdString,
@@ -51,8 +51,8 @@ internal fun <T : Any> checkMockMemberCallResultAccess(obj: T, rawFunctionName: 
 }
 
 @PublishedApi
-internal fun <T : Any> checkMockFinalMemberCall(obj: T, functionName: String): T {
-    if (obj.isMock) {
+internal fun <T : Any> MokkeryTemplatingScope.checkMockFinalMemberCall(obj: T, functionName: String): T {
+    if (!isClosed && obj.isMock) {
         val scope = obj.requireInstanceScope()
         throw MockFinalMemberCallException(
             receiver = scope.shortInstanceIdString,
@@ -71,6 +71,7 @@ internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
     matchers: (() -> List<ArgMatcher<Any?>>)? = null,
     original: (suspend () -> R)? = null
 ): RunTemplateResult<R> = when {
+    isClosed && original != null -> RunTemplateResult.Original(original())
     mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
     original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())
@@ -85,6 +86,7 @@ internal fun <R> MokkeryTemplatingScope.runTemplate(
     matchers: (() -> List<ArgMatcher<Any?>>)? = null,
     original: (() -> R)? = null
 ): RunTemplateResult<R> = when {
+    isClosed && original != null -> RunTemplateResult.Original(original())
     mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
     original == null -> mockCallExpectedError(mock, mockedType, functionName)
     else -> RunTemplateResult.Original(original())

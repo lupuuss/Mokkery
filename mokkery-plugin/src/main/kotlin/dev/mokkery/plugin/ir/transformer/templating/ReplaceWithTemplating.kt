@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -154,7 +155,7 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
             typeArguments[0] = originalCall.typeArguments[0]
             arguments[0] = irGet(func.parameters[0])
             arguments[1] = when (memberFunction.modality) {
-                Modality.FINAL -> irCallCheckMockFinalMemberCall(dispatchReceiver, memberFunction)
+                Modality.FINAL -> irCallCheckMockFinalMemberCall(func.parameters[0], dispatchReceiver, memberFunction)
                 else -> dispatchReceiver
             }
             arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
@@ -174,11 +175,13 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
 
 context(scope: TransformerScope)
 private fun IrBuilderWithScope.irCallCheckMockFinalMemberCall(
+    templatingScope: IrValueParameter,
     receiver: IrExpression,
     memberFunction: IrSimpleFunction,
 ): IrExpression = irCall(referenced(MokkeryIr.Function.checkMockFinalMemberCall), receiver.type) {
-    arguments[0] = receiver
-    arguments[1] = irString(memberFunction.name.asString())
+    arguments[0] = irGet(templatingScope)
+    arguments[1] = receiver
+    arguments[2] = irString(memberFunction.name.asString())
     typeArguments[0] = receiver.type
 }
 

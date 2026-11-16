@@ -9,9 +9,13 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.internal.mokkeryInternals
 import dev.mokkery.internal.resetMocksCounter
+import dev.mokkery.matcher.ArgMatcher
 import dev.mokkery.matcher.any
+import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
+import dev.mokkery.matcher.matches
 import dev.mokkery.mock
+import dev.mokkery.templating.ext
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
 import dev.mokkery.verifySuspend
@@ -96,6 +100,24 @@ class TemplatingTest {
         val mock = mock<AbstractClassLevel1>()
         assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {
             verify { mock.finalMethod() }
+        }
+    }
+
+    @Test
+    fun testFailsWithResultAccessErrorWhenMockCallIsPassedToFinalMemberCall() {
+        val mock = mock<RegularMethodsInterface>()
+        val holder = FinalMemberHolder()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify { holder.finalCall(mock.callPrimitive(1)) }
+        }
+    }
+
+    @Test
+    fun testFailsWithFinalCallErrorWhenFinalMockCallIsPassedToMockCall() {
+        val final = mock<AbstractClassLevel1>()
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithMockFinalCall("AbstractClassLevel1(1)", "finalMethod") {
+            verify { mock.callPrimitive(final.finalMethod().length) }
         }
     }
 
@@ -198,6 +220,14 @@ class TemplatingTest {
     }
 
     @Test
+    fun testFailsAccessingMockCallResultReturnedFromExt() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitiveExtension") {
+            verify { mock.ext { 1.callPrimitiveExtension() }.toString() }
+        }
+    }
+
+    @Test
     fun testFailsWhenAccessingMockCallResultInWhen() {
         val mock = mock<RegularMethodsInterface>()
         assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
@@ -256,6 +286,112 @@ class TemplatingTest {
             }
         }
     }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInMatcherBuilderArgument() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                val matcher = not(mock.callPrimitive(1))
+                mock.callPrimitive(matcher)
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenAccessingMockCallResultInScopeFunctionInMatcherBuilderArgument() {
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify {
+                val matcher = not(mock.let { it.callPrimitive(1) })
+                mock.callPrimitive(matcher)
+            }
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallsInMatcherLambdas() {
+        val other = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
+        val mock = mock<RegularMethodsInterface>()
+        every {
+            mock.callPrimitive(matches(toString = { "${other.callPrimitive(2)}" }) { other.callPrimitive(it) == 2 })
+        } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        verify { mock.callPrimitive(matches(toString = { "${other.callPrimitive(2)}" }) { other.callPrimitive(it) == 2 }) }
+    }
+
+    @Test
+    fun testAllowsMockCallsInMatcherObjects() {
+        val other = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
+        val mock = mock<RegularMethodsInterface>()
+        every {
+            mock.callPrimitive(matches(ArgMatcher<Int> { arg -> other.callPrimitive(arg) == 2 }))
+        } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        verify {
+            val matcher = matches(object : ArgMatcher<Int> {
+                override fun matches(arg: Int) = other.callPrimitive(arg) == 2
+            })
+            mock.callPrimitive(matcher)
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallsInMatcherLambdasOfMatcherVariable() {
+        val other = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returnsArgAt 0 }
+        val mock = mock<RegularMethodsInterface>()
+        every {
+            val matcher = matches<Int>(toString = { "${other.callPrimitive(2)}" }) { other.callPrimitive(it) == 2 }
+            mock.callPrimitive(matcher)
+        } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        verify {
+            val matcher = not(matches<Int>(toString = { "${other.callPrimitive(2)}" }) { other.callPrimitive(it) == 3 })
+            mock.callPrimitive(matcher)
+        }
+    }
+
+    @Test
+    fun testAllowsMockCallsInMatcherLambdasAndObjectsDeclaredInBlock() {
+        val item = mock<ComplexType> { every { id } returns "1" }
+        val mock = mock<RegularMethodsInterface>()
+        every {
+            val predicate: (ComplexType) -> Boolean = { it.id == "1" }
+            mock.callComplex(matches(toString = { "id 1" }, predicate = predicate))
+        } returns item
+        assertEquals(item, mock.callComplex(item))
+        verify {
+            val matcher = object : ArgMatcher<ComplexType> {
+                override fun matches(arg: ComplexType) = arg.id == "1"
+            }
+            mock.callComplex(matches(matcher))
+        }
+    }
+
+    @Test
+    fun testTemplatesMockCallsInNonInlineLambdasCalledInBlock() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        mock.callPrimitive(1)
+        verify { eager { mock.callPrimitive(1) } }
+        assertFailsWith<AssertionError> { verify { eager { mock.callPrimitive(2) } } }
+    }
+
+    @Test
+    fun testFailsWhenMockIsCalledInNonInlineLambdaCalledInArgument() {
+        val other = mock<RegularMethodsInterface>()
+        val mock = mock<RegularMethodsInterface>()
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            every { mock.callPrimitive(eager { other.callPrimitive(1) }) }
+        }
+        assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
+            verify { mock.callPrimitive(not(eagerInline { other.callPrimitive(1) })) }
+        }
+    }
+
+    private fun <T> eager(block: () -> T): T = block()
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun <T> eagerInline(noinline block: () -> T): T = block()
 
     @Test
     fun testFailsWhenAccessingMockCallResultOfWhenWithAllBranchesReturningIt() {
@@ -655,4 +791,7 @@ class TemplatingTest {
         fun callWithListSelf(self: List<SelfType>): List<SelfType>
     }
 
+    open class FinalMemberHolder {
+        fun finalCall(value: Int) = value
+    }
 }

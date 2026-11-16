@@ -30,7 +30,7 @@ internal fun MokkeryScope.internalVerify(
     mode: VerifyMode?,
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ) {
-    val scope = templatingScope().apply(block)
+    val scope = templatingScope(block)
     val instances = scope.participatingInstances
     val templates = scope.registeredTemplates
     val mode = mode ?: scope.settings.defaultVerifyMode

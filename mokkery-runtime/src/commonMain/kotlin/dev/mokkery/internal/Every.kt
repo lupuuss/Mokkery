@@ -25,8 +25,7 @@ internal fun <T> MokkeryScope.internalEverySuspend(
 internal fun <T> MokkeryScope.internalEvery(
     block: @Templating MokkeryTemplatingScope.() -> Unit
 ): BlockingAnsweringScope<T> {
-    val scope = templatingScope()
-    scope.apply(block)
+    val scope = templatingScope(block)
     val registry = scope.templatingRegistry
     val template = registry.templates.singleOrNull() ?: scope.singleCallExpectedError()
     val instanceScope = registry.collection.getScope(template.instanceId)
