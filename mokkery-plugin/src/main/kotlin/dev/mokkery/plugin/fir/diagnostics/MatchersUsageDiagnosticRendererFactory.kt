@@ -17,6 +17,11 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             rendererA = FirDiagnosticRenderers.SYMBOL
         )
         it.put(
+            factory = Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_RECEIVER,
+            message = "The receiver of ''{0}'' does not accept matchers, but matcher argument is given. Mark receiver with @receiver:Matcher annotation, or use regular values.",
+            rendererA = FirDiagnosticRenderers.SYMBOL
+        )
+        it.put(
             factory = Diagnostics.ILLEGAL_MATCHER_IN_NON_MEMBER,
             message = "Matchers can only be passed to members, but were passed to ''{0}''. $scopeFunctionsHint",
             rendererA = FirDiagnosticRenderers.SYMBOL

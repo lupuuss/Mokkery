@@ -1,3 +1,5 @@
-/MatchersMustNotBePassedToNonMatcherParam.kt:13:26: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+/MatchersMustNotBePassedToNonMatcherParam.kt:17:26: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
 
-/MatchersMustNotBePassedToNonMatcherParam.kt:14:27: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+/MatchersMustNotBePassedToNonMatcherParam.kt:18:27: error: 'value: T' does not accept matchers, but matcher argument is given. Mark parameter with @Matcher annotation, or use regular values.
+
+/MatchersMustNotBePassedToNonMatcherParam.kt:19:22: error: The receiver of 'context(_: MokkeryMatcherScope) fun Int.plainReceiver(): Int' does not accept matchers, but matcher argument is given. Mark receiver with @receiver:Matcher annotation, or use regular values.

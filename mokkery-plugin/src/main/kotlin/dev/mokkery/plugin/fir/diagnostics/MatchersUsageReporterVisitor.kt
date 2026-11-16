@@ -71,6 +71,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirReceiverParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
@@ -377,7 +378,7 @@ class MatchersUsageReporterVisitor(
         reportSafeCallOnMatcher(access)
         access
             .allNonDispatchArgumentsMapping(symbol)
-            .forEach { (param, arg) -> reportIllegalMatcherArgument(param, arg) }
+            .forEach { (param, arg) -> reportIllegalMatcherArgument(param, arg, symbol) }
     }
 
     private fun reportSafeCallOnMatcher(access: FirQualifiedAccessExpression) {
@@ -387,10 +388,18 @@ class MatchersUsageReporterVisitor(
         }
     }
 
-    private fun reportIllegalMatcherArgument(param: FirBasedSymbol<*>, arg: FirExpression) {
+    private fun reportIllegalMatcherArgument(
+        param: FirBasedSymbol<*>,
+        arg: FirExpression,
+        callable: FirCallableSymbol<*>? = null,
+    ) {
         when {
-            !param.acceptsMatcher(session) -> if (matchersProcessor.isMatcher(arg)) {
-                report(arg.source, Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM, param)
+            !param.acceptsMatcher(session) -> when {
+                !matchersProcessor.isMatcher(arg) -> Unit
+                param is FirReceiverParameterSymbol && callable != null -> {
+                    report(arg.source, Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_RECEIVER, callable)
+                }
+                else -> report(arg.source, Diagnostics.MATCHER_PASSED_TO_NON_MATCHER_PARAM, param)
             }
             arg is FirVarargArgumentsExpression -> arg.arguments.forEach {
                 if (it.isSpread()) reportIllegalVarargMatchersValue(it) else reportIllegalSingleMatcherValue(it)
@@ -531,6 +540,7 @@ class MatchersUsageReporterVisitor(
         override fun getRendererFactory() = MatchersUsageDiagnosticRendererFactory()
 
         val MATCHER_PASSED_TO_NON_MATCHER_PARAM by error1<KtElement, FirBasedSymbol<*>>()
+        val MATCHER_PASSED_TO_NON_MATCHER_RECEIVER by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_MATCHER_IN_NON_MEMBER by error1<KtElement, FirCallableSymbol<*>>()
         val ILLEGAL_MEMBER_ACCESS_ON_MATCHER by error0<KtElement>()
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
