@@ -388,6 +388,41 @@ class TemplatingTest {
         }
     }
 
+    @Test
+    fun testTemplatesMockCallsInLambdasPassedToOpenMembers() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        mock.callPrimitive(1)
+        verify { Runner().openRun { mock.callPrimitive(1) } }
+        assertFailsWith<AssertionError> { verify { Runner().openRun { mock.callPrimitive(2) } } }
+    }
+
+    @Test
+    fun testTemplatesMockCallsInLambdasPassedToFinalMembersOfOpenClasses() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        mock.callPrimitive(1)
+        verify { Runner().finalRun { mock.callPrimitive(1) } }
+        assertFailsWith<AssertionError> { verify { Runner().finalRun { mock.callPrimitive(2) } } }
+    }
+
+    @Test
+    fun testFinalMemberCallOnResultOfOpenMemberCall() {
+        val mock = mock<RegularMethodsInterface> { every { callPrimitive(any()) } returns 1 }
+        mock.callPrimitive(1)
+        verify {
+            RunnerProvider().runner().finalRun { 1 }
+            mock.callPrimitive(1)
+        }
+    }
+
+    private open class Runner {
+        open fun <T> openRun(block: () -> T): T = block()
+        fun <T> finalRun(block: () -> T): T = block()
+    }
+
+    private open class RunnerProvider {
+        open fun runner(): Runner = Runner()
+    }
+
     private fun <T> eager(block: () -> T): T = block()
 
     @Suppress("NOTHING_TO_INLINE")
