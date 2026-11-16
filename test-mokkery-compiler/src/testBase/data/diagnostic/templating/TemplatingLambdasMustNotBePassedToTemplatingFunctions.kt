@@ -2,6 +2,8 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.verify.VerifyMode
 import dev.mokkery.templating.MokkeryTemplatingScope
 import dev.mokkery.templating.ctx
 import dev.mokkery.templating.ext
@@ -14,6 +16,8 @@ fun testEvery(block: MokkeryTemplatingScope.() -> Int) {
 fun testVerify(block: MokkeryTemplatingScope.() -> Unit) {
     verify(block = <!FUNCTIONAL_PARAM_MUST_BE_LAMBDA!>block<!>)
     verifySuspend(block = <!FUNCTIONAL_PARAM_MUST_BE_LAMBDA!>block<!>)
+    verify(block = <!FUNCTIONAL_PARAM_MUST_BE_LAMBDA!>block<!>, mode = VerifyMode.exhaustive)
+    verify(block = { listOf(<!ILLEGAL_MATCHER_IN_NON_MEMBER!>any<Int>()<!>) }, mode = VerifyMode.exhaustive)
 }
 
 interface ContextFoo {

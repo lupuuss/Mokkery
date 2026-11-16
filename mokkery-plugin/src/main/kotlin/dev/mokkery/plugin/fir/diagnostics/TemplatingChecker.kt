@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
-import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.expressions.unwrapArgument
 import org.jetbrains.kotlin.fir.references.toResolvedFunctionSymbol
@@ -70,20 +69,10 @@ class TemplatingChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
     private fun checkTemplating(expression: FirFunctionCall) {
-        val blockArgument = expression
-            .arguments
-            .last()
-            .unwrapArgument()
-        checkTemplatingArgument(blockArgument.source ?: expression.source, blockArgument)
-    }
-
-    context(context: CheckerContext, reporter: DiagnosticReporter, funSymbol: FirNamedFunctionSymbol)
-    private fun checkTemplatingArgument(source: AbstractKtSourceElement?, argument: FirExpression) {
-        val blockParameter = funSymbol
-            .valueParameterSymbols
-            .firstOrNull()
-        val classId = blockParameter?.resolvedReturnType?.classId
-        when (classId) {
+        val blockParameter = funSymbol.valueParameterSymbols.lastOrNull() ?: return
+        val argument = expression.allNonDispatchArgumentsMapping(funSymbol)[blockParameter]?.unwrapArgument() ?: return
+        val source = argument.source ?: expression.source
+        when (blockParameter.resolvedReturnType.classId) {
             StandardClassIds.KFunction -> checkTemplatingReference(source, argument)
             else -> checkTemplatingBlock(source, argument)
         }

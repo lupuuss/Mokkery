@@ -1,13 +1,17 @@
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:10:19: error: Argument passed to 'every' for param 'block: MokkeryTemplatingScope.() -> T' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:12:19: error: Argument passed to 'every' for param 'block: MokkeryTemplatingScope.() -> T' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:11:18: error: Argument passed to 'everySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> T' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:13:18: error: Argument passed to 'everySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> T' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:15:20: error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:17:20: error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:16:27: error: Argument passed to 'verifySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:18:27: error: Argument passed to 'verifySuspend' for param 'block: suspend MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:25:20: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:19:20: error: Argument passed to 'verify' for param 'block: MokkeryTemplatingScope.() -> Unit' must be a lambda expression.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:26:25: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:20:29: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
 
-/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:27:22: error: Argument passed to 'ext' for param 'block: T.() -> R' must be a lambda expression.
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:29:20: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:30:25: error: Argument passed to 'ctx' for param 'block: context(A) () -> R' must be a lambda expression.
+
+/TemplatingLambdasMustNotBePassedToTemplatingFunctions.kt:31:22: error: Argument passed to 'ext' for param 'block: T.() -> R' must be a lambda expression.
