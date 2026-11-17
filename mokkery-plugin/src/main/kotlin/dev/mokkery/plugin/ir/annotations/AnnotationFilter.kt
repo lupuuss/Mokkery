@@ -2,7 +2,6 @@ package dev.mokkery.plugin.ir.annotations
 
 import dev.mokkery.options.AnnotationSelector
 import dev.mokkery.options.AnnotationSelectorInternals
-import dev.mokkery.plugin.ir.compat.classSymbolCompat
 import org.jetbrains.kotlin.backend.common.extensions.IrGeneratedDeclarationsRegistrar
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -26,12 +25,12 @@ fun interface AnnotationFilter {
         fun named(names: Set<String>): AnnotationFilter {
             val fqNames = names.map { FqName(it) }
             return AnnotationFilter { annotations ->
-                annotations.filter { it.classSymbolCompat.owner.kotlinFqName in fqNames }
+                annotations.filter { it.classSymbol.owner.kotlinFqName in fqNames }
             }
         }
 
         fun matches(regex: Regex) = AnnotationFilter { annotations ->
-            annotations.filter { it.classSymbolCompat.owner.kotlinFqName.asString().matches(regex) }
+            annotations.filter { it.classSymbol.owner.kotlinFqName.asString().matches(regex) }
         }
     }
 }

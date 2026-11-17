@@ -33,7 +33,7 @@ kotlin {
         nodejs()
     }
     @OptIn(ExperimentalWasmDsl::class)
-    wasmWasi() {
+    wasmWasi {
         nodejs()
     }
 

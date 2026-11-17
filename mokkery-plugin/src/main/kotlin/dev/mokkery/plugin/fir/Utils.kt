@@ -1,17 +1,16 @@
 package dev.mokkery.plugin.fir
 
-import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.SessionHolder
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.InlineStatus
+import org.jetbrains.kotlin.fir.declarations.isArrayOfCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirSpreadArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirWrappedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
 import org.jetbrains.kotlin.fir.expressions.unwrapExpression
-import org.jetbrains.kotlin.fir.resolve.isArrayOfCall
 import org.jetbrains.kotlin.fir.resolve.toClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -60,9 +59,7 @@ fun FirExpression.isSpread(): Boolean {
     }
 }
 
-fun FirExpression.extractArrayLiteralCall(
-    session: FirSession
-): FirFunctionCall? = when (val expression = unwrapExpressionOrArgument()) {
-    is FirFunctionCall if expression.isArrayOfCall(session) -> expression
+fun FirExpression.extractArrayLiteralCall(): FirFunctionCall? = when (val expression = unwrapExpressionOrArgument()) {
+    is FirFunctionCall if expression.isArrayOfCall() -> expression
     else -> null
 }

@@ -76,7 +76,7 @@ private val buildScript = $$"""
                 freeCompilerArgs.add("-Xemit-jvm-type-annotations")
             }
         }
-        js(IR) { nodejs() }
+        js { nodejs() }
         wasmJs { nodejs() }
         
         when (HostManager.host) {

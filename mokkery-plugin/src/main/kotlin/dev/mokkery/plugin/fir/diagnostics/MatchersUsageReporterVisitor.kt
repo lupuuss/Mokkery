@@ -420,7 +420,7 @@ class MatchersUsageReporterVisitor(
             .arguments
             .singleOrNull()
             ?.takeIf { allowArrayLiteral && it.isSpread() }
-            ?.extractArrayLiteralCall(session)
+            ?.extractArrayLiteralCall()
         val nestedVararg = soleArrayLiteralCall?.arguments?.firstOrNull() as? FirVarargArgumentsExpression
         if (soleArrayLiteralCall != null && nestedVararg != null) {
             legalizedNonMemberFunctionWithMatchers += soleArrayLiteralCall

@@ -61,4 +61,6 @@ object ClasspathBasedStandardLibrariesPathProvider : KotlinStandardLibrariesPath
     override fun webStdlibForTests(): File = getFile("kotlin-stdlib-web")
 
     override fun scriptingPluginFilesForTests(): Collection<File> = TODO()
+
+    override fun scriptingCommonJarForTests(): File? = null
 }
