@@ -2,6 +2,8 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.wasm.wasmtime.WasmtimeEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.wasmtime.WasmtimePlugin
 
 
 plugins {
@@ -27,14 +29,13 @@ kotlin {
         browser()
         nodejs()
     }
-    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
-        nodejs()
+        wasmtime()
     }
 
     iosX64()
@@ -64,4 +65,9 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
+}
+
+@OptIn(ExperimentalWasmDsl::class)
+plugins.withType<WasmtimePlugin> {
+    the<WasmtimeEnvSpec>().version.set("50.0.1")
 }
