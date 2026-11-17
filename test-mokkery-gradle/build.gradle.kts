@@ -96,9 +96,6 @@ private fun Test.dependsOnPublishMultiplatformTo(project: String, repoName: Stri
     when (HostManager.host) {
         is KonanTarget.LINUX_X64 -> dependsOnPublishPublicationTo("LinuxX64")
         is KonanTarget.LINUX_ARM64 -> dependsOnPublishPublicationTo("LinuxArm64")
-        is KonanTarget.MACOS_X64 -> {
-            dependsOnPublishPublicationTo("MacosX64")
-        }
         is KonanTarget.MACOS_ARM64 -> {
             dependsOnPublishPublicationTo("MacosArm64")
             dependsOnPublishPublicationTo("IosSimulatorArm64")
