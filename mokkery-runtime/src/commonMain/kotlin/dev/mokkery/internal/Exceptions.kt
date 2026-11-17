@@ -146,8 +146,11 @@ internal class MockCallExpectedException(
     mockedType: KClass<*>,
     call: String,
 ) : MokkeryRuntimeException(
-    "Call to `$call` was expected to be performed on a mock of ${mockedType.simpleName ?: "anonymous"} type, but the receiver was not a mock - it was an instance of ${mock::class.simpleName ?: "anonymous"} type => $mock"
+    "Call to `$call` was expected to be performed on a mock of ${mockedType.displayName} type, but the receiver was not a mock - it was an instance of ${mock::class.displayName} type => $mock"
 )
+
+private val KClass<*>.displayName: String
+    get() = simpleName?.takeUnless { it == "<no name provided>" } ?: "anonymous"
 
 internal class FunctionCannotBeMockedException(
     functionName: String,
