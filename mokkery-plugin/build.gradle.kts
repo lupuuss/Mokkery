@@ -12,7 +12,7 @@ kotlin.sourceSets.all {
     }
 }
 
-val embedded by configurations.registering { isTransitive = false }
+val embedded = configurations.register("embedded") { isTransitive = false }
 
 configurations.compileOnly { extendsFrom(embedded.get()) }
 

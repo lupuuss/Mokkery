@@ -81,8 +81,8 @@ fun GradleBuild.settings(
 @Language("kts")
 private fun settingsScript(plugins: List<String>, projectName: String) = """
     pluginManagement {
-        val kotlinVersion: String by settings
-        val mokkeryVersion: String by settings
+        val kotlinVersion = providers.gradleProperty("kotlinVersion").get()
+        val mokkeryVersion = providers.gradleProperty("mokkeryVersion").get()
         plugins {
             ${plugins.joinToString(separator = "\n            ")}
         }

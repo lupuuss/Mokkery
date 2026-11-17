@@ -44,7 +44,7 @@ benchmark {
     }
 }
 
-val allocationBenchmark by tasks.registering(JavaExec::class) {
+tasks.register<JavaExec>("allocationBenchmark") {
     group = "benchmark"
     description = "Runs benchmarks with the JMH gc profiler, reporting bytes allocated per operation"
     val jar = tasks.named("mainBenchmarkJar")

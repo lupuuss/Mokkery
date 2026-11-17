@@ -8,12 +8,12 @@ kotlin {
     optInMokkeryDelicateAndInternals()
 }
 
-val mokkeryRuntimeClasspath by configurations.registering
+val mokkeryRuntimeClasspath = configurations.register("mokkeryRuntimeClasspath")
 
-val testBase by sourceSets.registering
+val testBase = sourceSets.register("testBase")
 
 dependencies {
-    val testBaseCompileOnly by configurations
+    val testBaseCompileOnly = configurations.named("testBaseCompileOnly")
     testBaseCompileOnly(project(":mokkery-plugin"))
     testBaseCompileOnly(project(":mokkery-core-tooling"))
     testBaseCompileOnly(libs.kotlin.compiler)
@@ -32,7 +32,7 @@ testVariant(
     enabled = libs.versions.kotlin.get() != libs.versions.kotlinMininumSupported.get(),
 )
 
-val generateTests by tasks.registering {
+tasks.register("generateTests") {
     group = "verification"
     dependsOn(tasks.named("generateTestsDefault"))
     dependsOn(tasks.named("generateTestsMinimum"))
@@ -50,8 +50,8 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         runtimeClasspath += testBase.get().output
     }
     dependencies {
-        val testImplementation by configurations.named(sourceSet.get().implementationConfigurationName)
-        val testRuntimeOnly by configurations.named(sourceSet.get().runtimeOnlyConfigurationName)
+        val testImplementation = configurations.named(sourceSet.get().implementationConfigurationName)
+        val testRuntimeOnly = configurations.named(sourceSet.get().runtimeOnlyConfigurationName)
         testImplementation(project(":mokkery-plugin"))
         testImplementation(project(":mokkery-core-tooling"))
         testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion")
@@ -60,6 +60,12 @@ fun Project.testVariant(kotlinVersion: String, alias: String = "", enabled: Bool
         testRuntimeOnly(libs.kotlin.reflect)
         testRuntimeOnly(libs.kotlin.script.runtime)
         testRuntimeOnly(libs.kotlin.annotations.jvm)
+    }
+    configurations.named(sourceSet.get().runtimeClasspathConfigurationName) {
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"))
+                .using(module(libs.intellij.kotlinx.coroutines.core.jvm.get().toString()))
+        }
     }
 
     tasks.register<JavaExec>("generateTests$alias") {

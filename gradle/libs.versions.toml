@@ -1,7 +1,8 @@
 [versions]
-kotlinMininumSupported = "2.4.0"
-kotlin = "2.4.21"
+kotlinMininumSupported = "2.5.0-RC2"
+kotlin = "2.5.0-RC2"
 kotlinx-coroutines = "1.10.2"
+intellij-kotlinx-coroutines = "1.10.2-intellij-1"
 buildconfig = "6.1.2"
 google-autoservice = "1.1.1"
 atomicfu = "0.33.0"
@@ -33,6 +34,7 @@ vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plug
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+intellij-kotlinx-coroutines-core-jvm = { module = "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "intellij-kotlinx-coroutines" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
 
 buildconfig-plugin = { module = "com.github.gmazzo.buildconfig:plugin", version.ref = "buildconfig" }

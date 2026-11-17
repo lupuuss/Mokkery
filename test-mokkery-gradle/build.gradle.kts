@@ -12,7 +12,7 @@ kotlin {
     optInMokkeryDelicateAndInternals()
 }
 
-val test by testing.suites.getting(JvmTestSuite::class) {
+testing.suites.getByName<JvmTestSuite>("test") {
     useJUnitJupiter()
     targets.configureEach {
         testTask.configure {
@@ -32,7 +32,7 @@ dependencies {
     testImplementation(libs.kotlin.test.junit5)
 }
 
-val functionalTest by testing.suites.creating(JvmTestSuite::class) {
+val functionalTest = testing.suites.create<JvmTestSuite>("functionalTest") {
     val compilations = kotlin.target.compilations
     compilations.getByName("functionalTest").associateWith(compilations.getByName("main"))
     useJUnitJupiter()

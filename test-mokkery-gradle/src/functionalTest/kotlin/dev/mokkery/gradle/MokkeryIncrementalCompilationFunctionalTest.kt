@@ -436,7 +436,7 @@ private val jsBuildScript = """
     }
 
     kotlin {
-        js(IR) { nodejs() }
+        js { nodejs() }
         sourceSets.getByName("jsTest").dependencies {
             implementation(kotlin("test"))
         }

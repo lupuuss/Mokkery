@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrLink
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+
 plugins {
     id("mokkery-multiplatform")
     alias(libs.plugins.kotlin.allopen)
@@ -24,6 +27,14 @@ kotlin {
             freeCompilerArgs.add("-Xemit-jvm-type-annotations")
         }
     }
+}
+
+tasks.withType<KotlinNativeLink>().configureEach {
+    toolOptions.freeCompilerArgs.add("-Xverify-ir=warning")
+}
+
+tasks.withType<KotlinJsIrLink>().configureEach {
+    compilerOptions.freeCompilerArgs.add("-Xverify-ir=warning")
 }
 
 dependencies {

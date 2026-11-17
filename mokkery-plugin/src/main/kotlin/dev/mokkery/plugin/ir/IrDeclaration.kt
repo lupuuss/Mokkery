@@ -5,14 +5,14 @@ import dev.mokkery.plugin.core.cacheKey
 import dev.mokkery.plugin.core.caches
 import dev.mokkery.plugin.core.getOrPut
 import dev.mokkery.plugin.fnv1a64
-import dev.mokkery.plugin.ir.compat.irMangleComputerCompat
 import org.jetbrains.kotlin.backend.common.serialization.mangle.MangleMode
+import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.IrMangleComputer
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 
 context(scope: IrMokkeryPluginScope)
 fun IrDeclaration.computeSignature(): String = caches[signaturesCache].getOrPut(this) {
-    irMangleComputerCompat(StringBuilder(256), MangleMode.SIGNATURE).computeMangle(this)
+    IrMangleComputer(StringBuilder(256), MangleMode.SIGNATURE, true).computeMangle(this)
 }
 
 context(scope: IrMokkeryPluginScope)

@@ -28,12 +28,13 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
-import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
+import org.jetbrains.kotlin.ir.expressions.IrRichFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrRichPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
@@ -82,7 +83,7 @@ private fun replaceWithInternalEvery(
             arguments[0] = irGetMokkeryModuleScope()
             arguments[1] = when (templatingArgument) {
                 is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument)
-                is IrFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
+                is IrRichFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
                 else -> error("Unsupported templating argument!")
             }
             typeArguments[0] = originalCall.typeArguments[0]
@@ -139,7 +140,7 @@ private fun IrBlockBuilder.irTemplatingLambdaFor(
 
 context(scope: TransformerScope)
 private fun IrBuilderWithScope.irTemplatingLambdaFor(
-    referenceExpression: IrFunctionReference,
+    referenceExpression: IrRichFunctionReference,
     originalCall: IrCall,
 ): IrFunctionExpression {
     val (dispatchReceiver, memberFunction) = referenceExpression.extractDispatchReceiverAndMemberFunction()
@@ -197,16 +198,20 @@ private fun IrBuilderWithScope.irCallListOfAnyMatchers(function: IrSimpleFunctio
     )
 }
 
-private fun IrFunctionReference.extractDispatchReceiverAndMemberFunction(): Pair<IrExpression, IrSimpleFunction> {
+private fun IrRichFunctionReference.extractDispatchReceiverAndMemberFunction(): Pair<IrExpression, IrSimpleFunction> {
     // it handles 2 cases:
     // * this::property::get/this::property::set
     // * this::function
-    return when (val dispatchArgument = arguments[0]!!) {
-        is IrPropertyReference -> dispatchArgument.arguments[0]!! to when {
-            symbol.owner.name.asString() == "get" -> dispatchArgument.getter!!.owner
-            symbol.owner.name.asString() == "set" -> dispatchArgument.setter!!.owner
-            else -> error("Only reference to getter and setter is allowed on property!")
+    val target = reflectionTargetSymbol!!.owner
+    return when (val dispatchArgument = boundValues[0]) {
+        is IrRichPropertyReference -> {
+            val property = dispatchArgument.reflectionTargetSymbol!!.owner as IrProperty
+            dispatchArgument.boundValues[0] to when {
+                target.name.asString() == "get" -> property.getter!!
+                target.name.asString() == "set" -> property.setter!!
+                else -> error("Only reference to getter and setter is allowed on property!")
+            }
         }
-        else -> dispatchArgument to symbol.owner as IrSimpleFunction
+        else -> dispatchArgument to target as IrSimpleFunction
     }
 }
