@@ -1,20 +1,14 @@
 package dev.mokkery.plugin
 
-import com.google.auto.service.AutoService
-import dev.mokkery.internal.MokkeryConfig
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 
-@AutoService(CompilerPluginRegistrar::class)
-class MokkeryCompilerPluginRegistrar : CompilerPluginRegistrar() {
+class MokkeryCompilerPluginRegistrar : DevKitComponentRegistrar {
 
-    override val pluginId = MokkeryConfig.PLUGIN_ID
-
-    override val supportsK2: Boolean = true
-
-    override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+    override fun CompilerPluginRegistrar.ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         IrGenerationExtension.registerExtension(MokkeryIrGenerationExtension(configuration))
         FirExtensionRegistrarAdapter.registerExtension(MokkeryFirRegistrar(configuration))
     }

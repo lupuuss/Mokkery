@@ -1,32 +1,36 @@
 plugins {
-    kotlin("kapt")
-    id("mokkery-jvm")
+    kotlin("multiplatform")
+    id("mokkery-base")
+    id("org.jetbrains.kotlin.compiler.plugin.devkit.compiler-plugin")
     id("mokkery-publish")
 }
 
-kotlin.sourceSets.all {
-    languageSettings.apply {
-        optIn("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
-        optIn("org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI")
-        optIn("dev.mokkery.annotations.InternalMokkeryApi")
+pluginDevKit {
+    componentRegistrar = "dev.mokkery.plugin.MokkeryCompilerPluginRegistrar"
+    commandLineProcessor = "dev.mokkery.plugin.MokkeryCommandLineProcessor"
+    companionLibrary(project(":mokkery-runtime"))
+    versionHierarchy {
+        splitDev(2, 5)
     }
 }
 
-val embedded = configurations.register("embedded") { isTransitive = false }
-
-configurations.compileOnly { extendsFrom(embedded.get()) }
-
-dependencies {
-    kapt(libs.google.autoservice)
-    compileOnly(libs.google.autoservice.annotations)
-    compileOnly(libs.kotlin.compiler)
-    compileOnly(libs.kotlin.stdlib)
-    embedded(project(":mokkery-core"))
-    embedded(project(":mokkery-core-tooling"))
-    embedded(project(":mokkery-core-plugin"))
+configurations.matching { it.name.endsWith("TestRuntimeClasspath") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"))
+            .using(module(libs.intellij.kotlinx.coroutines.core.jvm.get().toString()))
+    }
 }
 
-tasks.jar {
-    from(embedded.get().map(::zipTree))
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+kotlin {
+    sourceSets.matching { !it.name.contains("EntryPoint", ignoreCase = true) }.all {
+        languageSettings.optIn("dev.mokkery.annotations.InternalMokkeryApi")
+    }
+    sourceSets.commonMain {
+        kotlin.srcDir("src/main/kotlin")
+        dependencies {
+            implementation(project(":mokkery-core"))
+            implementation(project(":mokkery-core-tooling"))
+            implementation(project(":mokkery-core-plugin"))
+        }
+    }
 }

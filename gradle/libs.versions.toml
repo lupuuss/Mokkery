@@ -11,6 +11,7 @@ dokka = "2.2.0"
 poko = "0.23.2"
 vanniktech-publish-plugin = "0.37.0"
 gradle-portal-publish = "2.2.1"
+devkit = "0.0.4-dev-402"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
@@ -21,6 +22,7 @@ kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kot
 gradle-portal-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-portal-publish" }
 
 [libraries]
+devkit-plugins = { module = "org.jetbrains.kotlin.compiler.plugin.devkit:plugins", version.ref = "devkit" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }

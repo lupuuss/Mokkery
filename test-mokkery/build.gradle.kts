@@ -19,6 +19,10 @@ configureCompilerPlugin(
 )
 
 kotlin {
+    providers.gradleProperty("mokkery.spike.compilerVersion").orNull?.let {
+        @OptIn(org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi::class)
+        compilerVersion.set(it)
+    }
     compilerOptions {
         freeCompilerArgs.add("-Xverify-ir=error")
     }

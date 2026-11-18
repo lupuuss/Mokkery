@@ -6,6 +6,7 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
+import dev.mokkery.plugin.ir.compat.extractTemplatingReference
 import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.findRegularParameters
 import dev.mokkery.plugin.ir.hasNonDispatchParameters
@@ -28,13 +29,10 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
-import org.jetbrains.kotlin.ir.expressions.IrRichFunctionReference
-import org.jetbrains.kotlin.ir.expressions.IrRichPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
@@ -83,8 +81,10 @@ private fun replaceWithInternalEvery(
             arguments[0] = irGetMokkeryModuleScope()
             arguments[1] = when (templatingArgument) {
                 is IrFunctionExpression -> irTemplatingLambdaFor(templatingArgument)
-                is IrRichFunctionReference -> irTemplatingLambdaFor(templatingArgument, originalCall)
-                else -> error("Unsupported templating argument!")
+                else -> templatingArgument
+                    ?.extractTemplatingReference()
+                    ?.let { irTemplatingLambdaFor(it, originalCall) }
+                    ?: error("Unsupported templating argument!")
             }
             typeArguments[0] = originalCall.typeArguments[0]
         }
@@ -140,10 +140,10 @@ private fun IrBlockBuilder.irTemplatingLambdaFor(
 
 context(scope: TransformerScope)
 private fun IrBuilderWithScope.irTemplatingLambdaFor(
-    referenceExpression: IrRichFunctionReference,
+    reference: Pair<IrExpression, IrSimpleFunction>,
     originalCall: IrCall,
 ): IrFunctionExpression {
-    val (dispatchReceiver, memberFunction) = referenceExpression.extractDispatchReceiverAndMemberFunction()
+    val (dispatchReceiver, memberFunction) = reference
     val lambdaType = irBuiltIns
         .let { if (memberFunction.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(listOf(referencedDefaultType(MokkeryIr.Class.MokkeryTemplatingScope), irBuiltIns.unitType))
@@ -196,22 +196,4 @@ private fun IrBuilderWithScope.irCallListOfAnyMatchers(function: IrSimpleFunctio
         type = argMatcherClass.typeWith(irBuiltIns.anyNType),
         elements = function.nonDispatchParameters.memoryOptimizedMap { irGetObject(anyMatcherObject.symbol) }
     )
-}
-
-private fun IrRichFunctionReference.extractDispatchReceiverAndMemberFunction(): Pair<IrExpression, IrSimpleFunction> {
-    // it handles 2 cases:
-    // * this::property::get/this::property::set
-    // * this::function
-    val target = reflectionTargetSymbol!!.owner
-    return when (val dispatchArgument = boundValues[0]) {
-        is IrRichPropertyReference -> {
-            val property = dispatchArgument.reflectionTargetSymbol!!.owner as IrProperty
-            dispatchArgument.boundValues[0] to when {
-                target.name.asString() == "get" -> property.getter!!
-                target.name.asString() == "set" -> property.setter!!
-                else -> error("Only reference to getter and setter is allowed on property!")
-            }
-        }
-        else -> dispatchArgument to target as IrSimpleFunction
-    }
 }

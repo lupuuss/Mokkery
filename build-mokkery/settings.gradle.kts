@@ -7,6 +7,7 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://plugins.gradle.org/m2/")
         }
+        maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
     }
     versionCatalogs {
         create("libs") {
