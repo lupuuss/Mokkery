@@ -1,27 +1,29 @@
-/ContextFunctionsAsValues.kt:(1613,1677): error: Returning matchers from try/catch is not supported.
+/ContextFunctionsAsValues.kt:(1669,1733): error: Returning matchers from try/catch is not supported.
 
-/ContextFunctionsAsValues.kt:(1702,1731): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(1758,1787): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(1760,1778): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(1816,1834): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(1811,1840): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(1867,1896): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(1879,1908): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(1935,1964): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(1942,1971): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(1998,2027): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2010,2039): error: Matcher cannot be used as a when subject.
+/ContextFunctionsAsValues.kt:(2066,2095): error: Matcher cannot be used as a when subject.
 
-/ContextFunctionsAsValues.kt:(2112,2161): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(2168,2217): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2192,2219): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(2248,2275): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2248,2291): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(2304,2347): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2321,2358): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(2377,2414): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2388,2428): error: Accessing members of matchers is illegal.
+/ContextFunctionsAsValues.kt:(2444,2484): error: Accessing members of matchers is illegal.
 
-/ContextFunctionsAsValues.kt:(2448,2459): error: Operators cannot be used with matchers, but '?.' operator is used.
+/ContextFunctionsAsValues.kt:(2504,2515): error: Operators cannot be used with matchers, but '?.' operator is used.
 
-/ContextFunctionsAsValues.kt:(2509,2520): error: Operators cannot be used with matchers, but '?.' operator is used.
+/ContextFunctionsAsValues.kt:(2565,2576): error: Operators cannot be used with matchers, but '?.' operator is used.
+
+/ContextFunctionsAsValues.kt:(2628,2644): error: Accessing members of matchers is illegal.

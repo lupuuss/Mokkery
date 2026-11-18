@@ -15,6 +15,7 @@ import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
 import dev.mokkery.matcher.matches
 import dev.mokkery.mock
+import dev.mokkery.templating.ctx
 import dev.mokkery.templating.ext
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
@@ -708,6 +709,20 @@ class TemplatingTest {
             val list = listOf<Int>()
             verify {
                 list[any()]
+            }
+        }
+    }
+
+    @Test
+    fun testFailsWhenContextOfMatcherUsedWithNonMockOverridableType() {
+        assertMokkeryError(
+            """
+                Call to `get` was expected to be performed on a mock of List type, but the receiver was not a mock - it was an instance of EmptyList type => []
+            """.trimIndent()
+        ) {
+            val list = listOf<Int>()
+            verify {
+                ctx(any<Int>()) { list[contextOf<Int>()] }
             }
         }
     }

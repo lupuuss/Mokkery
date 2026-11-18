@@ -11,6 +11,7 @@ import dev.mokkery.templating.ext
 
 interface Foo {
     fun foo(arg: Int): Int
+    context(value: Int) fun contextual(): Int
 }
 
 fun main() {
@@ -68,4 +69,16 @@ fun localBuilderCapturingMatcher() {
         mock.foo(composing())
         mock.foo(viaVariable())
     }
+}
+
+fun contextOfInNestedFunctions() {
+    val mock = mock<Foo>()
+    every { ctx(any<Int>()) { mock.foo(1.let { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>contextOf<Int>()<!> }) } }
+    every {
+        ctx(any<Int>()) {
+            fun nested() = <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>contextOf<Int>()<!>
+            mock.foo(nested())
+        }
+    }
+    every { ctx(any<Int>()) { run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS!>mock.contextual()<!> } } }
 }

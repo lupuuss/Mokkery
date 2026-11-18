@@ -50,3 +50,9 @@ fun MokkeryMatcherScope.localBuilderCapturingMatcherParam(@Matcher matcher: Int)
     }
     return or(local(), composing(), viaVariable())
 }
+
+context(@Matcher matcher: Int)
+fun MokkeryMatcherScope.contextOfInLambda(): Int = run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER!>contextOf<Int>()<!> }
+
+context(@Matcher matcher: Int)
+fun MokkeryMatcherScope.contextBuilderInLambda(): Int = run { <!ILLEGAL_NESTED_FUNCTIONS_MATCHERS_IN_MATCHER_BUILDER!>contextOfInLambda()<!> }

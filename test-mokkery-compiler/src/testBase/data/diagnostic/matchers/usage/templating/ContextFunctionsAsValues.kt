@@ -46,6 +46,7 @@ fun legal(flag: Boolean, nullable: Foo?, nullableInt: Int?) {
     }
     every { mock.foo(ctx(1) { if (flag) return@ctx gt(1); 2 }) }
     every { mock.fooN(nullableInt?.ext { this }) }
+    every { ctx(gt(1)) { mock.foo(contextOf<Int>()) } }
 }
 
 fun illegal(flag: Boolean) {
@@ -68,4 +69,5 @@ fun illegal(flag: Boolean) {
     every { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>ctx(1) { if (flag) return@ctx gt(1); 2 }<!> + 1) }
     every { <!ILLEGAL_OPERATOR_USAGE!>any<Int?>()<!>?.ext { mock.fooN(this) } }
     every { mock.fooN(<!ILLEGAL_OPERATOR_USAGE!>any<Int?>()<!>?.ext { this }) }
+    every { ctx(gt(1)) { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>contextOf<Int>()<!> + 1) } }
 }

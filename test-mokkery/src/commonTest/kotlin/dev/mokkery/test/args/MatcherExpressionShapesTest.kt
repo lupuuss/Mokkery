@@ -220,6 +220,20 @@ class MatcherExpressionShapesTest {
     }
 
     @Test
+    fun testContextOfInCtx() {
+        every { ctx(gt(1)) { mock.callPrimitive(contextOf<Int>()) } } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testContextOfInMatcherBuilder() {
+        every { ctx(gt(1)) { mock.callPrimitive(notViaContextOf()) } } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
     fun testCtxAsArgumentInVerify() {
         every { mock.callPrimitive(any()) } returns 1
         mock.callPrimitive(1)
@@ -230,3 +244,6 @@ class MatcherExpressionShapesTest {
 
 context(@Matcher matcher: Int)
 private fun MokkeryMatcherScope.notContextMatcher(): Int = not(matcher)
+
+context(@Matcher matcher: Int)
+private fun MokkeryMatcherScope.notViaContextOf(): Int = not(contextOf<Int>())

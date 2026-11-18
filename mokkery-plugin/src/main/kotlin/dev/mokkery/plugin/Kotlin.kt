@@ -6,9 +6,16 @@ object Kotlin {
     val kotlin_ranges by fqName
     val kotlin_sequences by fqName
     val kotlin by fqName
+
+    object Callable {
+
+        val contextOf by kotlin.callableId
+    }
+
     object Name {
 
         val listOf by kotlin_collections.functionId
         val mapOf by kotlin_collections.functionId
+        val contextOf by kotlin.fqName
     }
 }

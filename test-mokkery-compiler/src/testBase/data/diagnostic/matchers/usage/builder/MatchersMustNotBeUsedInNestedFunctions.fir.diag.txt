@@ -23,3 +23,7 @@
 /MatchersMustNotBeUsedInNestedFunctions.kt:(1468,1475): error: Matchers cannot be used in functions declared inside matcher builders, but used in 'fun MokkeryMatcherScope.composing(): Int'.
 
 /MatchersMustNotBeUsedInNestedFunctions.kt:(1545,1552): error: Matchers cannot be used in functions declared inside matcher builders, but used in 'fun MokkeryMatcherScope.viaVariable(): Int'.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:(1721,1737): error: Matchers cannot be used in functions declared inside matcher builders, but used in 'run@fun MokkeryMatcherScope.<anonymous>(): Int <inline=Inline, kind=EXACTLY_ONCE>'.
+
+/MatchersMustNotBeUsedInNestedFunctions.kt:(1834,1853): error: Matchers cannot be used in functions declared inside matcher builders, but used in 'run@fun MokkeryMatcherScope.<anonymous>(): Int <inline=Inline, kind=EXACTLY_ONCE>'.

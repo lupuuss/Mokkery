@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.fir.diagnostics
 
+import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.Mokkery
 import dev.mokkery.plugin.fir.allNonDispatchArgumentsMapping
 import dev.mokkery.plugin.fir.contextFunctionIds
@@ -79,6 +80,7 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>, function: Fi
                 when {
                     symbol == null -> false
                     block != null -> block.returnedValues().any(::isMatcher)
+                    symbol.callableId == Kotlin.Callable.contextOf -> it.contextArguments.any(::isMatcher)
                     else -> isMatcherVariable(symbol) == true || symbol.isMatcherBuilder()
                 }
             }

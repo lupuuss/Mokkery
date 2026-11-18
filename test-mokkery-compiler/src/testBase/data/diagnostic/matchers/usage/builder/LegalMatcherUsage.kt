@@ -101,3 +101,6 @@ fun MokkeryMatcherScope.expressionShapes(flag: Boolean, @Matcher matcher: Int): 
     }
     return or(second = selected, first = (matcher))
 }
+
+context(@Matcher matcher: Int)
+fun MokkeryMatcherScope.contextOfParameter(): Int = not(contextOf<Int>())

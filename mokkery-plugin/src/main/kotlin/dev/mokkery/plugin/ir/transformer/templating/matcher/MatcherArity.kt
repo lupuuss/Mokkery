@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.templating.matcher
 
+import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.core.ir.transformer.TransformerScope
 import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.isAnyArray
@@ -41,7 +42,10 @@ fun IrVarargElement.matcherArity(): MatcherArity? = when (this) {
         MatcherFunctionKind.Builder, MatcherFunctionKind.Matches -> MatcherArity.Single
         MatcherFunctionKind.SpreadArray -> MatcherArity.Array
         MatcherFunctionKind.Materializer, MatcherFunctionKind.MaterializerVararg -> null
-        null -> MatcherArity.Array.takeIf { isMatchersArrayLiteral() }
+        null -> when (symbol.owner.kotlinFqName) {
+            Kotlin.Name.contextOf -> arguments.single()?.matcherArity()
+            else -> MatcherArity.Array.takeIf { isMatchersArrayLiteral() }
+        }
     }
     is IrGetValue -> symbol.owner.matcherArity()
     is IrVararg -> MatcherArity.Array.takeIf { elements.any { it.matcherArity() != null } }

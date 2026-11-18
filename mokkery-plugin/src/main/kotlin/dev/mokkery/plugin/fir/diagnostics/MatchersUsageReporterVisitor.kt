@@ -112,6 +112,7 @@ class MatchersUsageReporterVisitor(
     private val currentCallsStack = mutableListOf<FirQualifiedAccessExpression>()
     private val scopeFunctionBlocks = mutableSetOf<FirFunctionSymbol<*>>()
     private val legalizedNonMemberFunctionWithMatchers = mutableSetOf<FirFunctionCall>()
+    private val implicitContextArguments = mutableSetOf<FirExpression>()
 
     override fun visitComponentCall(componentCall: FirComponentCall) {
         visitFunctionCall(componentCall)
@@ -134,7 +135,9 @@ class MatchersUsageReporterVisitor(
     }
 
     private fun visitAccess(access: FirQualifiedAccessExpression) {
+        if (access in implicitContextArguments) return
         val symbol = access.calleeReference.toResolvedCallableSymbol()
+        val isMatcher = matchersProcessor.isMatcher(access)
         when {
             symbol?.callableId in contextFunctionIds -> {
                 if (!isInLocalMatcherBuilder && usageContext == MatchersUsageContext.BUILDER) {
@@ -142,7 +145,7 @@ class MatchersUsageReporterVisitor(
                 }
                 reportSafeCallOnMatcher(access)
             }
-            matchersProcessor.isMatcher(access) -> {
+            isMatcher -> {
                 val canUseMatcher = ensureCanUseMatchersNow(access, symbol)
                 if (canUseMatcher && symbol != null && symbol.isMatcherBuilder()) {
                     reportIllegalMatcherConstruction(access, symbol)
@@ -160,7 +163,10 @@ class MatchersUsageReporterVisitor(
             else -> reportIllegalAccessArguments(access, symbol)
         }
         currentCallsStack.add(access)
+        val reportedContextArguments = if (isMatcher) access.contextArguments else emptyList()
+        implicitContextArguments += reportedContextArguments
         access.acceptChildren(this)
+        implicitContextArguments -= reportedContextArguments
         currentCallsStack.removeLast()
     }
 

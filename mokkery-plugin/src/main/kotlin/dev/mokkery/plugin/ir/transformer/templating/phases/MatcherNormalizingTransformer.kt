@@ -1,5 +1,6 @@
 package dev.mokkery.plugin.ir.transformer.templating.phases
 
+import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.util.isVararg
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.util.transformInPlace
 
@@ -60,6 +62,7 @@ class MatcherNormalizingTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         val function = expression.symbol.owner
         expression.transformChildrenVoid()
+        if (function.kotlinFqName == Kotlin.Name.contextOf) return expression.arguments.single()!!
         if (function.matcherFunctionKind() == null) return expression
         val substitution = expression.templatingSubstitutionMap
         function.parameters.forEach { param ->
