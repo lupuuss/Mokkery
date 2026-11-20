@@ -1,6 +1,7 @@
 package dev.mokkery.internal.options
 
 import dev.mokkery.annotations.InternalMokkeryApi
+import java.util.concurrent.ConcurrentHashMap
 
 @InternalMokkeryApi
 public data class MokkeryOption<T>(
@@ -10,7 +11,11 @@ public data class MokkeryOption<T>(
     public val allowMultipleOccurrences: Boolean,
     public val type: MokkeryOptionType<T>,
     public val defaultValues: List<T>,
-)
+) {
+    override fun equals(other: Any?): Boolean = other is MokkeryOption<*> && name == other.name
+
+    override fun hashCode(): Int = name.hashCode()
+}
 
 @InternalMokkeryApi
 public interface MokkeryOptionProjection<out P> {
@@ -24,7 +29,7 @@ public interface MokkeryOptionProjection<out P> {
             builder: (MokkeryOption<*>) -> T
         ): MokkeryOptionProjection<T> = DefaultMokkeryOptionProjection(builder)
 
-        public fun <T> cached(
+        public fun <T : Any> cached(
             builder: (MokkeryOption<*>) -> T
         ): MokkeryOptionProjection<T> = CachedMokkeryProjection(builder)
     }
@@ -36,11 +41,11 @@ private class DefaultMokkeryOptionProjection<T>(
     override fun project(option: MokkeryOption<*>): T = builder(option)
 }
 
-private class CachedMokkeryProjection<T>(
+private class CachedMokkeryProjection<T : Any>(
     private val builder: (MokkeryOption<*>) -> T
 ) : MokkeryOptionProjection<T> {
-    private val store = mutableMapOf<MokkeryOption<*>, T>()
-    override fun project(option: MokkeryOption<*>): T = store.getOrPut(option) { builder(option) }
+    private val store = ConcurrentHashMap<MokkeryOption<*>, T>()
+    override fun project(option: MokkeryOption<*>): T = store.computeIfAbsent(option, builder)
 }
 
 @Suppress("UNCHECKED_CAST")
