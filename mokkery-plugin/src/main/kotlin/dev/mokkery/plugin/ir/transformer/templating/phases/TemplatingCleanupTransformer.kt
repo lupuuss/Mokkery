@@ -7,14 +7,15 @@ import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.collectReturns
 import dev.mokkery.plugin.ir.irCall
+import dev.mokkery.plugin.ir.irCallConstructor
 import dev.mokkery.plugin.ir.requirePropertyOwner
 import org.jetbrains.kotlin.backend.common.lower.irImplicitCoercionToUnit
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
 import org.jetbrains.kotlin.ir.expressions.IrElseBranch
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.isNothing
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.util.primaryConstructor
 
 /**
  * Unwraps `RunTemplateResult` values where the result is consumed and leaves them as they are where it is discarded,
@@ -47,6 +49,10 @@ class TemplatingCleanupTransformer(
 
     private val runTemplateResultClass = referenced(MokkeryIr.Class.RunTemplateResult)
     private val valueGetter = runTemplateResultClass.requirePropertyOwner("value").getter!!
+    private val originalConstructor = runTemplateResultClass.declarations
+        .filterIsInstance<IrClass>()
+        .single { it.name.asString() == "Original" }
+        .primaryConstructor!!
 
     private var isUnwrappingEnabled = true
 
@@ -99,8 +105,8 @@ class TemplatingCleanupTransformer(
             branch.result = branch.result.transformWithUnwrapping(enabled = false)
         }
         if (!isExhaustive) return@unwrapped
-        if (!propagateTemplatingResultFrom(branches.map { it.result })) {
-            branches.forEach { it.result = it.result.unwrapResultIfPossible() }
+        if (propagateTemplatingResultFrom(branches.map { it.result })) {
+            branches.forEach { it.result = it.result.asTemplatingResult() }
         }
     }
 
@@ -109,9 +115,9 @@ class TemplatingCleanupTransformer(
         catches.forEach { it.result = it.result.transformWithUnwrapping(enabled = false) }
         finallyExpression = finallyExpression?.transformWithUnwrapping(enabled = false)
         val exits = catches.map { it.result } + tryResult
-        if (!propagateTemplatingResultFrom(exits)) {
-            tryResult = tryResult.unwrapResultIfPossible()
-            catches.forEach { it.result = it.result.unwrapResultIfPossible() }
+        if (propagateTemplatingResultFrom(exits)) {
+            tryResult = tryResult.asTemplatingResult()
+            catches.forEach { it.result = it.result.asTemplatingResult() }
         }
     }
 
@@ -136,10 +142,10 @@ class TemplatingCleanupTransformer(
         val returns = collectReturns()
         val lastExpression = valueExpression
         val exits = returns.map { it.value } + listOfNotNull(lastExpression)
-        if (!propagateTemplatingResultFrom(exits)) {
-            returns.forEach { it.value = it.value.unwrapResultIfPossible() }
+        if (propagateTemplatingResultFrom(exits)) {
+            returns.forEach { it.value = it.value.asTemplatingResult() }
             if (lastExpression != null) {
-                statements[statements.lastIndex] = lastExpression.unwrapResultIfPossible()
+                statements[statements.lastIndex] = lastExpression.asTemplatingResult()
             }
         }
     }
@@ -175,9 +181,17 @@ class TemplatingCleanupTransformer(
     }
 
     private fun IrExpression.propagateTemplatingResultFrom(exits: List<IrExpression>): Boolean {
-        if (!exits.allProduceTemplatingResult()) return false
+        if (exits.none { it.type.isTemplatingResult() }) return false
         type = type.toTemplatingResult()
         return true
+    }
+
+    private fun IrExpression.asTemplatingResult(): IrExpression {
+        val value = this
+        if (value.type.isTemplatingResult() || value.type.isNothing()) return value
+        return value.replaceDeclarationIrBuilder {
+            irCallConstructor(originalConstructor, listOf(value.type)) { arguments[0] = value }
+        }
     }
 
     private fun IrExpression.unwrapResultIfPossible(): IrExpression {
@@ -186,13 +200,6 @@ class TemplatingCleanupTransformer(
         val valueType = arg.type.templatingResultValueType()
         return arg.replaceDeclarationIrBuilder { irCall(valueGetter, valueType) { arguments[0] = arg } }
     }
-
-    private fun List<IrExpression>.allProduceTemplatingResult(): Boolean {
-        val values = filterNot { it.type.isNothing() || it.isNullConst() }
-        return values.isNotEmpty() && values.all { it.type.isTemplatingResult() }
-    }
-
-    private fun IrExpression.isNullConst(): Boolean = this is IrConst && value == null
 
     private val IrWhen.isExhaustive: Boolean
         get() = branches.lastOrNull() is IrElseBranch

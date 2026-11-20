@@ -233,7 +233,7 @@ class TemplatingTest {
         val mock = mock<RegularMethodsInterface>()
         assertFailsWithResultAccessError("RegularMethodsInterface(1)", "callPrimitive") {
             verify {
-                when (true) {
+                val variable = when (true) {
                     true -> mock.callPrimitive(1)
                     else -> Unit
                 }

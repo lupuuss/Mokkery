@@ -199,6 +199,44 @@ class MatcherExpressionShapesTest {
     }
 
     @Test
+    fun testCtxWithEarlyValueReturn() {
+        val returnEarly = false
+        every { ctx(5) { if (returnEarly) return@ctx 0; mock.callPrimitive(gt(1)) } } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testCtxWithEarlyReturnOfAnyResult() {
+        val returnEarly = false
+        every { mock.callPrimitive(any()) } returns 1
+        mock.callPrimitive(1)
+        verify { ctx<Int, Any?>(5) { if (returnEarly) return@ctx Unit; mock.callPrimitive(1) } }
+        assertFailsWith<AssertionError> { verify { ctx<Int, Any?>(5) { if (returnEarly) return@ctx Unit; mock.callPrimitive(2) } } }
+    }
+
+    @Test
+    fun testIfWithPlainBranchAsResult() {
+        val plain = false
+        every { if (plain) 0 else mock.callPrimitive(gt(1)) } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testTryWithPlainCatchAsResult() {
+        every {
+            try {
+                mock.callPrimitive(gt(1))
+            } catch (e: IllegalStateException) {
+                0
+            }
+        } returns 3
+        assertEquals(3, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
     fun testCtxWithPlainResultAsArgument() {
         every { mock.callPrimitive(ctx(gt(1)) { 2 } + 1) } returns 1
         assertEquals(1, mock.callPrimitive(3))
