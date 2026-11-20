@@ -6,13 +6,10 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
 import dev.mokkery.plugin.ir.applyTransformChildrenVoid
-import dev.mokkery.plugin.ir.defaultTypeErased
-import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
-import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallListGet
+import dev.mokkery.plugin.ir.transformer.templating.irTemplate
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.templatingSubstitutionMap
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
@@ -25,8 +22,6 @@ import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irBoolean
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irLong
-import org.jetbrains.kotlin.ir.builders.irNull
-import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -40,14 +35,12 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrSpreadElementImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.hasDefaultValue
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
-import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -67,8 +60,7 @@ class TemplatingTransformer(
 ) : PhaseTransformer(pluginScope) {
 
     private val argMatcherClass = referenced(MokkeryIr.Class.ArgMatcher)
-    private val runTemplateBlockingFun = referenced(MokkeryIr.Function.runTemplate)
-    private val runTemplateSuspendFun = referenced(MokkeryIr.Function.runTemplateSuspend)
+    private val runTemplateResultClass = referenced(MokkeryIr.Class.RunTemplateResult)
     private val varArgsFunction = referenced(MokkeryIr.Function.varArgs)
     private val defaultValueFunction = referenced(MokkeryIr.Function.defaultValue)
     private val materializeVarargFunction = referenced(MokkeryIr.Function.materializeVararg)
@@ -86,44 +78,34 @@ class TemplatingTransformer(
                 .applyTransformChildrenVoid()
         }
         if (receiver is IrCall) receiver.transformChildrenVoid()
-        val functionToReplace = expression.symbol.owner
-        val runTemplateFun = if (functionToReplace.isSuspend) runTemplateSuspendFun else runTemplateBlockingFun
-        val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to expression.type)
-        val usesMatchers = expression.usesMatchers
         val originalCall = when {
-            usesMatchers -> null
-            else -> expression.deepCopyWithSymbols().templateArguments()
+            expression.usesMatchers -> null
+            else -> expression
+                .deepCopyWithSymbols()
+                .templateArguments()
         }
         return expression.replaceDeclarationIrBuilder {
-            irBlock(resultType = runTemplateFun.returnType.substitute(substitution)) {
+            irBlock(resultType = runTemplateResultClass.typeWith(expression.type)) {
                 val receiverVar = createTmpVariable(receiver)
-                +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
-                    typeArguments[0] = expression.type
-                    arguments[0] = irGet(matcherScope)
-                    arguments[1] = irGet(receiverVar)
-                    arguments[2] = kClassReference(functionToReplace.parentAsClass.defaultTypeErased)
-                    arguments[3] = irLong(functionToReplace.mokkeryFunctionId)
-                    arguments[4] = irString(functionToReplace.name.asString())
-                    arguments[5] = when {
-                        !functionToReplace.hasNonDispatchParameters() -> irNull()
-                        else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
-                            createTemplatingArgumentsLambdaBody(it, expression)
+                +irTemplate(
+                    templatingScope = matcherScope,
+                    mock = irGet(receiverVar),
+                    function = expression.symbol.owner,
+                    resultType = expression.type,
+                    matchers = { templatingArguments(it, expression) },
+                    original = originalCall?.let { call ->
+                        {
+                            call.patchDeclarationParents(it)
+                            call.arguments[0] = irGet(receiverVar)
+                            call
                         }
-                    }
-                    arguments[6] = when (originalCall) {
-                        null -> irNull()
-                        else -> irLambdaOf(runTemplateFun.parameters[6].type.makeNotNull().substitute(substitution)) {
-                            originalCall.patchDeclarationParents(it)
-                            originalCall.arguments[0] = irGet(receiverVar)
-                            +irReturn(originalCall)
-                        }
-                    }
-                }
+                    },
+                )
             }
         }
     }
 
-    private fun IrBlockBodyBuilder.createTemplatingArgumentsLambdaBody(lambda: IrSimpleFunction, expression: IrCall) {
+    private fun IrBlockBodyBuilder.templatingArguments(lambda: IrSimpleFunction, expression: IrCall): IrExpression {
         val calledFunc = expression.symbol.owner
         val hasDefaults = calledFunc.parameters.any { expression.isOmittedDefault(it) }
         val defaultsExtractingVar = when {
@@ -137,7 +119,7 @@ class TemplatingTransformer(
                 ?.patchDeclarationParents(lambda)
             templatingArg(expression, argument, it, defaultsExtractingVar)
         }
-        +irReturn(irMaterialize(matchers))
+        return irMaterialize(matchers)
     }
 
     private fun IrCall.wrapArgumentsWithMockCheck(): IrCall = apply {

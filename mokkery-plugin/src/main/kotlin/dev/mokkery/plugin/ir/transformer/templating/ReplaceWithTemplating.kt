@@ -6,13 +6,9 @@ import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.referencedDefaultType
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
-import dev.mokkery.plugin.ir.defaultTypeErased
 import dev.mokkery.plugin.ir.findRegularParameters
-import dev.mokkery.plugin.ir.hasNonDispatchParameters
 import dev.mokkery.plugin.ir.irCall
 import dev.mokkery.plugin.ir.irLambdaOf
-import dev.mokkery.plugin.ir.kClassReference
-import dev.mokkery.plugin.ir.mokkeryFunctionId
 import dev.mokkery.plugin.ir.transformer.core.irCallListOf
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryModuleScope
 import dev.mokkery.plugin.ir.transformer.core.irGetMokkeryScopeFor
@@ -23,9 +19,7 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
-import org.jetbrains.kotlin.ir.builders.irLong
 import org.jetbrains.kotlin.ir.builders.irNull
-import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -35,14 +29,11 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.nonDispatchParameters
-import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.statements
-import org.jetbrains.kotlin.ir.util.substitute
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(scope: TransformerScope)
@@ -144,33 +135,19 @@ private fun IrBuilderWithScope.irTemplatingLambdaFor(
     val lambdaType = irBuiltIns
         .let { if (memberFunction.isSuspend) it.suspendFunctionN(1) else it.functionN(1) }
         .typeWith(listOf(referencedDefaultType(MokkeryIr.Class.MokkeryTemplatingScope), irBuiltIns.unitType))
-    val runTemplateFun = when {
-        memberFunction.isSuspend -> referenced(MokkeryIr.Function.runTemplateSuspend)
-        else -> referenced(MokkeryIr.Function.runTemplate)
-    }
-    val resultType = originalCall.typeArguments[0] ?: irBuiltIns.anyNType
-    val substitution = mapOf(runTemplateFun.typeParameters[0].symbol to resultType)
     return irLambdaOf(lambdaType) { func ->
-        +irCall(runTemplateFun, runTemplateFun.returnType.substitute(substitution)) {
-            typeArguments[0] = originalCall.typeArguments[0]
-            arguments[0] = irGet(func.parameters[0])
-            arguments[1] = when (memberFunction.modality) {
+        +irTemplate(
+            templatingScope = func.parameters[0],
+            mock = when (memberFunction.modality) {
                 Modality.FINAL -> irCallCheckMockFinalMemberCall(func.parameters[0], dispatchReceiver, memberFunction)
                 else -> dispatchReceiver
-            }
-            arguments[2] = kClassReference(memberFunction.parentAsClass.defaultTypeErased)
-            arguments[3] = irLong(memberFunction.mokkeryFunctionId)
-            arguments[4] = irString(memberFunction.name.asString())
-            arguments[5] = when {
-                !memberFunction.hasNonDispatchParameters() -> irNull()
-                else -> irLambdaOf(runTemplateFun.parameters[5].type.makeNotNull()) {
-                    +irReturn(irCallListOfAnyMatchers(memberFunction))
-                }
-            }
-            arguments[6] = irNull()
-        }
+            },
+            function = memberFunction,
+            resultType = originalCall.typeArguments[0] ?: irBuiltIns.anyNType,
+            matchers = { irCallListOfAnyMatchers(memberFunction) },
+            original = null,
+        )
     }
-
 }
 
 context(scope: TransformerScope)

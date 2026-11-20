@@ -93,8 +93,8 @@ object MokkeryIr {
         val internalVerify by dev_mokkery_internal.refFunction
         val internalVerifySuspend by dev_mokkery_internal.refFunction
         val internalVerifyNoMoreCalls by dev_mokkery_internal.refFunction
-        val runTemplate by dev_mokkery_internal_templating.refFunction
-        val runTemplateSuspend by dev_mokkery_internal_templating.refFunction
+        val tryTemplate by dev_mokkery_internal_templating.refFunction
+        val requireTemplate by dev_mokkery_internal_templating.refFunction
         val checkMockMemberCallResultAccess by dev_mokkery_internal_templating.refFunction
         val checkMockFinalMemberCall by dev_mokkery_internal_templating.refFunction
         val instanceFactoryScope by dev_mokkery_internal_factory.refFunction

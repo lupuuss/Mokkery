@@ -63,42 +63,47 @@ internal fun <T : Any> MokkeryTemplatingScope.checkMockFinalMemberCall(obj: T, f
 }
 
 @PublishedApi
-internal suspend fun <R> MokkeryTemplatingScope.runTemplateSuspend(
+internal inline fun <R> MokkeryTemplatingScope.tryTemplate(
     mock: Any,
-    mockedType: KClass<*>,
     functionId: Long,
     functionName: String,
-    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
-    original: (suspend () -> R)? = null
+    matchers: () -> List<ArgMatcher<Any?>>,
+    original: () -> R,
 ): RunTemplateResult<R> = when {
-    isClosed && original != null -> RunTemplateResult.Original(original())
-    mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
-    original == null -> mockCallExpectedError(mock, mockedType, functionName)
+    isTemplateCall(mock) -> registerTemplate(mock, functionId, functionName, matchers())
     else -> RunTemplateResult.Original(original())
 }
 
 @PublishedApi
-internal fun <R> MokkeryTemplatingScope.runTemplate(
+internal inline fun MokkeryTemplatingScope.requireTemplate(
     mock: Any,
     mockedType: KClass<*>,
     functionId: Long,
     functionName: String,
-    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
-    original: (() -> R)? = null
-): RunTemplateResult<R> = when {
-    isClosed && original != null -> RunTemplateResult.Original(original())
-    mock.isMock -> registerTemplate(mock, functionId, functionName, matchers)
-    original == null -> mockCallExpectedError(mock, mockedType, functionName)
-    else -> RunTemplateResult.Original(original())
+    matchers: () -> List<ArgMatcher<Any?>>,
+): RunTemplateResult<Nothing> = registerTemplate(
+    mock = requireMock(mock, mockedType, functionName),
+    functionId = functionId,
+    functionName = functionName,
+    matchers = matchers()
+)
+
+@PublishedApi
+internal fun MokkeryTemplatingScope.isTemplateCall(mock: Any): Boolean = !isClosed && mock.isMock
+
+@PublishedApi
+internal fun requireMock(mock: Any, mockedType: KClass<*>, functionName: String): Any = when {
+    mock.isMock -> mock
+    else -> mockCallExpectedError(mock, mockedType, functionName)
 }
 
-private fun MokkeryTemplatingScope.registerTemplate(
+@PublishedApi
+internal fun MokkeryTemplatingScope.registerTemplate(
     mock: Any,
     functionId: Long,
     functionName: String,
-    matchers: (() -> List<ArgMatcher<Any?>>)? = null,
-): RunTemplateResult.Empty {
-    val matchers = matchers?.invoke().orEmpty()
+    matchers: List<ArgMatcher<Any?>>,
+): RunTemplateResult<Nothing> {
     val scope = mock.requireInstanceScope()
     val functions = scope.functions
     val id = functions.normalizeId(Function.Id(functionId))
