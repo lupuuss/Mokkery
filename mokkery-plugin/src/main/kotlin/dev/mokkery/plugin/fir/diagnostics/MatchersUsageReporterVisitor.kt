@@ -53,7 +53,6 @@ import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirStringConcatenationCall
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirThrowExpression
-import org.jetbrains.kotlin.fir.expressions.FirTryExpression
 import org.jetbrains.kotlin.fir.expressions.FirTypeOperatorCall
 import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
@@ -61,7 +60,6 @@ import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.expressions.FirWhileLoop
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.calleeReference
-import org.jetbrains.kotlin.fir.lastExpression
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
@@ -248,20 +246,6 @@ class MatchersUsageReporterVisitor(
                 report(it.source, Diagnostics.ILLEGAL_MATCHER_IN_CONDITION)
             }
         whenExpression.acceptChildren(this)
-    }
-
-    override fun visitTryExpression(tryExpression: FirTryExpression) {
-        val blocks = buildList {
-            addAll(listOf(tryExpression.tryBlock))
-            tryExpression.catches.mapTo(this) { it.block }
-            addAll(listOfNotNull(tryExpression.finallyBlock))
-        }
-        blocks.forEach {
-            if (matchersProcessor.isMatcher(it.lastExpression)) {
-                report(tryExpression.source, Diagnostics.ILLEGAL_TRY_CATCH)
-            }
-        }
-        tryExpression.acceptChildren(this)
     }
 
     override fun visitWhileLoop(whileLoop: FirWhileLoop) {
@@ -566,7 +550,6 @@ class MatchersUsageReporterVisitor(
         val ILLEGAL_MEMBER_ACCESS_ON_MATCHER by error0<KtElement>()
         val ILLEGAL_OPERATOR_USAGE by error1<KtElement, String>()
         val ILLEGAL_MATCHER_REFERENCE by error0<KtElement>()
-        val ILLEGAL_TRY_CATCH by error0<KtElement>()
         val ILLEGAL_NESTED_TEMPLATING by error1<KtElement, Name>()
         val ILLEGAL_CONTEXT_FUNCTION_IN_MATCHER_BUILDER by error1<KtElement, Name>()
         val ILLEGAL_NESTED_FUNCTIONS_MATCHERS by error1<KtElement, FirFunctionSymbol<*>>()

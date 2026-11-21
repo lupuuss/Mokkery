@@ -45,10 +45,6 @@ class MatchersUsageDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             message = "Matchers cannot be used as function references."
         )
         it.put(
-            factory = Diagnostics.ILLEGAL_TRY_CATCH,
-            message = "Returning matchers from try/catch is not supported."
-        )
-        it.put(
             factory = Diagnostics.ILLEGAL_NESTED_TEMPLATING,
             message = "''{0}'' calls cannot be nested in templating functions or matcher declarations.",
             rendererA = CommonRenderers.NAME

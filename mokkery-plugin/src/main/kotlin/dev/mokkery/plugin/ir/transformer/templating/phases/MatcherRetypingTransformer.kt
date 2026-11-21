@@ -10,6 +10,7 @@ import dev.mokkery.plugin.ir.transformer.templating.matcher.asMatchersArrayType
 import dev.mokkery.plugin.ir.transformer.templating.matcher.isMatchersArrayLiteral
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherArity
 import dev.mokkery.plugin.ir.transformer.templating.matcher.matcherFunctionKind
+import dev.mokkery.plugin.ir.transformer.templating.matcher.results
 import dev.mokkery.plugin.ir.transformer.templating.signature.matcherCompiledSignature
 import dev.mokkery.plugin.ir.transformer.templating.signature.matcherCompiledType
 import dev.mokkery.plugin.ir.transformer.templating.signature.retypeTo
@@ -20,6 +21,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
+import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.types.IrType
@@ -69,6 +71,11 @@ class MatcherRetypingTransformer(pluginScope: IrMokkeryPluginScope) : PhaseTrans
     override fun visitWhen(expression: IrWhen) = expression.transformPostfix {
         val arity = matcherArity() ?: return@transformPostfix
         type = branches.first { it.result.matcherArity() == arity }.result.type
+    }
+
+    override fun visitTry(aTry: IrTry) = aTry.transformPostfix {
+        val arity = matcherArity() ?: return@transformPostfix
+        type = results.first { it.matcherArity() == arity }.type
     }
 
     override fun visitGetValue(expression: IrGetValue) = expression.transformPostfix {

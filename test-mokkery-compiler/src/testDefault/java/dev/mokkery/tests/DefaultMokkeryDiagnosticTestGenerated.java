@@ -169,12 +169,6 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         }
 
         @Test
-        @TestMetadata("MatcherMustNotBeReturnedFromTryCatch.kt")
-        public void testMatcherMustNotBeReturnedFromTryCatch() {
-          run("MatcherMustNotBeReturnedFromTryCatch.kt");
-        }
-
-        @Test
         @TestMetadata("MatcherMustNotBeUsedAsCondition.kt")
         public void testMatcherMustNotBeUsedAsCondition() {
           run("MatcherMustNotBeUsedAsCondition.kt");
@@ -330,12 +324,6 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
         @TestMetadata("MatchersMustNotBePassedToRegularFunctions.kt")
         public void testMatchersMustNotBePassedToRegularFunctions() {
           run("MatchersMustNotBePassedToRegularFunctions.kt");
-        }
-
-        @Test
-        @TestMetadata("MatchersMustNotBeReturnedFromTryCatch.kt")
-        public void testMatchersMustNotBeReturnedFromTryCatch() {
-          run("MatchersMustNotBeReturnedFromTryCatch.kt");
         }
 
         @Test

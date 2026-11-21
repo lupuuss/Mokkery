@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirSafeCallExpression
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
+import org.jetbrains.kotlin.fir.expressions.FirTryExpression
 import org.jetbrains.kotlin.fir.expressions.FirVarargArgumentsExpression
 import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.lastExpression
@@ -113,6 +114,7 @@ class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>, function: Fi
             null -> false
             is FirElvisExpression -> unwrappedExpression.rhs.anyValue(predicate)
             is FirWhenExpression -> unwrappedExpression.branches.any { it.result.lastExpression.anyValue(predicate) }
+            is FirTryExpression -> unwrappedExpression.results.any { it.lastExpression.anyValue(predicate) }
             is FirSafeCallExpression -> (unwrappedExpression.selector as? FirExpression).anyValue(predicate)
             is FirCheckedSafeCallSubject -> unwrappedExpression.originalReceiverRef.value.anyValue(predicate)
             else -> predicate(unwrappedExpression)
@@ -133,6 +135,8 @@ private fun FirFunction.collectLocalVariables(): Set<FirPropertySymbol> = buildS
         }
     })
 }
+
+private val FirTryExpression.results get() = listOf(tryBlock) + catches.map { it.block }
 
 private fun FirAnonymousFunction.returnedValues(): List<FirExpression> = buildList {
     val function = this@returnedValues

@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
+import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.IrWhen
@@ -53,17 +54,23 @@ fun IrVarargElement.matcherArity(): MatcherArity? = when (this) {
         collectReturns().any { it.value.matcherArity() == MatcherArity.Single }
     }
     is IrBlock -> (statements.lastOrNull() as? IrExpression)?.matcherArity()
-    is IrWhen -> {
-        val arities = branches.map { it.result.matcherArity() }
-        when {
-            MatcherArity.Array in arities -> MatcherArity.Array.takeIf {
-                branches.all { it.result.type.isAnyArray() || it.result.type.isNothing() }
-            }
-            MatcherArity.Single in arities -> MatcherArity.Single
-            else -> null
-        }
-    }
+    is IrWhen -> branches.map { it.result }.resultsMatcherArity()
+    is IrTry -> results.resultsMatcherArity()
     else -> null
+}
+
+val IrTry.results: List<IrExpression> get() = listOf(tryResult) + catches.map { it.result }
+
+context(scope: TransformerScope)
+private fun List<IrExpression>.resultsMatcherArity(): MatcherArity? {
+    val arities = map { it.matcherArity() }
+    return when {
+        MatcherArity.Array in arities -> MatcherArity.Array.takeIf {
+            all { it.type.isAnyArray() || it.type.isNothing() }
+        }
+        MatcherArity.Single in arities -> MatcherArity.Single
+        else -> null
+    }
 }
 
 context(scope: TransformerScope)

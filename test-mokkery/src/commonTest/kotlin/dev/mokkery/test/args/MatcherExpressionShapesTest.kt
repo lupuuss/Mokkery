@@ -7,6 +7,7 @@ import dev.mokkery.every
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.gt
+import dev.mokkery.matcher.lt
 import dev.mokkery.matcher.logical.not
 import dev.mokkery.matcher.logical.or
 import dev.mokkery.mock
@@ -278,6 +279,163 @@ class MatcherExpressionShapesTest {
         verify { mock.callPrimitive(ctx(gt(1)) { notContextMatcher() }) }
         assertFailsWith<AssertionError> { verify { mock.callPrimitive(ctx(gt(0)) { notContextMatcher() }) } }
     }
+
+    @Test
+    fun testMatcherFromTryAsArgument() {
+        every { mock.callPrimitive(try { gt(10) } catch (e: Exception) { 0 }) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+    }
+
+    @Test
+    fun testPlainValueFromCatchAsArgument() {
+        every { mock.callPrimitive(try { throwingValue(); gt(10) } catch (e: Exception) { 5 }) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(11) }
+    }
+
+    @Test
+    fun testMatcherFromTryInVariable() {
+        every {
+            val matcher = try { gt(10) } finally { }
+            mock.callPrimitive(not(matcher))
+        } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(11) }
+    }
+
+    @Test
+    fun testMatcherFromTryInMatcherBuilder() {
+        every { mock.callPrimitive(gtFromTry()) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+    }
+
+    @Test
+    fun testPlainValueFromCatchInMatcherBuilder() {
+        every { mock.callPrimitive(plainFromCatch()) } returns 1
+        assertEquals(1, mock.callPrimitive(5))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(11) }
+    }
+
+    @Test
+    fun testReturnFromTryInMatcherBuilder() {
+        every { mock.callPrimitive(returnFromTry(true)) } returns 1
+        every { mock.callPrimitive(returnFromTry(false)) } returns 2
+        assertEquals(1, mock.callPrimitive(11))
+        assertEquals(2, mock.callPrimitive(5))
+    }
+
+    @Test
+    fun testReturnFromTryInCtx() {
+        val flag = true
+        every {
+            mock.callPrimitive(ctx(1) {
+                try {
+                    if (flag) return@ctx gt(10)
+                    2
+                } catch (e: Exception) {
+                    0
+                }
+            })
+        } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(2) }
+    }
+
+    @Test
+    fun testArrayFromTrySpreadIntoVararg() {
+        every { mock.callPrimitiveVarargs(1, *try { intArrayOf(7, 2) } catch (e: Exception) { intArrayOf() }) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(1, 7, 2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 7, 3) }
+    }
+
+    @Test
+    fun testTryAsCtxResult() {
+        every { mock.callPrimitive(ctx(1) { try { gt(10) } catch (e: Exception) { 0 } }) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(0) }
+    }
+
+    @Test
+    fun testTryAsExtResult() {
+        every { mock.callPrimitive(1.ext { try { gt(10) } catch (e: Exception) { this } }) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(1) }
+    }
+
+    @Test
+    fun testTryInsideIf() {
+        val flag = true
+        every { mock.callPrimitive(if (flag) try { gt(10) } catch (e: Exception) { 0 } else 5) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testIfInsideTry() {
+        val flag = false
+        every { mock.callPrimitive(try { if (flag) gt(10) else lt(3) } catch (e: Exception) { 0 }) } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(11) }
+    }
+
+    @Test
+    fun testMatcherReassignedInsideTry() {
+        every {
+            var matcher = gt(10)
+            try { matcher = lt(3) } catch (e: Exception) { }
+            mock.callPrimitive(matcher)
+        } returns 1
+        assertEquals(1, mock.callPrimitive(2))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(11) }
+    }
+
+    @Test
+    fun testVarargMatcherParamSpreadFromTryInMatcherBuilder() {
+        every { mock.callPrimitive(orFromTry(1, gt(10))) } returns 1
+        assertEquals(1, mock.callPrimitive(1))
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatcherParamFromTryInMatcherBuilder() {
+        every { mock.callPrimitive(paramFromTry(gt(10))) } returns 1
+        assertEquals(1, mock.callPrimitive(11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitive(5) }
+    }
+
+    @Test
+    fun testMatcherFromTryAsVarargElement() {
+        every { mock.callPrimitiveVarargs(1, try { gt(10) } catch (e: Exception) { 0 }) } returns 1
+        assertEquals(1, mock.callPrimitiveVarargs(1, 11))
+        assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 5) }
+    }
+}
+
+private fun throwingValue(): Int = error("fail")
+
+private fun MokkeryMatcherScope.gtFromTry(): Int = try {
+    gt(10)
+} catch (e: Exception) {
+    0
+}
+
+private fun MokkeryMatcherScope.plainFromCatch(): Int = try {
+    throwingValue()
+    gt(10)
+} catch (e: Exception) {
+    5
+}
+
+private fun MokkeryMatcherScope.returnFromTry(flag: Boolean): Int {
+    try {
+        if (flag) return gt(10)
+    } catch (e: Exception) {
+        return 0
+    }
+    return 5
 }
 
 context(@Matcher matcher: Int)
@@ -285,3 +443,8 @@ private fun MokkeryMatcherScope.notContextMatcher(): Int = not(matcher)
 
 context(@Matcher matcher: Int)
 private fun MokkeryMatcherScope.notViaContextOf(): Int = not(contextOf<Int>())
+
+private fun <T> MokkeryMatcherScope.orFromTry(@Matcher first: T, @Matcher vararg others: T): T =
+    or(first, first, *try { others } catch (e: Exception) { others })
+
+private fun <T> MokkeryMatcherScope.paramFromTry(@Matcher matcher: T): T = try { matcher } catch (e: Exception) { matcher }

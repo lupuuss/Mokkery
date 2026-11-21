@@ -47,11 +47,11 @@ fun legal(flag: Boolean, nullable: Foo?, nullableInt: Int?) {
     every { mock.foo(ctx(1) { if (flag) return@ctx gt(1); 2 }) }
     every { mock.fooN(nullableInt?.ext { this }) }
     every { ctx(gt(1)) { mock.foo(contextOf<Int>()) } }
+    every { mock.foo(try { ctx(gt(1)) { notInContext() } } catch (e: Exception) { 1 }) }
 }
 
 fun illegal(flag: Boolean) {
     val mock = mock<Foo>()
-    every { mock.foo(<!ILLEGAL_TRY_CATCH!>try { ctx(gt(1)) { notInContext() } } catch (e: Exception) { 1 }<!>) }
     every { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>ctx(gt(1)) { notInContext() }<!> + 1) }
     every { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>gt(1).ext { this }<!> + 1) }
     every { mock.foo(if (<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>ctx(gt(1)) { notInContext() }<!> > 0) 1 else 2) }

@@ -1,5 +1,3 @@
-/ContextFunctionsAsValues.kt:(1669,1733): error: Returning matchers from try/catch is not supported.
-
 /ContextFunctionsAsValues.kt:(1758,1787): error: Accessing members of matchers is illegal.
 
 /ContextFunctionsAsValues.kt:(1816,1834): error: Accessing members of matchers is illegal.

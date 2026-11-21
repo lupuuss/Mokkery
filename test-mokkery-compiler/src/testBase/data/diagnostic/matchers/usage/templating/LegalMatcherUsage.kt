@@ -133,3 +133,22 @@ fun extValues() {
     every { any<Int>().ext { mock.foo(notReceiver()) } }
     every { 1.ext { mock.foo(notReceiver()) } }
 }
+
+fun tryCatchValues(flag: Boolean) {
+    val mock = mock<Foo>()
+    every { mock.foo(try { any() } catch (e: Exception) { 0 }) }
+    every {
+        val matcher = try { any<Int>() } finally { }
+        mock.foo(not(matcher))
+    }
+    every {
+        mock.foo(ctx(1) {
+            try {
+                if (flag) return@ctx any()
+                2
+            } catch (e: Exception) {
+                return@ctx gt(1)
+            }
+        })
+    }
+}

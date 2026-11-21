@@ -104,3 +104,18 @@ fun MokkeryMatcherScope.expressionShapes(flag: Boolean, @Matcher matcher: Int): 
 
 context(@Matcher matcher: Int)
 fun MokkeryMatcherScope.contextOfParameter(): Int = not(contextOf<Int>())
+
+fun MokkeryMatcherScope.matcherFromTry(): Int = try {
+    any()
+} catch (e: Exception) {
+    0
+}
+
+fun MokkeryMatcherScope.matcherReturnedFromTry(flag: Boolean): Int {
+    try {
+        if (flag) return any()
+    } catch (e: Exception) {
+        return gt(1)
+    }
+    return 0
+}

@@ -24,14 +24,22 @@
 
 /MatcherMembersAndOperatorsAreIllegal.kt:46:39: error: Matchers cannot be used as function references.
 
+/MatcherMembersAndOperatorsAreIllegal.kt:47:23: error: Accessing members of matchers is illegal.
+
 /MatcherMembersAndOperatorsAreIllegal.kt:48:22: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:49:22: error: Operators cannot be used with matchers, but '!!' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:49:26: error: Matcher cannot be used as a condition.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:50:29: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatcherMembersAndOperatorsAreIllegal.kt:50:25: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:51:25: error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:52:22: error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:52:22: error: Operators cannot be used with matchers, but '?.' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:53:22: error: Operators cannot be used with matchers, but '!!' operator is used.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:53:22: error: Operators cannot be used with matchers, but '?.' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:54:29: error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:55:25: error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:56:22: error: Operators cannot be used with matchers, but '?.' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:57:22: error: Operators cannot be used with matchers, but '?.' operator is used.

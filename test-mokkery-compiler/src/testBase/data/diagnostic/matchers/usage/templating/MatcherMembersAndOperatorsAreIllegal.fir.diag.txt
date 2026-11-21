@@ -24,14 +24,22 @@
 
 /MatcherMembersAndOperatorsAreIllegal.kt:(1463,1480): error: Matchers cannot be used as function references.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1531,1547): error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1512,1552): error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1579,1595): error: Operators cannot be used with matchers, but '!!' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1582,1622): error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1629,1645): error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1657,1710): error: Matcher cannot be used as a condition.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1679,1695): error: Accessing members of matchers is illegal.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1748,1772): error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1722,1733): error: Operators cannot be used with matchers, but '?.' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1819,1835): error: Accessing members of matchers is illegal.
 
-/MatcherMembersAndOperatorsAreIllegal.kt:(1773,1784): error: Operators cannot be used with matchers, but '?.' operator is used.
+/MatcherMembersAndOperatorsAreIllegal.kt:(1867,1883): error: Operators cannot be used with matchers, but '!!' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:(1917,1933): error: Matchers can only be passed to members, but were passed to 'fun <T> listOf(element: T): List<T>'. If you're trying to invoke a method with an extension receiver or context parameters, use the `dev.mokkery.templating.ext` or `dev.mokkery.templating.ctx` functions instead.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:(1967,1983): error: Accessing members of matchers is illegal.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:(2010,2021): error: Operators cannot be used with matchers, but '?.' operator is used.
+
+/MatcherMembersAndOperatorsAreIllegal.kt:(2061,2072): error: Operators cannot be used with matchers, but '?.' operator is used.

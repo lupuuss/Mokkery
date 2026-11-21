@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
+import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.IrWhen
@@ -88,6 +89,16 @@ class MatcherNormalizingTransformer(
             MatcherArity.Single -> branches.forEach { it.result = it.result.asMatcher(type) }
             null -> Unit
         }
+    }
+
+    override fun visitTry(aTry: IrTry) = aTry.transformPostfix {
+        val normalize: (IrExpression) -> IrExpression = when (matcherArity()) {
+            MatcherArity.Array -> { result -> result.asMatchersArray(type) }
+            MatcherArity.Single -> { result -> result.asMatcher(type) }
+            null -> return@transformPostfix
+        }
+        tryResult = normalize(tryResult)
+        catches.forEach { it.result = normalize(it.result) }
     }
 
     override fun visitReturnableBlock(expression: IrReturnableBlock) = expression.transformPostfix {

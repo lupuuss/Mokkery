@@ -1,5 +1,0 @@
-/MatchersMustNotBeReturnedFromTryCatch.kt:13:23: error: Returning matchers from try/catch is not supported.
-
-/MatchersMustNotBeReturnedFromTryCatch.kt:21:23: error: Returning matchers from try/catch is not supported.
-
-/MatchersMustNotBeReturnedFromTryCatch.kt:29:23: error: Returning matchers from try/catch is not supported.

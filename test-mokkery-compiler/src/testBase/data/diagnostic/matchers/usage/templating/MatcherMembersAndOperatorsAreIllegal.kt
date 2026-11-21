@@ -44,6 +44,10 @@ fun main() {
     every { any<Holder>().ext { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>build()<!>) } }
     every { mock.foo(or(1, 2, *listOf(3, 4).map(<!ILLEGAL_MATCHER_REFERENCE!>::gt<!>).toTypedArray())) }
     every { mock.foo(listOf(3, 4).map(<!ILLEGAL_MATCHER_REFERENCE!>this::materialize<!>).size) }
+    every { mock.foo((<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>try { gt(1) } catch (e: Exception) { 0 }<!>) + 1) }
+    every { mock.foo(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>try { 0 } catch (e: Exception) { gt(1) }<!>.inc()) }
+    every { mock.foo(if (<!ILLEGAL_MATCHER_IN_CONDITION!>try { any<Boolean>() } catch (e: Exception) { false }<!>) 1 else 2) }
+    every { mock.baz("${<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>try { gt(1) } finally {}<!>}") }
     val n: Int? = 1
     every { mock.bar(<!ILLEGAL_MEMBER_ACCESS_ON_MATCHER!>n?.ext { gt(1) }<!>?.inc()) }
     every { mock.foo(<!ILLEGAL_OPERATOR_USAGE!>n?.ext { gt(1) }<!>!!) }
