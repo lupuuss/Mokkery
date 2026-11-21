@@ -844,4 +844,47 @@ class TemplatingTest {
     open class FinalMemberHolder {
         fun finalCall(value: Int) = value
     }
+
+    private interface ChainTarget {
+        fun call(value: Int): Int
+    }
+
+    private interface ChainProvider {
+        fun next(): ChainProvider
+        fun target(id: Int): ChainTarget
+        fun nullableTarget(id: Int): ChainTarget?
+        fun anyTarget(id: Int): Any
+    }
+
+    private interface IdProvider {
+        fun id(): Int
+    }
+
+    @Test
+    fun testChainedMockCallsInReceiverRunForReal() {
+        val target = mock<ChainTarget>()
+        val provider = mock<ChainProvider>()
+        every { provider.next() } returns provider
+        every { provider.target(7) } returns target
+        every { provider.next().next().target(7).call(any()) } returns 1
+        assertEquals(1, target.call(2))
+    }
+
+    @Test
+    fun testMockCallsInReceiverArgumentsRunForReal() {
+        val target = mock<ChainTarget>()
+        val provider = mock<ChainProvider>()
+        val ids = mock<IdProvider>()
+        every { ids.id() } returns 7
+        every { provider.target(7) } returns target
+        every { provider.nullableTarget(7) } returns target
+        every { provider.anyTarget(7) } returns target
+        every { provider.target(ids.id()).call(1) } returns 1
+        every { provider.nullableTarget(ids.id())!!.call(2) } returns 2
+        every { (provider.anyTarget(ids.id()) as ChainTarget).call(3) } returns 3
+        assertEquals(1, target.call(1))
+        assertEquals(2, target.call(2))
+        assertEquals(3, target.call(3))
+        verify { provider.target(ids.id()).call(1) }
+    }
 }

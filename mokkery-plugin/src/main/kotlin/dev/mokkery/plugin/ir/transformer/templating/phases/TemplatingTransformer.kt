@@ -77,7 +77,6 @@ class TemplatingTransformer(
                 .wrapDispatcherWithMockCheck()
                 .applyTransformChildrenVoid()
         }
-        if (receiver is IrCall) receiver.transformChildrenVoid()
         val originalCall = when {
             expression.usesMatchers -> null
             else -> expression
