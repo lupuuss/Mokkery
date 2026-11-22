@@ -15,6 +15,7 @@ import dev.mokkery.templating.ctx
 import dev.mokkery.templating.ext
 import dev.mokkery.verify
 import dev.mokkery.test.ComplexArgsInterface
+import dev.mokkery.test.RegularMethodsInterface
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -412,7 +413,16 @@ class MatcherExpressionShapesTest {
         assertEquals(1, mock.callPrimitiveVarargs(1, 11))
         assertFailsWith<MokkeryRuntimeException> { mock.callPrimitiveVarargs(1, 5) }
     }
+
+    @Test
+    fun testBlockBodiedUnitBuilder() {
+        val unitMock = mock<RegularMethodsInterface>()
+        every { unitMock.callUnit(unitBuilder()) } returns Unit
+        assertEquals(Unit, unitMock.callUnit(Unit))
+    }
 }
+
+private fun MokkeryMatcherScope.unitBuilder() {}
 
 private fun throwingValue(): Int = error("fail")
 

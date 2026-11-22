@@ -2,6 +2,7 @@ package dev.mokkery.plugin.ir.transformer.templating.phases
 
 import dev.mokkery.plugin.Kotlin
 import dev.mokkery.plugin.core.ir.IrMokkeryPluginScope
+import dev.mokkery.plugin.core.ir.irBuiltIns
 import dev.mokkery.plugin.core.ir.transformer.referenced
 import dev.mokkery.plugin.core.ir.transformer.replaceDeclarationIrBuilder
 import dev.mokkery.plugin.ir.MokkeryIr
@@ -16,6 +17,7 @@ import dev.mokkery.plugin.ir.transformer.templating.matcher.templatingSubstituti
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
@@ -26,8 +28,11 @@ import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.IrWhen
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNothing
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.substitute
@@ -118,6 +123,21 @@ class MatcherNormalizingTransformer(
         val function = matcherFunction ?: return@transformPostfix
         if (returnTargetSymbol != function.symbol) return@transformPostfix
         value = value.asMatcher(function.returnType)
+    }
+
+    override fun visitBlockBody(body: IrBlockBody) = body.transformPostfix {
+        val function = matcherFunction ?: return@transformPostfix
+        if (function.body !== this || !function.returnType.isUnit() || statements.lastOrNull() is IrReturn) {
+            return@transformPostfix
+        }
+        val unit = IrGetObjectValueImpl(endOffset, endOffset, irBuiltIns.unitType, irBuiltIns.unitClass)
+        statements += IrReturnImpl(
+            startOffset = endOffset,
+            endOffset = endOffset,
+            type = irBuiltIns.nothingType,
+            returnTargetSymbol = function.symbol,
+            value = unit.asMatcher(function.returnType),
+        )
     }
 
     private fun IrVararg.normalizeElements() {
