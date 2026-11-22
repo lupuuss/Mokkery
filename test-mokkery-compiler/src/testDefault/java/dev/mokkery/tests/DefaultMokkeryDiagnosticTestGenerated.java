@@ -88,6 +88,12 @@ public class DefaultMokkeryDiagnosticTestGenerated extends AbstractDefaultMokker
       }
 
       @Test
+      @TestMetadata("MatcherMustNotOverride.kt")
+      public void testMatcherMustNotOverride() {
+        run("MatcherMustNotOverride.kt");
+      }
+
+      @Test
       @TestMetadata("MatcherPropertyMustBeNonDelegatedVal.kt")
       public void testMatcherPropertyMustBeNonDelegatedVal() {
         run("MatcherPropertyMustBeNonDelegatedVal.kt");

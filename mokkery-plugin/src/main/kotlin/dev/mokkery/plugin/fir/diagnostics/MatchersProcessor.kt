@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
+import org.jetbrains.kotlin.fir.unwrapSubstitutionOverrides
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 
 class MatchersProcessor(matcherParameters: List<FirBasedSymbol<*>>, function: FirFunction) {
@@ -157,7 +158,9 @@ fun FirCallableSymbol<*>.isMatcherBuilder(): Boolean = isMatcherLikeDeclaration(
 /**
  * Regular matcher builders + materializers
  */
-fun FirCallableSymbol<*>.isMatcherLikeDeclaration(): Boolean = invokedFunction()?.hasMatcherScope() == true
+fun FirCallableSymbol<*>.isMatcherLikeDeclaration(): Boolean {
+    return unwrapSubstitutionOverrides().invokedFunction()?.hasMatcherScope() == true
+}
 
 private fun FirCallableSymbol<*>.invokedFunction(): FirFunctionSymbol<*>? = when (this) {
     is FirNamedFunctionSymbol -> this

@@ -1,0 +1,3 @@
+/MatcherMustNotOverride.kt:(283,352): error: Matcher must not override other members.
+
+/MatcherMustNotOverride.kt:(410,423): error: Matcher must not override other members.

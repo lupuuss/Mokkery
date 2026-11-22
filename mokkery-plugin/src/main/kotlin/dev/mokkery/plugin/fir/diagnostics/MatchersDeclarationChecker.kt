@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.isExternal
+import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.declarations.utils.modality
 import org.jetbrains.kotlin.fir.resolve.defaultType
@@ -93,9 +94,14 @@ class MatchersDeclarationChecker(
 
     context(context: CheckerContext, reporter: DiagnosticReporter)
     private fun checkModality(declaration: FirFunction) {
-        val modality = (declaration as? FirPropertyAccessor)?.propertySymbol?.modality ?: declaration.modality
-        if (modality != Modality.FINAL) {
-            reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_FINAL)
+        val property = (declaration as? FirPropertyAccessor)?.propertySymbol
+        when {
+            property?.isOverride ?: declaration.isOverride -> {
+                reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_NOT_OVERRIDE)
+            }
+            (property?.modality ?: declaration.modality) != Modality.FINAL -> {
+                reporter.reportOn(declaration.source, Diagnostics.MATCHER_MUST_BE_FINAL)
+            }
         }
     }
 
@@ -145,6 +151,7 @@ class MatchersDeclarationChecker(
         override fun getRendererFactory() = MatchersDeclarationDiagnosticRendererFactory()
 
         val MATCHER_MUST_BE_FINAL by error0<KtElement>()
+        val MATCHER_MUST_NOT_OVERRIDE by error0<KtElement>()
         val MATCHER_MUST_NOT_BE_EXTERNAL by error0<KtElement>()
         val PARAM_OF_TYPE_CANNOT_BE_MARKED_MATCHER by error1<KtElement, ConeKotlinType>()
         val MATCHER_MUST_BE_REGULAR_FUNCTION by error0<KtElement>()

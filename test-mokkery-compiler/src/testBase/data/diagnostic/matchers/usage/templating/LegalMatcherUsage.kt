@@ -152,3 +152,18 @@ fun tryCatchValues(flag: Boolean) {
         })
     }
 }
+
+class Holder<T> {
+    fun pass(value: T): T = value
+}
+
+fun substitutedScopeValues(mapper: Mapper<MokkeryMatcherScope, Int>, provide: MokkeryMatcherScope.() -> Int) {
+    val mock = mock<Foo>()
+    every { mock.foo(mapper.map(this) + 1) }
+    every { mock.foo(provide() + 1) }
+    every { mock.foo(Holder<MokkeryMatcherScope>().pass(this).gt(3)) }
+}
+
+fun interface Mapper<T, R> {
+    fun map(value: T): R
+}

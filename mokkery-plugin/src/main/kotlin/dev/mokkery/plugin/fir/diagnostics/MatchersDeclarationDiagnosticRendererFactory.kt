@@ -13,6 +13,10 @@ class MatchersDeclarationDiagnosticRendererFactory : BaseDiagnosticRendererFacto
             message = "Matcher must be final."
         )
         it.put(
+            factory = Diagnostics.MATCHER_MUST_NOT_OVERRIDE,
+            message = "Matcher must not override other members."
+        )
+        it.put(
             factory = Diagnostics.MATCHER_MUST_NOT_BE_EXTERNAL,
             message = "Matcher must not be external."
         )
